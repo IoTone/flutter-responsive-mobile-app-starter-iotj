@@ -40,9 +40,14 @@ On Linux, use a package manager
 
 Once installed, run flutter doctor.  Fix anything mentioned.
 
-On iOS for a first time setup, you will need hours.  XCode is a long slow download.  Xcode commmand line tools take awhile.
+### iOS Dev
 
-Android studio will take under an hour.
+iOS development is only available on Mac OS X.  On iOS for a first time setup, you will need hours.  XCode is a long slow download.  Xcode commmand line tools take awhile.
+
+Make sure to install cocoapods: sudo gem install cocoapods
+### Android dev
+
+Android development is possible on Mac, Linux, and Windows.  Android studio will take under an hour.
 
 ## Build
 
