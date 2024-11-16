@@ -80,3 +80,16 @@ TODO
 
 - IoTone Japan https://iotonesite.ai
 - An example application using [responsive_toolkit](https://github.com/Calpoog/responsive_toolkit).
+
+## Developing With Flutter
+
+### Main app
+
+### Splash Screens
+
+### Hamburger Menu/Drawer
+
+- https://www.dhiwise.com/post/crafting-the-perfect-flutter-hamburger-menu
+
+### Page Navigation
+
