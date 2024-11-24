@@ -1,15 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:responsive_toolkit/responsive_toolkit.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:responsive_starter_app/about.dart';
+import 'package:provider/provider.dart';
+import 'package:responsive_starter_app/app_state_model.dart';
+import 'package:responsive_starter_app/router.dart';
 
 void main() {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  runApp(MyApp());
+  // runApp(MyApp());
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]).then((value) {
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => AppState()),
+        ],
+        child: const MaterialApp(
+          home: MyApp(), // make this const
+          initialRoute: '/',
+          onGenerateRoute: RouterClass.generateRoute,
+        ),
+      ),
+    );
+  });
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key}); // This is needed to help above initialization
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -21,32 +45,40 @@ class MyApp extends StatelessWidget {
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: Text('Responsive Mobile App Starter'),
+          title: const Text('Responsive Mobile App Starter'),
         ),
         drawer: Drawer(
           child: ListView(
             padding: EdgeInsets.zero,
             children: <Widget>[
               DrawerHeader(
-                child: Text('Drawer Header'),
+                child: Text('Responsive Menu'),
                 decoration: BoxDecoration(
                   color: Colors.blue,
                 ),
               ),
               ListTile(
-                title: Text('Item 1'),
+                leading: Icon(Icons.abc_rounded),
+                title: Text('About'),
                 onTap: () {
                   // Update the state of the app
                   // Then close the drawer
+                  
                   Navigator.pop(context);
+                  Navigator.pushNamed(context, '/about');
+                  /* Navigator.push(context, new MaterialPageRoute(
+                    builder: (context) => new AboutPageWidget())
+                  ); */
                 },
               ),
               ListTile(
-                title: Text('Item 2'),
+                leading: Icon(Icons.settings),
+                title: Text('Settings'),
                 onTap: () {
                   // Update the state of the app
                   // Then close the drawer
                   Navigator.pop(context);
+                  Navigator.pushNamed(context, '/settings');
                 },
               ),
             ],
@@ -56,12 +88,19 @@ class MyApp extends StatelessWidget {
           child: MyHomePage(),
         ),
       ),
+      /*
+      initialRoute: '/',
+      onGenerateRoute: RouterClass.generateRoute,
+      */
+      /*
       routes: {
         '/home': (context) => MyHomePage(),
+        '/about': (context) => AboutPageWidget()
         // '/about': (context) => AboutPage(),
         // '/settings': (context) => SettingsPage(),
         // Add other routes here
       },
+      */
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-class AppModel extends ChangeNotifier {
+class AppState extends ChangeNotifier {
   static late PackageInfo packageInfo;
   static String appversion = "UNKNOWN";
   static String fullappname = "UNKNOWN";
@@ -26,5 +26,13 @@ class AppModel extends ChangeNotifier {
   // if it has changed
   void changeToNewScreen() {
     notifyListeners();
+  }
+
+  String getAppVersion() {
+    return appversion;
+  }
+
+  String getAppName() {
+    return fullappname;
   }
 }
