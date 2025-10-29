@@ -166,9 +166,9 @@ class _MyHomePageWidgetState extends State<MyHomePage> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
-                child: Text('FluidText',
+                child: Text('A Great App',
                     style:
-                        TextStyle(fontSize: 32.0, fontWeight: FontWeight.bold)),
+                        TextStyle(fontSize: 36.0, fontWeight: FontWeight.bold)),
               ),
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
