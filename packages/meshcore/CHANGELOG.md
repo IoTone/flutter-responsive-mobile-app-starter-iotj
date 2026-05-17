@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.1.1 — M8 (external-ref corrections; open item #1 closed)
+
+Reviewed docs.meshcore.io/companion_protocol + the wirehack7
+packet-builder gist. Verified locally (base64↔hex, SHA-256).
+
+- **Open crypto item #1 CLOSED:** the 32-byte channel secret is
+  authoritatively `psk ‖ 0x00·16` (gist: "PSK + zero pad to 32";
+  docs: 16-byte only, 32-byte variant unsupported). Matches our
+  existing `channelSecretFromPsk`. The M6 on-device fixture is now
+  corroboration/regression-anchor, not the sole proof.
+- **Correctness fix:** the on-air channel hash is `SHA256(psk16)[0]`
+  (`PATH_HASH_SIZE`=1), keyed on the **16-byte PSK** — *not* the
+  32-byte secret (they differ: public → `0x11` vs `0x17`). Removed
+  the misleading `channelHash(secret)`; added `channelHashFromPsk`.
+  `resolveChannelTail` now treats the channel hash as a
+  tail-independent PSK sanity (`channelHashOk`) and disambiguates the
+  tail by the HMAC only.
+- Added `channelPskFromHashtag` (`#tag → SHA256(utf8(tag))[0..16]`)
+  + `channelHashFromHashtag`. KAT: `#test` →
+  `9cd8fcf22a47333b591d96a2b848b73f` (docs + gist agree); public PSK
+  cross-checked base64 `izOH6cXN6mrJ5e26oRXNcg==` == hex
+  `8b3387e9…cd72`; public channel hash == `0x11`.
+- 113 tests + 1 skipped; `--fatal-infos` clean.
+
 ## 0.1.0 — M7 (hardening; TC2 final)
 
 Final pure-software milestone. Conformance gate enforced.

@@ -11,7 +11,9 @@ import 'package:test/test.dart';
 Uint8List _rfLogGrpTxt(Uint8List secret32, Uint8List plaintext) {
   final int header = (kPayloadTypeGrpTxt << kPktPayloadTypeShift) |
       kRouteFlood; // ver 0
-  final int channelHash = MeshcoreChannelCrypto.channelHash(secret32);
+  // On-air channel hash is keyed on the 16-byte PSK only.
+  final int channelHash = MeshcoreChannelCrypto.channelHashFromPsk(
+      secret32.sublist(0, 16));
   final Uint8List macCt =
       MeshcoreChannelCrypto.encryptThenMac(secret32, plaintext);
   final List<int> ota = <int>[
@@ -48,7 +50,8 @@ void main() {
       expect(pkt.hopCount, 0);
       final GrpTxtPayload? g = pkt.grpTxt;
       expect(g, isNotNull);
-      expect(g!.channelHash, MeshcoreChannelCrypto.channelHash(secret));
+      expect(g!.channelHash,
+          MeshcoreChannelCrypto.channelHashFromPsk(secret.sublist(0, 16)));
     });
 
     test('OtaPacket.parse skips transport codes + multi-byte path', () {
@@ -101,7 +104,7 @@ void main() {
       expect(r.resolved, isTrue);
       expect(r.match, ChannelTailHypothesis.zeros);
       expect(r.recoveredPlaintext, pt);
-      expect(r.channelHashMatched, contains(ChannelTailHypothesis.zeros));
+      expect(r.channelHashOk, isTrue);
     });
 
     test('resolves the PSK-REPEAT tail when that is how it was built', () {

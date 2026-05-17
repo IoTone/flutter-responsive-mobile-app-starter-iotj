@@ -65,7 +65,7 @@ void main() {
       // ignore: avoid_print
       print('[interop] $name → channel-secret tail = '
           '${r.match?.name ?? "UNRESOLVED"} '
-          '(hash-matched: ${r.channelHashMatched.map((e) => e.name)})');
+          '(channelHashOk: ${r.channelHashOk})');
       expect(r.resolved, isTrue,
           reason: 'no tail hypothesis reproduced the real device MAC + '
               'channel hash + plaintext for $name');

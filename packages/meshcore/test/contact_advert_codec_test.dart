@@ -192,9 +192,13 @@ void main() {
       expect(secret.length, kChannelSecretSize);
       expect(secret.sublist(0, 16), kPublicChannelPsk);
       expect(secret.sublist(16), List<int>.filled(16, 0));
-      // Oracle for the M6 fixture: channelHash == SHA256(secret)[0].
-      expect(MeshcoreChannelCrypto.channelHash(secret),
-          MeshcoreChannelCrypto.sha256(secret)[0]);
+      // On-air channel hash is SHA256(psk16)[0] — keyed on the PSK,
+      // NOT the 32-byte secret. Cross-checked vs docs: public → 0x11.
+      expect(MeshcoreChannelCrypto.channelHashFromPsk(kPublicChannelPsk),
+          MeshcoreChannelCrypto.sha256(
+              Uint8List.fromList(kPublicChannelPsk))[0]);
+      expect(MeshcoreChannelCrypto.channelHashFromPsk(kPublicChannelPsk),
+          0x11);
     });
   });
 }

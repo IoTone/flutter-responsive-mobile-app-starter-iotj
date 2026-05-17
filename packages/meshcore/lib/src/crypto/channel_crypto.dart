@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:pointycastle/api.dart';
@@ -45,15 +46,33 @@ abstract final class MeshcoreChannelCrypto {
     return out;
   }
 
-  /// Channel hash — the first byte of `SHA256(secret)`. Used on the air
-  /// to identify which channel a packet belongs to.
-  static int channelHash(Uint8List secret) => sha256(secret)[0];
+  /// On-air channel hash — `SHA256(psk)[0]` over the **16-byte PSK**
+  /// (`PATH_HASH_SIZE` = 1). Identifies which channel a GRP_TXT packet
+  /// belongs to. Confirmed by docs.meshcore.io/companion_protocol and
+  /// the wirehack7 packet-builder gist (independent of the 32-byte
+  /// HMAC secret — the hash is keyed on the PSK only).
+  static int channelHashFromPsk(List<int> psk) =>
+      sha256(Uint8List.fromList(psk))[0];
 
-  /// Build a 32-byte channel secret from the 16-byte companion PSK.
-  ///
-  /// PROVISIONAL: the upper 16 bytes are zero-filled because the
-  /// companion protocol does not carry them. Validate against a real
-  /// device before relying on the MAC for OTA frames (M6).
+  /// The well-known PUBLIC channel: `SHA256(psk)[0]`.
+  /// `psk = 8b3387e9c5cdea6ac9e5edbaa115cd72` → `0x11`.
+  static int channelHashFromHashtag(String tag) =>
+      channelHashFromPsk(channelPskFromHashtag(tag));
+
+  /// Derive a 16-byte channel PSK from a `#hashtag` name:
+  /// `SHA256(utf8(tag))[0..16]`. Confirmed: `#test` →
+  /// `9cd8fcf22a47333b591d96a2b848b73f`
+  /// (docs.meshcore.io + wirehack7 gist).
+  static Uint8List channelPskFromHashtag(String tag) =>
+      Uint8List.sublistView(
+          sha256(Uint8List.fromList(utf8.encode(tag))), 0, kCipherKeySize);
+
+  /// Build the 32-byte channel secret from the 16-byte PSK:
+  /// **`psk ‖ 0x00·16`**. Authoritative — the companion protocol only
+  /// carries 16 bytes and the firmware zero-pads to `PUB_KEY_SIZE`
+  /// for the HMAC key (docs.meshcore.io: "32-byte variant
+  /// unsupported"; wirehack7 gist: "PSK + zero pad to 32 bytes").
+  /// The AES-128 key is the first 16 bytes (= the PSK).
   static Uint8List channelSecretFromPsk(List<int> psk) {
     final Uint8List s = Uint8List(kChannelSecretSize);
     final int n = psk.length < kCipherKeySize ? psk.length : kCipherKeySize;

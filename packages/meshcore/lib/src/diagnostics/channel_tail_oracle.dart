@@ -46,18 +46,19 @@ Uint8List _secretFor(ChannelTailHypothesis h, Uint8List psk) {
 class ChannelTailResult {
   const ChannelTailResult({
     required this.match,
-    required this.channelHashMatched,
+    required this.channelHashOk,
     required this.recoveredPlaintext,
   });
 
-  /// The hypothesis that reproduced BOTH the on-air channel-hash byte
-  /// and a MAC-valid decryption recovering [recoveredPlaintext], or
-  /// null if none did.
+  /// The hypothesis whose 32-byte secret produced a MAC-valid
+  /// decryption recovering [recoveredPlaintext], or null.
   final ChannelTailHypothesis? match;
 
-  /// Hypotheses whose `SHA256(secret)[0]` equalled the packet's
-  /// channel-hash byte (a cheaper, independent corroboration).
-  final List<ChannelTailHypothesis> channelHashMatched;
+  /// Whether `SHA256(psk)[0]` equals the packet's channel-hash byte —
+  /// a tail-independent sanity that the PSK identifies this channel
+  /// (the on-air hash is keyed on the 16-byte PSK only, not the
+  /// 32-byte HMAC secret).
+  final bool channelHashOk;
 
   /// The decrypted (de-padded to the known length) plaintext for the
   /// matching hypothesis, if any.
@@ -67,10 +68,9 @@ class ChannelTailResult {
 
   @override
   String toString() => resolved
-      ? 'ChannelTailResult(MATCH: ${match!.name}; '
-          'hashMatched=${channelHashMatched.map((e) => e.name).toList()})'
-      : 'ChannelTailResult(unresolved; '
-          'hashMatched=${channelHashMatched.map((e) => e.name).toList()})';
+      ? 'ChannelTailResult(MATCH: ${match!.name}; channelHashOk='
+          '$channelHashOk)'
+      : 'ChannelTailResult(unresolved; channelHashOk=$channelHashOk)';
 }
 
 /// Resolves the channel-secret tail from a *real captured* GRP_TXT
@@ -81,33 +81,37 @@ class ChannelTailResult {
 ///  * [knownPlaintext] — the exact bytes the sender transmitted.
 ///  * [grpTxt] — `OtaPacket.grpTxt` from the captured packet.
 ///
-/// For each hypothesis it checks the 1-byte channel hash AND a
-/// MAC-valid decryption that recovers [knownPlaintext]. With the real
-/// `Public` PSK and one captured packet this uniquely closes the open
-/// item (the 2-byte MAC has 1/65536 collision odds; the channel-hash
-/// check and the plaintext check make a false positive negligible).
+/// [channelHashOk] (tail-independent, `SHA256(psk)[0]`) confirms the
+/// packet is for this PSK; the tail is then resolved purely by the
+/// HMAC-validated decryption recovering [knownPlaintext]. NOTE: the
+/// `zeros` tail is now authoritative (docs.meshcore.io + wirehack7
+/// gist: 32-byte secret = `psk ‖ 0·16`); this oracle is on-device
+/// corroboration / regression-anchor, not the sole proof.
 ChannelTailResult resolveChannelTail({
   required Uint8List psk,
   required Uint8List knownPlaintext,
   required GrpTxtPayload grpTxt,
 }) {
-  final List<ChannelTailHypothesis> hashMatched = <ChannelTailHypothesis>[];
+  // The on-air channel hash is keyed on the 16-byte PSK only, so it
+  // does NOT vary by tail hypothesis — it just confirms the packet is
+  // for this channel/PSK.
+  final bool channelHashOk =
+      MeshcoreChannelCrypto.channelHashFromPsk(psk) == grpTxt.channelHash;
+
   ChannelTailHypothesis? match;
   Uint8List? recovered;
 
+  // The tail is disambiguated solely by the HMAC over the candidate
+  // 32-byte secret (2-byte MAC: 1/65536 collision; the plaintext
+  // recovery check makes a false positive negligible).
   for (final ChannelTailHypothesis h in ChannelTailHypothesis.values) {
     final Uint8List secret = _secretFor(h, psk);
-    final bool hashOk =
-        MeshcoreChannelCrypto.channelHash(secret) == grpTxt.channelHash;
-    if (hashOk) hashMatched.add(h);
-
     final Uint8List? dec = MeshcoreChannelCrypto.macThenDecrypt(
         secret, grpTxt.macAndCiphertext);
-    if (dec == null) continue;
-    if (dec.length < knownPlaintext.length) continue;
+    if (dec == null || dec.length < knownPlaintext.length) continue;
     final Uint8List prefix =
         Uint8List.sublistView(dec, 0, knownPlaintext.length);
-    if (hashOk && _eq(prefix, knownPlaintext)) {
+    if (_eq(prefix, knownPlaintext)) {
       match = h;
       recovered = prefix;
       break;
@@ -116,7 +120,7 @@ ChannelTailResult resolveChannelTail({
 
   return ChannelTailResult(
     match: match,
-    channelHashMatched: hashMatched,
+    channelHashOk: channelHashOk,
     recoveredPlaintext: recovered,
   );
 }

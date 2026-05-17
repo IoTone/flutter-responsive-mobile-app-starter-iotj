@@ -139,11 +139,25 @@ void main() {
   });
 
   group('channel hash + secret helpers', () {
-    test('channelHash == SHA256(secret)[0]', () {
-      final Uint8List secret =
-          Uint8List.fromList(List<int>.generate(32, (int i) => i * 7 & 0xFF));
-      expect(MeshcoreChannelCrypto.channelHash(secret),
-          MeshcoreChannelCrypto.sha256(secret)[0]);
+    test('channelHashFromPsk == SHA256(psk16)[0]', () {
+      final Uint8List psk =
+          Uint8List.fromList(List<int>.generate(16, (int i) => i * 7 & 0xFF));
+      expect(MeshcoreChannelCrypto.channelHashFromPsk(psk),
+          MeshcoreChannelCrypto.sha256(psk)[0]);
+    });
+
+    test('hashtag derivation KAT (#test → 9cd8fcf2…; docs + gist)', () {
+      final Uint8List k =
+          MeshcoreChannelCrypto.channelPskFromHashtag('#test');
+      expect(
+        k.map((int b) => b.toRadixString(16).padLeft(2, '0')).join(),
+        '9cd8fcf22a47333b591d96a2b848b73f',
+      );
+    });
+
+    test('public PSK channel hash = 0x11 (docs cross-check)', () {
+      expect(MeshcoreChannelCrypto.channelHashFromPsk(kPublicChannelPsk),
+          0x11);
     });
 
     test('channelSecretFromPsk: 32 bytes, psk in [0:16], zeros in [16:32]',

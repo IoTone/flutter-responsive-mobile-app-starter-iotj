@@ -98,7 +98,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     );
     setState(() => _oracleResult = r.resolved
         ? 'RESOLVED → channel-secret tail = ${r.match!.name} '
-            '(hash-matched: ${r.channelHashMatched.map((e) => e.name).toList()})'
+            '(channelHashOk: ${r.channelHashOk})'
         : 'UNRESOLVED — try another capture / confirm PSK & plaintext');
   }
 
