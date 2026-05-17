@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
+import '../model/advert.dart';
 import '../model/channel_info.dart';
 import '../model/channel_message.dart';
 import '../model/contact.dart';
+import '../model/contact_message.dart';
 import '../model/self_info.dart';
 import 'decode_error.dart';
 
@@ -81,6 +83,22 @@ class ChannelInfoFrame extends MeshcoreInbound {
   final ChannelInfo info;
   @override
   String toString() => 'ChannelInfoFrame($info)';
+}
+
+/// `RESP_CODE_CONTACT_MSG_RECV` (0x07) and V3 (0x10).
+class ContactMessageFrame extends MeshcoreInbound {
+  const ContactMessageFrame(this.message);
+  final ContactMessage message;
+  @override
+  String toString() => 'ContactMessageFrame($message)';
+}
+
+/// `PUSH_CODE_ADVERTISEMENT` (0x80).
+class AdvertFrame extends MeshcoreInbound {
+  const AdvertFrame(this.advert);
+  final Advert advert;
+  @override
+  String toString() => 'AdvertFrame($advert)';
 }
 
 /// `RESP_CODE_CURR_TIME` (0x09).

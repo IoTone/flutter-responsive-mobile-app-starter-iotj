@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.0.4 — M3a (DM/contact/advert codec + public-channel constants)
+
+Codec half of M3 (the Ed25519/ECDH crypto half is M3b). All layouts
+transcribed from `MyMesh.cpp` / `Mesh.cpp` / `AdvertDataHelpers.h` at
+the pin.
+
+- Commands: `sendTextMessage` (0x02), `sendSelfAdvert` (0x07),
+  `setAdvertName` (0x08), `addUpdateContact` (0x09, 148-byte frame).
+- Decoders: `CONTACT_MSG_RECV` (0x07) + V3 (0x10) incl. the signed
+  variant (`txt_type==2` → 4-byte signature prefix); `ADVERTISEMENT`
+  push (0x80) → pubkey/ts/sig + app_data (flags, latlon, feat1/2,
+  name) and the exact Ed25519 `signedMessage`
+  (`pub_key ‖ ts ‖ app_data`).
+- New frames `ContactMessageFrame`/`AdvertFrame`; models
+  `ContactMessage`/`Advert`. `Contact` now stores raw signed
+  micro-degrees (`latitudeMicros`/`longitudeMicros`, double getters)
+  so a decoded contact re-encodes byte-exactly.
+- Constants: 6-byte pubkey prefix, signed-msg type, advert
+  type/flag masks (`AdvertDataHelpers.h`), and the **sourced public
+  channel** (`docs/qr_codes.md`): `kPublicChannelName="Public"`,
+  `kPublicChannelPsk=8b3387e9c5cdea6ac9e5edbaa115cd72` — resolves the
+  M2 "no public constants" gap (no fabrication; cited).
+- Conformance: `vectors/m3_contact_advert_frames.json` + programmatic
+  ADD_UPDATE_CONTACT round-trip (shared 148B layout) + ADVERT golden
+  (incl. signedMessage) + totality + public-channel/channel-hash
+  oracle. 70 tests green.
+
 ## 0.0.3 — M2 (channel messaging + channel AES)
 
 - Dependency: **pointycastle** added. MeshCore needs raw AES-128-ECB

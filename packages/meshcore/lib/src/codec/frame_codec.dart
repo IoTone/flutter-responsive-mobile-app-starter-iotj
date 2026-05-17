@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import '../model/advert.dart';
 import '../model/channel_info.dart';
 import '../model/channel_message.dart';
 import '../model/contact.dart';
+import '../model/contact_message.dart';
 import '../model/self_info.dart';
 import 'byte_cursor.dart';
 import 'constants.dart';
@@ -79,6 +81,65 @@ abstract final class MeshcoreFrameCodec {
         .build();
   }
 
+  /// `CMD_SEND_TXT_MSG` (0x02):
+  /// `02 [txt_type] [attempt] [timestamp u32 LE] [pubkey_prefix 6]
+  /// [text UTF-8]`.
+  ///
+  /// The recipient is addressed by the first 6 bytes of its public key.
+  static Uint8List sendTextMessage({
+    required List<int> pubKeyPrefix,
+    required int timestamp,
+    required String text,
+    int txtType = kTxtTypePlain,
+    int attempt = 0,
+  }) {
+    return (FrameBuilder()
+          ..u8(MeshcoreCommand.sendTextMessage.code)
+          ..u8(txtType)
+          ..u8(attempt)
+          ..u32(timestamp)
+          ..fixed(pubKeyPrefix, kPubKeyPrefixSize)
+          ..utf8String(text))
+        .build();
+  }
+
+  /// `CMD_SEND_SELF_ADVERT` (0x07): `07 [1=flood | 0=zero-hop]`.
+  static Uint8List sendSelfAdvert({bool flood = true}) {
+    return (FrameBuilder()
+          ..u8(MeshcoreCommand.sendSelfAdvert.code)
+          ..u8(flood ? 1 : 0))
+        .build();
+  }
+
+  /// `CMD_SET_ADVERT_NAME` (0x08): `08 [name UTF-8, <= 31 bytes]`.
+  static Uint8List setAdvertName(String name) {
+    final List<int> n = utf8.encode(name);
+    return (FrameBuilder()
+          ..u8(MeshcoreCommand.setAdvertName.code)
+          ..raw(n.length > kMaxAdvertName
+              ? n.sublist(0, kMaxAdvertName)
+              : n))
+        .build();
+  }
+
+  /// `CMD_ADD_UPDATE_CONTACT` (0x09): the 148-byte contact body
+  /// (same layout as `RESP_CODE_CONTACT`).
+  static Uint8List addUpdateContact(Contact c) {
+    return (FrameBuilder()
+          ..u8(MeshcoreCommand.addUpdateContact.code)
+          ..fixed(c.publicKey, kPubKeySize)
+          ..u8(c.type)
+          ..u8(c.flags)
+          ..u8(c.outPathLen)
+          ..fixed(c.outPath, kMaxPathSize)
+          ..fixed(utf8.encode(c.name), kContactNameSize)
+          ..u32(c.lastAdvertTimestamp)
+          ..i32(c.latitudeMicros)
+          ..i32(c.longitudeMicros)
+          ..u32(c.lastMod))
+        .build();
+  }
+
   /// `CMD_GET_CHANNEL` (0x1F): `1F [channel_idx]`.
   static Uint8List getChannel(int channelIdx) {
     return (FrameBuilder()
@@ -147,6 +208,9 @@ abstract final class MeshcoreFrameCodec {
             estTimeoutMs: c.u32('msgSent.estTimeoutMs'),
           ));
 
+        case 0x07: // RESP_CODE_CONTACT_MSG_RECV (legacy)
+          return ContactMessageFrame(_decodeContactMsg(c, v3: false));
+
         case 0x08: // RESP_CODE_CHANNEL_MSG_RECV (legacy)
           return ChannelMessageFrame(_decodeChannelMsg(c, v3: false));
 
@@ -155,6 +219,9 @@ abstract final class MeshcoreFrameCodec {
 
         case 0x0A: // RESP_CODE_NO_MORE_MESSAGES
           return const NoMoreMessagesFrame();
+
+        case 0x10: // RESP_CODE_CONTACT_MSG_RECV_V3
+          return ContactMessageFrame(_decodeContactMsg(c, v3: true));
 
         case 0x11: // RESP_CODE_CHANNEL_MSG_RECV_V3
           return ChannelMessageFrame(_decodeChannelMsg(c, v3: true));
@@ -165,6 +232,9 @@ abstract final class MeshcoreFrameCodec {
             name: c.fixedCString(kChannelNameSize, 'channelInfo.name'),
             psk: c.bytes(kChannelPskSize, 'channelInfo.psk'),
           ));
+
+        case 0x80: // PUSH_CODE_ADVERTISEMENT
+          return AdvertFrame(_decodeAdvert(frame, c));
 
         default:
           return UnsupportedFrame(op, Uint8List.fromList(frame));
@@ -237,6 +307,87 @@ abstract final class MeshcoreFrameCodec {
     );
   }
 
+  /// Decodes 0x07 (legacy) and 0x10 (V3) contact messages. The opcode
+  /// byte has already been consumed.
+  static ContactMessage _decodeContactMsg(ByteCursor c, {required bool v3}) {
+    double? snr;
+    if (v3) {
+      snr = c.i8('contactMsg.snr') / 4.0;
+      c.u8('contactMsg.reserved1');
+      c.u8('contactMsg.reserved2');
+    }
+    final Uint8List prefix = c.bytes(kPubKeyPrefixSize, 'contactMsg.prefix');
+    final int pathLen = c.u8('contactMsg.pathLen');
+    final int txtType = c.u8('contactMsg.txtType');
+    final int ts = c.u32('contactMsg.timestamp');
+    Uint8List? sig;
+    if (txtType == kTxtTypeSignedPlain) {
+      sig = c.bytes(kSignaturePrefixSize, 'contactMsg.sigPrefix');
+    }
+    final String text = c.atEnd ? '' : c.utf8ToEnd('contactMsg.text');
+    return ContactMessage(
+      pubKeyPrefix: prefix,
+      pathLen: pathLen,
+      txtType: txtType,
+      timestamp: ts,
+      text: text,
+      isV3: v3,
+      snrDb: snr,
+      signaturePrefix: sig,
+    );
+  }
+
+  /// Decodes `PUSH_CODE_ADVERTISEMENT` (0x80). The opcode byte has
+  /// already been consumed by [c].
+  static Advert _decodeAdvert(Uint8List frame, ByteCursor c) {
+    final Uint8List pubKey = c.bytes(kPubKeySize, 'advert.pubKey');
+    final int ts = c.u32('advert.timestamp');
+    final Uint8List sig = c.bytes(kSignatureSize, 'advert.signature');
+    final Uint8List appData =
+        c.atEnd ? Uint8List(0) : c.bytes(c.remaining, 'advert.appData');
+
+    // The exact bytes the device signed: pub_key ‖ ts(4 LE) ‖ app_data.
+    final FrameBuilder sm = FrameBuilder()
+      ..raw(pubKey)
+      ..u32(ts)
+      ..raw(appData);
+    final Uint8List signedMessage = sm.build();
+
+    int flags = 0;
+    int? latMicros;
+    int? lonMicros;
+    int? feat1;
+    int? feat2;
+    String? name;
+    if (appData.isNotEmpty) {
+      final ByteCursor a = ByteCursor(appData);
+      flags = a.u8('advert.flags');
+      if (flags & kAdvLatLonMask != 0) {
+        latMicros = a.i32('advert.lat');
+        lonMicros = a.i32('advert.lon');
+      }
+      if (flags & kAdvFeat1Mask != 0) feat1 = a.u16('advert.feat1');
+      if (flags & kAdvFeat2Mask != 0) feat2 = a.u16('advert.feat2');
+      if (flags & kAdvNameMask != 0 && !a.atEnd) {
+        name = a.utf8ToEnd('advert.name');
+      }
+    }
+
+    return Advert(
+      publicKey: pubKey,
+      timestamp: ts,
+      signature: sig,
+      appData: appData,
+      signedMessage: signedMessage,
+      flags: flags,
+      latitude: latMicros == null ? null : latMicros / 1e6,
+      longitude: lonMicros == null ? null : lonMicros / 1e6,
+      feat1: feat1,
+      feat2: feat2,
+      name: name,
+    );
+  }
+
   static Contact _decodeContact(ByteCursor c) {
     final Uint8List pubKey = c.bytes(kPubKeySize, 'contact.pubKey');
     final int type = c.u8('contact.type');
@@ -245,8 +396,8 @@ abstract final class MeshcoreFrameCodec {
     final Uint8List path = c.bytes(kMaxPathSize, 'contact.outPath');
     final String name = c.fixedCString(kContactNameSize, 'contact.name');
     final int advertTs = c.u32('contact.lastAdvertTimestamp');
-    final double lat = c.i32('contact.lat') / 1e6;
-    final double lon = c.i32('contact.lon') / 1e6;
+    final int latMicros = c.i32('contact.lat');
+    final int lonMicros = c.i32('contact.lon');
     final int lastMod = c.u32('contact.lastMod');
     return Contact(
       publicKey: pubKey,
@@ -256,8 +407,8 @@ abstract final class MeshcoreFrameCodec {
       outPath: path,
       name: name,
       lastAdvertTimestamp: advertTs,
-      latitude: lat,
-      longitude: lon,
+      latitudeMicros: latMicros,
+      longitudeMicros: lonMicros,
       lastMod: lastMod,
     );
   }

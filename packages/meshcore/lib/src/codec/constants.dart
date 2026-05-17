@@ -68,12 +68,56 @@ const int kChannelSecretSize = kPubKeySize; // GroupChannel.secret = 32
 const int kChannelPskSize = 16; // bytes carried by SET_CHANNEL
 const int kChannelNameSize = 32;
 
-/// Channel text `txt_type` values (companion protocol).
-/// 0 = plain. (Signed/other types handled in their milestone.)
+/// Channel/contact text `txt_type` values (companion protocol).
 const int kTxtTypePlain = 0;
+
+/// `TXT_TYPE_SIGNED_PLAIN` — contact message carries a 4-byte signature
+/// prefix before the text.
+const int kTxtTypeSignedPlain = 2;
 
 /// `path_len` sentinel meaning the message arrived via flood routing.
 const int kPathLenFlood = 0xFF;
+
+/// Contacts are referenced in messages by a 6-byte public-key prefix
+/// (`memcpy(&out_frame[i], from.id.pub_key, 6)`).
+const int kPubKeyPrefixSize = 6;
+
+/// Signature prefix carried by signed contact messages (txt_type == 2).
+const int kSignaturePrefixSize = 4;
+
+/// `CMD_SET_ADVERT_NAME` max name length.
+const int kMaxAdvertName = 31;
+
+/// --- Advert (`AdvertDataHelpers.h`, pinned commit). ---
+/// Advert node types (low nibble of the app_data flags byte).
+const int kAdvTypeNone = 0;
+const int kAdvTypeChat = 1;
+const int kAdvTypeRepeater = 2;
+const int kAdvTypeRoom = 3;
+const int kAdvTypeSensor = 4;
+const int kAdvTypeMask = 0x0F;
+
+/// Advert app_data optional-field flag masks.
+const int kAdvLatLonMask = 0x10;
+const int kAdvFeat1Mask = 0x20;
+const int kAdvFeat2Mask = 0x40;
+const int kAdvNameMask = 0x80;
+
+/// Advert packet envelope sizes (`src/Mesh.cpp`):
+/// `pub_key(32) ‖ timestamp(4 LE) ‖ signature(64) ‖ app_data`.
+/// The Ed25519-signed message is `pub_key ‖ timestamp ‖ app_data`.
+const int kAdvertHeaderSize = kPubKeySize + 4 + kSignatureSize; // 100
+
+/// --- Well-known PUBLIC channel (`docs/qr_codes.md`, pinned commit). ---
+/// `meshcore://channel/add?name=Public&secret=8b3387e9c5cdea6ac9e5edbaa115cd72`
+/// The shared secret is 16 bytes throughout the ecosystem; the firmware
+/// `GroupChannel.secret` tail (bytes 16..32) is not carried — see
+/// [kChannelSecretSize].
+const String kPublicChannelName = 'Public';
+const List<int> kPublicChannelPsk = <int>[
+  0x8b, 0x33, 0x87, 0xe9, 0xc5, 0xcd, 0xea, 0x6a, //
+  0xc9, 0xe5, 0xed, 0xba, 0xa1, 0x15, 0xcd, 0x72,
+];
 
 /// Command opcodes (App → Device). First byte of an outbound frame.
 ///
@@ -84,10 +128,23 @@ const int kPathLenFlood = 0xFF;
 extension type const MeshcoreCommand(int code) {
   /// Must be the first frame after connect. `CMD_APP_START`.
   static const MeshcoreCommand appStart = MeshcoreCommand(0x01);
+
+  /// `CMD_SEND_TXT_MSG` — direct/contact text message.
+  static const MeshcoreCommand sendTextMessage = MeshcoreCommand(0x02);
+
   static const MeshcoreCommand sendChannelMessage = MeshcoreCommand(0x03);
 
   /// `CMD_GET_CONTACTS` — source-only (not in companion_protocol.md).
   static const MeshcoreCommand getContacts = MeshcoreCommand(0x04);
+
+  /// `CMD_SEND_SELF_ADVERT` — emit our advert (flood or zero-hop).
+  static const MeshcoreCommand sendSelfAdvert = MeshcoreCommand(0x07);
+
+  /// `CMD_SET_ADVERT_NAME` — set our advertised node name.
+  static const MeshcoreCommand setAdvertName = MeshcoreCommand(0x08);
+
+  /// `CMD_ADD_UPDATE_CONTACT` — add/replace a contact (148-byte body).
+  static const MeshcoreCommand addUpdateContact = MeshcoreCommand(0x09);
 
   /// `CMD_GET_DEVICE_TIME` — source-only.
   static const MeshcoreCommand getDeviceTime = MeshcoreCommand(0x05);

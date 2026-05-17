@@ -109,6 +109,12 @@ class FrameBuilder {
     _b.add(d.buffer.asUint8List());
   }
 
+  /// Signed 32-bit little-endian (scaled lat/lon).
+  void i32(int v) {
+    final ByteData d = ByteData(4)..setInt32(0, v, Endian.little);
+    _b.add(d.buffer.asUint8List());
+  }
+
   void raw(List<int> v) => _b.add(v);
 
   /// Append UTF-8 bytes of [s] (no length prefix, no NUL terminator —

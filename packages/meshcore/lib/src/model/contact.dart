@@ -27,8 +27,8 @@ class Contact {
     required this.outPath,
     required this.name,
     required this.lastAdvertTimestamp,
-    required this.latitude,
-    required this.longitude,
+    required this.latitudeMicros,
+    required this.longitudeMicros,
     required this.lastMod,
   });
 
@@ -46,9 +46,14 @@ class Contact {
   /// Unix seconds of the contact's last advertisement.
   final int lastAdvertTimestamp;
 
-  /// Degrees (raw int32 ÷ 1e6).
-  final double latitude;
-  final double longitude;
+  /// Raw signed micro-degrees (the on-wire int32). Kept raw so a
+  /// decoded contact re-encodes byte-exactly via ADD_UPDATE_CONTACT.
+  final int latitudeMicros;
+  final int longitudeMicros;
+
+  /// Degrees (raw ÷ 1e6).
+  double get latitude => latitudeMicros / 1e6;
+  double get longitude => longitudeMicros / 1e6;
 
   /// Server-side modification counter used for incremental contact sync.
   final int lastMod;

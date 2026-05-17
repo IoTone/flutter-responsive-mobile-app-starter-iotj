@@ -387,7 +387,7 @@ packages:
       path: "../packages/meshcore"
       relative: true
     source: path
-    version: "0.0.3"
+    version: "0.0.4"
   meta:
     dependency: transitive
     description:
