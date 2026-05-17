@@ -122,17 +122,51 @@ MmThemePreset presetFromId(String? id) => MmThemePreset.values.firstWhere(
     );
 
 /// Build a Material 3 dark [ThemeData] from a token set.
+///
+/// Binds **every** commonly-used colour role + the text/icon themes to
+/// the tokens — including the M3 surface-container roles that
+/// `ColorScheme.dark(...)` would otherwise leave at fixed defaults.
+/// Without this, switching presets only nudged a couple of accents
+/// (the "themes don't change" bug); now the whole UI re-skins.
 ThemeData buildMmTheme(MmTokens t) {
-  final ColorScheme scheme = ColorScheme.dark(
+  final ColorScheme scheme = ColorScheme(
+    brightness: Brightness.dark,
     surface: t.base,
     onSurface: t.fg,
+    surfaceContainerLowest: t.base,
+    surfaceContainerLow: t.surface,
+    surfaceContainer: t.surface,
+    surfaceContainerHigh: t.surfaceAlt,
+    surfaceContainerHighest: t.surfaceAlt,
+    surfaceDim: t.base,
+    surfaceBright: t.surfaceAlt,
+    onSurfaceVariant: t.fgMuted,
     primary: t.accent,
     onPrimary: t.base,
+    primaryContainer: t.surfaceAlt,
+    onPrimaryContainer: t.accent,
     secondary: t.accent,
+    onSecondary: t.base,
+    secondaryContainer: t.surfaceAlt,
+    onSecondaryContainer: t.fg,
+    tertiary: t.ok,
+    onTertiary: t.base,
     error: t.alert,
     onError: t.fg,
+    errorContainer: t.alert,
+    onErrorContainer: t.fg,
     outline: t.line,
+    outlineVariant: t.line,
+    shadow: const Color(0xFF000000),
+    scrim: const Color(0xCC000000),
+    inverseSurface: t.fg,
+    onInverseSurface: t.base,
+    inversePrimary: t.base,
+    surfaceTint: t.accent,
   );
+  final TextTheme text = ThemeData(brightness: Brightness.dark)
+      .textTheme
+      .apply(bodyColor: t.fg, displayColor: t.fg, decorationColor: t.fg);
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
@@ -141,6 +175,10 @@ ThemeData buildMmTheme(MmTokens t) {
     canvasColor: t.base,
     dividerColor: t.line,
     cardColor: t.surface,
+    textTheme: text,
+    primaryTextTheme: text,
+    iconTheme: IconThemeData(color: t.fg),
+    primaryIconTheme: IconThemeData(color: t.fg),
     cardTheme: CardThemeData(
       color: t.surface,
       surfaceTintColor: Colors.transparent,
@@ -149,12 +187,26 @@ ThemeData buildMmTheme(MmTokens t) {
       backgroundColor: t.base,
       foregroundColor: t.fg,
       surfaceTintColor: Colors.transparent,
+      iconTheme: IconThemeData(color: t.fg),
+      titleTextStyle: text.titleLarge,
       elevation: 0,
     ),
-    listTileTheme: ListTileThemeData(
-      iconColor: t.fgMuted,
-      textColor: t.fg,
-    ),
+    listTileTheme: ListTileThemeData(iconColor: t.fgMuted, textColor: t.fg),
     dividerTheme: DividerThemeData(color: t.line, space: 1),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith((Set<WidgetState> s) =>
+          s.contains(WidgetState.selected) ? t.accent : t.fgMuted),
+      trackColor: WidgetStateProperty.resolveWith((Set<WidgetState> s) =>
+          s.contains(WidgetState.selected) ? t.accent.withValues(alpha: .4)
+              : t.surfaceAlt),
+    ),
+    radioTheme: RadioThemeData(
+      fillColor: WidgetStateProperty.all(t.accent),
+    ),
+    sliderTheme: SliderThemeData(
+      activeTrackColor: t.accent,
+      thumbColor: t.accent,
+      inactiveTrackColor: t.line,
+    ),
   );
 }

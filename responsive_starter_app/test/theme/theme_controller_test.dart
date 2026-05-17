@@ -86,4 +86,37 @@ void main() {
     expect(td.colorScheme.primary, t.accent);
     expect(td.brightness, Brightness.dark);
   });
+
+  test('switching preset re-skins the WHOLE theme (regression: '
+      'themes did not change)', () {
+    final ThemeData d = buildMmTheme(kMmPresets[MmThemePreset.seele]!);
+    final ThemeData r = buildMmTheme(kMmPresets[MmThemePreset.recon]!);
+    final MmTokens dt = kMmPresets[MmThemePreset.seele]!;
+    final MmTokens rt = kMmPresets[MmThemePreset.recon]!;
+
+    // Text colour is token-bound (the part that previously stayed the
+    // Material default and made themes look identical).
+    expect(d.textTheme.bodyMedium!.color, dt.fg);
+    expect(r.textTheme.bodyMedium!.color, rt.fg);
+    expect(d.textTheme.bodyMedium!.color,
+        isNot(r.textTheme.bodyMedium!.color));
+
+    // M3 container roles + icons + primary all differ between presets.
+    expect(d.colorScheme.surfaceContainer,
+        isNot(r.colorScheme.surfaceContainer));
+    expect(d.colorScheme.onSurfaceVariant, dt.fgMuted);
+    expect(d.iconTheme.color, dt.fg);
+    expect(d.colorScheme.primary, isNot(r.colorScheme.primary));
+    expect(d.scaffoldBackgroundColor, isNot(equals(r.colorScheme.primary)));
+  });
+
+  test('every preset yields a fg-coloured textTheme', () {
+    for (final MmThemePreset p in MmThemePreset.values) {
+      final MmTokens t = kMmPresets[p]!;
+      final ThemeData td = buildMmTheme(t);
+      expect(td.textTheme.titleLarge!.color, t.fg, reason: p.name);
+      expect(td.colorScheme.surfaceContainerHigh, t.surfaceAlt,
+          reason: p.name);
+    }
+  });
 }
