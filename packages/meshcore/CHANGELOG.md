@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.0.5 — M3b (Ed25519 verify + ed25519_key_exchange + DM crypto)
+
+Crypto half of M3. Completes M3.
+
+- Dependency: **cryptography** added for ASYMMETRIC primitives
+  (pure-Dart `DartEd25519`/`DartX25519`; pointycastle 3.9.x ships no
+  Ed25519/X25519). pointycastle stays for symmetric (AES-ECB/HMAC/
+  SHA). Two libs, split by capability — neither covers both.
+- `MeshcoreIdentityCrypto`: Ed25519 `verifySignature`/`verifyAdvert`;
+  `edPublicKeyToMontgomeryU` (pure-Dart BigInt `(1+y)/(1-y) mod p`);
+  `ed25519KeyExchange` (orlp/ed25519 composition: clamp(prv64[0:32])
+  scalar + Montgomery-u of peer pub → X25519, raw output);
+  `expandedPrivateKeyFromSeed` (orlp `SHA512(seed)`+clamp),
+  `ed25519PublicKeyFromSeed`.
+- `MeshcoreDmCrypto`: derive 32-byte ECDH secret + DM payload
+  encrypt/decrypt delegating to the M2 `encryptThenMac`/
+  `macThenDecrypt`. DM has NO open tail question (full 32-byte
+  secret).
+- Conformance: RFC 8032 §7.1 Ed25519-verify KATs (+tamper), RFC 7748
+  §5.2 X25519 KAT, and **offline libsodium-generated** KATs
+  (`vectors/m3b_x25519_kat.json`, via pynacl) anchoring the ed→u
+  conversion + full key-exchange + DH symmetry; DM round-trip;
+  end-to-end advert verify with a real signature. 81 tests green.
+- Open item unchanged: exact-bytes match to a *real MeshCore device*
+  is the M6 interop fixture; libsodium oracle gives high confidence
+  (standard birational map + X25519; libsodium is the reference).
+
 ## 0.0.4 — M3a (DM/contact/advert codec + public-channel constants)
 
 Codec half of M3 (the Ed25519/ECDH crypto half is M3b). All layouts

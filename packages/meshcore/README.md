@@ -45,6 +45,8 @@ lib/
     codec/inbound.dart        sealed MeshcoreInbound frame hierarchy
     codec/decode_error.dart   typed decode-failure model
     crypto/channel_crypto.dart  AES-128-ECB + HMAC-SHA256 MAC + channel hash
+    crypto/identity_crypto.dart Ed25519 verify + ed25519_key_exchange ECDH
+    crypto/dm_crypto.dart       DM shared-secret + payload encrypt/decrypt
     model/self_info.dart      SELF_INFO (0x05)
     model/contact.dart        CONTACT (0x03)
     model/channel_message.dart  CHANNEL_MSG_RECV (0x08 / 0x11 V3)
@@ -59,19 +61,21 @@ test/
   vectors/m2_channel_frames.json  M2 conformance vectors
 ```
 
-Implemented: M0 (scaffold/pin/CI), M1 (framing + core codec), **M2**
-(channel messaging — send/get/set channel, RX legacy+V3, MSG_SENT —
-and the MeshCore channel cipher: AES-128-ECB + truncated HMAC-SHA256
-MAC + channel hash, KAT-verified). Contacts/DM crypto, radio config,
-and the BLE transport land in later milestones (see
-`meshmore-sns-spec.md` → *Meshcore Protocol Implementation Plan*).
+Implemented: M0 (scaffold/pin/CI), M1 (core codec), M2 (channel
+messaging + channel cipher), **M3** (DM/contact/advert codec +
+Ed25519 verify + `ed25519_key_exchange` ECDH + DM payload crypto,
+KAT-verified). Radio config and the BLE transport land in later
+milestones (see `meshmore-sns-spec.md` → *Meshcore Protocol
+Implementation Plan*).
 
-> Crypto note: this package uses **pointycastle** (raw AES-ECB +
-> sync/deterministic pure Dart), superseding the earlier
-> `package:cryptography` choice. The channel secret's upper 16 bytes
-> are not carried on the companion link — `channelSecretFromPsk`
-> zero-fills them provisionally pending an on-device interop fixture
-> (M6).
+> Crypto note: **pointycastle** for symmetric (raw AES-128-ECB +
+> HMAC-SHA256 + SHA-256/512 — `package:cryptography` omits ECB) and
+> **cryptography** for asymmetric (Ed25519/X25519 — pointycastle
+> 3.9.x has neither). Anchored by RFC 8032/7748 + offline
+> libsodium-generated KATs. Two open items remain for the M6
+> on-device interop fixture: the channel-secret upper-16-byte tail
+> (zero-filled provisionally) and the exact-bytes match of the ECDH
+> composition to a real device.
 
 ## Test
 
