@@ -13,11 +13,23 @@ the MeshCore firmware repository, pinned to:
 
 | | |
 |---|---|
+| Release | **MeshCore v1.15.0** (2026-04-19) |
 | Tag | `companion-v1.15.0` |
 | Commit | `dee3e26ac081a5c668c69b66c16a6544a44ddc5b` |
 | Spec file | `docs/companion_protocol.md` |
 
-[Pinned protocol doc](https://github.com/meshcore-dev/MeshCore/blob/dee3e26ac081a5c668c69b66c16a6544a44ddc5b/docs/companion_protocol.md)
+- [Official 1.15.0 release notes](https://blog.meshcore.io/2026/04/19/release-1-15-0)
+- [Pinned protocol doc](https://github.com/meshcore-dev/MeshCore/blob/dee3e26ac081a5c668c69b66c16a6544a44ddc5b/docs/companion_protocol.md)
+
+**1.15.0 vs. our codec:** the release notes document **no breaking**
+companion-protocol / opcode / channel / crypto / packet-format
+changes — our transcription is valid for 1.15.0. Additive items of
+note: *GROUP_DATA binary packets* (PRs #1928/#2130) and *Default
+Scope support*. We recognise `PAYLOAD_TYPE_GRP_DATA` (0x06) /
+`SEND_CHANNEL_DATAGRAM` (0x3E) opcodes but do **not** decode the
+GROUP_DATA payload body — by design these surface as
+`UnsupportedFrame` (totality preserved); full GROUP_DATA decoding is
+a tracked future item, not a regression.
 
 The pin is also asserted in `lib/src/codec/constants.dart` and tested.
 **Bump it deliberately** (update the constants header, this table, the
@@ -26,10 +38,13 @@ CHANGELOG, and re-verify every value), never silently.
 ### Reference hardware
 
 On-device validation (milestones M5/M6) targets a Flutter **Android**
-host plus **Seeed Studio T1000-E** nodes flashed via
-<https://meshcore.co.uk/flasher.html>. The flashed T1000-E firmware
-version must match the pinned tag above; record it here when the
-hardware is set up:
+host plus **Seeed Studio T1000-E** nodes. Flash the **1.15.0
+"Companion Bluetooth"** build from <https://flasher.meshcore.io>
+(per the [release notes](https://blog.meshcore.io/2026/04/19/release-1-15-0));
+T1000-E device steps (DFU, BLE pair PIN `123456`, region):
+<https://wiki.seeedstudio.com/sensecap_t1000_e_meshcore/>. The
+flashed T1000-E firmware version must match the pinned tag above;
+record it here when the hardware is set up:
 
 - T1000-E flashed firmware: _TBD (record on first hardware bring-up)_
 
