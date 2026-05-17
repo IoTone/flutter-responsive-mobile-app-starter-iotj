@@ -1,5 +1,8 @@
 import 'dart:typed_data';
 
+import '../codec/byte_cursor.dart';
+import '../codec/constants.dart';
+
 /// A decoded advertisement (`PUSH_CODE_ADVERTISEMENT`, 0x80).
 ///
 /// Packet payload (from `src/Mesh.cpp`, pinned commit):
@@ -56,6 +59,68 @@ class Advert {
 
   /// Advert node type (`flags & 0x0F`).
   int get type => flags & 0x0F;
+
+  /// Parse an advert payload — `pub_key(32) ‖ ts(4 LE) ‖ sig(64) ‖
+  /// app_data`. Shared by the companion `0x80` decoder and
+  /// [OtaPacket.advert] (the OTA `PAYLOAD_TYPE_ADVERT` body has the
+  /// same layout). Throws [FrameTruncated] on a short/garbled
+  /// payload; the callers turn that into a typed failure / null.
+  static Advert parse(Uint8List payload) {
+    final ByteCursor c = ByteCursor(payload);
+    final Uint8List pubKey = c.bytes(kPubKeySize, 'advert.pubKey');
+    final int ts = c.u32('advert.timestamp');
+    final Uint8List sig = c.bytes(kSignatureSize, 'advert.signature');
+    final Uint8List appData =
+        c.atEnd ? Uint8List(0) : c.bytes(c.remaining, 'advert.appData');
+
+    final Uint8List signedMessage = (FrameBuilder()
+          ..raw(pubKey)
+          ..u32(ts)
+          ..raw(appData))
+        .build();
+
+    int flags = 0;
+    int? latMicros;
+    int? lonMicros;
+    int? feat1;
+    int? feat2;
+    String? name;
+    if (appData.isNotEmpty) {
+      final ByteCursor a = ByteCursor(appData);
+      flags = a.u8('advert.flags');
+      if (flags & kAdvLatLonMask != 0) {
+        latMicros = a.i32('advert.lat');
+        lonMicros = a.i32('advert.lon');
+      }
+      if (flags & kAdvFeat1Mask != 0) feat1 = a.u16('advert.feat1');
+      if (flags & kAdvFeat2Mask != 0) feat2 = a.u16('advert.feat2');
+      if (flags & kAdvNameMask != 0 && !a.atEnd) {
+        name = a.utf8ToEnd('advert.name');
+      }
+    }
+    return Advert(
+      publicKey: pubKey,
+      timestamp: ts,
+      signature: sig,
+      appData: appData,
+      signedMessage: signedMessage,
+      flags: flags,
+      latitude: latMicros == null ? null : latMicros / 1e6,
+      longitude: lonMicros == null ? null : lonMicros / 1e6,
+      feat1: feat1,
+      feat2: feat2,
+      name: name,
+    );
+  }
+
+  /// Total variant — null instead of throwing.
+  static Advert? tryParse(Uint8List payload) {
+    try {
+      return parse(payload);
+    } on FrameTruncated {
+      return null;
+    }
+  }
 
   @override
   String toString() => 'Advert(type: $type, name: ${name ?? '-'}, '

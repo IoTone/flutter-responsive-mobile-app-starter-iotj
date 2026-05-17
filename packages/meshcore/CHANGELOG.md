@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.2 — advert-from-OTA (signal-aware discovery)
+
+- `Advert.parse` / `Advert.tryParse`: single source of truth for the
+  advert payload (`pub_key ‖ ts ‖ sig ‖ app_data`). The companion
+  `0x80` decoder now delegates to it.
+- `OtaPacket.advert`: decode an `ADVERT` OTA packet — so RF-log
+  (`0x88`) captures yield adverts **with SNR/RSSI** (needed to judge
+  "what's in my area"). Total: malformed → null.
+- Tests: RF-log-wrapped advert decode, `Advert.parse` ⟺ `0x80`
+  parity, short-payload null. 116 tests + 1 skipped; `--fatal-infos`
+  clean.
+
 ## 0.1.1 — M8 (external-ref corrections; open item #1 closed)
 
 Reviewed docs.meshcore.io/companion_protocol + the wirehack7

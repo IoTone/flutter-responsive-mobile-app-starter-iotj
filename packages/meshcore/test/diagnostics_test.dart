@@ -31,6 +31,55 @@ Uint8List _rfLogGrpTxt(Uint8List secret32, Uint8List plaintext) {
 }
 
 void main() {
+  group('OTA advert (RF-log-wrapped) + Advert.parse parity', () {
+    Uint8List advPayload(String name) => Uint8List.fromList(<int>[
+          ...List<int>.generate(32, (int i) => i + 3),
+          0x04, 0x03, 0x02, 0x01, // ts 0x01020304
+          ...List<int>.filled(64, 0x55), // sig
+          kAdvTypeChat | kAdvNameMask,
+          ...utf8.encode(name),
+        ]);
+
+    test('OtaPacket.advert decodes an ADVERT packet from a 0x88 frame',
+        () {
+      final int header =
+          (kPayloadTypeAdvert << kPktPayloadTypeShift) | kRouteFlood;
+      final Uint8List frame = Uint8List.fromList(<int>[
+        0x88, 5 * 4, (-88) & 0xFF, // snr +5.0, rssi -88
+        header, 0x00, // path-len 0 hops
+        ...advPayload('NodeQ'),
+      ]);
+      final MeshcoreInbound f = MeshcoreFrameCodec.decode(frame);
+      expect(f, isA<RfLogFrame>());
+      final RfLog log = (f as RfLogFrame).log;
+      expect(log.snrDb, 5.0);
+      expect(log.rssi, -88);
+      final Advert? a = log.packet?.advert;
+      expect(a, isNotNull);
+      expect(a!.name, 'NodeQ');
+      expect(a.type, kAdvTypeChat);
+      expect(a.timestamp, 0x01020304);
+    });
+
+    test('Advert.parse(payload) == companion 0x80 decode (same bytes)',
+        () {
+      final Uint8List payload = advPayload('Twin');
+      final Advert viaParse = Advert.parse(payload);
+      final MeshcoreInbound viaFrame = MeshcoreFrameCodec.decode(
+          Uint8List.fromList(<int>[0x80, ...payload]));
+      expect(viaFrame, isA<AdvertFrame>());
+      final Advert viaPush = (viaFrame as AdvertFrame).advert;
+      expect(viaParse.name, viaPush.name);
+      expect(viaParse.timestamp, viaPush.timestamp);
+      expect(viaParse.publicKey, viaPush.publicKey);
+      expect(viaParse.signedMessage, viaPush.signedMessage);
+    });
+
+    test('Advert.tryParse returns null on a short payload', () {
+      expect(Advert.tryParse(Uint8List(10)), isNull);
+    });
+  });
+
   group('0x88 RF-log + OTA packet codec', () {
     test('decodes RfLogFrame and parses a GRP_TXT packet', () {
       final Uint8List secret = Uint8List(kChannelSecretSize)

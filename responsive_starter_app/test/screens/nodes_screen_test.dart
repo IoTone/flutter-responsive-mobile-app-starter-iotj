@@ -64,12 +64,41 @@ void main() {
       ...utf8.encode('NodeZ'),
     ];
     fake.emit(Uint8List.fromList(adv));
+
+    // RF-log (0x88) wrapping an ADVERT OTA packet → node WITH signal.
+    final List<int> advPayload = <int>[
+      ...List<int>.generate(32, (int i) => i + 40),
+      0x04, 0x03, 0x02, 0x01,
+      ...List<int>.filled(64, 0x11),
+      kAdvTypeChat | kAdvNameMask,
+      ...utf8.encode('RfNode'),
+    ];
+    final int header = (kPayloadTypeAdvert << kPktPayloadTypeShift) |
+        kRouteFlood;
+    final List<int> rfLog = <int>[
+      0x88,
+      6 * 4, // SNR +6.0
+      (-90) & 0xFF, // RSSI -90
+      header,
+      0x00, // path-len: 0 hops
+      ...advPayload,
+    ];
+    fake.emit(Uint8List.fromList(rfLog));
     await t.pumpAndSettle();
 
     expect(find.text('RepeaterA'), findsOneWidget);
     expect(find.text('NodeZ'), findsOneWidget);
-    expect(find.textContaining('node(s) in range'), findsOneWidget);
-    expect(ctrl.nodes.length, 2);
+    expect(find.text('RfNode'), findsOneWidget);
+    expect(find.textContaining('SNR 6.0'), findsOneWidget);
+    expect(find.textContaining('known'), findsOneWidget);
+    expect(ctrl.nodes.length, 3);
+
+    // Scan action solicits adverts + syncs contacts.
+    final int before = fake.sent.length;
+    await t.tap(find.text('Scan area'));
+    await t.pump();
+    expect(find.text('Scanning…'), findsOneWidget);
+    expect(fake.sent.length, greaterThanOrEqualTo(before + 2));
     ctrl.dispose();
   });
 }

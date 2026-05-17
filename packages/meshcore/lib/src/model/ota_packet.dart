@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../codec/byte_cursor.dart';
 import '../codec/constants.dart';
+import 'advert.dart';
 
 /// A parsed MeshCore over-the-air packet (as carried raw inside an
 /// `RfLogFrame`). Layout from `docs/packet_format.md` (pinned commit):
@@ -46,6 +47,12 @@ class OtaPacket {
       macAndCiphertext: Uint8List.sublistView(payload, 1),
     );
   }
+
+  /// For `PAYLOAD_TYPE_ADVERT`, the decoded advert (same payload
+  /// layout as the companion `0x80` push). Null if not an advert or
+  /// malformed. Lets RF-log (`0x88`) captures yield adverts *with*
+  /// SNR/RSSI for "what's in my area" scanning.
+  Advert? get advert => isAdvert ? Advert.tryParse(payload) : null;
 
   /// Parse from the raw OTA bytes (everything after the
   /// `[0x88][snr][rssi]` RF-log prefix). Returns null on a malformed

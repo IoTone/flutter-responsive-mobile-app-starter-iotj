@@ -213,19 +213,32 @@ class MeshcoreController extends ChangeNotifier {
         viaAdvert: false,
       );
     } else if (f is AdvertFrame) {
-      final Advert a = f.advert;
-      final String k = _hex(a.publicKey);
-      _nodes[k] = DiscoveredNode(
-        pubKeyHex: k,
-        name: a.name ?? _nodes[k]?.name ?? k.substring(0, 8),
-        type: a.type,
-        lastHeardUnix: a.timestamp == 0 ? now : a.timestamp,
-        latitude: a.latitude,
-        longitude: a.longitude,
-        snrDb: _nodes[k]?.snrDb,
-        viaAdvert: true,
-      );
+      _upsertAdvert(f.advert);
+    } else if (f is RfLogFrame) {
+      // RF-log captures carry the raw OTA packet *with* SNR/RSSI —
+      // the signal needed to judge "what's in my area".
+      final Advert? a = f.log.packet?.advert;
+      if (a != null) {
+        _upsertAdvert(a, snr: f.log.snrDb, rssi: f.log.rssi);
+      }
     }
+  }
+
+  void _upsertAdvert(Advert a, {double? snr, int? rssi}) {
+    final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final String k = _hex(a.publicKey);
+    final DiscoveredNode? prev = _nodes[k];
+    _nodes[k] = DiscoveredNode(
+      pubKeyHex: k,
+      name: a.name ?? prev?.name ?? k.substring(0, 8),
+      type: a.type,
+      lastHeardUnix: a.timestamp == 0 ? now : a.timestamp,
+      latitude: a.latitude ?? prev?.latitude,
+      longitude: a.longitude ?? prev?.longitude,
+      snrDb: snr ?? prev?.snrDb,
+      rssi: rssi ?? prev?.rssi,
+      viaAdvert: true,
+    );
   }
 
   /// Ask the radio for its synced contact list (`CMD_GET_CONTACTS`).
@@ -235,6 +248,35 @@ class MeshcoreController extends ChangeNotifier {
   /// Broadcast our own advert so neighbours discover us.
   Future<void> sendSelfAdvert({bool flood = true}) =>
       send(MeshcoreFrameCodec.sendSelfAdvert(flood: flood));
+
+  bool _scanning = false;
+  Timer? _scanTimer;
+
+  /// True while a [scan] is actively soliciting/collecting adverts.
+  bool get isScanning => _scanning;
+
+  /// Detect what's in the area: flood our advert (so neighbours
+  /// respond) and pull the radio's contact list, then keep collecting
+  /// inbound adverts. The window is just UI feedback — adverts keep
+  /// arriving passively afterwards.
+  Future<void> scan({
+    Duration window = const Duration(seconds: 10),
+  }) async {
+    if (!isReady) return;
+    _scanning = true;
+    notifyListeners();
+    _scanTimer?.cancel();
+    _scanTimer = Timer(window, () {
+      _scanning = false;
+      notifyListeners();
+    });
+    try {
+      await sendSelfAdvert(flood: true);
+      await requestContacts();
+    } catch (_) {
+      // Surface via state/error elsewhere; scan window still elapses.
+    }
+  }
 
   /// User-initiated disconnect. Latches off auto-reconnect until the
   /// next explicit [connect].
@@ -249,6 +291,7 @@ class MeshcoreController extends ChangeNotifier {
   void dispose() {
     _manualDisconnect = true;
     _reconnectGen++; // invalidate any pending scheduled retry
+    _scanTimer?.cancel();
     _statesSub?.cancel();
     _inboundSub?.cancel();
     _rawSub?.cancel();

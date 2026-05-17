@@ -28,31 +28,42 @@ class NodesScreen extends StatelessWidget {
     final bool ready = mc.state == MeshcoreConnectionState.ready;
     final List<DiscoveredNode> nodes = mc.nodes;
 
+    final int inRange = nodes.where((DiscoveredNode n) => n.inRange).length;
+
     return Column(
       children: <Widget>[
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: Row(
             children: <Widget>[
               Expanded(
-                child: Text(
-                  ready
-                      ? '${nodes.length} node(s) in range'
-                      : 'Not connected — Settings → Diagnostics & connect',
-                  style: TextStyle(color: cs.onSurfaceVariant),
+                child: FilledButton.icon(
+                  icon: mc.isScanning
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child:
+                              CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.radar),
+                  label: Text(mc.isScanning ? 'Scanning…' : 'Scan area'),
+                  onPressed: ready && !mc.isScanning ? mc.scan : null,
                 ),
               ),
               IconButton(
-                tooltip: 'Get contacts',
+                tooltip: 'Sync contacts',
                 icon: const Icon(Icons.sync),
                 onPressed: ready ? () => mc.requestContacts() : null,
               ),
-              IconButton(
-                tooltip: 'Broadcast self-advert',
-                icon: const Icon(Icons.podcasts),
-                onPressed: ready ? () => mc.sendSelfAdvert() : null,
-              ),
             ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+          child: Text(
+            ready
+                ? '$inRange in range · ${nodes.length} known'
+                : 'Not connected — Settings → Diagnostics & connect',
+            style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
           ),
         ),
         const Divider(height: 1),
@@ -63,8 +74,8 @@ class NodesScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(28),
                     child: Text(
                       ready
-                          ? 'No nodes yet.\nTap ⟳ to sync contacts, or '
-                              'wait for adverts.'
+                          ? 'No nodes yet.\nTap "Scan area" to solicit '
+                              'adverts & sync contacts.'
                           : 'Connect a radio to discover nearby nodes.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: cs.onSurfaceVariant),
@@ -78,17 +89,35 @@ class NodesScreen extends StatelessWidget {
                     final DiscoveredNode n = nodes[i];
                     return ListTile(
                       leading: Icon(
-                        n.viaAdvert ? Icons.podcasts : Icons.contacts,
-                        color: cs.primary,
+                        n.inRange
+                            ? Icons.sensors
+                            : (n.viaAdvert
+                                ? Icons.podcasts
+                                : Icons.contacts),
+                        color: n.inRange ? cs.primary : cs.onSurfaceVariant,
                       ),
-                      title: Text(n.name.isEmpty ? n.shortId : n.name),
+                      title: Row(
+                        children: <Widget>[
+                          Flexible(
+                              child: Text(
+                                  n.name.isEmpty ? n.shortId : n.name)),
+                          if (n.inRange)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: Text('IN RANGE',
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      letterSpacing: 1,
+                                      color: cs.primary)),
+                            ),
+                        ],
+                      ),
                       subtitle: Text(<String>[
                         n.typeLabel,
+                        if (n.signalLabel.isNotEmpty) n.signalLabel,
                         if (n.hasLocation)
                           '${n.latitude!.toStringAsFixed(4)},'
                               '${n.longitude!.toStringAsFixed(4)}',
-                        if (n.snrDb != null)
-                          'SNR ${n.snrDb!.toStringAsFixed(1)}',
                         n.shortId,
                       ].join(' · '),
                           style: TextStyle(color: cs.onSurfaceVariant)),

@@ -3,7 +3,7 @@ description: >-
   Pure-Dart implementation of the Meshcore companion-radio protocol
   (codec, models, crypto, session). No Flutter dependencies — the
   conformance suite runs under `dart test` with no device or emulator.
-version: 0.1.1
+version: 0.1.2
 publish_to: 'none'
 
 environment:

@@ -10,6 +10,7 @@ class DiscoveredNode {
     this.latitude,
     this.longitude,
     this.snrDb,
+    this.rssi,
     required this.viaAdvert,
   });
 
@@ -20,9 +21,22 @@ class DiscoveredNode {
   double? latitude;
   double? longitude;
   double? snrDb;
+  int? rssi;
 
   /// True if last updated from an OTA advert (vs. a synced contact).
   bool viaAdvert;
+
+  /// Heard within the last 5 minutes ⇒ currently "in my area".
+  bool get inRange =>
+      DateTime.now().millisecondsSinceEpoch ~/ 1000 - lastHeardUnix < 300;
+
+  String get signalLabel {
+    final List<String> p = <String>[
+      if (snrDb != null) 'SNR ${snrDb!.toStringAsFixed(1)}',
+      if (rssi != null) 'RSSI $rssi',
+    ];
+    return p.join(' ');
+  }
 
   String get typeLabel => switch (type) {
         1 => 'Chat',
