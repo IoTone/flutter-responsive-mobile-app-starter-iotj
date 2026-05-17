@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [meshmore-sns, main]
+  pull_request:
+    branches: [meshmore-sns, main]
+
+jobs:
+  # Meshcore protocol conformance gate. Pure Dart — no device/emulator.
+  # This job is the merge gate for TC2.
+  meshcore-conformance:
+    name: meshcore conformance (dart test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/meshcore
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.9.2"
+      - name: Resolve
+        run: dart pub get
+      - name: Analyze
+        run: dart analyze --fatal-infos
+      - name: Conformance suite
+        run: dart test --reporter expanded
+
+  # App static analysis + widget tests.
+  app-analyze:
+    name: app analyze + test (flutter)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: responsive_starter_app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.35.6"
+          channel: stable
+      - name: Resolve
+        run: flutter pub get
+      - name: Analyze
+        run: flutter analyze
+      - name: Widget tests
+        run: flutter test

@@ -1,0 +1,9 @@
+# Dart / Pub
+.dart_tool/
+.packages
+build/
+doc/api/
+
+# pubspec.lock IS committed for this package: it is a conformance-critical
+# component and CI must resolve deterministically. Do not ignore it.
+!pubspec.lock

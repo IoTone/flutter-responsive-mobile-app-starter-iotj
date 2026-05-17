@@ -1,0 +1,18 @@
+name: meshcore
+description: >-
+  Pure-Dart implementation of the Meshcore companion-radio protocol
+  (codec, models, crypto, session). No Flutter dependencies — the
+  conformance suite runs under `dart test` with no device or emulator.
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: ^3.5.0
+
+# Intentionally no runtime dependencies yet. The crypto milestone (M3)
+# will add `cryptography`. Keep this package Flutter-free.
+dependencies:
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.25.0
