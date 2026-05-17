@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import 'package:meshmore_sns_app/app_state_model.dart';
 import 'package:meshmore_sns_app/main.dart';
+import 'package:meshmore_sns_app/theme/theme_controller.dart';
 
 void main() {
   testWidgets('App boots without errors', (WidgetTester tester) async {
@@ -13,6 +14,9 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider<AppState>(create: (_) => AppState()),
+          ChangeNotifierProvider<ThemeController>(
+            create: (_) => ThemeController(),
+          ),
         ],
         child: const MyApp(),
       ),

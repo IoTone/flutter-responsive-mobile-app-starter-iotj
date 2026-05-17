@@ -7,6 +7,7 @@ import 'package:responsive_toolkit/responsive_toolkit.dart';
 import 'package:meshmore_sns_app/app_state_model.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/router.dart';
+import 'package:meshmore_sns_app/theme/theme_controller.dart';
 
 void main() {
   final WidgetsBinding widgetsBinding =
@@ -21,6 +22,9 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider<AppState>(create: (_) => AppState()),
+          ChangeNotifierProvider<ThemeController>(
+            create: (_) => ThemeController()..load(),
+          ),
           ChangeNotifierProvider<MeshcoreController>(
             create: (_) => MeshcoreController(),
           ),
@@ -37,14 +41,24 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeController tc = context.watch<ThemeController>();
     return MaterialApp(
       title: 'Meshmore SNS',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: tc.theme,
       initialRoute: '/',
       onGenerateRoute: RouterClass.generateRoute,
+      builder: (BuildContext context, Widget? child) {
+        // User font-size scale (R14) layered on top of the OS text
+        // scale (R13 — honour the platform setting).
+        final MediaQueryData mq = MediaQuery.of(context);
+        final double osScale = mq.textScaler.scale(1.0);
+        return MediaQuery(
+          data: mq.copyWith(
+            textScaler: TextScaler.linear(osScale * tc.fontScale),
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }
