@@ -215,6 +215,13 @@ class _SettingsView extends StatelessWidget {
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.push('/settings/profile'),
         ),
+        ListTile(
+          leading: const Icon(Icons.bluetooth_searching),
+          title: const Text('Diagnostics & connect'),
+          subtitle: const Text('Connect a radio · frame log · M6 capture'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push('/settings/diagnostics'),
+        ),
       ],
     );
   }
