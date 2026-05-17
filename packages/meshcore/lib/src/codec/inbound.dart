@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import '../model/channel_info.dart';
+import '../model/channel_message.dart';
 import '../model/contact.dart';
 import '../model/self_info.dart';
 import 'decode_error.dart';
@@ -55,6 +57,30 @@ class SelfInfoFrame extends MeshcoreInbound {
   final SelfInfo selfInfo;
   @override
   String toString() => 'SelfInfoFrame($selfInfo)';
+}
+
+/// `RESP_CODE_SENT` (0x06) — send confirmation.
+class MsgSentFrame extends MeshcoreInbound {
+  const MsgSentFrame(this.sent);
+  final MsgSent sent;
+  @override
+  String toString() => 'MsgSentFrame($sent)';
+}
+
+/// `RESP_CODE_CHANNEL_MSG_RECV` (0x08) and V3 (0x11).
+class ChannelMessageFrame extends MeshcoreInbound {
+  const ChannelMessageFrame(this.message);
+  final ChannelMessage message;
+  @override
+  String toString() => 'ChannelMessageFrame($message)';
+}
+
+/// `RESP_CODE_CHANNEL_INFO` (0x12).
+class ChannelInfoFrame extends MeshcoreInbound {
+  const ChannelInfoFrame(this.info);
+  final ChannelInfo info;
+  @override
+  String toString() => 'ChannelInfoFrame($info)';
 }
 
 /// `RESP_CODE_CURR_TIME` (0x09).

@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.0.3 — M2 (channel messaging + channel AES)
+
+- Dependency: **pointycastle** added. MeshCore needs raw AES-128-ECB
+  (which `package:cryptography` deliberately omits) and a conformance
+  library wants sync/deterministic/pure-Dart primitives. Supersedes the
+  earlier `cryptography` choice for this package (see spec → Risks).
+- Channel/cipher constants from `src/MeshCore.h` / `src/Mesh.h`:
+  `kCipherKeySize` 16, `kCipherBlockSize` 16, `kCipherMacSize` 2,
+  `kChannelSecretSize` 32 (`GroupChannel.secret` = PUB_KEY_SIZE),
+  `kChannelPskSize` 16 (companion-carried), `kTxtTypePlain`,
+  `kPathLenFlood` 0xFF.
+- Encoders: `sendChannelTextMessage`, `getChannel`, `setChannel`
+  (50-byte fixed frame). Decoders: `RESP_CODE_SENT` (0x06),
+  `CHANNEL_MSG_RECV` (0x08) + V3 (0x11, SNR), `CHANNEL_INFO` (0x12).
+  New frames: `MsgSentFrame`, `ChannelMessageFrame`, `ChannelInfoFrame`;
+  models `ChannelMessage`, `ChannelInfo`, `MsgSent`.
+- `MeshcoreChannelCrypto`: faithful port of `Utils::encrypt/decrypt/
+  encryptThenMAC/MACThenDecrypt` + channel hash — AES-128-ECB
+  (zero-padded final block), HMAC-SHA256 truncated to 2 bytes keyed
+  over the full 32-byte secret, `channelHash = SHA256(secret)[0]`.
+  `channelSecretFromPsk` zero-fills the upper 16 bytes (PROVISIONAL —
+  not carried on the companion link; confirm via M6 interop fixture).
+- Conformance: `vectors/m2_channel_frames.json` + programmatic
+  SET_CHANNEL/CHANNEL_INFO goldens + totality tests; crypto KATs
+  anchored to published vectors (NIST AES-128-ECB, SHA-256 "abc",
+  RFC 4231 HMAC-SHA256 case 2) plus encryptThenMac composition /
+  round-trip / tamper-rejection. 57 tests green.
+
 ## 0.0.2 — M1 (framing + core codec)
 
 - Added source-verified commands from `MyMesh.cpp` (pinned commit):

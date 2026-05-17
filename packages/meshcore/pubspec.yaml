@@ -3,15 +3,20 @@ description: >-
   Pure-Dart implementation of the Meshcore companion-radio protocol
   (codec, models, crypto, session). No Flutter dependencies — the
   conformance suite runs under `dart test` with no device or emulator.
-version: 0.0.2
+version: 0.0.3
 publish_to: 'none'
 
 environment:
   sdk: ^3.5.0
 
-# Intentionally no runtime dependencies yet. The crypto milestone (M3)
-# will add `cryptography`. Keep this package Flutter-free.
 dependencies:
+  # MeshCore channel/DM crypto needs raw AES-128-ECB (block-by-block,
+  # zero-padded final block) + HMAC-SHA256 + SHA-256. `package:crypto-
+  # graphy` deliberately omits ECB, and a conformance library wants
+  # synchronous, deterministic, pure-Dart primitives — so this package
+  # uses pointycastle (single pure-Dart dependency). See
+  # meshmore-sns-spec.md → Risks (crypto exactness).
+  pointycastle: ^3.9.1
 
 dev_dependencies:
   lints: ^5.0.0

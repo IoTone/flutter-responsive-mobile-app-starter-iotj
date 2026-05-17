@@ -40,6 +40,13 @@ class ByteCursor {
     return _bytes[_pos++];
   }
 
+  /// Signed 8-bit (used for the scaled SNR byte in V3 receive frames).
+  int i8(String ctx) {
+    _need(1, ctx);
+    final int v = _bytes[_pos++];
+    return v < 128 ? v : v - 256;
+  }
+
   int u16(String ctx) {
     _need(2, ctx);
     final int v = _data.getUint16(_pos, Endian.little);
@@ -110,6 +117,16 @@ class FrameBuilder {
 
   /// Append [n] zero bytes (reserved fields).
   void zeros(int n) => _b.add(Uint8List(n));
+
+  /// Append exactly [size] bytes: [src] truncated if longer, or
+  /// zero-padded on the right if shorter (fixed C-buffer fields like
+  /// the 32-byte channel name and 16-byte secret in SET_CHANNEL).
+  void fixed(List<int> src, int size) {
+    final Uint8List buf = Uint8List(size);
+    final int n = src.length < size ? src.length : size;
+    buf.setRange(0, n, src);
+    _b.add(buf);
+  }
 
   Uint8List build() => _b.toBytes();
 }

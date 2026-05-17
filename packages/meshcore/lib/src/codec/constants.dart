@@ -43,11 +43,37 @@ abstract final class MeshcoreBle {
 /// Common protocol field sizes (from firmware, pinned commit).
 ///
 /// `PUB_KEY_SIZE`, `MAX_PATH_SIZE`, and the 32-byte contact name field
-/// are read from `examples/companion_radio/MyMesh.cpp` at the pinned
-/// commit (RESP_CODE_CONTACT serialization).
-const int kPubKeySize = 32;
-const int kMaxPathSize = 64;
+/// are read from `examples/companion_radio/MyMesh.cpp` and
+/// `src/MeshCore.h` at the pinned commit.
+const int kPubKeySize = 32; // PUB_KEY_SIZE
+const int kPrivKeySize = 64; // PRV_KEY_SIZE
+const int kSignatureSize = 64; // SIGNATURE_SIZE
+const int kMaxPathSize = 64; // MAX_PATH_SIZE
 const int kContactNameSize = 32;
+
+/// Channel + cipher sizes (from `src/MeshCore.h` / `src/Mesh.h`).
+///
+/// `mesh::GroupChannel { uint8_t hash[PATH_HASH_SIZE];
+///   uint8_t secret[PUB_KEY_SIZE]; }` — so the channel secret BUFFER is
+/// [kPubKeySize] (32) bytes. The AES-128 key is the first
+/// [kCipherKeySize] (16) bytes; the HMAC is keyed over all 32. The
+/// companion protocol (SET_CHANNEL / CHANNEL_INFO) only conveys the
+/// first [kChannelPskSize] (16) bytes — the upper 16 bytes of a
+/// channel's HMAC key are NOT carried on the companion link and must be
+/// confirmed against a real device (M6 interop fixture).
+const int kCipherKeySize = 16; // CIPHER_KEY_SIZE  (AES-128)
+const int kCipherBlockSize = 16; // CIPHER_BLOCK_SIZE
+const int kCipherMacSize = 2; // CIPHER_MAC_SIZE  (truncated HMAC)
+const int kChannelSecretSize = kPubKeySize; // GroupChannel.secret = 32
+const int kChannelPskSize = 16; // bytes carried by SET_CHANNEL
+const int kChannelNameSize = 32;
+
+/// Channel text `txt_type` values (companion protocol).
+/// 0 = plain. (Signed/other types handled in their milestone.)
+const int kTxtTypePlain = 0;
+
+/// `path_len` sentinel meaning the message arrived via flood routing.
+const int kPathLenFlood = 0xFF;
 
 /// Command opcodes (App → Device). First byte of an outbound frame.
 ///

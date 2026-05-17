@@ -44,20 +44,34 @@ lib/
     codec/frame_codec.dart    command encoders + total decode()
     codec/inbound.dart        sealed MeshcoreInbound frame hierarchy
     codec/decode_error.dart   typed decode-failure model
+    crypto/channel_crypto.dart  AES-128-ECB + HMAC-SHA256 MAC + channel hash
     model/self_info.dart      SELF_INFO (0x05)
     model/contact.dart        CONTACT (0x03)
+    model/channel_message.dart  CHANNEL_MSG_RECV (0x08 / 0x11 V3)
+    model/channel_info.dart   CHANNEL_INFO (0x12) + MSG_SENT (0x06)
     transport/transport.dart  abstract MeshcoreTransport (no BLE here)
 test/
   constants_test.dart         pin + opcode + framing assertions
-  frame_codec_test.dart       vector goldens + programmatic + totality
+  frame_codec_test.dart       M1 vector goldens + programmatic + totality
+  channel_codec_test.dart     M2 channel vector goldens + programmatic
+  channel_crypto_test.dart    crypto KATs (NIST/RFC) + composition
   vectors/m1_frames.json      M1 conformance vectors
+  vectors/m2_channel_frames.json  M2 conformance vectors
 ```
 
-Implemented: M0 (scaffold/pin/CI), **M1** (framing + core codec —
-APP_START, SELF_INFO, GET_CONTACTS + contact list, device time;
-decode is total). Channel messaging, contacts/DM crypto, radio
-config, and the BLE transport land in later milestones
-(see `meshmore-sns-spec.md` → *Meshcore Protocol Implementation Plan*).
+Implemented: M0 (scaffold/pin/CI), M1 (framing + core codec), **M2**
+(channel messaging — send/get/set channel, RX legacy+V3, MSG_SENT —
+and the MeshCore channel cipher: AES-128-ECB + truncated HMAC-SHA256
+MAC + channel hash, KAT-verified). Contacts/DM crypto, radio config,
+and the BLE transport land in later milestones (see
+`meshmore-sns-spec.md` → *Meshcore Protocol Implementation Plan*).
+
+> Crypto note: this package uses **pointycastle** (raw AES-ECB +
+> sync/deterministic pure Dart), superseding the earlier
+> `package:cryptography` choice. The channel secret's upper 16 bytes
+> are not carried on the companion link — `channelSecretFromPsk`
+> zero-fills them provisionally pending an on-device interop fixture
+> (M6).
 
 ## Test
 

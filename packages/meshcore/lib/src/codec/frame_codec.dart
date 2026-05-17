@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
+import '../model/channel_info.dart';
+import '../model/channel_message.dart';
 import '../model/contact.dart';
 import '../model/self_info.dart';
 import 'byte_cursor.dart';
@@ -56,6 +59,52 @@ abstract final class MeshcoreFrameCodec {
   static Uint8List syncNextMessage() =>
       (FrameBuilder()..u8(MeshcoreCommand.syncNextMessage.code)).build();
 
+  /// `CMD_SEND_CHANNEL_TXT_MSG` (0x03):
+  /// `03 [txt_type] [channel_idx] [timestamp u32 LE] [text UTF-8]`.
+  ///
+  /// The app sends plaintext + channel index; the device performs the
+  /// over-the-air channel encryption.
+  static Uint8List sendChannelTextMessage({
+    required int channelIdx,
+    required int timestamp,
+    required String text,
+    int txtType = kTxtTypePlain,
+  }) {
+    return (FrameBuilder()
+          ..u8(MeshcoreCommand.sendChannelMessage.code)
+          ..u8(txtType)
+          ..u8(channelIdx)
+          ..u32(timestamp)
+          ..utf8String(text))
+        .build();
+  }
+
+  /// `CMD_GET_CHANNEL` (0x1F): `1F [channel_idx]`.
+  static Uint8List getChannel(int channelIdx) {
+    return (FrameBuilder()
+          ..u8(MeshcoreCommand.getChannel.code)
+          ..u8(channelIdx))
+        .build();
+  }
+
+  /// `CMD_SET_CHANNEL` (0x20):
+  /// `20 [channel_idx] [name 32B NUL-padded] [secret 16B]` (50 bytes).
+  ///
+  /// [psk] is the 16-byte AES-128 channel key as carried by the
+  /// companion link (truncated/zero-padded to [kChannelPskSize]).
+  static Uint8List setChannel({
+    required int channelIdx,
+    required String name,
+    required List<int> psk,
+  }) {
+    return (FrameBuilder()
+          ..u8(MeshcoreCommand.setChannel.code)
+          ..u8(channelIdx)
+          ..fixed(utf8.encode(name), kChannelNameSize)
+          ..fixed(psk, kChannelPskSize))
+        .build();
+  }
+
   // ---------------------------------------------------------------------
   // Decoder (Device → App) — total, never throws.
   // ---------------------------------------------------------------------
@@ -91,11 +140,31 @@ abstract final class MeshcoreFrameCodec {
         case 0x05: // RESP_CODE_SELF_INFO
           return SelfInfoFrame(_decodeSelfInfo(c));
 
+        case 0x06: // RESP_CODE_SENT
+          return MsgSentFrame(MsgSent(
+            isFlood: c.u8('msgSent.floodFlag') != 0,
+            expectedAck: c.u32('msgSent.expectedAck'),
+            estTimeoutMs: c.u32('msgSent.estTimeoutMs'),
+          ));
+
+        case 0x08: // RESP_CODE_CHANNEL_MSG_RECV (legacy)
+          return ChannelMessageFrame(_decodeChannelMsg(c, v3: false));
+
         case 0x09: // RESP_CODE_CURR_TIME
           return CurrentTimeFrame(c.u32('currentTime.unix'));
 
         case 0x0A: // RESP_CODE_NO_MORE_MESSAGES
           return const NoMoreMessagesFrame();
+
+        case 0x11: // RESP_CODE_CHANNEL_MSG_RECV_V3
+          return ChannelMessageFrame(_decodeChannelMsg(c, v3: true));
+
+        case 0x12: // RESP_CODE_CHANNEL_INFO
+          return ChannelInfoFrame(ChannelInfo(
+            channelIdx: c.u8('channelInfo.idx'),
+            name: c.fixedCString(kChannelNameSize, 'channelInfo.name'),
+            psk: c.bytes(kChannelPskSize, 'channelInfo.psk'),
+          ));
 
         default:
           return UnsupportedFrame(op, Uint8List.fromList(frame));
@@ -140,6 +209,31 @@ abstract final class MeshcoreFrameCodec {
       spreadingFactor: sf,
       codingRate: cr,
       name: name,
+    );
+  }
+
+  /// Decodes 0x08 (legacy) and 0x11 (V3) channel messages. The opcode
+  /// byte has already been consumed.
+  static ChannelMessage _decodeChannelMsg(ByteCursor c, {required bool v3}) {
+    double? snr;
+    if (v3) {
+      snr = c.i8('channelMsg.snr') / 4.0;
+      c.u8('channelMsg.reserved1');
+      c.u8('channelMsg.reserved2');
+    }
+    final int channelIdx = c.u8('channelMsg.channelIdx');
+    final int pathLen = c.u8('channelMsg.pathLen');
+    final int txtType = c.u8('channelMsg.txtType');
+    final int ts = c.u32('channelMsg.timestamp');
+    final String text = c.atEnd ? '' : c.utf8ToEnd('channelMsg.text');
+    return ChannelMessage(
+      channelIdx: channelIdx,
+      pathLen: pathLen,
+      txtType: txtType,
+      timestamp: ts,
+      text: text,
+      isV3: v3,
+      snrDb: snr,
     );
   }
 
