@@ -29,7 +29,10 @@ void main() {
     test('core command opcodes', () {
       expect(MeshcoreCommand.appStart.code, 0x01);
       expect(MeshcoreCommand.sendChannelMessage.code, 0x03);
-      expect(MeshcoreCommand.getMessage.code, 0x0A);
+      expect(MeshcoreCommand.getContacts.code, 0x04);
+      expect(MeshcoreCommand.getDeviceTime.code, 0x05);
+      expect(MeshcoreCommand.setDeviceTime.code, 0x06);
+      expect(MeshcoreCommand.syncNextMessage.code, 0x0A);
       expect(MeshcoreCommand.setChannel.code, 0x20);
     });
 

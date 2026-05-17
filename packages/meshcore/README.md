@@ -37,15 +37,26 @@ hardware is set up:
 
 ```
 lib/
-  meshcore.dart            public API barrel
+  meshcore.dart               public API barrel
   src/
-    codec/constants.dart   transcribed opcodes / UUIDs / framing (pinned)
+    codec/constants.dart      transcribed opcodes / UUIDs / framing (pinned)
+    codec/byte_cursor.dart    bounds-checked LE read/build primitives
+    codec/frame_codec.dart    command encoders + total decode()
+    codec/inbound.dart        sealed MeshcoreInbound frame hierarchy
+    codec/decode_error.dart   typed decode-failure model
+    model/self_info.dart      SELF_INFO (0x05)
+    model/contact.dart        CONTACT (0x03)
     transport/transport.dart  abstract MeshcoreTransport (no BLE here)
 test/
-  constants_test.dart      pin + opcode + framing assertions
+  constants_test.dart         pin + opcode + framing assertions
+  frame_codec_test.dart       vector goldens + programmatic + totality
+  vectors/m1_frames.json      M1 conformance vectors
 ```
 
-Codec, model, crypto, and session layers are added per milestone
+Implemented: M0 (scaffold/pin/CI), **M1** (framing + core codec —
+APP_START, SELF_INFO, GET_CONTACTS + contact list, device time;
+decode is total). Channel messaging, contacts/DM crypto, radio
+config, and the BLE transport land in later milestones
 (see `meshmore-sns-spec.md` → *Meshcore Protocol Implementation Plan*).
 
 ## Test

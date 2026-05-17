@@ -40,16 +40,38 @@ abstract final class MeshcoreBle {
       '6E400003-B5A3-F393-E0A9-E50E24DCCA9E';
 }
 
+/// Common protocol field sizes (from firmware, pinned commit).
+///
+/// `PUB_KEY_SIZE`, `MAX_PATH_SIZE`, and the 32-byte contact name field
+/// are read from `examples/companion_radio/MyMesh.cpp` at the pinned
+/// commit (RESP_CODE_CONTACT serialization).
+const int kPubKeySize = 32;
+const int kMaxPathSize = 64;
+const int kContactNameSize = 32;
+
 /// Command opcodes (App → Device). First byte of an outbound frame.
 ///
-/// Core set for M0/M1. Additional commands (text message, contacts,
-/// device time, self-advert, radio params, …) are added in their
-/// milestones from the same pinned doc.
+/// Values are cross-checked against `examples/companion_radio/MyMesh.cpp`
+/// at the pinned commit (the markdown doc omits several commands).
+/// Additional commands (text message, self-advert, radio params, …) are
+/// added in their milestones from the same pinned source.
 extension type const MeshcoreCommand(int code) {
-  /// Must be the first frame after connect.
+  /// Must be the first frame after connect. `CMD_APP_START`.
   static const MeshcoreCommand appStart = MeshcoreCommand(0x01);
   static const MeshcoreCommand sendChannelMessage = MeshcoreCommand(0x03);
-  static const MeshcoreCommand getMessage = MeshcoreCommand(0x0A);
+
+  /// `CMD_GET_CONTACTS` — source-only (not in companion_protocol.md).
+  static const MeshcoreCommand getContacts = MeshcoreCommand(0x04);
+
+  /// `CMD_GET_DEVICE_TIME` — source-only.
+  static const MeshcoreCommand getDeviceTime = MeshcoreCommand(0x05);
+
+  /// `CMD_SET_DEVICE_TIME` — source-only.
+  static const MeshcoreCommand setDeviceTime = MeshcoreCommand(0x06);
+
+  /// `CMD_SYNC_NEXT_MESSAGE` — pull the next queued inbound message.
+  static const MeshcoreCommand syncNextMessage = MeshcoreCommand(0x0A);
+
   static const MeshcoreCommand getBatteryStorage = MeshcoreCommand(0x14);
   static const MeshcoreCommand deviceQuery = MeshcoreCommand(0x16);
   static const MeshcoreCommand getChannel = MeshcoreCommand(0x1F);
