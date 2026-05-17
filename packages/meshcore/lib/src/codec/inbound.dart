@@ -6,6 +6,7 @@ import '../model/channel_message.dart';
 import '../model/contact.dart';
 import '../model/contact_message.dart';
 import '../model/device_config.dart';
+import '../model/rf_log.dart';
 import '../model/self_info.dart';
 import 'decode_error.dart';
 
@@ -116,6 +117,14 @@ class BatteryStorageFrame extends MeshcoreInbound {
   final BatteryStorage battery;
   @override
   String toString() => 'BatteryStorageFrame($battery)';
+}
+
+/// `PUSH_CODE_LOG_RX_DATA` (0x88) — raw received OTA packet + SNR/RSSI.
+class RfLogFrame extends MeshcoreInbound {
+  const RfLogFrame(this.log);
+  final RfLog log;
+  @override
+  String toString() => 'RfLogFrame($log)';
 }
 
 /// `RESP_CODE_CURR_TIME` (0x09).

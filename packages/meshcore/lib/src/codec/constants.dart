@@ -116,6 +116,36 @@ const int kAdvNameMask = 0x80;
 /// The Ed25519-signed message is `pub_key ‖ timestamp ‖ app_data`.
 const int kAdvertHeaderSize = kPubKeySize + 4 + kSignatureSize; // 100
 
+/// --- Over-the-air packet format (`docs/packet_format.md`, pinned). ---
+/// Header byte 0: bits0-1 route type, bits2-5 payload type, bits6-7 ver.
+const int kPktRouteTypeMask = 0x03;
+const int kPktPayloadTypeMask = 0x3C; // >> 2
+const int kPktPayloadTypeShift = 2;
+const int kPktVersionMask = 0xC0; // >> 6
+
+const int kRouteTransportFlood = 0x00;
+const int kRouteFlood = 0x01;
+const int kRouteDirect = 0x02;
+const int kRouteTransportDirect = 0x03;
+
+/// Transport codes (4 bytes) precede the path for the TRANSPORT_* routes.
+const int kTransportCodesSize = 4;
+
+const int kPayloadTypeReq = 0x00;
+const int kPayloadTypeResponse = 0x01;
+const int kPayloadTypeTxtMsg = 0x02;
+const int kPayloadTypeAck = 0x03;
+const int kPayloadTypeAdvert = 0x04;
+const int kPayloadTypeGrpTxt = 0x05;
+const int kPayloadTypeGrpData = 0x06;
+const int kPayloadTypeAnonReq = 0x07;
+const int kPayloadTypePath = 0x08;
+const int kPayloadTypeTrace = 0x09;
+
+/// Path-length byte: bits0-5 hop count, bits6-7 hash-size code.
+const int kPathHopMask = 0x3F;
+const int kPathHashSizeShift = 6;
+
 /// --- Well-known PUBLIC channel (`docs/qr_codes.md`, pinned commit). ---
 /// `meshcore://channel/add?name=Public&secret=8b3387e9c5cdea6ac9e5edbaa115cd72`
 /// The shared secret is 16 bytes throughout the ecosystem; the firmware

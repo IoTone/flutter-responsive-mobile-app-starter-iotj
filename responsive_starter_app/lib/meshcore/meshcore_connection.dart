@@ -50,6 +50,8 @@ class MeshcoreConnection {
       StreamController<MeshcoreConnectionState>.broadcast();
   final StreamController<MeshcoreInbound> _inbound =
       StreamController<MeshcoreInbound>.broadcast();
+  final StreamController<Uint8List> _rawInbound =
+      StreamController<Uint8List>.broadcast();
 
   MeshcoreConnectionState _state = MeshcoreConnectionState.disconnected;
   SelfInfo? _selfInfo;
@@ -66,6 +68,10 @@ class MeshcoreConnection {
   /// Every decoded device→app frame (broadcast), including the
   /// SELF_INFO consumed by the handshake.
   Stream<MeshcoreInbound> get inbound => _inbound.stream;
+
+  /// Raw device→app frame bytes (broadcast), pre-decode. Used by the
+  /// M6 interop capture (the exact `0x88` hex must be preserved).
+  Stream<Uint8List> get rawInbound => _rawInbound.stream;
 
   void _setState(MeshcoreConnectionState s) {
     if (s == _state) return;
@@ -123,6 +129,7 @@ class MeshcoreConnection {
   }
 
   void _onFrame(Uint8List bytes) {
+    if (!_rawInbound.isClosed) _rawInbound.add(Uint8List.fromList(bytes));
     final MeshcoreInbound frame = MeshcoreFrameCodec.decode(bytes);
     if (_state == MeshcoreConnectionState.handshaking &&
         frame is SelfInfoFrame) {
@@ -156,5 +163,6 @@ class MeshcoreConnection {
     _detachSubs();
     await _states.close();
     await _inbound.close();
+    await _rawInbound.close();
   }
 }

@@ -7,6 +7,7 @@ import '../model/channel_message.dart';
 import '../model/contact.dart';
 import '../model/contact_message.dart';
 import '../model/device_config.dart';
+import '../model/rf_log.dart';
 import '../model/self_info.dart';
 import 'byte_cursor.dart';
 import 'constants.dart';
@@ -343,6 +344,13 @@ abstract final class MeshcoreFrameCodec {
 
         case 0x80: // PUSH_CODE_ADVERTISEMENT
           return AdvertFrame(_decodeAdvert(frame, c));
+
+        case 0x88: // PUSH_CODE_LOG_RX_DATA
+          final double snr = c.i8('rfLog.snr') / 4.0;
+          final int rssi = c.i8('rfLog.rssi');
+          final Uint8List raw =
+              c.atEnd ? Uint8List(0) : c.bytes(c.remaining, 'rfLog.raw');
+          return RfLogFrame(RfLog(snrDb: snr, rssi: rssi, raw: raw));
 
         default:
           return UnsupportedFrame(op, Uint8List.fromList(frame));

@@ -47,6 +47,9 @@ lib/
     crypto/channel_crypto.dart  AES-128-ECB + HMAC-SHA256 MAC + channel hash
     crypto/identity_crypto.dart Ed25519 verify + ed25519_key_exchange ECDH
     crypto/dm_crypto.dart       DM shared-secret + payload encrypt/decrypt
+    diagnostics/channel_tail_oracle.dart  M6 channel-secret-tail resolver
+    model/ota_packet.dart       raw OTA packet parser + GRP_TXT split
+    model/rf_log.dart           0x88 RF-log (raw received packet)
     model/self_info.dart      SELF_INFO (0x05)
     model/contact.dart        CONTACT (0x03)
     model/channel_message.dart  CHANNEL_MSG_RECV (0x08 / 0x11 V3)

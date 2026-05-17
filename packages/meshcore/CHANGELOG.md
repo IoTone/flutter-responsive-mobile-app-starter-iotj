@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.0.7 — M6 prep (RF-log/OTA codec + channel-tail oracle + interop harness)
+
+Hardware-free half of M6 — makes the on-device step turnkey.
+
+- `RfLogFrame` decode for `PUSH_CODE_LOG_RX_DATA` (0x88,
+  `[snr×4][rssi][raw OTA packet]`); `OtaPacket.parse` (header
+  route/type/version, transport-codes skip, path skip, payload) and
+  `GrpTxtPayload` (channel-hash + `[MAC2]‖ciphertext`), per
+  `docs/packet_format.md` at the pin. Decode stays total.
+- `resolveChannelTail(...)` — the channel-secret-tail **oracle**:
+  given the known PSK + known plaintext + a captured GRP_TXT packet,
+  tests {zeros, pskRepeat, sha256Low, sha256High} against the on-air
+  channel hash AND a MAC-valid decrypt; closes open item #1 from a
+  BLE-only `0x88` capture (no SDR — the firmware logs the full raw
+  packet).
+- Interop harness: `test/interop_replay_test.dart` skips when
+  `test/vectors/interop/*.json` is absent (CI green) and asserts +
+  reports the resolved tail when real captures are committed; schema
+  in `test/vectors/interop/SCHEMA.md`.
+- Conformance: 103 tests green + 1 skipped (interop, no fixtures
+  yet); synthetic codec/oracle tests prove the logic deterministically
+  (no fabricated device data). Operator steps:
+  `meshmore-sns/M6-interop-runbook.md`.
+
 ## 0.0.6 — M4 (device / radio configuration, R7)
 
 Layouts from `examples/companion_radio/MyMesh.cpp` at the pin.
