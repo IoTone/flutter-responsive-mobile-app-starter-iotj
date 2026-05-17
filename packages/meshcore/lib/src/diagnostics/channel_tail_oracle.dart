@@ -24,13 +24,14 @@ enum ChannelTailHypothesis {
 }
 
 Uint8List _secretFor(ChannelTailHypothesis h, Uint8List psk) {
+  final int n = psk.length < kCipherKeySize ? psk.length : kCipherKeySize;
   final Uint8List s = Uint8List(kChannelSecretSize)
-    ..setRange(0, kCipherKeySize, psk);
+    ..setRange(0, n, psk);
   switch (h) {
     case ChannelTailHypothesis.zeros:
       break; // already zero
     case ChannelTailHypothesis.pskRepeat:
-      s.setRange(kCipherKeySize, kChannelSecretSize, psk);
+      s.setRange(kCipherKeySize, kCipherKeySize + n, psk);
     case ChannelTailHypothesis.sha256Low:
       s.setRange(kCipherKeySize, kChannelSecretSize,
           MeshcoreChannelCrypto.sha256(psk).sublist(0, 16));

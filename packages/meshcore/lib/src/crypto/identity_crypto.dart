@@ -81,7 +81,13 @@ abstract final class MeshcoreIdentityCrypto {
 
     final BigInt one = BigInt.one;
     final BigInt num = (one + y) % _p;
-    final BigInt den = (one - y) % _p;
+    // (1 - y) mod p, normalised to [0, p).
+    final BigInt den = ((one - y) % _p + _p) % _p;
+    if (den == BigInt.zero) {
+      // y ≡ 1 ⇒ singular point of the birational map. Not a valid
+      // Ed25519 public key; surface a controlled error.
+      throw ArgumentError('degenerate Ed25519 public key (y ≡ 1)');
+    }
     final BigInt denInv = den.modInverse(_p);
     final BigInt u = (num * denInv) % _p;
 

@@ -64,11 +64,12 @@ test/
   vectors/m2_channel_frames.json  M2 conformance vectors
 ```
 
-Implemented: M0 (scaffold/pin/CI), M1 (core codec), M2 (channel
-messaging + channel cipher), M3 (DM/contact/advert + Ed25519/ECDH),
-**M4** (device/radio configuration — R7 protocol surface). The BLE
-transport (M5) and on-device integration (M6) land next (see
-`meshmore-sns-spec.md` → *Meshcore Protocol Implementation Plan*).
+Implemented: M0–M4 (codec/crypto/config), **M6 prep** (RF-log/OTA
+codec + channel-tail oracle + interop harness), **M7** (totality
+fuzz + error taxonomy; conformance gate enforced). The app-side BLE
+transport/state-machine/reconnect is M5/M7 in `responsive_starter_app`.
+Remaining: the on-device M6 run (`meshmore-sns/M6-interop-runbook.md`).
+See `meshmore-sns-spec.md` → *Meshcore Protocol Implementation Plan*.
 
 > Crypto note: **pointycastle** for symmetric (raw AES-128-ECB +
 > HMAC-SHA256 + SHA-256/512 — `package:cryptography` omits ECB) and

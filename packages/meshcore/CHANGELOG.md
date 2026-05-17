@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.1.0 — M7 (hardening; TC2 final)
+
+Final pure-software milestone. Conformance gate enforced.
+
+- Decode totality is now property-fuzzed: 4000 seeded random +
+  structured frames through `decode`, plus fuzz of `OtaPacket.parse`,
+  `macThenDecrypt`, `resolveChannelTail`, and
+  `edPublicKeyToMontgomeryU` — none throw; failures are only the
+  structural kinds.
+- Totality hardening found + fixed two real gaps:
+  `macThenDecrypt` now rejects non-block-aligned / empty ciphertext
+  (return null, not an AES `ArgumentError`); `resolveChannelTail`
+  tolerates short PSKs; `edPublicKeyToMontgomeryU` raises a
+  *controlled* `ArgumentError` on the degenerate `y ≡ 1` point.
+- Error taxonomy tightened: removed the dead `unsupportedOpcode`
+  kind; documented the invariant (unknown opcode →
+  `UnsupportedFrame`, *not* a failure; only `empty`/`truncated` are
+  failure kinds) with assertion tests.
+- 111 tests + 1 skipped (interop). `dart analyze --fatal-infos` +
+  `dart test` is the enforced merge gate (CI).
+
+(App-side M7, in `responsive_starter_app`: `ReconnectPolicy`
+exponential-backoff-with-jitter + `MeshcoreController` auto-reconnect
+— fixed a real stale-state reconnect bug; 17 app tests green.)
+
 ## 0.0.7 — M6 prep (RF-log/OTA codec + channel-tail oracle + interop harness)
 
 Hardware-free half of M6 — makes the on-device step turnkey.

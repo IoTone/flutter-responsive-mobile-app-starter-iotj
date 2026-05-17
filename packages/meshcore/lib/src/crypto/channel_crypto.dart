@@ -120,6 +120,11 @@ abstract final class MeshcoreChannelCrypto {
     if (frame.length <= kCipherMacSize) return null;
     final Uint8List ct =
         Uint8List.sublistView(frame, kCipherMacSize, frame.length);
+    // MeshCore ciphertext is always block-aligned (encrypt zero-pads
+    // the final block). A non-aligned or empty body cannot be a valid
+    // frame — reject it rather than letting AES throw. Keeps this
+    // entry point total (TC2).
+    if (ct.isEmpty || ct.length % kCipherBlockSize != 0) return null;
     final Uint8List calc = hmacSha256(secret, ct);
     if (!_constantTimeEquals(frame, 0, calc, 0, kCipherMacSize)) return null;
     final Uint8List key = Uint8List.sublistView(secret, 0, kCipherKeySize);

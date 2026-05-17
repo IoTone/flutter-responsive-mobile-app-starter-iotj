@@ -1,14 +1,24 @@
-/// Why a frame failed to decode. Decoding is total: malformed input
-/// yields a [DecodeFailure] value, never an exception.
+/// Why a frame failed to decode.
+///
+/// Decoding is **total** (the TC2 invariant): every input yields a
+/// [MeshcoreInbound], never an exception. The full taxonomy of decode
+/// outcomes is:
+///
+///  * a typed frame (e.g. `SelfInfoFrame`) — recognised & parsed;
+///  * `UnsupportedFrame` — a well-formed frame whose opcode this
+///    codec does not model; raw bytes preserved. **Not a failure.**
+///  * `DecodeFailure` — the only failure path, with a kind below.
+///
+/// Hence the only failure kinds are structural: [empty] and
+/// [truncated]. An unknown opcode is *not* an error (it becomes an
+/// `UnsupportedFrame`), so there is deliberately no
+/// `unsupportedOpcode` kind.
 enum DecodeErrorKind {
   /// Frame was empty (no opcode byte).
   empty,
 
   /// Frame ended before a required field could be read.
   truncated,
-
-  /// Opcode is not one this codec milestone decodes yet.
-  unsupportedOpcode,
 }
 
 class MeshcoreDecodeError {
