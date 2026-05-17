@@ -1,0 +1,55 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+
+import 'package:meshmore_sns_app/app_state_model.dart';
+import 'package:meshmore_sns_app/main.dart';
+import 'package:meshmore_sns_app/theme/theme_controller.dart';
+
+Future<void> _pumpApp(WidgetTester tester) async {
+  await tester.pumpWidget(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AppState>(create: (_) => AppState()),
+        ChangeNotifierProvider<ThemeController>(
+          create: (_) => ThemeController(),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  testWidgets('shell starts on Dashboard (R8 home)', (WidgetTester t) async {
+    await _pumpApp(t);
+    expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
+  });
+
+  testWidgets('quick-nav opens on tap and jumps views (R11)',
+      (WidgetTester t) async {
+    await _pumpApp(t);
+    // Tap the leading quick-nav control.
+    await t.tap(find.byIcon(Icons.menu_open));
+    await t.pumpAndSettle();
+    // Sheet lists all five destinations.
+    expect(find.text('Nodes'), findsWidgets);
+    await t.tap(find.text('Settings').last);
+    await t.pumpAndSettle();
+    expect(find.widgetWithText(AppBar, 'Settings'), findsOneWidget);
+    // Settings hub shows the three sub-screen entries.
+    expect(find.text('Device configuration'), findsOneWidget);
+    expect(find.text('App settings'), findsOneWidget);
+    expect(find.text('Profile & personalization'), findsOneWidget);
+  });
+
+  testWidgets('horizontal swipe pages between views (R11)',
+      (WidgetTester t) async {
+    await _pumpApp(t);
+    expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
+    await t.fling(find.byType(PageView), const Offset(-400, 0), 1000);
+    await t.pumpAndSettle();
+    expect(find.widgetWithText(AppBar, 'Chat'), findsOneWidget);
+  });
+}

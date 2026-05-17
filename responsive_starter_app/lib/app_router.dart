@@ -1,0 +1,27 @@
+import 'package:go_router/go_router.dart';
+
+import 'screens/app_settings_screen.dart';
+import 'screens/device_config_screen.dart';
+import 'screens/personalization_screen.dart';
+import 'shell/home_shell.dart';
+
+/// App routes (R11). `/` hosts the 5-view swipe shell; the Settings
+/// hub pushes its three sub-screens.
+final GoRouter appRouter = GoRouter(
+  initialLocation: '/',
+  routes: <RouteBase>[
+    GoRoute(path: '/', builder: (_, __) => const HomeShell()),
+    GoRoute(
+      path: '/settings/device',
+      builder: (_, __) => const DeviceConfigScreen(),
+    ),
+    GoRoute(
+      path: '/settings/app',
+      builder: (_, __) => const AppSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/settings/profile',
+      builder: (_, __) => const PersonalizationScreen(),
+    ),
+  ],
+);
