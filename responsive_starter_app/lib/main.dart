@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:responsive_toolkit/responsive_toolkit.dart';
 
 import 'package:meshmore_sns_app/app_state_model.dart';
+import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/router.dart';
 
 void main() {
@@ -20,6 +21,9 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider<AppState>(create: (_) => AppState()),
+          ChangeNotifierProvider<MeshcoreController>(
+            create: (_) => MeshcoreController(),
+          ),
         ],
         child: const MyApp(),
       ),
