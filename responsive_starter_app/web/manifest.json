@@ -1,11 +1,11 @@
 {
-    "name": "responsive_starter_app",
-    "short_name": "responsive_starter_app",
+    "name": "Meshmore SNS",
+    "short_name": "Meshmore",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#hexcode",
-    "theme_color": "#hexcode",
-    "description": "A new Flutter project.",
+    "background_color": "#0A0E1A",
+    "theme_color": "#0A0E1A",
+    "description": "Meshmore SNS — a Flutter client for the Meshcore LoRa mesh network.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

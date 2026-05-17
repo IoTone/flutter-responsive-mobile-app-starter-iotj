@@ -1,138 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:responsive_toolkit/responsive_toolkit.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:responsive_starter_app/about.dart';
 import 'package:provider/provider.dart';
-import 'package:responsive_starter_app/app_state_model.dart';
-import 'package:responsive_starter_app/router.dart';
+import 'package:responsive_toolkit/responsive_toolkit.dart';
+
+import 'package:meshmore_sns_app/app_state_model.dart';
+import 'package:meshmore_sns_app/router.dart';
 
 void main() {
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  final WidgetsBinding widgetsBinding =
+      WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // runApp(MyApp());
-  SystemChrome.setPreferredOrientations([
+  SystemChrome.setPreferredOrientations(<DeviceOrientation>[
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
-  ]).then((value) {
+  ]).then((_) {
     runApp(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (context) => AppState()),
+          ChangeNotifierProvider<AppState>(create: (_) => AppState()),
         ],
-        child: const MaterialApp(
-          home: MyApp(), // make this const
-          initialRoute: '/',
-          onGenerateRoute: RouterClass.generateRoute,
-        ),
+        child: const MyApp(),
       ),
     );
   });
 }
 
+/// Root widget. Owns the single MaterialApp and route table.
 class MyApp extends StatelessWidget {
-  const MyApp({super.key}); // This is needed to help above initialization
+  const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Responsive',
+      title: 'Meshmore SNS',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Responsive Mobile App Starter'),
-        ),
-        drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              DrawerHeader(
-                child: Text('Responsive Menu'),
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                ),
-              ),
-              ListTile(
-                leading: Icon(Icons.abc_rounded),
-                title: Text('About'),
-                onTap: () {
-                  // Update the state of the app
-                  // Then close the drawer
-                  
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/about');
-                  /* Navigator.push(context, new MaterialPageRoute(
-                    builder: (context) => new AboutPageWidget())
-                  ); */
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.settings),
-                title: Text('Settings'),
-                onTap: () {
-                  // Update the state of the app
-                  // Then close the drawer
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/settings');
-                },
-              ),
-            ],
-          ),
-        ),
-        body: Center(
-          child: MyHomePage(),
-        ),
-      ),
-      /*
       initialRoute: '/',
       onGenerateRoute: RouterClass.generateRoute,
-      */
-      /*
-      routes: {
-        '/home': (context) => MyHomePage(),
-        '/about': (context) => AboutPageWidget()
-        // '/about': (context) => AboutPage(),
-        // '/settings': (context) => SettingsPage(),
-        // Add other routes here
-      },
-      */
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({super.key});
+  const MyHomePage({super.key});
 
   @override
-  State<StatefulWidget> createState() => _MyHomePageWidgetState();
+  State<MyHomePage> createState() => _MyHomePageWidgetState();
 }
 
 class _MyHomePageWidgetState extends State<MyHomePage> {
-  @override
-  State<StatefulWidget> createState() => _MyHomePageWidgetState();
-
   @override
   void initState() {
     super.initState();
     initialization();
   }
 
-  void initialization() async {
-    // This is where you can initialize the resources needed by your app while
-    // the splash screen is displayed.  Remove the following example because
-    // delaying the user experience is a bad design practice!
+  Future<void> initialization() async {
+    // Where to initialize resources needed by the app while the splash screen
+    // is displayed.  Keep this short; user-perceived startup matters.
+    // Demo delay retained for now — to be removed when real init is wired up.
     // ignore_for_file: avoid_print
     print('ready in 3...');
-    await Future.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
     print('ready in 2...');
-    await Future.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
     print('ready in 1...');
-    await Future.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
     print('go!');
     FlutterNativeSplash.remove();
   }
@@ -192,11 +129,11 @@ class _MyHomePageWidgetState extends State<MyHomePage> {
                     children: [
                       const TextSpan(
                         text: ' scales in the',
-                        style: const TextStyle(color: Colors.blue),
+                        style: TextStyle(color: Colors.blue),
                       ),
                       const TextSpan(
                         text: ' same way',
-                        style: const TextStyle(fontWeight: FontWeight.w100),
+                        style: TextStyle(fontWeight: FontWeight.w100),
                       ),
                     ],
                   ),
@@ -454,7 +391,7 @@ class _MyHomePageWidgetState extends State<MyHomePage> {
 class GridLines extends StatelessWidget {
   final List<Widget> children;
 
-  const GridLines({Key? key, required this.children}) : super(key: key);
+  const GridLines({super.key, required this.children});
 
   @override
   Widget build(BuildContext context) {

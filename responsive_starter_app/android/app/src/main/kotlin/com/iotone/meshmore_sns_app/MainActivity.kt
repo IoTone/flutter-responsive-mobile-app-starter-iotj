@@ -1,4 +1,4 @@
-package com.example.responsive_starter_app
+package com.iotone.meshmore_sns_app
 
 import io.flutter.embedding.android.FlutterActivity
 

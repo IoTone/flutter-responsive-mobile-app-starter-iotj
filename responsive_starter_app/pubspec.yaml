@@ -1,5 +1,5 @@
-name: responsive_starter_app
-description: "A new Flutter project."
+name: meshmore_sns_app
+description: "Meshmore SNS — a Flutter client for the Meshcore LoRa mesh network."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -19,7 +19,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.1+1
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: ^3.5.0
+  flutter: ">=3.24.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -30,27 +31,48 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
+  # --- Core / UI ---
+  cupertino_icons: ^1.0.8
+  responsive_toolkit: ^0.0.6
+  flutter_native_splash: ^2.4.3
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.6
-  responsive_toolkit: ^0.0.5
-  flutter_native_splash: ^2.4.0
-  package_info_plus: ^7.0.0
-  device_info_plus: ^10.1.0
-  provider: ^6.0.5
+  # --- App metadata ---
+  package_info_plus: ^8.1.0
+  device_info_plus: ^11.2.0
+
+  # --- State management ---
+  provider: ^6.1.2
+
+  # --- Navigation (R11: swipe + long-press menu) ---
+  go_router: ^14.6.2
+
+  # --- Localization (R4: EN + JA) ---
+  intl: ^0.20.2
+
+  # --- Bluetooth to Meshcore device (R3) ---
+  flutter_blue_plus: ^1.34.5
+  permission_handler: ^11.3.1
+
+  # --- Text-to-Speech (R5, off by default) ---
+  flutter_tts: ^4.2.2
+
+  # --- Settings persistence (R7) ---
+  shared_preferences: ^2.3.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: "^0.14.1"
+  flutter_launcher_icons: ^0.14.3
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^3.0.0
+  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

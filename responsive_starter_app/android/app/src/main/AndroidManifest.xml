@@ -1,6 +1,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Bluetooth permissions for Meshcore device link (R3).
+         BLUETOOTH / BLUETOOTH_ADMIN are kept for pre-Android 12 devices.
+         On Android 12+ (API 31+), BLUETOOTH_SCAN/CONNECT are required instead. -->
+    <uses-permission android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- Required on Android <= 11 for BLE scan results. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="30" />
+
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
+
     <application
-        android:label="responsive_starter_app"
+        android:label="Meshmore SNS"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
