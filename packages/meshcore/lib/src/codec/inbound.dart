@@ -5,6 +5,7 @@ import '../model/channel_info.dart';
 import '../model/channel_message.dart';
 import '../model/contact.dart';
 import '../model/contact_message.dart';
+import '../model/device_config.dart';
 import '../model/self_info.dart';
 import 'decode_error.dart';
 
@@ -99,6 +100,22 @@ class AdvertFrame extends MeshcoreInbound {
   final Advert advert;
   @override
   String toString() => 'AdvertFrame($advert)';
+}
+
+/// `RESP_CODE_DEVICE_INFO` (0x0D).
+class DeviceInfoFrame extends MeshcoreInbound {
+  const DeviceInfoFrame(this.info);
+  final DeviceInfo info;
+  @override
+  String toString() => 'DeviceInfoFrame($info)';
+}
+
+/// `RESP_CODE_BATT_AND_STORAGE` (0x0C).
+class BatteryStorageFrame extends MeshcoreInbound {
+  const BatteryStorageFrame(this.battery);
+  final BatteryStorage battery;
+  @override
+  String toString() => 'BatteryStorageFrame($battery)';
 }
 
 /// `RESP_CODE_CURR_TIME` (0x09).

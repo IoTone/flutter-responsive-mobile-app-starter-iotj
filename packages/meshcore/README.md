@@ -62,11 +62,10 @@ test/
 ```
 
 Implemented: M0 (scaffold/pin/CI), M1 (core codec), M2 (channel
-messaging + channel cipher), **M3** (DM/contact/advert codec +
-Ed25519 verify + `ed25519_key_exchange` ECDH + DM payload crypto,
-KAT-verified). Radio config and the BLE transport land in later
-milestones (see `meshmore-sns-spec.md` → *Meshcore Protocol
-Implementation Plan*).
+messaging + channel cipher), M3 (DM/contact/advert + Ed25519/ECDH),
+**M4** (device/radio configuration — R7 protocol surface). The BLE
+transport (M5) and on-device integration (M6) land next (see
+`meshmore-sns-spec.md` → *Meshcore Protocol Implementation Plan*).
 
 > Crypto note: **pointycastle** for symmetric (raw AES-128-ECB +
 > HMAC-SHA256 + SHA-256/512 — `package:cryptography` omits ECB) and

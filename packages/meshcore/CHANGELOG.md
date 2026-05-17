@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.0.6 — M4 (device / radio configuration, R7)
+
+Layouts from `examples/companion_radio/MyMesh.cpp` at the pin.
+
+- Commands: `setRadioParams` (0x0B, freq/bw ×1000 + SF/CR + optional
+  repeat), `setRadioTxPower` (0x0C, int8 dBm), `setAdvertLatLon`
+  (0x0E, lat/lon ×1e6 + optional alt), `setOtherParams` (0x26),
+  `setTuningParams` (0x15, ×1000), `deviceQuery` (0x16,
+  app_target_ver), `getBatteryStorage` (0x14).
+- Decoders: `RESP_CODE_DEVICE_INFO` (0x0D, 82-byte: fw/limits/BLE
+  PIN/build/manufacturer/version/flags; on-wire `max_contacts/2`
+  doubled back) and `RESP_CODE_BATT_AND_STORAGE` (0x0C).
+- Models `RadioParams`/`DeviceInfo`/`BatteryStorage`; frames
+  `DeviceInfoFrame`/`BatteryStorageFrame`.
+- Conformance: `vectors/m4_config_frames.json` (encode incl. negative
+  int8 TX power, scaled freq/bw/tuning; battery decode) + programmatic
+  DEVICE_INFO golden + totality + a SET_RADIO_PARAMS↔SELF_INFO
+  scale round-trip. 97 tests green. Satisfies R7 protocol surface.
+
 ## 0.0.5 — M3b (Ed25519 verify + ed25519_key_exchange + DM crypto)
 
 Crypto half of M3. Completes M3.

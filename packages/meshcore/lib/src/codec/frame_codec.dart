@@ -6,6 +6,7 @@ import '../model/channel_info.dart';
 import '../model/channel_message.dart';
 import '../model/contact.dart';
 import '../model/contact_message.dart';
+import '../model/device_config.dart';
 import '../model/self_info.dart';
 import 'byte_cursor.dart';
 import 'constants.dart';
@@ -140,6 +141,90 @@ abstract final class MeshcoreFrameCodec {
         .build();
   }
 
+  // ---------------------------------------------------------------------
+  // Device / radio configuration (R7)
+  // ---------------------------------------------------------------------
+
+  /// `CMD_SET_RADIO_PARAMS` (0x0B):
+  /// `0B [freq u32 LE ×1000] [bw u32 LE ×1000] [sf] [cr] [repeat?]`.
+  static Uint8List setRadioParams(RadioParams p) {
+    final FrameBuilder b = FrameBuilder()
+      ..u8(MeshcoreCommand.setRadioParams.code)
+      ..u32((p.frequencyMhz * kRadioScale).round())
+      ..u32((p.bandwidthKhz * kRadioScale).round())
+      ..u8(p.spreadingFactor)
+      ..u8(p.codingRate);
+    if (p.repeat != null) b.u8(p.repeat!);
+    return b.build();
+  }
+
+  /// `CMD_SET_RADIO_TX_POWER` (0x0C): `0C [power int8 dBm]`.
+  static Uint8List setRadioTxPower(int dbm) {
+    return (FrameBuilder()
+          ..u8(MeshcoreCommand.setRadioTxPower.code)
+          ..u8(dbm & 0xFF))
+        .build();
+  }
+
+  /// `CMD_SET_ADVERT_LATLON` (0x0E):
+  /// `0E [lat i32 LE ×1e6] [lon i32 LE ×1e6] [alt i32 LE optional]`.
+  static Uint8List setAdvertLatLon({
+    required int latitudeMicros,
+    required int longitudeMicros,
+    int? altitudeMicros,
+  }) {
+    final FrameBuilder b = FrameBuilder()
+      ..u8(MeshcoreCommand.setAdvertLatLon.code)
+      ..i32(latitudeMicros)
+      ..i32(longitudeMicros);
+    if (altitudeMicros != null) b.i32(altitudeMicros);
+    return b.build();
+  }
+
+  /// `CMD_SET_OTHER_PARAMS` (0x26):
+  /// `26 [manual_add] [telemetry_packed] [loc_policy?] [multi_acks?]`.
+  static Uint8List setOtherParams({
+    required int manualAddContacts,
+    required int telemetryModePacked,
+    int? advertLocPolicy,
+    int? multiAcks,
+  }) {
+    final FrameBuilder b = FrameBuilder()
+      ..u8(MeshcoreCommand.setOtherParams.code)
+      ..u8(manualAddContacts)
+      ..u8(telemetryModePacked);
+    if (advertLocPolicy != null) {
+      b.u8(advertLocPolicy);
+      if (multiAcks != null) b.u8(multiAcks);
+    }
+    return b.build();
+  }
+
+  /// `CMD_SET_TUNING_PARAMS` (0x15):
+  /// `15 [rx_delay_base u32 LE ×1000] [airtime_factor u32 LE ×1000]`.
+  static Uint8List setTuningParams({
+    required double rxDelayBaseSeconds,
+    required double airtimeFactor,
+  }) {
+    return (FrameBuilder()
+          ..u8(MeshcoreCommand.setTuningParams.code)
+          ..u32((rxDelayBaseSeconds * kRadioScale).round())
+          ..u32((airtimeFactor * kRadioScale).round()))
+        .build();
+  }
+
+  /// `CMD_DEVICE_QUERY` (0x16): `16 [app_target_ver]`.
+  static Uint8List deviceQuery({int appTargetVer = 1}) {
+    return (FrameBuilder()
+          ..u8(MeshcoreCommand.deviceQuery.code)
+          ..u8(appTargetVer))
+        .build();
+  }
+
+  /// `CMD_GET_BATT_AND_STORAGE` (0x14): `14`.
+  static Uint8List getBatteryStorage() =>
+      (FrameBuilder()..u8(MeshcoreCommand.getBatteryStorage.code)).build();
+
   /// `CMD_GET_CHANNEL` (0x1F): `1F [channel_idx]`.
   static Uint8List getChannel(int channelIdx) {
     return (FrameBuilder()
@@ -216,6 +301,29 @@ abstract final class MeshcoreFrameCodec {
 
         case 0x09: // RESP_CODE_CURR_TIME
           return CurrentTimeFrame(c.u32('currentTime.unix'));
+
+        case 0x0C: // RESP_CODE_BATT_AND_STORAGE
+          return BatteryStorageFrame(BatteryStorage(
+            batteryMillivolts: c.u16('battery.mv'),
+            storageUsedKb: c.u32('battery.usedKb'),
+            storageTotalKb: c.u32('battery.totalKb'),
+          ));
+
+        case 0x0D: // RESP_CODE_DEVICE_INFO
+          return DeviceInfoFrame(DeviceInfo(
+            firmwareVerCode: c.u8('deviceInfo.fwVer'),
+            maxContacts: c.u8('deviceInfo.maxContactsHalf') * 2,
+            maxGroupChannels: c.u8('deviceInfo.maxGroupChannels'),
+            blePin: c.u32('deviceInfo.blePin'),
+            firmwareBuildDate:
+                c.fixedCString(kDeviceBuildDateSize, 'deviceInfo.build'),
+            manufacturer: c.fixedCString(
+                kDeviceManufacturerSize, 'deviceInfo.manufacturer'),
+            firmwareVersion: c.fixedCString(
+                kDeviceFirmwareVersionSize, 'deviceInfo.fwVersion'),
+            clientRepeat: c.u8('deviceInfo.clientRepeat'),
+            pathHashMode: c.u8('deviceInfo.pathHashMode'),
+          ));
 
         case 0x0A: // RESP_CODE_NO_MORE_MESSAGES
           return const NoMoreMessagesFrame();

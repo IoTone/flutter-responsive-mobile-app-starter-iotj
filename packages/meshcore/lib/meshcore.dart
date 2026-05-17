@@ -16,5 +16,6 @@ export 'src/model/channel_info.dart';
 export 'src/model/channel_message.dart';
 export 'src/model/contact.dart';
 export 'src/model/contact_message.dart';
+export 'src/model/device_config.dart';
 export 'src/model/self_info.dart';
 export 'src/transport/transport.dart';

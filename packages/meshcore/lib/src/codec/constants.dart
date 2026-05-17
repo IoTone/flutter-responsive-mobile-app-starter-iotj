@@ -88,6 +88,14 @@ const int kSignaturePrefixSize = 4;
 /// `CMD_SET_ADVERT_NAME` max name length.
 const int kMaxAdvertName = 31;
 
+/// `RESP_CODE_DEVICE_INFO` (0x0D) fixed string-field sizes.
+const int kDeviceBuildDateSize = 12;
+const int kDeviceManufacturerSize = 40;
+const int kDeviceFirmwareVersionSize = 20;
+
+/// Radio/tuning scale factor: on-wire uint32 = value × 1000.
+const int kRadioScale = 1000;
+
 /// --- Advert (`AdvertDataHelpers.h`, pinned commit). ---
 /// Advert node types (low nibble of the app_data flags byte).
 const int kAdvTypeNone = 0;
@@ -155,10 +163,28 @@ extension type const MeshcoreCommand(int code) {
   /// `CMD_SYNC_NEXT_MESSAGE` — pull the next queued inbound message.
   static const MeshcoreCommand syncNextMessage = MeshcoreCommand(0x0A);
 
+  /// --- Device / radio configuration (R7), `MyMesh.cpp` pinned. ---
+  /// `CMD_SET_RADIO_PARAMS` — freq/bw/SF/CR.
+  static const MeshcoreCommand setRadioParams = MeshcoreCommand(0x0B);
+
+  /// `CMD_SET_RADIO_TX_POWER` — TX power (int8 dBm).
+  static const MeshcoreCommand setRadioTxPower = MeshcoreCommand(0x0C);
+
+  /// `CMD_SET_ADVERT_LATLON` — advertised location.
+  static const MeshcoreCommand setAdvertLatLon = MeshcoreCommand(0x0E);
+
   static const MeshcoreCommand getBatteryStorage = MeshcoreCommand(0x14);
+
+  /// `CMD_SET_TUNING_PARAMS` — rx-delay base / airtime factor.
+  static const MeshcoreCommand setTuningParams = MeshcoreCommand(0x15);
+
   static const MeshcoreCommand deviceQuery = MeshcoreCommand(0x16);
   static const MeshcoreCommand getChannel = MeshcoreCommand(0x1F);
   static const MeshcoreCommand setChannel = MeshcoreCommand(0x20);
+
+  /// `CMD_SET_OTHER_PARAMS` — manual-add / telemetry / loc policy.
+  static const MeshcoreCommand setOtherParams = MeshcoreCommand(0x26);
+
   static const MeshcoreCommand sendChannelDatagram = MeshcoreCommand(0x3E);
 }
 

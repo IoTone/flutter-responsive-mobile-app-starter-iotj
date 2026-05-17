@@ -403,7 +403,7 @@ packages:
       path: "../packages/meshcore"
       relative: true
     source: path
-    version: "0.0.5"
+    version: "0.0.6"
   meta:
     dependency: transitive
     description:
