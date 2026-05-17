@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'package:meshmore_sns_app/app_state_model.dart';
 import 'package:meshmore_sns_app/main.dart';
+import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/theme/theme_controller.dart';
 
 Future<void> _pumpApp(WidgetTester tester) async {
@@ -13,6 +14,9 @@ Future<void> _pumpApp(WidgetTester tester) async {
         ChangeNotifierProvider<AppState>(create: (_) => AppState()),
         ChangeNotifierProvider<ThemeController>(
           create: (_) => ThemeController(),
+        ),
+        ChangeNotifierProvider<MeshcoreController>(
+          create: (_) => MeshcoreController(),
         ),
       ],
       child: const MyApp(),

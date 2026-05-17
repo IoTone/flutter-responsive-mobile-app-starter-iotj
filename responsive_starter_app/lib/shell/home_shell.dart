@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../app_state_model.dart';
+import '../screens/nodes_screen.dart';
 import '../theme/theme_controller.dart';
 
 /// The five primary views (R8 dashboard is the home / first page).
@@ -146,8 +147,7 @@ class _HomeShellState extends State<HomeShell> {
               'events + collapsible chat — wired in U2.'),
           _Placeholder(MmView.chat, 'Active-channel chat + channel switch '
               'and TTS toggle — wired in U3.'),
-          _Placeholder(MmView.nodes, 'Discovered peers / radar — wired '
-              'in U4.'),
+          NodesScreen(),
           _SettingsView(),
           _AboutView(),
         ],

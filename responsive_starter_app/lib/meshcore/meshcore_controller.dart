@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:meshcore/meshcore.dart';
 
 import 'ble_connector.dart';
+import 'discovered_node.dart';
 import 'meshcore_connection.dart';
 import 'reconnect_policy.dart';
 
@@ -36,6 +37,7 @@ class MeshcoreController extends ChangeNotifier {
     });
     _inboundSub = _connection.inbound.listen((MeshcoreInbound f) {
       _lastFrame = f;
+      _ingestNode(f);
       notifyListeners();
     });
     _rawSub = _connection.rawInbound.listen((Uint8List bytes) {
@@ -180,6 +182,59 @@ class MeshcoreController extends ChangeNotifier {
 
   /// Send a raw command frame (e.g. from [MeshcoreFrameCodec]).
   Future<void> send(Uint8List frame) => _connection.sendCommand(frame);
+
+  // --- Discovery: nodes "in the area" (contacts + adverts) ---
+
+  final Map<String, DiscoveredNode> _nodes = <String, DiscoveredNode>{};
+
+  /// Discovered nodes, most-recently-heard first.
+  List<DiscoveredNode> get nodes {
+    final List<DiscoveredNode> v = _nodes.values.toList()
+      ..sort((DiscoveredNode a, DiscoveredNode b) =>
+          b.lastHeardUnix.compareTo(a.lastHeardUnix));
+    return v;
+  }
+
+  String _hex(List<int> b) =>
+      b.map((int x) => x.toRadixString(16).padLeft(2, '0')).join();
+
+  void _ingestNode(MeshcoreInbound f) {
+    final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    if (f is ContactFrame) {
+      final Contact c = f.contact;
+      _nodes[_hex(c.publicKey)] = DiscoveredNode(
+        pubKeyHex: _hex(c.publicKey),
+        name: c.name,
+        type: c.type,
+        lastHeardUnix:
+            c.lastAdvertTimestamp == 0 ? now : c.lastAdvertTimestamp,
+        latitude: c.latitudeMicros == 0 ? null : c.latitudeMicros / 1e6,
+        longitude: c.longitudeMicros == 0 ? null : c.longitudeMicros / 1e6,
+        viaAdvert: false,
+      );
+    } else if (f is AdvertFrame) {
+      final Advert a = f.advert;
+      final String k = _hex(a.publicKey);
+      _nodes[k] = DiscoveredNode(
+        pubKeyHex: k,
+        name: a.name ?? _nodes[k]?.name ?? k.substring(0, 8),
+        type: a.type,
+        lastHeardUnix: a.timestamp == 0 ? now : a.timestamp,
+        latitude: a.latitude,
+        longitude: a.longitude,
+        snrDb: _nodes[k]?.snrDb,
+        viaAdvert: true,
+      );
+    }
+  }
+
+  /// Ask the radio for its synced contact list (`CMD_GET_CONTACTS`).
+  Future<void> requestContacts() =>
+      send(MeshcoreFrameCodec.getContacts());
+
+  /// Broadcast our own advert so neighbours discover us.
+  Future<void> sendSelfAdvert({bool flood = true}) =>
+      send(MeshcoreFrameCodec.sendSelfAdvert(flood: flood));
 
   /// User-initiated disconnect. Latches off auto-reconnect until the
   /// next explicit [connect].
