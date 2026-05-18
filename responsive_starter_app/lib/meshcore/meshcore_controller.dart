@@ -34,6 +34,9 @@ class MeshcoreController extends ChangeNotifier {
       if (s == MeshcoreConnectionState.ready) {
         _reconnectAttempt = 0;
         _probeChannels();
+        // Drain anything the device queued before/while we connected
+        // (heard contacts/adverts + received messages).
+        _drainStart();
       } else if (s == MeshcoreConnectionState.reconnecting ||
           s == MeshcoreConnectionState.failed) {
         _maybeScheduleReconnect();
@@ -41,6 +44,7 @@ class MeshcoreController extends ChangeNotifier {
     });
     _inboundSub = _connection.inbound.listen((MeshcoreInbound f) {
       _lastFrame = f;
+      _maybeDrain(f);
       _ingestNode(f);
       _ingestChat(f);
       _logEvent(f);
@@ -233,6 +237,10 @@ class MeshcoreController extends ChangeNotifier {
       text = 'self-info · ${f.selfInfo.name}';
     }
     if (text == null) return;
+    _logEventText(text);
+  }
+
+  void _logEventText(String text) {
     _events.add(MeshEvent(text));
     if (_events.length > _eventsCap) _events.removeAt(0);
   }
@@ -342,6 +350,54 @@ class MeshcoreController extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- Inbound queue drain (CMD_SYNC_NEXT_MESSAGE) ---
+  //
+  // The companion firmware does NOT push every received item in real
+  // time. When it has queued inbound items (newly heard contacts /
+  // adverts AND received text messages) it sends
+  // `PUSH_CODE_MSGS_WAITING` (0x83); the app must then pull them one
+  // at a time with `CMD_SYNC_NEXT_MESSAGE` until the device replies
+  // `RESP_CODE_NO_MORE_MESSAGES`. Without this loop, discovered nodes
+  // and incoming messages never reach the app.
+
+  bool _draining = false;
+  int _drainSteps = 0;
+  static const int _drainStepCap = 512; // runaway guard
+
+  void _drainStart() {
+    if (_draining) return;
+    _draining = true;
+    _drainSteps = 0;
+    _drainStep();
+  }
+
+  void _drainStep() {
+    if (++_drainSteps > _drainStepCap) {
+      _draining = false;
+      return;
+    }
+    unawaited(send(MeshcoreFrameCodec.syncNextMessage()).catchError((_) {
+      _draining = false;
+    }));
+  }
+
+  void _maybeDrain(MeshcoreInbound f) {
+    if (f is MessagesWaitingFrame) {
+      _logEventText(
+          'queued items waiting${f.count == null ? '' : ' (${f.count})'}');
+      _drainStart();
+      return;
+    }
+    if (!_draining) return;
+    if (f is NoMoreMessagesFrame) {
+      _draining = false; // queue emptied
+    } else {
+      // The frame we just received was the reply to our SYNC (a
+      // queued contact/advert/message); pull the next one.
+      _drainStep();
+    }
+  }
+
   void _ingestNode(MeshcoreInbound f) {
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     if (f is ContactFrame) {
@@ -417,6 +473,9 @@ class MeshcoreController extends ChangeNotifier {
     try {
       await sendSelfAdvert(flood: true);
       await requestContacts();
+      // Pull anything the device has already queued (heard adverts
+      // may be sitting behind MSGS_WAITING, not pushed live).
+      _drainStart();
     } catch (_) {
       // Surface via state/error elsewhere; scan window still elapses.
     }

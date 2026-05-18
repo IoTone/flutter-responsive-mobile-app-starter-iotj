@@ -212,4 +212,56 @@ void main() {
       ctrl.dispose();
     });
   });
+
+  group('inbound queue drain (CMD_SYNC_NEXT_MESSAGE)', () {
+    int syncs(FakeMeshcoreTransport f) =>
+        f.sent.where((s) => s.isNotEmpty && s[0] == 0x0A).length;
+
+    test('MSGS_WAITING drains via SYNC until NO_MORE; items ingested',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      await ctrl.connect(); // handshaking (no ready-drain)
+      expect(syncs(fake), 0);
+
+      // Device says items are queued → app starts pulling.
+      fake.emit(msgsWaitingFrame(count: 1));
+      await Future<void>.delayed(Duration.zero);
+      expect(syncs(fake), 1);
+
+      // The SYNC reply is a queued channel message → pull the next.
+      fake.emit(channelMsgFrame(text: 'queued ping'));
+      await Future<void>.delayed(Duration.zero);
+      expect(syncs(fake), 2);
+      expect(ctrl.messagesFor(0).single.text, 'queued ping');
+
+      // Queue empty → stop (no further SYNC).
+      fake.emit(noMoreMessagesFrame());
+      await Future<void>.delayed(Duration.zero);
+      expect(syncs(fake), 2);
+
+      // A later unrelated frame must not resume draining.
+      fake.emit(channelMsgFrame(text: 'live'));
+      await Future<void>.delayed(Duration.zero);
+      expect(syncs(fake), 2);
+      ctrl.dispose();
+    });
+
+    test('reaching ready kicks a drain', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection:
+            MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame()); // → ready
+      await Future<void>.delayed(Duration.zero);
+      expect(syncs(fake), greaterThanOrEqualTo(1));
+      ctrl.dispose();
+    });
+  });
 }

@@ -146,6 +146,18 @@ class NoMoreMessagesFrame extends MeshcoreInbound {
   String toString() => 'NoMoreMessagesFrame()';
 }
 
+/// `PUSH_CODE_MSGS_WAITING` (0x83) — the device has queued inbound
+/// item(s) (received messages and/or newly heard contacts/adverts).
+/// The app must drain them with `CMD_SYNC_NEXT_MESSAGE` until it gets
+/// a [NoMoreMessagesFrame]. Some firmware appends a count byte; it is
+/// advisory only, so [count] is null when absent.
+class MessagesWaitingFrame extends MeshcoreInbound {
+  const MessagesWaitingFrame([this.count]);
+  final int? count;
+  @override
+  String toString() => 'MessagesWaitingFrame($count)';
+}
+
 /// A well-formed frame whose opcode this milestone does not decode yet.
 /// Carries the raw bytes so higher layers can log/skip without data loss.
 class UnsupportedFrame extends MeshcoreInbound {

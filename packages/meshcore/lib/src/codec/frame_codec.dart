@@ -342,6 +342,10 @@ abstract final class MeshcoreFrameCodec {
             psk: c.bytes(kChannelPskSize, 'channelInfo.psk'),
           ));
 
+        case 0x83: // PUSH_CODE_MSGS_WAITING
+          final int? n = c.remaining >= 1 ? c.u8('msgsWaiting.count') : null;
+          return MessagesWaitingFrame(n);
+
         case 0x80: // PUSH_CODE_ADVERTISEMENT
           return AdvertFrame(_decodeAdvert(c));
 

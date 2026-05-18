@@ -212,4 +212,18 @@ void main() {
       expect((got as SelfInfoFrame).selfInfo.name, '');
     });
   });
+
+  group('MSGS_WAITING (0x83) decode', () {
+    test('bare opcode -> MessagesWaitingFrame(count: null)', () {
+      final MeshcoreInbound got = MeshcoreFrameCodec.decode(_hex('83'));
+      expect(got, isA<MessagesWaitingFrame>());
+      expect((got as MessagesWaitingFrame).count, isNull);
+    });
+
+    test('opcode + count byte -> MessagesWaitingFrame(count)', () {
+      final MeshcoreInbound got = MeshcoreFrameCodec.decode(_hex('8303'));
+      expect(got, isA<MessagesWaitingFrame>());
+      expect((got as MessagesWaitingFrame).count, 3);
+    });
+  });
 }

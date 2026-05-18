@@ -74,6 +74,13 @@ Uint8List channelMsgFrame({
       ...utf8.encode(text),
     ]);
 
+/// `PUSH_CODE_MSGS_WAITING` (0x83) [+ optional count byte].
+Uint8List msgsWaitingFrame({int? count}) => Uint8List.fromList(
+    <int>[0x83, if (count != null) count]);
+
+/// `RESP_CODE_NO_MORE_MESSAGES` (0x0A).
+Uint8List noMoreMessagesFrame() => Uint8List.fromList(<int>[0x0A]);
+
 /// `CHANNEL_INFO` (0x12): `[12][ch_idx][name 32B NUL-pad][secret 16B]`.
 Uint8List channelInfoFrame({required int idx, required String name}) {
   final List<int> nameBytes = List<int>.filled(32, 0);
