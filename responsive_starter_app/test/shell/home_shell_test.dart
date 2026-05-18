@@ -69,4 +69,20 @@ void main() {
     await t.pumpAndSettle();
     expect(find.widgetWithText(AppBar, 'Chat'), findsOneWidget);
   });
+
+  testWidgets('Back from a non-Dashboard tab returns to Dashboard '
+      '(no root-pop crash)', (WidgetTester t) async {
+    await _pumpApp(t);
+    await t.fling(find.byType(PageView), const Offset(-400, 0), 1000);
+    await t.pumpAndSettle();
+    expect(find.widgetWithText(AppBar, 'Chat'), findsOneWidget);
+
+    // System Back: PopScope must consume it (not pop the root) and
+    // route us back to the Dashboard.
+    final bool handled = await t.binding.handlePopRoute();
+    await t.pumpAndSettle();
+    expect(handled, isTrue);
+    expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
+    expect(t.takeException(), isNull); // no root-pop exception
+  });
 }

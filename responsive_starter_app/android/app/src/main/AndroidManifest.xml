@@ -19,6 +19,7 @@
     <application
         android:label="Meshmore SNS"
         android:name="${applicationName}"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"

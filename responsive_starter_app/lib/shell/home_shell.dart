@@ -101,7 +101,20 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final MmView current = MmView.values[_index];
-    return Scaffold(
+    // Root back handling (R11): from a non-Dashboard tab, Back returns
+    // to the Dashboard instead of trying to pop the root route (which
+    // is what crashed on Android). On the Dashboard, Back is allowed
+    // through so the OS gracefully backgrounds the app.
+    return PopScope(
+      canPop: _index == 0,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (!didPop) {
+          _goTo(0,
+              reduceMotion:
+                  context.read<ThemeController>().reduceMotion);
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         leading: Semantics(
           button: true,
@@ -154,6 +167,7 @@ class _HomeShellState extends State<HomeShell> {
           _SettingsView(),
           _AboutView(),
         ],
+      ),
       ),
     );
   }
