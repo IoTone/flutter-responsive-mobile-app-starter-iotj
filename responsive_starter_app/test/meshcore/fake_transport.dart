@@ -90,3 +90,21 @@ Uint8List channelInfoFrame({required int idx, required String name}) {
     0x12, idx, ...nameBytes, ...List<int>.filled(16, 0),
   ]);
 }
+
+/// `PUSH_CODE_ADVERTISEMENT` (0x80):
+/// `[80][pubkey 32][ts u32 LE][sig 64][app_data: flags | name…]`.
+/// [ts] defaults to an ancient value to prove "in range" is judged
+/// by local receive time, not the advert's sender clock.
+Uint8List advertFrame({
+  String name = 'NodeX',
+  int firstPubByte = 9,
+  int ts = 1,
+}) =>
+    Uint8List.fromList(<int>[
+      0x80,
+      ...List<int>.generate(32, (int i) => firstPubByte + i),
+      ts & 0xFF, (ts >> 8) & 0xFF, (ts >> 16) & 0xFF, (ts >> 24) & 0xFF,
+      ...List<int>.filled(64, 0x55),
+      kAdvTypeChat | kAdvNameMask,
+      ...utf8.encode(name),
+    ]);

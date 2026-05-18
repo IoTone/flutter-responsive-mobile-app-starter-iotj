@@ -432,7 +432,11 @@ class MeshcoreController extends ChangeNotifier {
       pubKeyHex: k,
       name: a.name ?? prev?.name ?? k.substring(0, 8),
       type: a.type,
-      lastHeardUnix: a.timestamp == 0 ? now : a.timestamp,
+      // Receiving an advert push (0x80) or RF-log (0x88) means we
+      // heard this node *now*. `a.timestamp` is the sender's clock at
+      // advert creation — often unset/stale/skewed vs. the phone — so
+      // it must NOT drive the "in range" freshness check.
+      lastHeardUnix: now,
       latitude: a.latitude ?? prev?.latitude,
       longitude: a.longitude ?? prev?.longitude,
       snrDb: snr ?? prev?.snrDb,

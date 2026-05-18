@@ -213,6 +213,27 @@ void main() {
     });
   });
 
+  test('a heard advert is in range (local receive time, not advert ts)',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl =
+        MeshcoreController(transportFactory: () async => fake);
+    await ctrl.connect();
+
+    // ts=1 (1970) — under the old logic this made the node look
+    // ancient and therefore "known" but not "in range".
+    fake.emit(advertFrame(name: 'AdvNode', ts: 1));
+    await Future<void>.delayed(Duration.zero);
+
+    expect(ctrl.nodes, hasLength(1));
+    final n = ctrl.nodes.single;
+    expect(n.name, 'AdvNode');
+    expect(n.viaAdvert, isTrue);
+    expect(n.inRange, isTrue); // heard now, regardless of sender clock
+    ctrl.dispose();
+  });
+
   group('inbound queue drain (CMD_SYNC_NEXT_MESSAGE)', () {
     int syncs(FakeMeshcoreTransport f) =>
         f.sent.where((s) => s.isNotEmpty && s[0] == 0x0A).length;
