@@ -6,15 +6,19 @@ import 'package:provider/provider.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 
-/// Device configuration (R7). The **Radio / Region** section is wired
-/// to the M4 protocol surface (`setRadioParams` / `setRadioTxPower`).
-/// Other sections remain scaffolds (later U-steps).
+/// Device configuration (R7) + LoRa region selection (R15). The
+/// **Radio / Region** section is wired to the M4 protocol surface
+/// (`setRadioParams` / `setRadioTxPower`). Other sections remain
+/// scaffolds (later U-steps).
 ///
 /// "Region" is an app convenience — the companion protocol only
-/// carries raw frequency/BW/SF/CR. We expose the band edges we can
-/// cite (Seeed T1000-E wiki) and let you confirm the exact frequency;
-/// **all nodes must use identical radio params or they can't hear
-/// each other**, so match your other devices / the official app.
+/// carries raw frequency/BW/SF/CR, with no per-region opcode. We
+/// ship a small list of community/regulatory presets (US, EU 868,
+/// Japan/ARIB STD-T108) and a Custom entry; only cited values are
+/// pre-filled. **All nodes must use identical radio params or they
+/// can't hear each other**, so match your mesh, and confirm the
+/// settings are legal in your jurisdiction (Japan additionally
+/// requires firmware-side listen-before-talk).
 class DeviceConfigScreen extends StatefulWidget {
   const DeviceConfigScreen({super.key});
 
@@ -22,20 +26,50 @@ class DeviceConfigScreen extends StatefulWidget {
   State<DeviceConfigScreen> createState() => _DeviceConfigScreenState();
 }
 
-/// Cited from the Seeed SenseCAP T1000-E + MeshCore wiki (band edges /
-/// duty / power are regulatory, not MeshCore-proprietary). The
-/// frequency we pre-fill is an in-band value you must confirm for
-/// your country and match across nodes.
+/// A LoRa **region** preset (R15). Band edges / duty / power are
+/// regulatory (not MeshCore-proprietary); we only ship values we can
+/// cite. `bwKhz`/`sf`/`cr` are filled when a region has a known
+/// community/regulatory setting (e.g. Japan); when null only the
+/// frequency is pre-filled and SF/BW/CR are left to match your mesh.
+/// `freqMhz == 0` marks the manual "Custom" entry (no-op).
 class _Band {
-  const _Band(this.label, this.freqMhz, this.note);
+  const _Band(
+    this.label,
+    this.freqMhz,
+    this.note, {
+    this.bwKhz,
+    this.sf,
+    this.cr,
+    this.txDbm,
+    this.cite,
+  });
   final String label;
   final double freqMhz;
   final String note;
+  final double? bwKhz;
+  final int? sf;
+  final int? cr;
+  final int? txDbm;
+  final String? cite;
 }
 
 const List<_Band> _bands = <_Band>[
   _Band('US (902–928 MHz)', 915.0, '100% duty · ≤30 dBm'),
   _Band('EU 868 (869.4–869.65)', 869.525, '10% duty · ≤27 dBm'),
+  // Japan, ARIB STD-T108. Full preset (freq+BW+SF+CR) is field-
+  // validated for urban JP RF noise — see MeshCore issue #460
+  // (@jirogit, 2026-03-18). 920.8 MHz is in the 920.6–922.2 zone:
+  // LBT ≥5 ms, 4 s max TX, no hourly duty cap. CR 4/8 → codingRate 8.
+  _Band(
+    'JP (920.5–923.5 · ARIB T108)',
+    920.8,
+    'LBT ≥5 ms · 4 s max TX · ≤13 dBm',
+    bwKhz: 125,
+    sf: 12,
+    cr: 8,
+    txDbm: 13,
+    cite: 'MeshCore #460',
+  ),
   _Band('Custom', 0, 'enter exact values below'),
 ];
 
@@ -64,6 +98,26 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     _cr.text = s.codingRate.toString();
     _tx.text = s.txPowerDbm.toString();
     setState(() => _loaded = true);
+  }
+
+  /// Fill the radio fields from a region preset. Frequency is always
+  /// set; BW/SF/CR/TX are set only when the region ships a cited
+  /// setting (e.g. Japan), otherwise left for you to match your mesh.
+  void _applyBand(_Band band) {
+    _freq.text = band.freqMhz.toString();
+    if (band.bwKhz != null) _bw.text = band.bwKhz.toString();
+    if (band.sf != null) _sf.text = band.sf.toString();
+    if (band.cr != null) _cr.text = band.cr.toString();
+    if (band.txDbm != null) _tx.text = band.txDbm.toString();
+    final bool full = band.sf != null;
+    _toast(
+      full
+          ? '${band.label}: preset loaded${band.cite == null ? '' : ' '
+              '(${band.cite})'} — verify it is legal where you are & '
+              'matches every node, then Apply'
+          : '${band.label}: frequency set — confirm it is legal in your '
+              'country & set SF/BW/CR to match your other nodes',
+    );
   }
 
   void _toast(String m) => ScaffoldMessenger.of(context)
@@ -137,13 +191,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
             children: <Widget>[
               for (final _Band band in _bands)
                 OutlinedButton(
-                  onPressed: band.freqMhz == 0
-                      ? null
-                      : () {
-                          _freq.text = band.freqMhz.toString();
-                          _toast('${band.label}: confirm it is legal in '
-                              'your country & matches your other nodes');
-                        },
+                  onPressed: band.freqMhz == 0 ? null : () => _applyBand(band),
                   child: Text(band.label),
                 ),
             ],
@@ -151,10 +199,12 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(
-              'Band edges/duty/power are regulatory (Seeed T1000-E '
-              'wiki). MeshCore sends raw frequency — pick the band '
-              'legal where you are and use the SAME values on every '
-              'node.',
+              'Band edges/duty/power are regulatory. MeshCore sends '
+              'raw frequency — pick the region legal where you are and '
+              'use the SAME values on every node. JP (ARIB STD-T108) '
+              'also mandates listen-before-talk (carrier sense); the '
+              'app preset alone is not full regulatory compliance — '
+              'JP needs a non-zero carrier-sense threshold in firmware.',
               style:
                   TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
             ),
