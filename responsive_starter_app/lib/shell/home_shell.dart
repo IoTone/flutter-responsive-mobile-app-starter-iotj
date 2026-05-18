@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../app_state_model.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
+import '../screens/dashboard_screen.dart';
 import '../screens/nodes_screen.dart';
 import '../theme/theme_controller.dart';
 
@@ -146,8 +147,7 @@ class _HomeShellState extends State<HomeShell> {
         controller: _pc,
         onPageChanged: (int i) => setState(() => _index = i),
         children: const <Widget>[
-          _Placeholder(MmView.dashboard, 'Network status, link, peers, '
-              'events + collapsible chat — wired in U2.'),
+          DashboardScreen(),
           _Placeholder(MmView.chat, 'Active-channel chat + channel switch '
               'and TTS toggle — wired in U3.'),
           NodesScreen(),

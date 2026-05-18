@@ -96,4 +96,24 @@ void main() {
       ctrl.dispose();
     });
   });
+
+  test('recentEvents derives readable lines, newest first', () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl =
+        MeshcoreController(transportFactory: () async => fake);
+    await ctrl.connect();
+
+    fake.emit(selfInfoFrame()); // → ready + 'self-info'
+    fake.emit(currentTimeFrame()); // → 'device time synced'
+    await Future<void>.delayed(Duration.zero);
+
+    expect(ctrl.recentEvents, isNotEmpty);
+    expect(ctrl.recentEvents.first.text, contains('device time'));
+    expect(
+      ctrl.recentEvents.any((e) => e.text.contains('self-info')),
+      isTrue,
+    );
+    ctrl.dispose();
+  });
 }

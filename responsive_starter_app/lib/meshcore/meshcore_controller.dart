@@ -6,6 +6,7 @@ import 'package:meshcore/meshcore.dart';
 
 import 'ble_connector.dart';
 import 'discovered_node.dart';
+import 'mesh_event.dart';
 import 'meshcore_connection.dart';
 import 'paired_device_store.dart';
 import 'reconnect_policy.dart';
@@ -39,6 +40,7 @@ class MeshcoreController extends ChangeNotifier {
     _inboundSub = _connection.inbound.listen((MeshcoreInbound f) {
       _lastFrame = f;
       _ingestNode(f);
+      _logEvent(f);
       notifyListeners();
     });
     _rawSub = _connection.rawInbound.listen((Uint8List bytes) {
@@ -194,6 +196,42 @@ class MeshcoreController extends ChangeNotifier {
       ..sort((DiscoveredNode a, DiscoveredNode b) =>
           b.lastHeardUnix.compareTo(a.lastHeardUnix));
     return v;
+  }
+
+  // --- Recent activity feed (Dashboard) ---
+
+  final List<MeshEvent> _events = <MeshEvent>[];
+  static const int _eventsCap = 40;
+
+  /// Recent decoded events, newest first.
+  List<MeshEvent> get recentEvents => _events.reversed.toList();
+
+  void _logEvent(MeshcoreInbound f) {
+    String? text;
+    if (f is AdvertFrame) {
+      final Advert a = f.advert;
+      text = 'advert · ${a.name ?? _hex(a.publicKey).substring(0, 8)}';
+    } else if (f is ChannelMessageFrame) {
+      final ChannelMessage m = f.message;
+      text = 'ch${m.channelIdx} · "${m.text}"';
+    } else if (f is ContactMessageFrame) {
+      text = 'dm · "${f.message.text}"';
+    } else if (f is ContactFrame) {
+      text = 'contact · ${f.contact.name}';
+    } else if (f is BatteryStorageFrame) {
+      text = 'battery ${f.battery.batteryVolts.toStringAsFixed(2)}V';
+    } else if (f is CurrentTimeFrame) {
+      text = 'device time synced';
+    } else if (f is MsgSentFrame) {
+      text = 'msg sent (ack ${f.sent.expectedAck})';
+    } else if (f is DeviceInfoFrame) {
+      text = 'device ${f.info.firmwareVersion}';
+    } else if (f is SelfInfoFrame) {
+      text = 'self-info · ${f.selfInfo.name}';
+    }
+    if (text == null) return;
+    _events.add(MeshEvent(text));
+    if (_events.length > _eventsCap) _events.removeAt(0);
   }
 
   String _hex(List<int> b) =>
