@@ -33,6 +33,11 @@ class MeshcoreController extends ChangeNotifier {
       notifyListeners();
       if (s == MeshcoreConnectionState.ready) {
         _reconnectAttempt = 0;
+        // These radios have no persistent RTC; without this every
+        // device-sourced timestamp (contact last-heard, message
+        // times) is in an unset clock, so "in range" and ordering
+        // are meaningless. Standard companion-app behaviour.
+        _syncDeviceTime();
         _probeChannels();
         // Drain anything the device queued before/while we connected
         // (heard contacts/adverts + received messages).
@@ -320,6 +325,16 @@ class MeshcoreController extends ChangeNotifier {
       final ChannelInfo ci = f.info;
       if (ci.name.isNotEmpty) _channels[ci.channelIdx] = ci.name;
     }
+  }
+
+  /// Set the device clock to the phone's wall clock so device-sourced
+  /// timestamps (contact `lastAdvertTimestamp`, message times) are
+  /// comparable to "now" — fixes nodes showing "known" but never
+  /// "in range". Best-effort.
+  void _syncDeviceTime() {
+    final int nowUnix = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    unawaited(
+        send(MeshcoreFrameCodec.setDeviceTime(nowUnix)).catchError((_) {}));
   }
 
   void _probeChannels() {

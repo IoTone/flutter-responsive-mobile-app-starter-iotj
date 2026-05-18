@@ -234,6 +234,29 @@ void main() {
     ctrl.dispose();
   });
 
+  test('reaching ready syncs the device clock (CMD_SET_DEVICE_TIME 0x06)',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    await ctrl.connect();
+    fake.emit(selfInfoFrame()); // → ready
+    await Future<void>.delayed(Duration.zero);
+
+    final setTime =
+        fake.sent.where((f) => f.isNotEmpty && f[0] == 0x06).toList();
+    expect(setTime, isNotEmpty);
+    // Payload is a plausible recent unix time (u32 LE after opcode).
+    final f = setTime.first;
+    final int ts = f[1] | (f[2] << 8) | (f[3] << 16) | (f[4] << 24);
+    expect(ts, greaterThan(1735689600)); // > 2025-01-01
+    ctrl.dispose();
+  });
+
   group('inbound queue drain (CMD_SYNC_NEXT_MESSAGE)', () {
     int syncs(FakeMeshcoreTransport f) =>
         f.sent.where((s) => s.isNotEmpty && s[0] == 0x0A).length;
