@@ -25,7 +25,7 @@ void main() {
             create: (_) => ThemeController()..load(),
           ),
           ChangeNotifierProvider<MeshcoreController>(
-            create: (_) => MeshcoreController(),
+            create: (_) => MeshcoreController()..autoConnectIfPaired(),
           ),
         ],
         child: const MyApp(),

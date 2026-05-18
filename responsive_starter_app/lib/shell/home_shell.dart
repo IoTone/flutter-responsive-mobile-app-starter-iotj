@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../app_state_model.dart';
+import '../meshcore/meshcore_connection.dart';
+import '../meshcore/meshcore_controller.dart';
 import '../screens/nodes_screen.dart';
 import '../theme/theme_controller.dart';
 
@@ -110,6 +112,7 @@ class _HomeShellState extends State<HomeShell> {
           ),
         ),
         title: Text(current.title),
+        actions: const <Widget>[RadioLinkIndicator()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(6),
           child: Row(
@@ -255,6 +258,82 @@ class _AboutView extends StatelessWidget {
               style: TextStyle(color: cs.onSurface.withValues(alpha: .55)),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Always-visible radio link state (every primary view). Tap → the
+/// Diagnostics & connect screen.
+class RadioLinkIndicator extends StatelessWidget {
+  const RadioLinkIndicator({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final MeshcoreController mc = context.watch<MeshcoreController>();
+    final ColorScheme cs = Theme.of(context).colorScheme;
+
+    final ({String label, Color color, IconData icon}) v =
+        switch (mc.state) {
+      MeshcoreConnectionState.ready => (
+          label: 'LINKED',
+          color: cs.tertiary,
+          icon: Icons.bluetooth_connected,
+        ),
+      MeshcoreConnectionState.handshaking => (
+          label: 'SYNC',
+          color: cs.secondary,
+          icon: Icons.bluetooth_searching,
+        ),
+      MeshcoreConnectionState.reconnecting => (
+          label: 'RETRY',
+          color: cs.secondary,
+          icon: Icons.bluetooth_searching,
+        ),
+      MeshcoreConnectionState.failed => (
+          label: 'FAIL',
+          color: cs.error,
+          icon: Icons.bluetooth_disabled,
+        ),
+      MeshcoreConnectionState.disconnected => (
+          label: mc.isConnecting ? 'SCAN' : 'OFFLINE',
+          color: cs.onSurfaceVariant,
+          icon: Icons.bluetooth_disabled,
+        ),
+    };
+
+    return Semantics(
+      button: true,
+      label: 'Radio ${v.label}',
+      child: InkWell(
+        onTap: () => context.push('/settings/diagnostics'),
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Container(
+                width: 9,
+                height: 9,
+                decoration:
+                    BoxDecoration(color: v.color, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 6),
+              Icon(v.icon, size: 16, color: v.color),
+              const SizedBox(width: 4),
+              Text(
+                v.label,
+                style: TextStyle(
+                  color: v.color,
+                  fontSize: 11,
+                  letterSpacing: 1.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -140,13 +140,36 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: FilledButton.icon(
-              icon: Icon(live ? Icons.link_off : Icons.bluetooth_searching),
-              label: Text(live ? 'Disconnect' : 'Scan & connect'),
-              onPressed: () =>
-                  live ? mc.disconnect() : mc.connect(),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: FilledButton.icon(
+                    icon: Icon(
+                        live ? Icons.link_off : Icons.bluetooth_searching),
+                    label: Text(live ? 'Disconnect' : 'Scan & connect'),
+                    onPressed: () =>
+                        live ? mc.disconnect() : mc.connect(),
+                  ),
+                ),
+                if (mc.hasPairedDevice) ...<Widget>[
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: () => mc.forgetDevice(),
+                    child: const Text('Forget'),
+                  ),
+                ],
+              ],
             ),
           ),
+          if (mc.hasPairedDevice)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+              child: Text('Paired: ${mc.pairedName} — auto-reconnects '
+                  'on startup',
+                  style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: .6),
+                      fontSize: 12)),
+            ),
           section('SEND (requires connection)'),
           Wrap(
             spacing: 8,

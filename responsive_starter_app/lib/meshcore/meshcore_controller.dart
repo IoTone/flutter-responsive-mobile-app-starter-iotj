@@ -7,6 +7,7 @@ import 'package:meshcore/meshcore.dart';
 import 'ble_connector.dart';
 import 'discovered_node.dart';
 import 'meshcore_connection.dart';
+import 'paired_device_store.dart';
 import 'reconnect_policy.dart';
 
 /// App-facing facade over [MeshcoreConnection], exposed via Provider.
@@ -21,7 +22,7 @@ class MeshcoreController extends ChangeNotifier {
     ReconnectPolicy? reconnectPolicy,
     Future<void> Function(Duration)? reconnectDelay,
   })  : _transportFactory =
-            transportFactory ?? BleConnector.scanAndConnect,
+            transportFactory ?? BleConnector.autoConnect,
         _connection = connection ?? MeshcoreConnection(),
         _reconnect = reconnectPolicy ?? ReconnectPolicy(),
         _delay = reconnectDelay ?? Future<void>.delayed {
@@ -285,6 +286,31 @@ class MeshcoreController extends ChangeNotifier {
     _reconnectGen++; // cancel any pending scheduled retry
     await _transport?.close();
     _transport = null;
+  }
+
+  /// Label of the saved paired device (loaded lazily for the UI).
+  String? get pairedName => _pairedName;
+  String? _pairedName;
+  bool get hasPairedDevice => _pairedName != null;
+
+  /// Call once at startup: if a device was previously paired,
+  /// auto-reconnect to it (direct connect, scan fallback). Safe to
+  /// call when nothing is paired (no-op).
+  Future<void> autoConnectIfPaired() async {
+    final PairedDevice? p = await PairedDeviceStore.read();
+    if (p == null) return;
+    _pairedName = p.name;
+    notifyListeners();
+    await connect();
+  }
+
+  /// Forget the saved radio and disconnect — no more auto-reconnect
+  /// until the user pairs again.
+  Future<void> forgetDevice() async {
+    await PairedDeviceStore.clear();
+    _pairedName = null;
+    await disconnect();
+    notifyListeners();
   }
 
   @override

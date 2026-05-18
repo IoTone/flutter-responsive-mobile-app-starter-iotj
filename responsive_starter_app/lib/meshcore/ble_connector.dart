@@ -5,6 +5,7 @@ import 'package:meshcore/meshcore.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'ble_meshcore_transport.dart';
+import 'paired_device_store.dart';
 
 /// Thrown when scan/connect cannot complete.
 class BleConnectException implements Exception {
@@ -76,7 +77,46 @@ abstract final class BleConnector {
 
     final BluetoothDevice device = hits.first.device;
     await device.connect();
+    return _finish(device, writeWithoutResponse);
+  }
 
+  /// Connect directly to a previously-paired device by its BLE remote
+  /// id (no scan). Used by [autoConnect] for fast startup reconnect.
+  static Future<BleMeshcoreTransport> connectToRemoteId(
+    String remoteId, {
+    Duration timeout = const Duration(seconds: 12),
+    bool writeWithoutResponse = false,
+  }) async {
+    if (!await ensurePermissions()) {
+      throw BleConnectException('BLE permissions denied');
+    }
+    final BluetoothDevice device = BluetoothDevice.fromId(remoteId);
+    await device.connect(timeout: timeout);
+    return _finish(device, writeWithoutResponse);
+  }
+
+  /// Startup path: reconnect to the saved paired device if there is
+  /// one; otherwise fall back to a scan. Always the default transport
+  /// factory so the M7 reconnect policy keeps working too.
+  static Future<BleMeshcoreTransport> autoConnect({
+    bool writeWithoutResponse = false,
+  }) async {
+    final PairedDevice? paired = await PairedDeviceStore.read();
+    if (paired != null) {
+      try {
+        return await connectToRemoteId(paired.remoteId,
+            writeWithoutResponse: writeWithoutResponse);
+      } catch (_) {
+        // Saved device unreachable — fall back to scanning.
+      }
+    }
+    return scanAndConnect(writeWithoutResponse: writeWithoutResponse);
+  }
+
+  /// Discover services/characteristics, enable notifications, persist
+  /// the device as paired, and wrap it as a transport.
+  static Future<BleMeshcoreTransport> _finish(
+      BluetoothDevice device, bool writeWithoutResponse) async {
     try {
       final List<BluetoothService> services = await device.discoverServices();
       final BluetoothService svc = services.firstWhere(
@@ -93,6 +133,12 @@ abstract final class BleConnector {
         orElse: () => throw BleConnectException('TX characteristic missing'),
       );
       await tx.setNotifyValue(true);
+      final String name = device.platformName.isNotEmpty
+          ? device.platformName
+          : (device.advName.isNotEmpty
+              ? device.advName
+              : device.remoteId.str);
+      await PairedDeviceStore.save(device.remoteId.str, name);
       return BleMeshcoreTransport(
         device: device,
         rx: rx,
