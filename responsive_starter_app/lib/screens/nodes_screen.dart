@@ -5,9 +5,16 @@ import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 
-/// Nodes "in the area" — Meshcore devices discovered from the radio's
-/// contact list (`GET_CONTACTS`) and over-the-air adverts
-/// (`PUSH_CODE_ADVERTISEMENT`). The hyperlocal-discovery view (R6/R8).
+/// Nodes "in the area" — the hyperlocal-discovery view (R6/R8).
+///
+/// Discovery in MeshCore is **advert-driven**: a node appears here only
+/// when this radio *hears that node's advert* (then auto-added as a
+/// contact, pushed via `PUSH_CODE_ADVERTISEMENT`, or drained from the
+/// queue). Channel/Public traffic does NOT create a node — you can
+/// chat on Public with a peer that never shows up here. So discovery
+/// is bilateral: **Advertise** makes this node findable by others;
+/// **Scan area** broadcasts our advert *and* collects the adverts we
+/// have heard.
 class NodesScreen extends StatelessWidget {
   const NodesScreen({super.key});
 
@@ -30,6 +37,17 @@ class NodesScreen extends StatelessWidget {
 
     final int inRange = nodes.where((DiscoveredNode n) => n.inRange).length;
 
+    void advertise() {
+      mc.sendSelfAdvert(flood: true);
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(const SnackBar(
+          content: Text('Advert broadcast — others can discover this '
+              'node now. The other node must Advertise too before it '
+              'appears here.'),
+        ));
+    }
+
     return Column(
       children: <Widget>[
         Padding(
@@ -48,6 +66,12 @@ class NodesScreen extends StatelessWidget {
                   label: Text(mc.isScanning ? 'Scanning…' : 'Scan area'),
                   onPressed: ready && !mc.isScanning ? mc.scan : null,
                 ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.podcasts),
+                label: const Text('Advertise'),
+                onPressed: ready ? advertise : null,
               ),
               IconButton(
                 tooltip: 'Sync contacts',
@@ -74,8 +98,13 @@ class NodesScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(28),
                     child: Text(
                       ready
-                          ? 'No nodes yet.\nTap "Scan area" to solicit '
-                              'adverts & sync contacts.'
+                          ? 'No nodes yet.\n\n'
+                              'Discovery is advert-driven: a node shows '
+                              'up only when its advert is heard. Chatting '
+                              'on Public does NOT make a node appear.\n\n'
+                              'Ask the other node to Advertise / Share '
+                              '(or tap "Advertise" here so it can find '
+                              'you), then "Scan area".'
                           : 'Connect a radio to discover nearby nodes.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: cs.onSurfaceVariant),

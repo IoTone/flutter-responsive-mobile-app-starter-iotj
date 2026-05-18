@@ -101,4 +101,37 @@ void main() {
     expect(fake.sent.length, greaterThanOrEqualTo(before + 2));
     ctrl.dispose();
   });
+
+  testWidgets('Advertise broadcasts a self-advert (0x07) + explains',
+      (WidgetTester t) async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    await t.pumpWidget(
+      MaterialApp(
+        home: ChangeNotifierProvider<MeshcoreController>.value(
+          value: ctrl,
+          child: const Scaffold(body: NodesScreen()),
+        ),
+      ),
+    );
+    await ctrl.connect();
+    fake.emit(selfInfoFrame());
+    await t.pumpAndSettle();
+
+    // Empty state sets the right expectation (advert-driven).
+    expect(find.textContaining('Discovery is advert-driven'),
+        findsOneWidget);
+
+    await t.tap(find.text('Advertise'));
+    await t.pump();
+    // CMD_SEND_SELF_ADVERT opcode is 0x07.
+    expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x07), isTrue);
+    expect(find.textContaining('Advert broadcast'), findsOneWidget);
+    ctrl.dispose();
+  });
 }
