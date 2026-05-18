@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../app_state_model.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
+import '../screens/chat_screen.dart';
 import '../screens/dashboard_screen.dart';
 import '../screens/nodes_screen.dart';
 import '../theme/theme_controller.dart';
@@ -148,8 +149,7 @@ class _HomeShellState extends State<HomeShell> {
         onPageChanged: (int i) => setState(() => _index = i),
         children: const <Widget>[
           DashboardScreen(),
-          _Placeholder(MmView.chat, 'Active-channel chat + channel switch '
-              'and TTS toggle — wired in U3.'),
+          ChatScreen(),
           NodesScreen(),
           _SettingsView(),
           _AboutView(),
@@ -159,36 +159,6 @@ class _HomeShellState extends State<HomeShell> {
   }
 }
 
-class _Placeholder extends StatelessWidget {
-  const _Placeholder(this.view, this.note);
-  final MmView view;
-  final String note;
-
-  @override
-  Widget build(BuildContext context) {
-    final ColorScheme cs = Theme.of(context).colorScheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(view.icon, size: 48, color: cs.primary),
-            const SizedBox(height: 12),
-            Text(view.title.toUpperCase(),
-                style: TextStyle(
-                    fontSize: 22, letterSpacing: 4, color: cs.onSurface)),
-            const SizedBox(height: 8),
-            Text(note,
-                textAlign: TextAlign.center,
-                style:
-                    TextStyle(color: cs.onSurface.withValues(alpha: .55))),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _SettingsView extends StatelessWidget {
   const _SettingsView();

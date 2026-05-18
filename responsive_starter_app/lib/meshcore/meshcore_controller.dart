@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:meshcore/meshcore.dart';
 
 import 'ble_connector.dart';
+import 'chat_message.dart';
 import 'discovered_node.dart';
 import 'mesh_event.dart';
 import 'meshcore_connection.dart';
@@ -32,6 +33,7 @@ class MeshcoreController extends ChangeNotifier {
       notifyListeners();
       if (s == MeshcoreConnectionState.ready) {
         _reconnectAttempt = 0;
+        _probeChannels();
       } else if (s == MeshcoreConnectionState.reconnecting ||
           s == MeshcoreConnectionState.failed) {
         _maybeScheduleReconnect();
@@ -40,6 +42,7 @@ class MeshcoreController extends ChangeNotifier {
     _inboundSub = _connection.inbound.listen((MeshcoreInbound f) {
       _lastFrame = f;
       _ingestNode(f);
+      _ingestChat(f);
       _logEvent(f);
       notifyListeners();
     });
@@ -237,6 +240,108 @@ class MeshcoreController extends ChangeNotifier {
   String _hex(List<int> b) =>
       b.map((int x) => x.toRadixString(16).padLeft(2, '0')).join();
 
+  // --- Channel chat (R6) ---
+
+  final List<ChatMessage> _messages = <ChatMessage>[];
+  static const int _messagesCap = 250;
+
+  /// Known channels by index → name. Channel 0 ("Public") always
+  /// exists; the rest are filled in from `CHANNEL_INFO` replies.
+  final Map<int, String> _channels = <int, String>{0: 'Public'};
+
+  /// Probe this many channel slots on link-up (typical meshes use a
+  /// handful; the radio answers only the ones it has).
+  static const int _channelProbeCount = 4;
+
+  int _activeChannel = 0;
+
+  /// Currently selected chat channel index.
+  int get activeChannel => _activeChannel;
+
+  /// Known channels, ascending by index.
+  List<MapEntry<int, String>> get channels {
+    final List<MapEntry<int, String>> v = _channels.entries.toList()
+      ..sort((MapEntry<int, String> a, MapEntry<int, String> b) =>
+          a.key.compareTo(b.key));
+    return v;
+  }
+
+  /// Name of the active channel (falls back to its index).
+  String get activeChannelName =>
+      _channels[_activeChannel] ?? 'CH $_activeChannel';
+
+  void setActiveChannel(int idx) {
+    if (idx == _activeChannel) return;
+    _activeChannel = idx;
+    notifyListeners();
+  }
+
+  /// Messages for [idx] (default: the active channel), oldest first.
+  List<ChatMessage> messagesFor([int? idx]) {
+    final int c = idx ?? _activeChannel;
+    return _messages
+        .where((ChatMessage m) => m.channelIdx == c)
+        .toList(growable: false);
+  }
+
+  final StreamController<ChatMessage> _incomingCh =
+      StreamController<ChatMessage>.broadcast();
+
+  /// Inbound channel messages (for TTS / notifications). Outgoing
+  /// messages are not emitted here.
+  Stream<ChatMessage> get incomingChannelMessages => _incomingCh.stream;
+
+  void _addMessage(ChatMessage m) {
+    _messages.add(m);
+    if (_messages.length > _messagesCap) _messages.removeAt(0);
+  }
+
+  void _ingestChat(MeshcoreInbound f) {
+    if (f is ChannelMessageFrame) {
+      final ChannelMessage cm = f.message;
+      final ChatMessage m = ChatMessage(
+        channelIdx: cm.channelIdx,
+        text: cm.text,
+        outgoing: false,
+        snrDb: cm.snrDb,
+        isFlood: cm.isFlood,
+      );
+      _addMessage(m);
+      if (!_incomingCh.isClosed) _incomingCh.add(m);
+    } else if (f is ChannelInfoFrame) {
+      final ChannelInfo ci = f.info;
+      if (ci.name.isNotEmpty) _channels[ci.channelIdx] = ci.name;
+    }
+  }
+
+  void _probeChannels() {
+    for (int i = 0; i < _channelProbeCount; i++) {
+      // Best-effort: ignore failures (radio replies only for the
+      // channels it actually has configured).
+      unawaited(send(MeshcoreFrameCodec.getChannel(i)).catchError((_) {}));
+    }
+  }
+
+  /// Send a text message on the active channel (`SEND_CHANNEL_TXT_MSG`,
+  /// 0x03). The radio does the OTA channel encryption; we append an
+  /// optimistic outgoing line. No-op if not ready or text is blank.
+  Future<void> sendChannelText(String text) async {
+    final String t = text.trim();
+    if (t.isEmpty || !isReady) return;
+    final int ts = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    await send(MeshcoreFrameCodec.sendChannelTextMessage(
+      channelIdx: _activeChannel,
+      timestamp: ts,
+      text: t,
+    ));
+    _addMessage(ChatMessage(
+      channelIdx: _activeChannel,
+      text: t,
+      outgoing: true,
+    ));
+    notifyListeners();
+  }
+
   void _ingestNode(MeshcoreInbound f) {
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     if (f is ContactFrame) {
@@ -359,6 +464,7 @@ class MeshcoreController extends ChangeNotifier {
     _statesSub?.cancel();
     _inboundSub?.cancel();
     _rawSub?.cancel();
+    unawaited(_incomingCh.close());
     unawaited(_transport?.close());
     unawaited(_connection.dispose());
     super.dispose();

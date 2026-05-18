@@ -8,6 +8,15 @@ import 'package:meshmore_sns_app/app_state_model.dart';
 import 'package:meshmore_sns_app/main.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/theme/theme_controller.dart';
+import 'package:meshmore_sns_app/tts/tts_controller.dart';
+
+/// No-op speech backend (keeps the smoke test off the platform channel).
+class _SilentSpeaker implements TtsSpeaker {
+  @override
+  Future<void> speak(String text) async {}
+  @override
+  Future<void> stop() async {}
+}
 
 void main() {
   testWidgets('App boots without errors', (WidgetTester tester) async {
@@ -17,6 +26,9 @@ void main() {
           ChangeNotifierProvider<AppState>(create: (_) => AppState()),
           ChangeNotifierProvider<ThemeController>(
             create: (_) => ThemeController(),
+          ),
+          ChangeNotifierProvider<TtsController>(
+            create: (_) => TtsController(speaker: _SilentSpeaker()),
           ),
           ChangeNotifierProvider<MeshcoreController>(
             create: (_) => MeshcoreController(),

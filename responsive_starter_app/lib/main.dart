@@ -7,6 +7,7 @@ import 'package:meshmore_sns_app/app_router.dart';
 import 'package:meshmore_sns_app/app_state_model.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/theme/theme_controller.dart';
+import 'package:meshmore_sns_app/tts/tts_controller.dart';
 
 void main() {
   final WidgetsBinding widgetsBinding =
@@ -23,6 +24,9 @@ void main() {
           ChangeNotifierProvider<AppState>(create: (_) => AppState()),
           ChangeNotifierProvider<ThemeController>(
             create: (_) => ThemeController()..load(),
+          ),
+          ChangeNotifierProvider<TtsController>(
+            create: (_) => TtsController()..load(),
           ),
           ChangeNotifierProvider<MeshcoreController>(
             create: (_) => MeshcoreController()..autoConnectIfPaired(),

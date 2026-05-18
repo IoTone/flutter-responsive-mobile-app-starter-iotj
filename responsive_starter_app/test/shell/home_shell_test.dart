@@ -6,6 +6,16 @@ import 'package:meshmore_sns_app/app_state_model.dart';
 import 'package:meshmore_sns_app/main.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/theme/theme_controller.dart';
+import 'package:meshmore_sns_app/tts/tts_controller.dart';
+
+/// No-op speech backend so the shell tests never touch the
+/// `flutter_tts` platform channel.
+class _SilentSpeaker implements TtsSpeaker {
+  @override
+  Future<void> speak(String text) async {}
+  @override
+  Future<void> stop() async {}
+}
 
 Future<void> _pumpApp(WidgetTester tester) async {
   await tester.pumpWidget(
@@ -14,6 +24,9 @@ Future<void> _pumpApp(WidgetTester tester) async {
         ChangeNotifierProvider<AppState>(create: (_) => AppState()),
         ChangeNotifierProvider<ThemeController>(
           create: (_) => ThemeController(),
+        ),
+        ChangeNotifierProvider<TtsController>(
+          create: (_) => TtsController(speaker: _SilentSpeaker()),
         ),
         ChangeNotifierProvider<MeshcoreController>(
           create: (_) => MeshcoreController(),

@@ -116,4 +116,100 @@ void main() {
     );
     ctrl.dispose();
   });
+
+  group('channel chat (R6)', () {
+    test('inbound channel message lands in store + incoming stream',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      await ctrl.connect();
+
+      final List<String> streamed = <String>[];
+      ctrl.incomingChannelMessages.listen((m) => streamed.add(m.text));
+
+      fake.emit(channelMsgFrame(text: 'ping mesh'));
+      await Future<void>.delayed(Duration.zero);
+
+      final msgs = ctrl.messagesFor(0);
+      expect(msgs, hasLength(1));
+      expect(msgs.single.text, 'ping mesh');
+      expect(msgs.single.outgoing, isFalse);
+      expect(streamed, <String>['ping mesh']);
+      ctrl.dispose();
+    });
+
+    test('sendChannelText emits 0x03 + optimistic outgoing line',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection:
+            MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame()); // → ready
+      await Future<void>.delayed(Duration.zero);
+
+      await ctrl.sendChannelText('  hello  ');
+      expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x03), isTrue);
+      final msgs = ctrl.messagesFor(0);
+      expect(msgs.single.text, 'hello'); // trimmed
+      expect(msgs.single.outgoing, isTrue);
+      ctrl.dispose();
+    });
+
+    test('sendChannelText is a no-op when not ready / blank', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      await ctrl.connect(); // handshaking, not ready
+      await ctrl.sendChannelText('nope');
+      expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x03), isFalse);
+      expect(ctrl.messagesFor(0), isEmpty);
+      ctrl.dispose();
+    });
+
+    test('CHANNEL_INFO names channels; setActiveChannel switches',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      await ctrl.connect();
+
+      expect(ctrl.activeChannel, 0);
+      expect(ctrl.activeChannelName, 'Public'); // default
+
+      fake.emit(channelInfoFrame(idx: 1, name: 'Ops'));
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.channels.map((e) => e.value), contains('Ops'));
+
+      ctrl.setActiveChannel(1);
+      expect(ctrl.activeChannel, 1);
+      expect(ctrl.activeChannelName, 'Ops');
+      ctrl.dispose();
+    });
+
+    test('reaching ready probes channels (CMD_GET_CHANNEL 0x1F)',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection:
+            MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame()); // → ready triggers probe
+      await Future<void>.delayed(Duration.zero);
+
+      expect(fake.sent.where((f) => f.isNotEmpty && f[0] == 0x1F),
+          isNotEmpty);
+      ctrl.dispose();
+    });
+  });
 }
