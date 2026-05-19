@@ -131,6 +131,10 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
               if (mc.selfInfo != null)
                 'device: ${mc.selfInfo!.name} · '
                     '${mc.selfInfo!.frequencyMhz}MHz SF${mc.selfInfo!.spreadingFactor}',
+              if (mc.batteryMillivolts != null)
+                'battery: ${mc.batteryVolts!.toStringAsFixed(2)}V '
+                    '(~${mc.batteryPercent}%)'
+                    '${mc.charging == true ? ' ⚡ charging' : ''}',
               if (mc.reconnectAttempt > 0)
                 'reconnect attempt ${mc.reconnectAttempt}'
                     '${mc.gaveUp ? ' (gave up)' : ''}',

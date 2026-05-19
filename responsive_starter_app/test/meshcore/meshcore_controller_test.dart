@@ -343,6 +343,67 @@ void main() {
     });
   });
 
+  group('battery (R16)', () {
+    test('reaching ready polls battery (GET_BATTERY 0x14)', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      expect(fake.sent.where((f) => f.isNotEmpty && f[0] == 0x14),
+          isNotEmpty);
+      ctrl.dispose();
+    });
+
+    test('BATT_AND_STORAGE populates level + approx percent', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      await ctrl.connect();
+      fake.emit(batteryFrame(3970));
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.batteryMillivolts, 3970);
+      expect(ctrl.batteryVolts, closeTo(3.97, 0.001));
+      expect(ctrl.batteryPercent, 74); // (3970-3300)/900*100
+      ctrl.dispose();
+    });
+
+    test('charging heuristic: rise→true, fall→false, steady→null',
+        () async {
+      Future<MeshcoreController> feed(List<int> mvs) async {
+        final FakeMeshcoreTransport fake =
+            FakeMeshcoreTransport(connected: true);
+        final MeshcoreController c =
+            MeshcoreController(transportFactory: () async => fake);
+        await c.connect();
+        for (final int mv in mvs) {
+          fake.emit(batteryFrame(mv));
+          await Future<void>.delayed(Duration.zero);
+        }
+        return c;
+      }
+
+      final MeshcoreController rising = await feed(<int>[3700, 3760, 3800]);
+      expect(rising.charging, isTrue);
+      rising.dispose();
+
+      final MeshcoreController falling =
+          await feed(<int>[3900, 3850, 3800]);
+      expect(falling.charging, isFalse);
+      falling.dispose();
+
+      final MeshcoreController steady = await feed(<int>[3800, 3805]);
+      expect(steady.charging, isNull); // < 40 mV → unknown
+      steady.dispose();
+    });
+  });
+
   group('inbound queue drain (CMD_SYNC_NEXT_MESSAGE)', () {
     int syncs(FakeMeshcoreTransport f) =>
         f.sent.where((s) => s.isNotEmpty && s[0] == 0x0A).length;

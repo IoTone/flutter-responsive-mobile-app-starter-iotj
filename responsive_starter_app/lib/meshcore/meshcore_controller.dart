@@ -42,6 +42,7 @@ class MeshcoreController extends ChangeNotifier {
         // (some firmware returns ERR), we still learn the offset and
         // judge "in range" against the device's own clock.
         _requestDeviceTime();
+        _startBatteryPolling();
         _probeChannels();
         // Drain anything the device queued before/while we connected
         // (heard contacts/adverts + received messages).
@@ -54,6 +55,7 @@ class MeshcoreController extends ChangeNotifier {
     _inboundSub = _connection.inbound.listen((MeshcoreInbound f) {
       _lastFrame = f;
       _trackDeviceClock(f);
+      _trackBattery(f);
       _maybeDrain(f);
       _ingestNode(f);
       _ingestChat(f);
@@ -372,6 +374,65 @@ class MeshcoreController extends ChangeNotifier {
     }
   }
 
+  // --- Battery (R16) ---
+
+  BatteryStorage? _battery;
+  final List<List<int>> _battSamples = <List<int>>[]; // [mv, atUnix]
+  static const int _battSampleCap = 6;
+  bool? _charging;
+  Timer? _battTimer;
+
+  /// Latest battery/storage reading, null until the first GET_BATTERY.
+  BatteryStorage? get battery => _battery;
+  int? get batteryMillivolts => _battery?.batteryMillivolts;
+  double? get batteryVolts => _battery?.batteryVolts;
+
+  /// Approx single-cell Li-ion charge (3.30 V→0 %, 4.20 V→100 %).
+  /// Indicative only — the companion protocol exposes voltage, not a
+  /// fuel gauge.
+  int? get batteryPercent {
+    final int? mv = batteryMillivolts;
+    if (mv == null) return null;
+    return ((mv - 3300) / (4200 - 3300) * 100).clamp(0, 100).round();
+  }
+
+  /// True only on a clear, sustained voltage rise; false on a clear
+  /// fall; null when steady/unknown. companion-v1.15.0 has no
+  /// charge-state bit, so this never asserts charging on ADC noise
+  /// (R16: never show a false charging state).
+  bool? get charging => _charging;
+
+  void _requestBattery() {
+    unawaited(
+        send(MeshcoreFrameCodec.getBatteryStorage()).catchError((_) {}));
+  }
+
+  void _startBatteryPolling() {
+    _battTimer?.cancel();
+    _requestBattery();
+    _battTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      if (isReady) _requestBattery();
+    });
+  }
+
+  void _trackBattery(MeshcoreInbound f) {
+    if (f is! BatteryStorageFrame) return;
+    _battery = f.battery;
+    final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    _battSamples.add(<int>[f.battery.batteryMillivolts, now]);
+    if (_battSamples.length > _battSampleCap) _battSamples.removeAt(0);
+    if (_battSamples.length >= 2) {
+      final int newest = _battSamples.last[0];
+      final int oldest = _battSamples.first[0];
+      const int margin = 40; // mV — above ADC / temperature noise
+      _charging = (newest - oldest) >= margin
+          ? true
+          : (oldest - newest) >= margin
+              ? false
+              : null;
+    }
+  }
+
   void _probeChannels() {
     for (int i = 0; i < _channelProbeCount; i++) {
       // Best-effort: ignore failures (radio replies only for the
@@ -543,6 +604,7 @@ class MeshcoreController extends ChangeNotifier {
   Future<void> disconnect() async {
     _manualDisconnect = true;
     _reconnectGen++; // cancel any pending scheduled retry
+    _battTimer?.cancel();
     await _transport?.close();
     _transport = null;
   }
@@ -577,6 +639,7 @@ class MeshcoreController extends ChangeNotifier {
     _manualDisconnect = true;
     _reconnectGen++; // invalidate any pending scheduled retry
     _scanTimer?.cancel();
+    _battTimer?.cancel();
     _statesSub?.cancel();
     _inboundSub?.cancel();
     _rawSub?.cancel();

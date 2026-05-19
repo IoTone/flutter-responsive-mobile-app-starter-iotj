@@ -132,6 +132,23 @@ class DashboardScreen extends StatelessWidget {
               style:
                   TextStyle(color: cs.onSurfaceVariant, fontSize: 12)),
         ],
+        if (mc.batteryMillivolts != null) ...<Widget>[
+          const SizedBox(height: 18),
+          Text('BATTERY',
+              style: TextStyle(
+                  color: cs.onSurfaceVariant,
+                  fontSize: 12,
+                  letterSpacing: 4)),
+          const SizedBox(height: 4),
+          Text(
+            '${mc.batteryVolts!.toStringAsFixed(2)}V · '
+            '~${mc.batteryPercent}%'
+            '${mc.charging == true ? '  ⚡ CHARGING' : ''}',
+            style: TextStyle(
+                color: mc.charging == true ? cs.tertiary : cs.onSurface,
+                fontFamily: 'monospace'),
+          ),
+        ],
         const SizedBox(height: 24),
 
         // Recent activity.

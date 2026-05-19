@@ -99,6 +99,18 @@ Uint8List contactFrame({
   return cf;
 }
 
+/// `RESP_CODE_BATT_AND_STORAGE` (0x0C):
+/// `[0C][batt_mv u16 LE][used_kb u32 LE][total_kb u32 LE]`.
+Uint8List batteryFrame(int mv, {int usedKb = 0, int totalKb = 0}) =>
+    Uint8List.fromList(<int>[
+      0x0C,
+      mv & 0xFF, (mv >> 8) & 0xFF,
+      usedKb & 0xFF, (usedKb >> 8) & 0xFF,
+      (usedKb >> 16) & 0xFF, (usedKb >> 24) & 0xFF,
+      totalKb & 0xFF, (totalKb >> 8) & 0xFF,
+      (totalKb >> 16) & 0xFF, (totalKb >> 24) & 0xFF,
+    ]);
+
 /// `RESP_CODE_ERR` (0x01) with a 1-byte reason code.
 Uint8List errorFrame(int code) => Uint8List.fromList(<int>[0x01, code]);
 
