@@ -267,7 +267,35 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                 ],
               ),
             ),
-          section('RAW FRAME LOG (newest first)'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 18, 8, 6),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text('RAW FRAME LOG (newest first)',
+                      style: TextStyle(
+                          fontSize: 11,
+                          letterSpacing: 2,
+                          color: cs.primary)),
+                ),
+                TextButton.icon(
+                  onPressed: mc.captureLog.isEmpty
+                      ? null
+                      : () {
+                          final String blob = mc.captureLog.reversed
+                              .map((String h) => '${_label(h)}\t$h')
+                              .join('\n');
+                          Clipboard.setData(ClipboardData(text: blob));
+                          _toast(
+                              'Copied ${mc.captureLog.length} frames — '
+                              'paste into the chat');
+                        },
+                  icon: const Icon(Icons.copy, size: 16),
+                  label: const Text('Copy log'),
+                ),
+              ],
+            ),
+          ),
           if (log.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
