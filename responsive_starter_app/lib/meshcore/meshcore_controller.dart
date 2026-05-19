@@ -675,6 +675,21 @@ class MeshcoreController extends ChangeNotifier {
     }
   }
 
+  /// Call when the app returns to the foreground (R17 — the app is
+  /// usually backgrounded/screen-locked). If still linked, pull
+  /// anything the radio queued while we were away; if the link
+  /// dropped and a device is paired, bring it back (reaching `ready`
+  /// auto-drains). Respects a user-initiated [disconnect].
+  Future<void> onAppResumed() async {
+    if (_manualDisconnect) return; // user chose to stay disconnected
+    if (isReady) {
+      _drainStart(); // drain backlog buffered while backgrounded
+      return;
+    }
+    if (_connecting) return; // a (re)connect is already in flight
+    if (hasPairedDevice) await connect();
+  }
+
   /// User-initiated disconnect. Latches off auto-reconnect until the
   /// next explicit [connect].
   Future<void> disconnect() async {

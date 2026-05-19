@@ -85,4 +85,14 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
     expect(t.takeException(), isNull); // no root-pop exception
   });
+
+  testWidgets('app resume drives the lifecycle hook without crashing '
+      '(R17)', (WidgetTester t) async {
+    await _pumpApp(t);
+    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await t.pumpAndSettle();
+    expect(t.takeException(), isNull);
+    expect(find.widgetWithText(AppBar, 'Dashboard'), findsOneWidget);
+  });
 }

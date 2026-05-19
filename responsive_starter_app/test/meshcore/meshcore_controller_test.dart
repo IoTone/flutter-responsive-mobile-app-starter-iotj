@@ -539,4 +539,60 @@ void main() {
       ctrl.dispose();
     });
   });
+
+  group('app lifecycle resume (R17)', () {
+    int syncs(FakeMeshcoreTransport f) =>
+        f.sent.where((s) => s.isNotEmpty && s[0] == 0x0A).length;
+
+    test('onAppResumed while ready drains the queue', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame()); // → ready (kicks a drain)
+      await Future<void>.delayed(Duration.zero);
+      fake.emit(noMoreMessagesFrame()); // end the ready-drain
+      await Future<void>.delayed(Duration.zero);
+
+      final int before = syncs(fake);
+      await ctrl.onAppResumed();
+      await Future<void>.delayed(Duration.zero);
+      expect(syncs(fake), greaterThan(before));
+      ctrl.dispose();
+    });
+
+    test('onAppResumed is a no-op after a manual disconnect', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      await ctrl.connect();
+      await ctrl.disconnect(); // latches _manualDisconnect
+      final int before = fake.sent.length;
+      await ctrl.onAppResumed();
+      await Future<void>.delayed(Duration.zero);
+      expect(fake.sent.length, before); // nothing sent
+      ctrl.dispose();
+    });
+
+    test('onAppResumed does not connect when no device is paired',
+        () async {
+      bool called = false;
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async {
+          called = true;
+          return FakeMeshcoreTransport(connected: true);
+        },
+      );
+      await ctrl.onAppResumed(); // disconnected, not manual, unpaired
+      await Future<void>.delayed(Duration.zero);
+      expect(called, isFalse);
+      expect(ctrl.state, MeshcoreConnectionState.disconnected);
+      ctrl.dispose();
+    });
+  });
 }

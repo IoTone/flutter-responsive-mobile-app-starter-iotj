@@ -43,13 +43,15 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends State<HomeShell>
+    with WidgetsBindingObserver {
   final PageController _pc = PageController();
   int _index = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Owns splash teardown now (replaces the old demo home).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FlutterNativeSplash.remove();
@@ -58,8 +60,18 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pc.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // R17: on return to foreground, re-ensure the link + drain the
+    // radio's queue (messages buffered while backgrounded).
+    if (state == AppLifecycleState.resumed) {
+      context.read<MeshcoreController>().onAppResumed();
+    }
   }
 
   void _goTo(int i, {required bool reduceMotion}) {
