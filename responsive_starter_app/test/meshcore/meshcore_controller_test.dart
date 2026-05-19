@@ -343,6 +343,39 @@ void main() {
     });
   });
 
+  test('setChannel emits SET_CHANNEL (0x20) then GET_CHANNEL (0x1F)',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    await ctrl.connect();
+    fake.emit(selfInfoFrame()); // → ready
+    await Future<void>.delayed(Duration.zero);
+
+    await ctrl.setChannel(
+        idx: 1, name: 'Ops', psk: List<int>.filled(16, 7));
+    expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x20), isTrue);
+    expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x1F), isTrue);
+    expect(ctrl.channels.any((e) => e.key == 1 && e.value == 'Ops'),
+        isTrue); // optimistic
+    ctrl.dispose();
+  });
+
+  test('setChannel is a no-op when not ready', () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl =
+        MeshcoreController(transportFactory: () async => fake);
+    await ctrl.connect(); // handshaking, not ready
+    await ctrl.setChannel(idx: 2, name: 'X', psk: List<int>.filled(16, 1));
+    expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x20), isFalse);
+    ctrl.dispose();
+  });
+
   group('battery (R16)', () {
     test('reaching ready polls battery (GET_BATTERY 0x14)', () async {
       final FakeMeshcoreTransport fake =

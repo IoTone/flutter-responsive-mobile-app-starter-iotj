@@ -301,6 +301,22 @@ class MeshcoreController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Create/overwrite a channel slot (`SET_CHANNEL` 0x20) then refresh
+  /// it (`GET_CHANNEL`). [psk] is the 16-byte channel key. No-op if
+  /// not connected.
+  Future<void> setChannel({
+    required int idx,
+    required String name,
+    required List<int> psk,
+  }) async {
+    if (!isReady) return;
+    await send(MeshcoreFrameCodec.setChannel(
+        channelIdx: idx, name: name, psk: psk));
+    if (name.isNotEmpty) _channels[idx] = name; // optimistic
+    notifyListeners();
+    unawaited(send(MeshcoreFrameCodec.getChannel(idx)).catchError((_) {}));
+  }
+
   /// Messages for [idx] (default: the active channel), oldest first.
   List<ChatMessage> messagesFor([int? idx]) {
     final int c = idx ?? _activeChannel;

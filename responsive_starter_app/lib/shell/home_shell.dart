@@ -203,6 +203,13 @@ class _SettingsView extends StatelessWidget {
           onTap: () => context.push('/settings/profile'),
         ),
         ListTile(
+          leading: const Icon(Icons.tag),
+          title: const Text('Channels'),
+          subtitle: const Text('Slots · name + PSK · #hashtag · active'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push('/settings/channels'),
+        ),
+        ListTile(
           leading: const Icon(Icons.bluetooth_searching),
           title: const Text('Diagnostics & connect'),
           subtitle: const Text('Connect a radio · frame log · M6 capture'),
