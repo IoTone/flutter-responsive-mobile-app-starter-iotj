@@ -27,4 +27,27 @@ class ChatMessage {
 
   /// True when the inbound message arrived via flood (path_len 0xFF).
   final bool isFlood;
+
+  /// Compact JSON for local persistence (history survives restarts —
+  /// the companion protocol has no history-fetch; the device queue is
+  /// drained destructively).
+  Map<String, Object?> toJson() => <String, Object?>{
+        'c': channelIdx,
+        't': text,
+        'o': outgoing,
+        'a': at.millisecondsSinceEpoch,
+        if (snrDb != null) 's': snrDb,
+        if (isFlood) 'f': true,
+      };
+
+  static ChatMessage fromJson(Map<String, Object?> j) => ChatMessage(
+        channelIdx: (j['c'] as num?)?.toInt() ?? 0,
+        text: j['t'] as String? ?? '',
+        outgoing: j['o'] as bool? ?? false,
+        at: DateTime.fromMillisecondsSinceEpoch(
+            (j['a'] as num?)?.toInt() ??
+                DateTime.now().millisecondsSinceEpoch),
+        snrDb: (j['s'] as num?)?.toDouble(),
+        isFlood: j['f'] as bool? ?? false,
+      );
 }

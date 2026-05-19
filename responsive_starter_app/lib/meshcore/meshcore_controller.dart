@@ -6,6 +6,7 @@ import 'package:meshcore/meshcore.dart';
 
 import 'ble_connector.dart';
 import 'chat_message.dart';
+import 'chat_store.dart';
 import 'discovered_node.dart';
 import 'mesh_event.dart';
 import 'meshcore_connection.dart';
@@ -71,7 +72,25 @@ class MeshcoreController extends ChangeNotifier {
       _capture.add(hex);
       if (_capture.length > _captureCap) _capture.removeAt(0);
     });
+    _loadChatHistory();
   }
+
+  /// Restore persisted chat history (the protocol can't re-fetch it;
+  /// the device queue is drained destructively). Loaded entries are
+  /// older than anything received during the async gap, so they go
+  /// at the front.
+  Future<void> _loadChatHistory() async {
+    final List<ChatMessage> hist = await ChatStore.load();
+    if (hist.isEmpty) return;
+    _messages.insertAll(0, hist);
+    if (_messages.length > _messagesCap) {
+      _messages.removeRange(0, _messages.length - _messagesCap);
+    }
+    notifyListeners();
+  }
+
+  void _persistChat() =>
+      unawaited(ChatStore.save(List<ChatMessage>.from(_messages)));
 
   /// Recent raw inbound frames (hex), newest last. Bounded ring buffer
   /// for the M6 interop capture workflow.
@@ -337,6 +356,7 @@ class MeshcoreController extends ChangeNotifier {
   void _addMessage(ChatMessage m) {
     _messages.add(m);
     if (_messages.length > _messagesCap) _messages.removeAt(0);
+    _persistChat();
   }
 
   void _ingestChat(MeshcoreInbound f) {
@@ -699,6 +719,7 @@ class MeshcoreController extends ChangeNotifier {
     _statesSub?.cancel();
     _inboundSub?.cancel();
     _rawSub?.cancel();
+    _persistChat(); // final flush
     unawaited(_incomingCh.close());
     unawaited(_transport?.close());
     unawaited(_connection.dispose());
