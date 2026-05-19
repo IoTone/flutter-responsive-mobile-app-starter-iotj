@@ -376,6 +376,57 @@ void main() {
     ctrl.dispose();
   });
 
+  group('device info + identity/advert (R7)', () {
+    test('reaching ready queries device info (DEVICE_QUERY 0x16); '
+        'DEVICE_INFO populates deviceInfo', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      expect(fake.sent.where((f) => f.isNotEmpty && f[0] == 0x16),
+          isNotEmpty);
+
+      expect(ctrl.deviceInfo, isNull);
+      fake.emit(deviceInfoFrame(fw: 'v1.15.0', mfr: 'Seeed'));
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.deviceInfo, isNotNull);
+      expect(ctrl.deviceInfo!.firmwareVersion, 'v1.15.0');
+      expect(ctrl.deviceInfo!.manufacturer, 'Seeed');
+      ctrl.dispose();
+    });
+
+    test('setAdvertName/LatLon emit 0x08/0x0E when ready, else no-op',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+
+      // Not ready yet → no-op.
+      await ctrl.setAdvertName('Nope');
+      expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x08), isFalse);
+
+      fake.emit(selfInfoFrame()); // → ready
+      await Future<void>.delayed(Duration.zero);
+
+      await ctrl.setAdvertName('NodeA');
+      await ctrl.setAdvertLatLon(latitude: 35.681, longitude: 139.767);
+      expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x08), isTrue);
+      expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x0E), isTrue);
+      ctrl.dispose();
+    });
+  });
+
   group('battery (R16)', () {
     test('reaching ready polls battery (GET_BATTERY 0x14)', () async {
       final FakeMeshcoreTransport fake =

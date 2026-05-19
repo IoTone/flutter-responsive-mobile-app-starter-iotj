@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:provider/provider.dart';
 
@@ -79,12 +80,15 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   final TextEditingController _sf = TextEditingController();
   final TextEditingController _cr = TextEditingController();
   final TextEditingController _tx = TextEditingController();
+  final TextEditingController _name = TextEditingController();
+  final TextEditingController _lat = TextEditingController();
+  final TextEditingController _lon = TextEditingController();
   bool _loaded = false;
 
   @override
   void dispose() {
     for (final TextEditingController c in <TextEditingController>[
-      _freq, _bw, _sf, _cr, _tx
+      _freq, _bw, _sf, _cr, _tx, _name, _lat, _lon
     ]) {
       c.dispose();
     }
@@ -97,7 +101,39 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     _sf.text = s.spreadingFactor.toString();
     _cr.text = s.codingRate.toString();
     _tx.text = s.txPowerDbm.toString();
+    _name.text = s.name;
+    _lat.text = s.latitude == 0 ? '' : s.latitude.toString();
+    _lon.text = s.longitude == 0 ? '' : s.longitude.toString();
     setState(() => _loaded = true);
+  }
+
+  Future<void> _applyName(MeshcoreController mc) async {
+    final String n = _name.text.trim();
+    if (n.isEmpty) {
+      _toast('Enter a node name');
+      return;
+    }
+    try {
+      await mc.setAdvertName(n);
+      _toast('Name set — re-advertise so neighbours pick it up');
+    } catch (e) {
+      _toast('Send failed: $e');
+    }
+  }
+
+  Future<void> _applyLocation(MeshcoreController mc) async {
+    final double? la = double.tryParse(_lat.text.trim());
+    final double? lo = double.tryParse(_lon.text.trim());
+    if (la == null || lo == null || la.abs() > 90 || lo.abs() > 180) {
+      _toast('Enter valid lat (−90..90) and lon (−180..180)');
+      return;
+    }
+    try {
+      await mc.setAdvertLatLon(latitude: la, longitude: lo);
+      _toast('Advert location set');
+    } catch (e) {
+      _toast('Send failed: $e');
+    }
   }
 
   /// Fill the radio fields from a region preset. Frequency is always
@@ -253,23 +289,109 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                   style: TextStyle(color: cs.onSurfaceVariant)),
             ),
           const Divider(height: 28),
-          for (final ({String h, String s}) row in const <({
-            String h,
-            String s
-          })>[
-            (h: 'IDENTITY / ADVERT', s: 'Node name · advert lat/lon (later)'),
-            (h: 'CHANNELS', s: 'List · add/edit (name + PSK) · QR (later)'),
-            (h: 'OTHER PARAMS / TUNING', s: 'Telemetry · multi-acks (later)'),
-            (h: 'DEVICE', s: 'Firmware · battery · time sync (later)'),
-          ])
-            ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              title: Text(row.h),
-              subtitle: Text(row.s,
-                  style: TextStyle(
-                      color: cs.onSurface.withValues(alpha: .55))),
+
+          // IDENTITY / ADVERT (R7)
+          Text('IDENTITY / ADVERT',
+              style: TextStyle(
+                  color: cs.primary, fontSize: 12, letterSpacing: 3)),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _name,
+            maxLength: 31,
+            decoration: const InputDecoration(
+                labelText: 'Node name (advertised)', isDense: true),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              icon: const Icon(Icons.badge_outlined, size: 18),
+              label: const Text('Set name'),
+              onPressed: ready ? () => _applyName(mc) : null,
             ),
+          ),
+          num('Advert latitude (°)', _lat, 'e.g. 35.681'),
+          num('Advert longitude (°)', _lon, 'e.g. 139.767'),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              icon: const Icon(Icons.my_location, size: 18),
+              label: const Text('Set advert location'),
+              onPressed: ready ? () => _applyLocation(mc) : null,
+            ),
+          ),
+          Text(
+            'Name/location change propagates on the next advert '
+            '(Nodes → Advertise).',
+            style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
+          ),
+          const Divider(height: 28),
+
+          // CHANNELS → dedicated screen
+          Text('CHANNELS',
+              style: TextStyle(
+                  color: cs.primary, fontSize: 12, letterSpacing: 3)),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.tag),
+            title: const Text('Manage channels'),
+            subtitle: Text('Active: ${mc.activeChannelName} · '
+                'slots · name + PSK · #hashtag'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/channels'),
+          ),
+          const Divider(height: 28),
+
+          // OTHER PARAMS (read-only for now)
+          Text('OTHER PARAMS',
+              style: TextStyle(
+                  color: cs.primary, fontSize: 12, letterSpacing: 3)),
+          const SizedBox(height: 4),
+          Text(
+            si == null
+                ? '— awaiting device —'
+                : 'manual-add contacts: ${si.manualAddContacts}\n'
+                    'telemetry mode: ${si.telemetryModeRaw}\n'
+                    'advert loc policy: ${si.advertLocPolicy}\n'
+                    'multi-acks: ${si.multiAcks}',
+            style: TextStyle(
+                color: cs.onSurface,
+                fontFamily: 'monospace',
+                height: 1.5),
+          ),
+          Text('Editing these (telemetry / manual-add / acks) is a '
+              'later step.',
+              style:
+                  TextStyle(color: cs.onSurfaceVariant, fontSize: 12)),
+          const Divider(height: 28),
+
+          // DEVICE (read-only)
+          Text('DEVICE',
+              style: TextStyle(
+                  color: cs.primary, fontSize: 12, letterSpacing: 3)),
+          const SizedBox(height: 4),
+          Builder(builder: (BuildContext _) {
+            final DeviceInfo? d = mc.deviceInfo;
+            final String batt = mc.batteryMillivolts == null
+                ? '—'
+                : '${mc.batteryVolts!.toStringAsFixed(2)}V '
+                    '(~${mc.batteryPercent}%)'
+                    '${mc.charging == true ? ' ⚡' : ''}';
+            return Text(
+              d == null
+                  ? 'querying device…\nbattery: $batt'
+                  : 'firmware: ${d.firmwareVersion}\n'
+                      'build: ${d.firmwareBuildDate}\n'
+                      'mfr: ${d.manufacturer}\n'
+                      'max contacts: ${d.maxContacts} · '
+                      'channels: ${d.maxGroupChannels}\n'
+                      'BLE pin: ${d.blePin}\n'
+                      'battery: $batt',
+              style: TextStyle(
+                  color: cs.onSurface,
+                  fontFamily: 'monospace',
+                  height: 1.5),
+            );
+          }),
         ],
       ),
     );

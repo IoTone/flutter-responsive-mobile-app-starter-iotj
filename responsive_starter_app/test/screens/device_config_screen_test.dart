@@ -102,4 +102,51 @@ void main() {
     expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x0B), isTrue);
     ctrl.dispose();
   });
+
+  testWidgets('Identity/Advert: Set name → 0x08, Set location → 0x0E',
+      (WidgetTester t) async {
+    await t.binding.setSurfaceSize(const Size(900, 3200));
+    addTearDown(() => t.binding.setSurfaceSize(null));
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    await t.pumpWidget(
+      MaterialApp(
+        home: ChangeNotifierProvider<MeshcoreController>.value(
+          value: ctrl,
+          child: const DeviceConfigScreen(),
+        ),
+      ),
+    );
+    await ctrl.connect();
+    fake.emit(selfInfoFrame());
+    await t.pumpAndSettle();
+
+    final Finder scrollable = find.byType(Scrollable).first;
+    await t.scrollUntilVisible(find.text('Set name'), 400,
+        scrollable: scrollable);
+    await t.enterText(
+        find.widgetWithText(TextField, 'Node name (advertised)'),
+        'NodeA');
+    await t.tap(find.text('Set name'));
+    await t.pumpAndSettle();
+    expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x08), isTrue);
+
+    await t.scrollUntilVisible(
+        find.text('Set advert location'), 400,
+        scrollable: scrollable);
+    await t.enterText(
+        find.widgetWithText(TextField, 'Advert latitude (°)'), '35.681');
+    await t.enterText(
+        find.widgetWithText(TextField, 'Advert longitude (°)'),
+        '139.767');
+    await t.tap(find.text('Set advert location'));
+    await t.pumpAndSettle();
+    expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x0E), isTrue);
+    ctrl.dispose();
+  });
 }

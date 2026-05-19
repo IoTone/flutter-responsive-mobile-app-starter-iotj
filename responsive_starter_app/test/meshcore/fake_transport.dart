@@ -99,6 +99,40 @@ Uint8List contactFrame({
   return cf;
 }
 
+/// `RESP_CODE_DEVICE_INFO` (0x0D):
+/// `[0D][fw_ver][max_contacts/2][max_grp_ch][ble_pin u32 LE]
+///  [build 12][mfr 40][fw_ver_str 20][client_repeat][path_hash_mode]`.
+Uint8List deviceInfoFrame({
+  int fwVer = 9,
+  int maxContactsHalf = 50,
+  int maxChannels = 8,
+  int blePin = 123456,
+  String build = '2026-05-01',
+  String mfr = 'Seeed',
+  String fw = 'v1.15.0',
+}) {
+  List<int> cstr(String s, int n) {
+    final List<int> b = List<int>.filled(n, 0);
+    final List<int> e = utf8.encode(s);
+    b.setRange(0, e.length > n ? n : e.length, e);
+    return b;
+  }
+
+  return Uint8List.fromList(<int>[
+    0x0D,
+    fwVer,
+    maxContactsHalf,
+    maxChannels,
+    blePin & 0xFF, (blePin >> 8) & 0xFF,
+    (blePin >> 16) & 0xFF, (blePin >> 24) & 0xFF,
+    ...cstr(build, 12),
+    ...cstr(mfr, 40),
+    ...cstr(fw, 20),
+    0, // client_repeat
+    0, // path_hash_mode
+  ]);
+}
+
 /// `RESP_CODE_BATT_AND_STORAGE` (0x0C):
 /// `[0C][batt_mv u16 LE][used_kb u32 LE][total_kb u32 LE]`.
 Uint8List batteryFrame(int mv, {int usedKb = 0, int totalKb = 0}) =>

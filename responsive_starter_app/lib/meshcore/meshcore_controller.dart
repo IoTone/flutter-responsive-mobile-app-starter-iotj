@@ -42,6 +42,7 @@ class MeshcoreController extends ChangeNotifier {
         // (some firmware returns ERR), we still learn the offset and
         // judge "in range" against the device's own clock.
         _requestDeviceTime();
+        _requestDeviceInfo();
         _startBatteryPolling();
         _probeChannels();
         // Drain anything the device queued before/while we connected
@@ -56,6 +57,7 @@ class MeshcoreController extends ChangeNotifier {
       _lastFrame = f;
       _trackDeviceClock(f);
       _trackBattery(f);
+      _trackDeviceInfo(f);
       _maybeDrain(f);
       _ingestNode(f);
       _ingestChat(f);
@@ -429,6 +431,44 @@ class MeshcoreController extends ChangeNotifier {
     _battTimer = Timer.periodic(const Duration(seconds: 60), (_) {
       if (isReady) _requestBattery();
     });
+  }
+
+  // --- Device info + identity/advert (R7) ---
+
+  DeviceInfo? _deviceInfo;
+
+  /// Decoded DEVICE_INFO (firmware/build/manufacturer/limits), null
+  /// until the DEVICE_QUERY reply arrives.
+  DeviceInfo? get deviceInfo => _deviceInfo;
+
+  void _requestDeviceInfo() {
+    unawaited(
+        send(MeshcoreFrameCodec.deviceQuery()).catchError((_) {}));
+  }
+
+  void _trackDeviceInfo(MeshcoreInbound f) {
+    if (f is DeviceInfoFrame) _deviceInfo = f.info;
+  }
+
+  /// Set this node's advertised name (`SET_ADVERT_NAME`). The change
+  /// propagates to neighbours on the next advert. No-op if not ready.
+  Future<void> setAdvertName(String name) async {
+    final String n = name.trim();
+    if (n.isEmpty || !isReady) return;
+    await send(MeshcoreFrameCodec.setAdvertName(n));
+  }
+
+  /// Set this node's advertised location (`SET_ADVERT_LATLON`), in
+  /// degrees. No-op if not ready.
+  Future<void> setAdvertLatLon({
+    required double latitude,
+    required double longitude,
+  }) async {
+    if (!isReady) return;
+    await send(MeshcoreFrameCodec.setAdvertLatLon(
+      latitudeMicros: (latitude * 1e6).round(),
+      longitudeMicros: (longitude * 1e6).round(),
+    ));
   }
 
   void _trackBattery(MeshcoreInbound f) {
