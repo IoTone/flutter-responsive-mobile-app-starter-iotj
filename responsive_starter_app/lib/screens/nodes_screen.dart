@@ -37,14 +37,17 @@ class NodesScreen extends StatelessWidget {
 
     final int inRange = nodes.where((DiscoveredNode n) => n.inRange).length;
 
-    void advertise() {
-      mc.sendSelfAdvert(flood: true);
+    void advertise(bool flood) {
+      mc.sendSelfAdvert(flood: flood);
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
-        ..showSnackBar(const SnackBar(
-          content: Text('Advert broadcast — others can discover this '
-              'node now. The other node must Advertise too before it '
-              'appears here.'),
+        ..showSnackBar(SnackBar(
+          content: Text(flood
+              ? 'Flood advert sent — propagates across the whole mesh '
+                  '(neighbours + repeaters). The other node must '
+                  'Advertise too before it appears here.'
+              : 'Zero-hop advert sent — direct neighbours only, not '
+                  'rebroadcast by repeaters.'),
         ));
     }
 
@@ -71,7 +74,43 @@ class NodesScreen extends StatelessWidget {
               OutlinedButton.icon(
                 icon: const Icon(Icons.podcasts),
                 label: const Text('Advertise'),
-                onPressed: ready ? advertise : null,
+                onPressed: ready
+                    ? () async {
+                        final bool? flood =
+                            await showModalBottomSheet<bool>(
+                          context: context,
+                          showDragHandle: true,
+                          builder: (BuildContext _) => SafeArea(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                ListTile(
+                                  leading:
+                                      const Icon(Icons.travel_explore),
+                                  title: const Text('Flood advert'),
+                                  subtitle: const Text(
+                                      'Whole mesh — neighbours + '
+                                      'repeaters. Best for discovery.'),
+                                  onTap: () =>
+                                      Navigator.pop(context, true),
+                                ),
+                                ListTile(
+                                  leading: const Icon(Icons.podcasts),
+                                  title: const Text('Zero-hop advert'),
+                                  subtitle: const Text(
+                                      'Direct neighbours only — not '
+                                      'rebroadcast. Quieter on a busy '
+                                      'mesh.'),
+                                  onTap: () =>
+                                      Navigator.pop(context, false),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                        if (flood != null) advertise(flood);
+                      }
+                    : null,
               ),
               IconButton(
                 tooltip: 'Sync contacts',

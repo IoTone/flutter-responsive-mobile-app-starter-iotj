@@ -127,11 +127,31 @@ void main() {
     expect(find.textContaining('Discovery is advert-driven'),
         findsOneWidget);
 
+    // Advertise opens a routing chooser.
     await t.tap(find.text('Advertise'));
-    await t.pump();
-    // CMD_SEND_SELF_ADVERT opcode is 0x07.
-    expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x07), isTrue);
-    expect(find.textContaining('Advert broadcast'), findsOneWidget);
+    await t.pumpAndSettle();
+    expect(find.text('Flood advert'), findsOneWidget);
+    expect(find.text('Zero-hop advert'), findsOneWidget);
+
+    // Flood → SEND_SELF_ADVERT (0x07) with flood flag 1.
+    await t.tap(find.text('Flood advert'));
+    await t.pumpAndSettle();
+    expect(
+      fake.sent.any((f) => f.length >= 2 && f[0] == 0x07 && f[1] == 1),
+      isTrue,
+    );
+    expect(find.textContaining('Flood advert sent'), findsOneWidget);
+
+    // Zero-hop → flood flag 0.
+    await t.tap(find.text('Advertise'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Zero-hop advert'));
+    await t.pumpAndSettle();
+    expect(
+      fake.sent.any((f) => f.length >= 2 && f[0] == 0x07 && f[1] == 0),
+      isTrue,
+    );
+    expect(find.textContaining('Zero-hop advert sent'), findsOneWidget);
     ctrl.dispose();
   });
 }
