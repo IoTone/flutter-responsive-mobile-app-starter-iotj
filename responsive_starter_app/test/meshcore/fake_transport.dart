@@ -3,6 +3,19 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:meshcore/meshcore.dart';
+import 'package:meshmore_sns_app/meshcore/background_keepalive.dart';
+
+/// Records start/stop without touching the platform plugin.
+class FakeBackgroundKeepalive implements BackgroundKeepalive {
+  int starts = 0;
+  int stops = 0;
+  @override
+  Future<void> start() async => starts++;
+  @override
+  Future<void> stop() async => stops++;
+  @override
+  Future<bool> get isRunning async => starts > stops;
+}
 
 /// Programmable in-memory [MeshcoreTransport] for hardware-free tests.
 class FakeMeshcoreTransport implements MeshcoreTransport {

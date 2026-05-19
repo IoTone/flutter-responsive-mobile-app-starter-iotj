@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'package:meshmore_sns_app/app_router.dart';
 import 'package:meshmore_sns_app/app_state_model.dart';
+import 'package:meshmore_sns_app/meshcore/background_keepalive.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/theme/theme_controller.dart';
 import 'package:meshmore_sns_app/tts/tts_controller.dart';
@@ -29,7 +30,9 @@ void main() {
             create: (_) => TtsController()..load(),
           ),
           ChangeNotifierProvider<MeshcoreController>(
-            create: (_) => MeshcoreController()..autoConnectIfPaired(),
+            create: (_) => MeshcoreController(
+              backgroundKeepalive: createBackgroundKeepalive(),
+            )..autoConnectIfPaired(),
           ),
         ],
         child: const MyApp(),

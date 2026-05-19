@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:meshcore/meshcore.dart';
 
+import 'background_keepalive.dart';
+import 'background_prefs.dart';
 import 'ble_connector.dart';
 import 'chat_message.dart';
 import 'chat_store.dart';
@@ -24,8 +26,11 @@ class MeshcoreController extends ChangeNotifier {
     MeshcoreConnection? connection,
     ReconnectPolicy? reconnectPolicy,
     Future<void> Function(Duration)? reconnectDelay,
+    BackgroundKeepalive? backgroundKeepalive,
   })  : _transportFactory =
             transportFactory ?? BleConnector.autoConnect,
+        _keepalive =
+            backgroundKeepalive ?? const NoopBackgroundKeepalive(),
         _connection = connection ?? MeshcoreConnection(),
         _reconnect = reconnectPolicy ?? ReconnectPolicy(),
         _delay = reconnectDelay ?? Future<void>.delayed {
@@ -49,6 +54,9 @@ class MeshcoreController extends ChangeNotifier {
         // Drain anything the device queued before/while we connected
         // (heard contacts/adverts + received messages).
         _drainStart();
+        // Keep the process alive in the background so the link +
+        // drain survive Doze (Android only; no-op elsewhere).
+        if (_bgKeepaliveEnabled) unawaited(_keepalive.start());
       } else if (s == MeshcoreConnectionState.reconnecting ||
           s == MeshcoreConnectionState.failed) {
         _maybeScheduleReconnect();
@@ -73,6 +81,27 @@ class MeshcoreController extends ChangeNotifier {
       if (_capture.length > _captureCap) _capture.removeAt(0);
     });
     _loadChatHistory();
+    _loadBackgroundPref();
+  }
+
+  Future<void> _loadBackgroundPref() async {
+    _bgKeepaliveEnabled = await BackgroundKeepalivePrefs.enabled();
+    notifyListeners();
+  }
+
+  /// Whether the Android background keep-alive foreground service is
+  /// enabled (R17 / U8). No-op on non-Android.
+  bool get backgroundKeepaliveEnabled => _bgKeepaliveEnabled;
+
+  Future<void> setBackgroundKeepaliveEnabled(bool v) async {
+    _bgKeepaliveEnabled = v;
+    notifyListeners();
+    await BackgroundKeepalivePrefs.setEnabled(v);
+    if (v && isReady) {
+      await _keepalive.start();
+    } else if (!v) {
+      await _keepalive.stop();
+    }
   }
 
   /// Restore persisted chat history (the protocol can't re-fetch it;
@@ -135,6 +164,8 @@ class MeshcoreController extends ChangeNotifier {
   }
 
   final Future<MeshcoreTransport> Function() _transportFactory;
+  final BackgroundKeepalive _keepalive;
+  bool _bgKeepaliveEnabled = true; // default on (user-accepted)
   final MeshcoreConnection _connection;
 
   StreamSubscription<MeshcoreConnectionState>? _statesSub;
@@ -696,6 +727,7 @@ class MeshcoreController extends ChangeNotifier {
     _manualDisconnect = true;
     _reconnectGen++; // cancel any pending scheduled retry
     _battTimer?.cancel();
+    unawaited(_keepalive.stop());
     await _transport?.close();
     _transport = null;
   }
@@ -735,6 +767,7 @@ class MeshcoreController extends ChangeNotifier {
     _inboundSub?.cancel();
     _rawSub?.cancel();
     _persistChat(); // final flush
+    unawaited(_keepalive.stop());
     unawaited(_incomingCh.close());
     unawaited(_transport?.close());
     unawaited(_connection.dispose());

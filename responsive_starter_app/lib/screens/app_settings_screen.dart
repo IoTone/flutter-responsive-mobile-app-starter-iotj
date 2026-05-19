@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../meshcore/meshcore_controller.dart';
 import '../tts/tts_controller.dart';
 
 /// General app settings (R3/R4/R5). Connection, language, TTS,
@@ -14,6 +15,7 @@ class AppSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final TtsController tts = context.watch<TtsController>();
+    final MeshcoreController mc = context.watch<MeshcoreController>();
     return Scaffold(
       appBar: AppBar(title: const Text('App settings')),
       body: ListView(
@@ -24,6 +26,24 @@ class AppSettingsScreen extends StatelessWidget {
                 style: TextStyle(color: cs.onSurface.withValues(alpha: .6))),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {},
+          ),
+          // R17/U8 — Android background keep-alive (foreground service
+          // + persistent notification). No-op on iOS.
+          SwitchListTile(
+            title: const Text('Stay connected in background'),
+            subtitle: Text(
+              mc.backgroundKeepaliveEnabled
+                  ? 'Android: a persistent notification keeps the radio '
+                      'linked so messages arrive while backgrounded'
+                  : 'Messages still arrive when you reopen the app '
+                      '(radio buffers them); no background notification',
+              style: TextStyle(color: cs.onSurface.withValues(alpha: .6)),
+            ),
+            secondary: Icon(mc.backgroundKeepaliveEnabled
+                ? Icons.cloud_sync
+                : Icons.cloud_off),
+            value: mc.backgroundKeepaliveEnabled,
+            onChanged: (bool v) => mc.setBackgroundKeepaliveEnabled(v),
           ),
           ListTile(
             title: const Text('LANGUAGE (R4)'),

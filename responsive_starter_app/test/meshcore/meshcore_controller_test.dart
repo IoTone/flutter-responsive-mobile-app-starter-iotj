@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore/meshcore.dart';
+import 'package:meshmore_sns_app/meshcore/background_prefs.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -536,6 +537,74 @@ void main() {
       fake.emit(selfInfoFrame()); // → ready
       await Future<void>.delayed(Duration.zero);
       expect(syncs(fake), greaterThanOrEqualTo(1));
+      ctrl.dispose();
+    });
+  });
+
+  group('background keep-alive (R17/U8)', () {
+    test('reaching ready starts keep-alive (default on); '
+        'disconnect stops it', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final FakeBackgroundKeepalive ka = FakeBackgroundKeepalive();
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+        backgroundKeepalive: ka,
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame()); // → ready
+      await Future<void>.delayed(Duration.zero);
+      expect(ka.starts, greaterThanOrEqualTo(1));
+
+      await ctrl.disconnect();
+      expect(ka.stops, greaterThanOrEqualTo(1));
+      ctrl.dispose();
+    });
+
+    test('disabled → not started on ready; pref persists', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final FakeBackgroundKeepalive ka = FakeBackgroundKeepalive();
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+        backgroundKeepalive: ka,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await ctrl.setBackgroundKeepaliveEnabled(false);
+      expect(ctrl.backgroundKeepaliveEnabled, isFalse);
+      expect(await BackgroundKeepalivePrefs.enabled(), isFalse);
+
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      expect(ka.starts, 0);
+      ctrl.dispose();
+    });
+
+    test('toggling while ready stops/starts immediately', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final FakeBackgroundKeepalive ka = FakeBackgroundKeepalive();
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+        backgroundKeepalive: ka,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      final int s0 = ka.starts;
+
+      await ctrl.setBackgroundKeepaliveEnabled(false);
+      expect(ka.stops, greaterThanOrEqualTo(1));
+      await ctrl.setBackgroundKeepaliveEnabled(true);
+      expect(ka.starts, greaterThan(s0));
       ctrl.dispose();
     });
   });

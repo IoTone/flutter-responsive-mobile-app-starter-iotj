@@ -66,6 +66,11 @@ dependencies:
   # --- Settings persistence (R7) ---
   shared_preferences: ^2.3.3
 
+  # --- Android background keep-alive (R17 / U8): foreground service
+  #     so the BLE link + SYNC-drain survive Doze. Android-only;
+  #     isolated behind BackgroundKeepalive (no-op elsewhere). ---
+  flutter_foreground_task: ^9.2.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
