@@ -11,6 +11,7 @@ class DiscoveredNode {
     this.longitude,
     this.snrDb,
     this.rssi,
+    this.deviceAdvertUnix,
     required this.viaAdvert,
   });
 
@@ -22,6 +23,12 @@ class DiscoveredNode {
   double? longitude;
   double? snrDb;
   int? rssi;
+
+  /// For contact-sourced nodes: the raw `lastAdvertTimestamp` in the
+  /// *device's* clock. Kept so [lastHeardUnix] can be re-derived once
+  /// the device-clock offset is learned (CURR_TIME may arrive after
+  /// the contact). Null for live-advert nodes (already local time).
+  int? deviceAdvertUnix;
 
   /// True if last updated from an OTA advert (vs. a synced contact).
   bool viaAdvert;

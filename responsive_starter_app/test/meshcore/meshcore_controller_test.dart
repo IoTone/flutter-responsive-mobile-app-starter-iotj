@@ -105,11 +105,11 @@ void main() {
     await ctrl.connect();
 
     fake.emit(selfInfoFrame()); // → ready + 'self-info'
-    fake.emit(currentTimeFrame()); // → 'device time synced'
+    fake.emit(currentTimeFrame()); // → 'device clock …'
     await Future<void>.delayed(Duration.zero);
 
     expect(ctrl.recentEvents, isNotEmpty);
-    expect(ctrl.recentEvents.first.text, contains('device time'));
+    expect(ctrl.recentEvents.first.text, contains('device clock'));
     expect(
       ctrl.recentEvents.any((e) => e.text.contains('self-info')),
       isTrue,
@@ -255,6 +255,92 @@ void main() {
     final int ts = f[1] | (f[2] << 8) | (f[3] << 16) | (f[4] << 24);
     expect(ts, greaterThan(1735689600)); // > 2025-01-01
     ctrl.dispose();
+  });
+
+  group('device clock + ERR hardening', () {
+    test('reaching ready also requests device time (GET 0x05)',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      expect(fake.sent.where((f) => f.isNotEmpty && f[0] == 0x05),
+          isNotEmpty); // GET_DEVICE_TIME
+      expect(fake.sent.where((f) => f.isNotEmpty && f[0] == 0x06),
+          isNotEmpty); // SET_DEVICE_TIME
+      ctrl.dispose();
+    });
+
+    test('ErrorFrame surfaces in recent activity', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      await ctrl.connect();
+      fake.emit(errorFrame(6)); // ERR code 6
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        ctrl.recentEvents.any((e) => e.text.contains('device error '
+            '(code 6)')),
+        isTrue,
+      );
+      ctrl.dispose();
+    });
+
+    test('contact "in range" is judged against the device clock',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      await ctrl.connect();
+      final int phoneNow =
+          DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final int deviceNow = phoneNow - 100000; // device 100000s behind
+
+      fake.emit(currentTimeFrameAt(deviceNow)); // learn offset
+      fake.emit(contactFrame(
+          name: 'FreshPeer', firstPubByte: 70, lastAdvertTs: deviceNow));
+      fake.emit(contactFrame(
+          name: 'OldPeer',
+          firstPubByte: 120,
+          lastAdvertTs: deviceNow - 10000));
+      await Future<void>.delayed(Duration.zero);
+
+      final fresh = ctrl.nodes.firstWhere((n) => n.name == 'FreshPeer');
+      final old = ctrl.nodes.firstWhere((n) => n.name == 'OldPeer');
+      expect(fresh.inRange, isTrue); // adv+offset ≈ phone now
+      expect(old.inRange, isFalse); // 10000s stale in device time
+      ctrl.dispose();
+    });
+
+    test('late CURR_TIME re-derives contact freshness', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      await ctrl.connect();
+      final int phoneNow =
+          DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final int deviceNow = phoneNow - 100000;
+
+      // Contact arrives BEFORE the offset is known.
+      fake.emit(contactFrame(
+          name: 'P', firstPubByte: 70, lastAdvertTs: deviceNow));
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.nodes.single.inRange, isFalse); // looks ancient
+
+      fake.emit(currentTimeFrameAt(deviceNow)); // learn offset
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.nodes.single.inRange, isTrue); // re-derived
+      ctrl.dispose();
+    });
   });
 
   group('inbound queue drain (CMD_SYNC_NEXT_MESSAGE)', () {

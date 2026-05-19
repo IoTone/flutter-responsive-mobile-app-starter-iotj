@@ -38,6 +38,10 @@ class MeshcoreController extends ChangeNotifier {
         // times) is in an unset clock, so "in range" and ordering
         // are meaningless. Standard companion-app behaviour.
         _syncDeviceTime();
+        // Also READ the device clock: if SET_DEVICE_TIME is rejected
+        // (some firmware returns ERR), we still learn the offset and
+        // judge "in range" against the device's own clock.
+        _requestDeviceTime();
         _probeChannels();
         // Drain anything the device queued before/while we connected
         // (heard contacts/adverts + received messages).
@@ -49,6 +53,7 @@ class MeshcoreController extends ChangeNotifier {
     });
     _inboundSub = _connection.inbound.listen((MeshcoreInbound f) {
       _lastFrame = f;
+      _trackDeviceClock(f);
       _maybeDrain(f);
       _ingestNode(f);
       _ingestChat(f);
@@ -232,8 +237,13 @@ class MeshcoreController extends ChangeNotifier {
       text = 'contact · ${f.contact.name}';
     } else if (f is BatteryStorageFrame) {
       text = 'battery ${f.battery.batteryVolts.toStringAsFixed(2)}V';
+    } else if (f is ErrorFrame) {
+      text = 'device error (code ${f.code ?? '?'})';
     } else if (f is CurrentTimeFrame) {
-      text = 'device time synced';
+      final int skew = _deviceClockOffsetSec.abs();
+      text = skew > 5
+          ? 'device clock read (offset ${_deviceClockOffsetSec}s)'
+          : 'device clock in sync';
     } else if (f is MsgSentFrame) {
       text = 'msg sent (ack ${f.sent.expectedAck})';
     } else if (f is DeviceInfoFrame) {
@@ -337,6 +347,31 @@ class MeshcoreController extends ChangeNotifier {
         send(MeshcoreFrameCodec.setDeviceTime(nowUnix)).catchError((_) {}));
   }
 
+  /// Phone-clock minus device-clock, in seconds. 0 until a CURR_TIME
+  /// reply is seen; once known it translates device-sourced
+  /// timestamps (contact `lastAdvertTimestamp`) to phone "now" so
+  /// "in range" is correct even when SET_DEVICE_TIME was rejected.
+  int _deviceClockOffsetSec = 0;
+
+  void _requestDeviceTime() {
+    unawaited(
+        send(MeshcoreFrameCodec.getDeviceTime()).catchError((_) {}));
+  }
+
+  void _trackDeviceClock(MeshcoreInbound f) {
+    if (f is! CurrentTimeFrame || f.unixSeconds <= 0) return;
+    final int phoneNow = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    _deviceClockOffsetSec = phoneNow - f.unixSeconds;
+    // Re-derive freshness for contacts that arrived before we knew
+    // the offset (GET_CONTACTS reply can precede CURR_TIME).
+    for (final DiscoveredNode n in _nodes.values) {
+      final int? adv = n.deviceAdvertUnix;
+      if (adv != null && adv != 0) {
+        n.lastHeardUnix = adv + _deviceClockOffsetSec;
+      }
+    }
+  }
+
   void _probeChannels() {
     for (int i = 0; i < _channelProbeCount; i++) {
       // Best-effort: ignore failures (radio replies only for the
@@ -417,12 +452,15 @@ class MeshcoreController extends ChangeNotifier {
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     if (f is ContactFrame) {
       final Contact c = f.contact;
+      final int adv = c.lastAdvertTimestamp;
+      // `adv` is in the device clock; translate via the learned
+      // offset (0 until CURR_TIME, re-derived in _trackDeviceClock).
       _nodes[_hex(c.publicKey)] = DiscoveredNode(
         pubKeyHex: _hex(c.publicKey),
         name: c.name,
         type: c.type,
-        lastHeardUnix:
-            c.lastAdvertTimestamp == 0 ? now : c.lastAdvertTimestamp,
+        lastHeardUnix: adv == 0 ? now : adv + _deviceClockOffsetSec,
+        deviceAdvertUnix: adv == 0 ? null : adv,
         latitude: c.latitudeMicros == 0 ? null : c.latitudeMicros / 1e6,
         longitude: c.longitudeMicros == 0 ? null : c.longitudeMicros / 1e6,
         viaAdvert: false,

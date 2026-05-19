@@ -74,6 +74,43 @@ Uint8List channelMsgFrame({
       ...utf8.encode(text),
     ]);
 
+/// A `RESP_CODE_CONTACT` (0x03), built via the encode→swap-opcode
+/// trick (same approach as nodes_screen_test).
+Uint8List contactFrame({
+  required String name,
+  int firstPubByte = 70,
+  int lastAdvertTs = 1700000000,
+}) {
+  final Contact c = Contact(
+    publicKey: Uint8List.fromList(
+        List<int>.generate(32, (int i) => (firstPubByte + i) & 0xFF)),
+    type: 1,
+    flags: 0,
+    outPathLen: 0,
+    outPath: Uint8List(64),
+    name: name,
+    lastAdvertTimestamp: lastAdvertTs,
+    latitudeMicros: 0,
+    longitudeMicros: 0,
+    lastMod: 1,
+  );
+  final Uint8List cf = MeshcoreFrameCodec.addUpdateContact(c);
+  cf[0] = 0x03;
+  return cf;
+}
+
+/// `RESP_CODE_ERR` (0x01) with a 1-byte reason code.
+Uint8List errorFrame(int code) => Uint8List.fromList(<int>[0x01, code]);
+
+/// `RESP_CODE_CURR_TIME` (0x09) for an arbitrary unix time (u32 LE).
+Uint8List currentTimeFrameAt(int unix) => Uint8List.fromList(<int>[
+      0x09,
+      unix & 0xFF,
+      (unix >> 8) & 0xFF,
+      (unix >> 16) & 0xFF,
+      (unix >> 24) & 0xFF,
+    ]);
+
 /// `PUSH_CODE_MSGS_WAITING` (0x83) [+ optional count byte].
 Uint8List msgsWaitingFrame({int? count}) => Uint8List.fromList(
     <int>[0x83, if (count != null) count]);
