@@ -90,7 +90,7 @@ void main() {
     expect(find.text('NodeZ'), findsOneWidget);
     expect(find.text('RfNode'), findsOneWidget);
     expect(find.textContaining('SNR 6.0'), findsOneWidget);
-    expect(find.textContaining('known'), findsOneWidget);
+    expect(find.textContaining('in fabric'), findsOneWidget);
     expect(ctrl.nodes.length, 3);
 
     // Scan action solicits adverts + syncs contacts.
@@ -152,6 +152,47 @@ void main() {
       isTrue,
     );
     expect(find.textContaining('Zero-hop advert sent'), findsOneWidget);
+    ctrl.dispose();
+  });
+
+  testWidgets('star toggles a fabric node into a contact (favourite)',
+      (WidgetTester t) async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    await t.pumpWidget(
+      MaterialApp(
+        home: ChangeNotifierProvider<MeshcoreController>.value(
+          value: ctrl,
+          child: const Scaffold(body: NodesScreen()),
+        ),
+      ),
+    );
+    await ctrl.connect();
+    fake.emit(selfInfoFrame()); // → ready, so the status line renders
+    fake.emit(advertFrame(name: 'AdvNode', firstPubByte: 70));
+    await t.pumpAndSettle();
+
+    // One row → one star (initially outlined).
+    expect(find.byIcon(Icons.star_border), findsOneWidget);
+    expect(find.byIcon(Icons.star), findsNothing);
+
+    await t.tap(find.byIcon(Icons.star_border));
+    await t.pumpAndSettle();
+
+    expect(find.byIcon(Icons.star), findsOneWidget);
+    expect(find.byIcon(Icons.star_border), findsNothing);
+    expect(ctrl.favorites, hasLength(1));
+    expect(find.textContaining('1 contact'), findsOneWidget);
+
+    // Untoggle.
+    await t.tap(find.byIcon(Icons.star));
+    await t.pumpAndSettle();
+    expect(ctrl.favorites, isEmpty);
     ctrl.dispose();
   });
 }

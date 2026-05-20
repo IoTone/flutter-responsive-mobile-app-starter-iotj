@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:meshmore_sns_app/meshcore/background_prefs.dart';
+import 'package:meshmore_sns_app/meshcore/favorite_store.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -537,6 +538,41 @@ void main() {
       fake.emit(selfInfoFrame()); // → ready
       await Future<void>.delayed(Duration.zero);
       expect(syncs(fake), greaterThanOrEqualTo(1));
+      ctrl.dispose();
+    });
+  });
+
+  group('favourites = contacts', () {
+    test('toggleFavorite adds + persists + notifies, then removes',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      int notifs = 0;
+      ctrl.addListener(() => notifs++);
+
+      await ctrl.toggleFavorite('aa');
+      expect(ctrl.isFavorite('aa'), isTrue);
+      expect(ctrl.favorites, contains('aa'));
+      expect(notifs, greaterThan(0));
+      expect(await FavoriteStore.load(), contains('aa'));
+
+      await ctrl.toggleFavorite('aa');
+      expect(ctrl.isFavorite('aa'), isFalse);
+      expect(await FavoriteStore.load(), isEmpty);
+      ctrl.dispose();
+    });
+
+    test('persisted favourites restore on construction', () async {
+      await FavoriteStore.save(<String>{'aa', 'bb'});
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(ctrl.isFavorite('aa'), isTrue);
+      expect(ctrl.isFavorite('bb'), isTrue);
       ctrl.dispose();
     });
   });

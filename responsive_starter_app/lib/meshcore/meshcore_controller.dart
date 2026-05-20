@@ -10,6 +10,7 @@ import 'ble_connector.dart';
 import 'chat_message.dart';
 import 'chat_store.dart';
 import 'discovered_node.dart';
+import 'favorite_store.dart';
 import 'mesh_event.dart';
 import 'meshcore_connection.dart';
 import 'paired_device_store.dart';
@@ -82,6 +83,33 @@ class MeshcoreController extends ChangeNotifier {
     });
     _loadChatHistory();
     _loadBackgroundPref();
+    _loadFavorites();
+  }
+
+  // --- Favourites = "contacts" in the UX sense (R18 dependency) ---
+
+  final Set<String> _favorites = <String>{};
+
+  /// Read-only view of favourited node pubkey-hexes (the user's
+  /// **contacts** in our UX sense; **fabric** = all seen).
+  Set<String> get favorites => Set<String>.unmodifiable(_favorites);
+
+  bool isFavorite(String pubKeyHex) => _favorites.contains(pubKeyHex);
+
+  /// Toggle, persist, notify.
+  Future<void> toggleFavorite(String pubKeyHex) async {
+    if (!_favorites.add(pubKeyHex)) _favorites.remove(pubKeyHex);
+    notifyListeners();
+    await FavoriteStore.save(_favorites);
+  }
+
+  Future<void> _loadFavorites() async {
+    final Set<String> v = await FavoriteStore.load();
+    if (v.isEmpty) return;
+    _favorites
+      ..clear()
+      ..addAll(v);
+    notifyListeners();
   }
 
   Future<void> _loadBackgroundPref() async {

@@ -33,7 +33,16 @@ class NodesScreen extends StatelessWidget {
     final MeshcoreController mc = context.watch<MeshcoreController>();
     final ColorScheme cs = Theme.of(context).colorScheme;
     final bool ready = mc.state == MeshcoreConnectionState.ready;
-    final List<DiscoveredNode> nodes = mc.nodes;
+    // Favourites (= "contacts" in the UX sense) sort to the top of the
+    // fabric. Within each group keep the controller's recency order.
+    final Set<String> favs = mc.favorites;
+    final List<DiscoveredNode> nodes = <DiscoveredNode>[...mc.nodes]
+      ..sort((DiscoveredNode a, DiscoveredNode b) {
+        final bool af = favs.contains(a.pubKeyHex);
+        final bool bf = favs.contains(b.pubKeyHex);
+        if (af != bf) return af ? -1 : 1;
+        return 0;
+      });
 
     final int inRange = nodes.where((DiscoveredNode n) => n.inRange).length;
 
@@ -124,7 +133,8 @@ class NodesScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
           child: Text(
             ready
-                ? '$inRange in range · ${nodes.length} known'
+                ? '$inRange in range · ${nodes.length} in fabric · '
+                    '${favs.length} contact${favs.length == 1 ? '' : 's'}'
                 : 'Not connected — Settings → Diagnostics & connect',
             style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
           ),
@@ -143,7 +153,10 @@ class NodesScreen extends StatelessWidget {
                               'on Public does NOT make a node appear.\n\n'
                               'Ask the other node to Advertise / Share '
                               '(or tap "Advertise" here so it can find '
-                              'you), then "Scan area".'
+                              'you), then "Scan area".\n\n'
+                              'This view shows the mesh "fabric" '
+                              '(what you\'ve seen). Star a node to '
+                              'mark it as a contact.'
                           : 'Connect a radio to discover nearby nodes.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: cs.onSurfaceVariant),
@@ -189,8 +202,30 @@ class NodesScreen extends StatelessWidget {
                         n.shortId,
                       ].join(' · '),
                           style: TextStyle(color: cs.onSurfaceVariant)),
-                      trailing: Text(_ago(n.lastHeardUnix),
-                          style: TextStyle(color: cs.onSurfaceVariant)),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text(_ago(n.lastHeardUnix),
+                              style:
+                                  TextStyle(color: cs.onSurfaceVariant)),
+                          IconButton(
+                            tooltip: mc.isFavorite(n.pubKeyHex)
+                                ? 'Unfavourite (remove from contacts)'
+                                : 'Favourite as contact',
+                            iconSize: 20,
+                            icon: Icon(
+                              mc.isFavorite(n.pubKeyHex)
+                                  ? Icons.star
+                                  : Icons.star_border,
+                              color: mc.isFavorite(n.pubKeyHex)
+                                  ? cs.tertiary
+                                  : cs.onSurfaceVariant,
+                            ),
+                            onPressed: () =>
+                                mc.toggleFavorite(n.pubKeyHex),
+                          ),
+                        ],
+                      ),
                     );
                   },
                 ),
