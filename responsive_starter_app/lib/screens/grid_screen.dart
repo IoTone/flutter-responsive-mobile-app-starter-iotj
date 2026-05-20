@@ -1,8 +1,11 @@
 import 'dart:math' as math;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../meshcore/chat_message.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
@@ -41,6 +44,13 @@ class GridScreen extends StatefulWidget {
 class _GridScreenState extends State<GridScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _tick;
+  StreamSubscription<ChatMessage>? _msgSub;
+
+  /// R18's anonymous-channel ripple: anchors a transient centre-out
+  /// wave on every incoming channel message. The painter reads this
+  /// each frame and decays it over `_rippleDuration`.
+  DateTime? _rippleAt;
+  static const Duration _rippleDuration = Duration(milliseconds: 900);
 
   @override
   void initState() {
@@ -49,10 +59,17 @@ class _GridScreenState extends State<GridScreen>
       vsync: this,
       duration: const Duration(seconds: 4), // arbitrary; we read .value
     )..repeat();
+    _msgSub = context
+        .read<MeshcoreController>()
+        .incomingChannelMessages
+        .listen((_) {
+      if (mounted) _rippleAt = DateTime.now();
+    });
   }
 
   @override
   void dispose() {
+    _msgSub?.cancel();
     _tick.dispose();
     super.dispose();
   }
@@ -124,6 +141,8 @@ class _GridScreenState extends State<GridScreen>
                           subtle: cs.onSurface.withValues(alpha: .12),
                           ringStroke: cs.outline.withValues(alpha: .35),
                           base: cs.onSurfaceVariant,
+                          rippleAt: _rippleAt,
+                          rippleDuration: _rippleDuration,
                         ),
                       ),
                     ),
@@ -158,6 +177,8 @@ class _GridPainter extends CustomPainter {
     required this.subtle,
     required this.ringStroke,
     required this.base,
+    required this.rippleAt,
+    required this.rippleDuration,
   });
 
   final List<DiscoveredNode> nodes;
@@ -173,6 +194,8 @@ class _GridPainter extends CustomPainter {
   final Color subtle;
   final Color ringStroke;
   final Color base;
+  final DateTime? rippleAt;
+  final Duration rippleDuration;
 
   bool _selfHasGps() =>
       selfLat != null && selfLon != null &&
@@ -251,6 +274,25 @@ class _GridPainter extends CustomPainter {
           ..strokeWidth = 1.5
           ..color = accent.withValues(alpha: .6));
 
+    // R18 anonymous-channel ripple: an incoming channel message is
+    // not attributable to a node, so draw a transient centre-out
+    // wave instead of a node marker. Honours reduce-motion: skipped.
+    if (!reduceMotion && rippleAt != null) {
+      final int ageMs =
+          DateTime.now().difference(rippleAt!).inMilliseconds;
+      final double t = ageMs / rippleDuration.inMilliseconds;
+      if (t >= 0 && t < 1) {
+        canvas.drawCircle(
+          center,
+          maxR * t,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2
+            ..color = accent.withValues(alpha: (1 - t) * 0.7),
+        );
+      }
+    }
+
     final bool selfGps = _selfHasGps();
 
     for (final DiscoveredNode n in nodes) {
@@ -323,5 +365,6 @@ class _GridPainter extends CustomPainter {
       old.favorites != favorites ||
       old.known != known ||
       old.tick != tick ||
-      old.reduceMotion != reduceMotion;
+      old.reduceMotion != reduceMotion ||
+      old.rippleAt != rippleAt;
 }

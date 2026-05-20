@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'package:meshmore_sns_app/app_state_model.dart';
+import 'package:meshmore_sns_app/cue/cue_service.dart';
 import 'package:meshmore_sns_app/main.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/theme/theme_controller.dart';
@@ -27,6 +28,10 @@ Future<void> _pumpApp(WidgetTester tester) async {
         ),
         ChangeNotifierProvider<TtsController>(
           create: (_) => TtsController(speaker: _SilentSpeaker()),
+        ),
+        Provider<CueService>(
+          create: (BuildContext ctx) =>
+              CueService(theme: ctx.read<ThemeController>()),
         ),
         ChangeNotifierProvider<MeshcoreController>(
           create: (_) => MeshcoreController(),

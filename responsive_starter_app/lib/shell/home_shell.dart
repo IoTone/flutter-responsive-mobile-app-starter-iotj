@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../app_state_model.dart';
+import '../cue/cue_bridge.dart';
+import '../cue/cue_service.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../screens/chat_screen.dart';
@@ -47,11 +49,18 @@ class _HomeShellState extends State<HomeShell>
     with WidgetsBindingObserver {
   final PageController _pc = PageController();
   int _index = 0;
+  CueBridge? _cueBridge;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // U6: app-scoped event → cue dispatch (R12/R13). Reads providers
+    // once at start; both are above us in the tree.
+    _cueBridge = CueBridge(
+      context.read<MeshcoreController>(),
+      context.read<CueService>(),
+    );
     // Owns splash teardown now (replaces the old demo home).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FlutterNativeSplash.remove();
@@ -61,6 +70,7 @@ class _HomeShellState extends State<HomeShell>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _cueBridge?.dispose();
     _pc.dispose();
     super.dispose();
   }
