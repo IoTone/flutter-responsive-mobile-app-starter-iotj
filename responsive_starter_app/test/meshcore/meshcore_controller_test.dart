@@ -543,6 +543,63 @@ void main() {
     });
   });
 
+  group('direct messages (P2P)', () {
+    test('sendDirectText emits 0x02 with 6-byte prefix; optimistic '
+        'outgoing in dmHistoryFor', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame()); // → ready
+      await Future<void>.delayed(Duration.zero);
+
+      const String peer = 'aabbccddeeff' '00000000000000000000000000'
+          '00000000000000000000000000';
+      await ctrl.sendDirectText(peer, 'hello peer');
+
+      final dm = fake.sent.firstWhere(
+          (f) => f.isNotEmpty && f[0] == 0x02,
+          orElse: () => fake.sent.last);
+      expect(dm[7], 0xaa);
+      expect(dm[8], 0xbb);
+      expect(dm[9], 0xcc);
+      expect(dm[10], 0xdd);
+      expect(dm[11], 0xee);
+      expect(dm[12], 0xff);
+      expect(ctrl.dmHistoryFor(peer).single.text, 'hello peer');
+      ctrl.dispose();
+    });
+
+    test('inbound DM threads under matched fabric pubkey; emits stream',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      await ctrl.connect();
+
+      // Surface a fabric node first (pubkey starts 0x10..0x15…).
+      fake.emit(advertFrame(name: 'P', firstPubByte: 0x10));
+      await Future<void>.delayed(Duration.zero);
+      final String peer = ctrl.nodes.single.pubKeyHex;
+
+      final List<String> streamed = <String>[];
+      ctrl.incomingDirectMessages.listen((m) => streamed.add(m.text));
+      fake.emit(contactMessageFrame(
+          prefix: <int>[0x10, 0x11, 0x12, 0x13, 0x14, 0x15],
+          text: 'hello me'));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(ctrl.dmHistoryFor(peer).single.text, 'hello me');
+      expect(streamed, <String>['hello me']);
+      ctrl.dispose();
+    });
+  });
+
   group('known = direct comms (R18)', () {
     test('incoming DM marks the matching fabric node as known',
         () async {

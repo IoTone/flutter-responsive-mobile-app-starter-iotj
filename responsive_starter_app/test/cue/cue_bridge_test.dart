@@ -40,6 +40,24 @@ void main() {
     ctrl.dispose();
   });
 
+  test('incoming DM fires dmIn', () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl =
+        MeshcoreController(transportFactory: () async => fake);
+    final _RecordingCue cue = _RecordingCue(ThemeController());
+    final CueBridge bridge = CueBridge(ctrl, cue);
+
+    await ctrl.connect();
+    fake.emit(contactMessageFrame(
+        prefix: <int>[1, 2, 3, 4, 5, 6], text: 'hi'));
+    await Future<void>.delayed(Duration.zero);
+
+    expect(cue.calls, contains(CueKind.dmIn));
+    bridge.dispose();
+    ctrl.dispose();
+  });
+
   test('incoming channel message fires messageIn', () async {
     final FakeMeshcoreTransport fake =
         FakeMeshcoreTransport(connected: true);

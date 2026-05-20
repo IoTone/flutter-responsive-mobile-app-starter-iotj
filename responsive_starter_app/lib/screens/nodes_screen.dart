@@ -175,6 +175,8 @@ class NodesScreen extends StatelessWidget {
                   itemBuilder: (BuildContext c, int i) {
                     final DiscoveredNode n = nodes[i];
                     return ListTile(
+                      onTap: () =>
+                          context.push('/dm/${n.pubKeyHex}'),
                       leading: Icon(
                         n.inRange
                             ? Icons.sensors

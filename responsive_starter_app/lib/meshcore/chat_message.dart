@@ -9,10 +9,17 @@ class ChatMessage {
     DateTime? at,
     this.snrDb,
     this.isFlood = false,
+    this.peerPubKeyHex,
   }) : at = at ?? DateTime.now();
 
   final int channelIdx;
   final String text;
+
+  /// For **DMs (1:1 P2P)**: the peer's pubkey hex (64 chars) when we
+  /// can resolve it from the fabric, or the 12-hex pubkey prefix
+  /// when only the prefix arrived (legacy `CONTACT_MSG_RECV` carries
+  /// 6 bytes). Null for channel messages (use [channelIdx] then).
+  final String? peerPubKeyHex;
 
   /// True = we sent it; false = received over the mesh.
   final bool outgoing;
@@ -38,6 +45,7 @@ class ChatMessage {
         'a': at.millisecondsSinceEpoch,
         if (snrDb != null) 's': snrDb,
         if (isFlood) 'f': true,
+        if (peerPubKeyHex != null) 'p': peerPubKeyHex,
       };
 
   static ChatMessage fromJson(Map<String, Object?> j) => ChatMessage(
@@ -49,5 +57,6 @@ class ChatMessage {
                 DateTime.now().millisecondsSinceEpoch),
         snrDb: (j['s'] as num?)?.toDouble(),
         isFlood: j['f'] as bool? ?? false,
+        peerPubKeyHex: j['p'] as String?,
       );
 }

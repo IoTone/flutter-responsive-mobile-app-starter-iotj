@@ -70,6 +70,7 @@ class MeshcoreController extends ChangeNotifier {
       _trackBattery(f);
       _trackDeviceInfo(f);
       _ingestKnown(f);
+      _ingestDm(f);
       _maybeDrain(f);
       _ingestNode(f);
       _ingestChat(f);
@@ -447,6 +448,82 @@ class MeshcoreController extends ChangeNotifier {
     _messages.add(m);
     if (_messages.length > _messagesCap) _messages.removeAt(0);
     _persistChat();
+  }
+
+  // --- Direct messages (P2P) ---
+
+  final StreamController<ChatMessage> _incomingDm =
+      StreamController<ChatMessage>.broadcast();
+
+  /// Inbound DMs (broadcast). Outgoing DMs are NOT emitted here.
+  Stream<ChatMessage> get incomingDirectMessages => _incomingDm.stream;
+
+  /// All DM messages for a peer (by full pubkey hex, or 12-hex
+  /// prefix when only the prefix was resolvable on receive), oldest
+  /// first.
+  List<ChatMessage> dmHistoryFor(String peerPubKeyHex) {
+    final String prefix = peerPubKeyHex.length >= 12
+        ? peerPubKeyHex.substring(0, 12)
+        : peerPubKeyHex;
+    return _messages
+        .where((ChatMessage m) =>
+            m.peerPubKeyHex != null &&
+            (m.peerPubKeyHex == peerPubKeyHex ||
+                m.peerPubKeyHex == prefix))
+        .toList(growable: false);
+  }
+
+  /// Send a DM (`CMD_SEND_TXT_MSG` 0x02, addressed by 6-byte pubkey
+  /// prefix). Optimistically appends an outgoing line. No-op if not
+  /// ready, text is blank, or the peer hex is shorter than 12 chars.
+  Future<void> sendDirectText(
+      String peerPubKeyHex, String text) async {
+    final String t = text.trim();
+    if (t.isEmpty || !isReady || peerPubKeyHex.length < 12) return;
+    final List<int> prefix = <int>[
+      for (int i = 0; i < 12; i += 2)
+        int.parse(peerPubKeyHex.substring(i, i + 2), radix: 16),
+    ];
+    final int ts = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    await send(MeshcoreFrameCodec.sendTextMessage(
+      pubKeyPrefix: prefix,
+      timestamp: ts,
+      text: t,
+    ));
+    _addMessage(ChatMessage(
+      channelIdx: -1,
+      text: t,
+      outgoing: true,
+      peerPubKeyHex: peerPubKeyHex,
+    ));
+    notifyListeners();
+  }
+
+  /// Ingest an inbound DM into the message store + emit on the
+  /// stream. Resolves the 6-byte sender prefix to a known fabric
+  /// node's full pubkey if possible; falls back to storing under
+  /// the 12-hex prefix.
+  void _ingestDm(MeshcoreInbound f) {
+    if (f is! ContactMessageFrame) return;
+    final ContactMessage cm = f.message;
+    final String prefixHex = _hex(cm.pubKeyPrefix);
+    String? peer;
+    for (final DiscoveredNode n in _nodes.values) {
+      if (n.pubKeyHex.startsWith(prefixHex)) {
+        peer = n.pubKeyHex;
+        break;
+      }
+    }
+    final ChatMessage m = ChatMessage(
+      channelIdx: -1,
+      text: cm.text,
+      outgoing: false,
+      snrDb: cm.snrDb,
+      isFlood: cm.isFlood,
+      peerPubKeyHex: peer ?? prefixHex,
+    );
+    _addMessage(m);
+    if (!_incomingDm.isClosed) _incomingDm.add(m);
   }
 
   /// On a received DM (`ContactMessageFrame`), mark any fabric node
@@ -847,6 +924,7 @@ class MeshcoreController extends ChangeNotifier {
     _persistChat(); // final flush
     unawaited(_keepalive.stop());
     unawaited(_incomingCh.close());
+    unawaited(_incomingDm.close());
     unawaited(_transport?.close());
     unawaited(_connection.dispose());
     super.dispose();

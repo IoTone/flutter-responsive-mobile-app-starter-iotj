@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../meshcore/chat_message.dart';
@@ -95,6 +96,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       letterSpacing: 3),
                   overflow: TextOverflow.ellipsis,
                 ),
+              ),
+              IconButton(
+                tooltip: 'Manage channels',
+                onPressed: () => context.push('/settings/channels'),
+                icon: const Icon(Icons.tag),
               ),
               IconButton(
                 tooltip: !tts.enabled

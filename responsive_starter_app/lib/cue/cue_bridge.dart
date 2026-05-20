@@ -15,11 +15,14 @@ class CueBridge {
     _mc.addListener(_onChange);
     _msgSub =
         _mc.incomingChannelMessages.listen(_onIncomingChannelMessage);
+    _dmSub =
+        _mc.incomingDirectMessages.listen(_onIncomingDm);
   }
 
   final MeshcoreController _mc;
   final CueService _cue;
   StreamSubscription<ChatMessage>? _msgSub;
+  StreamSubscription<ChatMessage>? _dmSub;
   late MeshcoreConnectionState _prev;
 
   void _onChange() {
@@ -42,8 +45,11 @@ class CueBridge {
   void _onIncomingChannelMessage(ChatMessage _) =>
       _cue.play(CueKind.messageIn);
 
+  void _onIncomingDm(ChatMessage _) => _cue.play(CueKind.dmIn);
+
   void dispose() {
     _mc.removeListener(_onChange);
     _msgSub?.cancel();
+    _dmSub?.cancel();
   }
 }
