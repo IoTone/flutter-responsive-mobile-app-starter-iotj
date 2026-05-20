@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:meshmore_sns_app/meshcore/background_prefs.dart';
 import 'package:meshmore_sns_app/meshcore/favorite_store.dart';
+import 'package:meshmore_sns_app/meshcore/known_store.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -538,6 +539,41 @@ void main() {
       fake.emit(selfInfoFrame()); // → ready
       await Future<void>.delayed(Duration.zero);
       expect(syncs(fake), greaterThanOrEqualTo(1));
+      ctrl.dispose();
+    });
+  });
+
+  group('known = direct comms (R18)', () {
+    test('incoming DM marks the matching fabric node as known',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      await ctrl.connect();
+
+      // Advert with pubkey starting 0x10..0x15 → hex "101112131415…"
+      fake.emit(advertFrame(name: 'DmPeer', firstPubByte: 0x10));
+      // DM from the same 6-byte prefix.
+      fake.emit(contactMessageFrame(
+          prefix: <int>[0x10, 0x11, 0x12, 0x13, 0x14, 0x15],
+          text: 'hello'));
+      await Future<void>.delayed(Duration.zero);
+
+      final String pub = ctrl.nodes.single.pubKeyHex;
+      expect(pub.startsWith('101112131415'), isTrue);
+      expect(ctrl.isKnown(pub), isTrue);
+      ctrl.dispose();
+    });
+
+    test('markKnown persists; restored on construction', () async {
+      await KnownStore.save(<String>{'aa'});
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl =
+          MeshcoreController(transportFactory: () async => fake);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(ctrl.isKnown('aa'), isTrue);
       ctrl.dispose();
     });
   });

@@ -75,6 +75,24 @@ Uint8List selfInfoFrame() => Uint8List(58)..[0] = 0x05;
 Uint8List currentTimeFrame() =>
     Uint8List.fromList(<int>[0x09, 0x00, 0xF1, 0x53, 0x65]);
 
+/// Legacy `CONTACT_MSG_RECV` (0x07 — DM):
+/// `[07][pubkey_prefix 6][path_len][txt_type][ts u32 LE][text…]`.
+Uint8List contactMessageFrame({
+  required List<int> prefix,
+  String text = 'hi',
+  int pathLen = 0,
+}) {
+  assert(prefix.length == 6, 'DM prefix is exactly 6 bytes');
+  return Uint8List.fromList(<int>[
+    0x07,
+    ...prefix,
+    pathLen,
+    0x00, // txt_type plain
+    0x00, 0x00, 0x00, 0x00, // ts u32 LE
+    ...utf8.encode(text),
+  ]);
+}
+
 /// Legacy `CHANNEL_MSG_RECV` (0x08):
 /// `[08][ch_idx][path_len][txt_type][ts u32 LE][text…]`.
 Uint8List channelMsgFrame({

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'screens/app_settings_screen.dart';
 import 'screens/channels_screen.dart';
 import 'screens/device_config_screen.dart';
+import 'screens/grid_screen.dart';
 import 'screens/diagnostics_screen.dart';
 import 'screens/personalization_screen.dart';
 import 'shell/home_shell.dart';
@@ -29,6 +30,7 @@ final GoRouter appRouter = GoRouter(
       path: '/settings/channels',
       builder: (_, __) => const ChannelsScreen(),
     ),
+    GoRoute(path: '/grid', builder: (_, __) => const GridScreen()),
     GoRoute(
       path: '/settings/diagnostics',
       builder: (_, __) => const DiagnosticsScreen(),

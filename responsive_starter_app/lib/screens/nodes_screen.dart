@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../meshcore/discovered_node.dart';
@@ -125,6 +126,11 @@ class NodesScreen extends StatelessWidget {
                 tooltip: 'Sync contacts',
                 icon: const Icon(Icons.sync),
                 onPressed: ready ? () => mc.requestContacts() : null,
+              ),
+              IconButton(
+                tooltip: 'Hyperlocal grid (R18)',
+                icon: const Icon(Icons.grid_view),
+                onPressed: () => context.push('/grid'),
               ),
             ],
           ),

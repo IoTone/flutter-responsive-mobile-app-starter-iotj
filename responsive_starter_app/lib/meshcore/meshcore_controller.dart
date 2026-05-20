@@ -11,6 +11,7 @@ import 'chat_message.dart';
 import 'chat_store.dart';
 import 'discovered_node.dart';
 import 'favorite_store.dart';
+import 'known_store.dart';
 import 'mesh_event.dart';
 import 'meshcore_connection.dart';
 import 'paired_device_store.dart';
@@ -68,6 +69,7 @@ class MeshcoreController extends ChangeNotifier {
       _trackDeviceClock(f);
       _trackBattery(f);
       _trackDeviceInfo(f);
+      _ingestKnown(f);
       _maybeDrain(f);
       _ingestNode(f);
       _ingestChat(f);
@@ -84,6 +86,35 @@ class MeshcoreController extends ChangeNotifier {
     _loadChatHistory();
     _loadBackgroundPref();
     _loadFavorites();
+    _loadKnown();
+  }
+
+  // --- "Known" nodes (R18) ---
+  // Nodes we've had direct/attributable communication with (a
+  // received DM, or a direct exchange) — drives the steady pulse on
+  // the hyperlocal grid. Distinct from `favorites` (= "contacts",
+  // rapid blink) and from the broader **fabric** of merely-seen
+  // nodes.
+
+  final Set<String> _known = <String>{};
+
+  Set<String> get known => Set<String>.unmodifiable(_known);
+
+  bool isKnown(String pubKeyHex) => _known.contains(pubKeyHex);
+
+  Future<void> markKnown(String pubKeyHex) async {
+    if (!_known.add(pubKeyHex)) return;
+    notifyListeners();
+    await KnownStore.save(_known);
+  }
+
+  Future<void> _loadKnown() async {
+    final Set<String> v = await KnownStore.load();
+    if (v.isEmpty) return;
+    _known
+      ..clear()
+      ..addAll(v);
+    notifyListeners();
   }
 
   // --- Favourites = "contacts" in the UX sense (R18 dependency) ---
@@ -416,6 +447,25 @@ class MeshcoreController extends ChangeNotifier {
     _messages.add(m);
     if (_messages.length > _messagesCap) _messages.removeAt(0);
     _persistChat();
+  }
+
+  /// On a received DM (`ContactMessageFrame`), mark any fabric node
+  /// whose pubkey starts with the sender's 6-byte prefix as **known**
+  /// (R18: direct/attributable comms → pulse on the grid). If no
+  /// matching node yet exists, the mark won't apply until the contact
+  /// is surfaced (a future polish could queue pending prefixes).
+  void _ingestKnown(MeshcoreInbound f) {
+    if (f is! ContactMessageFrame) return;
+    final String prefix = _hex(f.message.pubKeyPrefix);
+    bool changed = false;
+    for (final DiscoveredNode n in _nodes.values) {
+      if (n.pubKeyHex.startsWith(prefix) &&
+          !_known.contains(n.pubKeyHex)) {
+        _known.add(n.pubKeyHex);
+        changed = true;
+      }
+    }
+    if (changed) unawaited(KnownStore.save(_known));
   }
 
   void _ingestChat(MeshcoreInbound f) {
