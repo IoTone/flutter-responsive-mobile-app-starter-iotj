@@ -110,7 +110,10 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
         mc.state == MeshcoreConnectionState.handshaking ||
         mc.state == MeshcoreConnectionState.reconnecting;
     final int nowUnix = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final List<String> log = mc.captureLog.reversed.take(24).toList();
+    // R23: full capture buffer scrolls inside a bounded pane below,
+    // so the page-level scroll keeps the State/Sends/Capture context
+    // visible regardless of how long the log gets.
+    final List<String> log = mc.captureLog.reversed.toList();
 
     Widget section(String t) => Padding(
           padding: const EdgeInsets.fromLTRB(16, 18, 16, 6),
@@ -300,25 +303,50 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
               ],
             ),
           ),
-          if (log.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text('— no frames yet —'),
+          // R23 / U14: bounded inner scroll for the frame log so the
+          // user can scroll the capture without losing the State /
+          // Sends / Capture context above. Nested ListView is
+          // constrained by the SizedBox; outer page-level ListView
+          // still owns the rest of the column.
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+            height: 360,
+            decoration: BoxDecoration(
+              border: Border.all(
+                  color: cs.outline.withValues(alpha: .35)),
+              borderRadius: BorderRadius.circular(8),
             ),
-          for (final String hex in log)
-            ListTile(
-              dense: true,
-              title: Text(
-                _label(hex),
-                style: TextStyle(
-                    color: hex.startsWith('88') ? cs.primary : cs.onSurface),
-              ),
-              subtitle: Text(
-                hex.length > 64 ? '${hex.substring(0, 64)}…' : hex,
-                style: const TextStyle(
-                    fontFamily: 'monospace', fontSize: 10),
-              ),
-            ),
+            child: log.isEmpty
+                ? const Center(child: Text('— no frames yet —'))
+                : Scrollbar(
+                    child: ListView.builder(
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 4),
+                      itemCount: log.length,
+                      itemBuilder: (BuildContext _, int i) {
+                        final String hex = log[i];
+                        return ListTile(
+                          dense: true,
+                          title: Text(
+                            _label(hex),
+                            style: TextStyle(
+                                color: hex.startsWith('88')
+                                    ? cs.primary
+                                    : cs.onSurface),
+                          ),
+                          subtitle: Text(
+                            hex.length > 64
+                                ? '${hex.substring(0, 64)}…'
+                                : hex,
+                            style: const TextStyle(
+                                fontFamily: 'monospace',
+                                fontSize: 10),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+          ),
         ],
       ),
     );
