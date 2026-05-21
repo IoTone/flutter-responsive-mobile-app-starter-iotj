@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../gen/app_localizations.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
@@ -77,14 +78,14 @@ class _NodesScreenState extends State<NodesScreen> {
     return true;
   }
 
-  String _ageLabel() {
-    if (_maxAge == null) return 'Any';
+  String _ageLabel(AppLocalizations l) {
+    if (_maxAge == null) return l.nodesAgeAny;
     if (_maxAge!.inHours < 24) return '${_maxAge!.inHours}h';
     return '${_maxAge!.inDays}d';
   }
 
-  String _distLabel() {
-    if (_maxDistanceMeters == null) return 'Any';
+  String _distLabel(AppLocalizations l) {
+    if (_maxDistanceMeters == null) return l.nodesDistAny;
     final double m = _maxDistanceMeters!;
     if (m < 1000) return '${m.round()}m';
     return '${(m / 1000).toStringAsFixed(0)}km';
@@ -130,6 +131,7 @@ class _NodesScreenState extends State<NodesScreen> {
   Widget build(BuildContext context) {
     final MeshcoreController mc = context.watch<MeshcoreController>();
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final AppLocalizations l = AppLocalizations.of(context);
     final bool ready = mc.state == MeshcoreConnectionState.ready;
     final Set<String> favs = mc.favorites;
     // Self gets excluded — we never want to DM ourselves and we're
@@ -156,11 +158,8 @@ class _NodesScreenState extends State<NodesScreen> {
         ..clearSnackBars()
         ..showSnackBar(SnackBar(
           content: Text(flood
-              ? 'Flood advert sent — propagates across the whole mesh '
-                  '(neighbours + repeaters). The other node must '
-                  'Advertise too before it appears here.'
-              : 'Zero-hop advert sent — direct neighbours only, not '
-                  'rebroadcast by repeaters.'),
+              ? l.nodesFloodAdvertSent
+              : l.nodesZeroHopAdvertSent),
         ));
     }
 
@@ -179,14 +178,14 @@ class _NodesScreenState extends State<NodesScreen> {
                           child:
                               CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.radar),
-                  label: Text(mc.isScanning ? 'Scanning…' : 'Scan area'),
+                  label: Text(mc.isScanning ? l.nodesScanning : l.nodesScanArea),
                   onPressed: ready && !mc.isScanning ? mc.scan : null,
                 ),
               ),
               const SizedBox(width: 8),
               OutlinedButton.icon(
                 icon: const Icon(Icons.podcasts),
-                label: const Text('Advertise'),
+                label: Text(l.nodesAdvertise),
                 onPressed: ready
                     ? () async {
                         final bool? flood =
@@ -200,20 +199,15 @@ class _NodesScreenState extends State<NodesScreen> {
                                 ListTile(
                                   leading:
                                       const Icon(Icons.travel_explore),
-                                  title: const Text('Flood advert'),
-                                  subtitle: const Text(
-                                      'Whole mesh — neighbours + '
-                                      'repeaters. Best for discovery.'),
+                                  title: Text(l.nodesFloodAdvert),
+                                  subtitle: Text(l.nodesFloodAdvertBody),
                                   onTap: () =>
                                       Navigator.pop(context, true),
                                 ),
                                 ListTile(
                                   leading: const Icon(Icons.podcasts),
-                                  title: const Text('Zero-hop advert'),
-                                  subtitle: const Text(
-                                      'Direct neighbours only — not '
-                                      'rebroadcast. Quieter on a busy '
-                                      'mesh.'),
+                                  title: Text(l.nodesZeroHopAdvert),
+                                  subtitle: Text(l.nodesZeroHopAdvertBody),
                                   onTap: () =>
                                       Navigator.pop(context, false),
                                 ),
@@ -226,12 +220,12 @@ class _NodesScreenState extends State<NodesScreen> {
                     : null,
               ),
               IconButton(
-                tooltip: 'Sync contacts',
+                tooltip: l.nodesSyncContacts,
                 icon: const Icon(Icons.sync),
                 onPressed: ready ? () => mc.requestContacts() : null,
               ),
               IconButton(
-                tooltip: 'Hyperlocal grid (R18)',
+                tooltip: l.nodesHyperlocalGridTooltip,
                 icon: const Icon(Icons.radar),
                 onPressed: () => context.push('/grid'),
               ),
@@ -260,7 +254,7 @@ class _NodesScreenState extends State<NodesScreen> {
                         setState(() => _query = '');
                       },
                     ),
-              hintText: 'Search by name, shortId, or pubkey…',
+              hintText: l.nodesSearchHint,
               border: const OutlineInputBorder(),
             ),
           ),
@@ -279,7 +273,7 @@ class _NodesScreenState extends State<NodesScreen> {
                 // unambiguous (the per-row trailing star icon stays
                 // the only star_border / star instance on screen).
                 child: FilterChip(
-                  label: const Text('Starred'),
+                  label: Text(l.nodesFilterStarred),
                   selected: _starredOnly,
                   onSelected: (bool v) =>
                       setState(() => _starredOnly = v),
@@ -288,7 +282,7 @@ class _NodesScreenState extends State<NodesScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: FilterChip(
-                  label: const Text('In range'),
+                  label: Text(l.nodesFilterInRange),
                   selected: _inRangeOnly,
                   onSelected: (bool v) =>
                       setState(() => _inRangeOnly = v),
@@ -298,24 +292,24 @@ class _NodesScreenState extends State<NodesScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: ActionChip(
                   avatar: const Icon(Icons.schedule, size: 16),
-                  label: Text('Last seen · ${_ageLabel()}'),
+                  label: Text(l.nodesFilterLastSeen(_ageLabel(l))),
                   onPressed: () async {
                     final Duration? picked = await showMenu<Duration?>(
                       context: context,
                       position: const RelativeRect.fromLTRB(
                           16, 200, 16, 100),
                       items: <PopupMenuEntry<Duration?>>[
-                        const PopupMenuItem<Duration?>(
-                            value: null, child: Text('Any')),
-                        const PopupMenuItem<Duration?>(
-                            value: Duration(hours: 1),
-                            child: Text('Last hour')),
-                        const PopupMenuItem<Duration?>(
-                            value: Duration(hours: 24),
-                            child: Text('Last 24 h')),
-                        const PopupMenuItem<Duration?>(
-                            value: Duration(days: 7),
-                            child: Text('Last 7 d')),
+                        PopupMenuItem<Duration?>(
+                            value: null, child: Text(l.nodesAgeAny)),
+                        PopupMenuItem<Duration?>(
+                            value: const Duration(hours: 1),
+                            child: Text(l.nodesAgeHour)),
+                        PopupMenuItem<Duration?>(
+                            value: const Duration(hours: 24),
+                            child: Text(l.nodesAge24h)),
+                        PopupMenuItem<Duration?>(
+                            value: const Duration(days: 7),
+                            child: Text(l.nodesAge7d)),
                       ],
                     );
                     if (!mounted) return;
@@ -327,23 +321,23 @@ class _NodesScreenState extends State<NodesScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: ActionChip(
                   avatar: const Icon(Icons.straighten, size: 16),
-                  label: Text('Within · ${_distLabel()}'),
+                  label: Text(l.nodesFilterWithin(_distLabel(l))),
                   onPressed: () async {
                     final double? picked = await showMenu<double?>(
                       context: context,
                       position: const RelativeRect.fromLTRB(
                           16, 200, 16, 100),
                       items: <PopupMenuEntry<double?>>[
-                        const PopupMenuItem<double?>(
-                            value: null, child: Text('Any')),
-                        const PopupMenuItem<double?>(
-                            value: 100, child: Text('≤ 100 m')),
-                        const PopupMenuItem<double?>(
-                            value: 500, child: Text('≤ 500 m')),
-                        const PopupMenuItem<double?>(
-                            value: 5000, child: Text('≤ 5 km')),
-                        const PopupMenuItem<double?>(
-                            value: 25000, child: Text('≤ 25 km')),
+                        PopupMenuItem<double?>(
+                            value: null, child: Text(l.nodesDistAny)),
+                        PopupMenuItem<double?>(
+                            value: 100, child: Text(l.nodesDist100m)),
+                        PopupMenuItem<double?>(
+                            value: 500, child: Text(l.nodesDist500m)),
+                        PopupMenuItem<double?>(
+                            value: 5000, child: Text(l.nodesDist5km)),
+                        PopupMenuItem<double?>(
+                            value: 25000, child: Text(l.nodesDist25km)),
                       ],
                     );
                     if (!mounted) return;
@@ -356,7 +350,7 @@ class _NodesScreenState extends State<NodesScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: ActionChip(
                     avatar: const Icon(Icons.clear_all, size: 16),
-                    label: const Text('Clear'),
+                    label: Text(l.nodesFilterClear),
                     onPressed: _clearFilters,
                   ),
                 ),
@@ -367,10 +361,9 @@ class _NodesScreenState extends State<NodesScreen> {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
           child: Text(
             ready
-                ? '${nodes.length} of $totalFabric in fabric · '
-                    '$inRange in range · '
-                    '${favs.length} contact${favs.length == 1 ? '' : 's'}'
-                : 'Not connected — Settings → Diagnostics & connect',
+                ? l.nodesStatusReady(
+                    nodes.length, totalFabric, inRange, favs.length)
+                : l.nodesStatusOffline,
             style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
           ),
         ),
@@ -382,23 +375,10 @@ class _NodesScreenState extends State<NodesScreen> {
                     padding: const EdgeInsets.all(28),
                     child: Text(
                       _anyFilterActive
-                          ? 'No nodes match this filter.\n\n'
-                              'Tap Clear to widen, or change the chip '
-                              'cutoffs above.'
+                          ? l.nodesEmptyFiltered
                           : ready
-                              ? 'No nodes yet.\n\n'
-                                  'Discovery is advert-driven: a node '
-                                  'shows up only when its advert is '
-                                  'heard. Chatting on Public does NOT '
-                                  'make a node appear.\n\n'
-                                  'Ask the other node to Advertise / '
-                                  'Share (or tap "Advertise" here so it '
-                                  'can find you), then "Scan area".\n\n'
-                                  'This view shows the mesh "fabric" '
-                                  '(what you\'ve seen). Star a node to '
-                                  'mark it as a contact.'
-                              : 'Connect a radio to discover nearby '
-                                  'nodes.',
+                              ? l.nodesEmptyReady
+                              : l.nodesEmptyOffline,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: cs.onSurfaceVariant),
                     ),
@@ -437,7 +417,7 @@ class _NodesScreenState extends State<NodesScreen> {
                             if (n.inRange)
                               Padding(
                                 padding: const EdgeInsets.only(left: 8),
-                                child: Text('IN RANGE',
+                                child: Text(l.nodesInRangeBadge,
                                     style: TextStyle(
                                         fontSize: 10,
                                         letterSpacing: 1,
@@ -498,8 +478,8 @@ class _NodesScreenState extends State<NodesScreen> {
                                   TextStyle(color: cs.onSurfaceVariant)),
                           IconButton(
                             tooltip: mc.isFavorite(n.pubKeyHex)
-                                ? 'Unfavourite (remove from contacts)'
-                                : 'Favourite as contact',
+                                ? l.nodesUnfavTooltip
+                                : l.nodesFavTooltip,
                             iconSize: 20,
                             icon: Icon(
                               mc.isFavorite(n.pubKeyHex)

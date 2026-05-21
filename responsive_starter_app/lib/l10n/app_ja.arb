@@ -102,5 +102,115 @@
   "firstRunSkip": "オフラインで続行 (権限をスキップ)",
   "firstRunDeniedTransient": "Bluetooth が許可されませんでした — オフラインで続行するか、OS 設定で許可を変更できます。",
   "firstRunDeniedPermanent": "Bluetooth が永続的に拒否されました — OS 設定で許可してください。オフラインでも引き続き利用可能です。",
-  "firstRunOpenSettings": "OS 設定を開く"
+  "firstRunOpenSettings": "OS 設定を開く",
+
+  "dashboardPaired": "ペア済み: {name}",
+  "@dashboardPaired": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "dashboardCharging": "充電中",
+  "dashboardBatteryReadout": "{volts}V · 約{percent}%",
+  "@dashboardBatteryReadout": {
+    "placeholders": {
+      "volts": {"type": "String"},
+      "percent": {"type": "int"}
+    }
+  },
+
+  "nodesScanArea": "周辺をスキャン",
+  "nodesScanning": "スキャン中…",
+  "nodesAdvertise": "アドバート送信",
+  "nodesSyncContacts": "コンタクト同期",
+  "nodesHyperlocalGridTooltip": "ハイパーローカルグリッド (R18)",
+  "nodesFloodAdvert": "フラッドアドバート",
+  "nodesFloodAdvertBody": "メッシュ全体 — 隣接 + リピーター。発見に最適。",
+  "nodesZeroHopAdvert": "ゼロホップアドバート",
+  "nodesZeroHopAdvertBody": "隣接のみ — 再ブロードキャストなし。混雑したメッシュ向け。",
+  "nodesFloodAdvertSent": "フラッドアドバートを送信 — メッシュ全体に伝播 (隣接 + リピーター)。相手側でも Advertise を実行するまで表示されません。",
+  "nodesZeroHopAdvertSent": "ゼロホップアドバートを送信 — 隣接のみ、リピーターは再ブロードキャストしません。",
+  "nodesSearchHint": "名前 / shortId / 公開鍵で検索…",
+  "nodesFilterStarred": "お気に入り",
+  "nodesFilterInRange": "範囲内",
+  "nodesFilterClear": "クリア",
+  "nodesFilterLastSeen": "最終受信 · {label}",
+  "@nodesFilterLastSeen": {
+    "placeholders": {"label": {"type": "String"}}
+  },
+  "nodesFilterWithin": "距離 · {label}",
+  "@nodesFilterWithin": {
+    "placeholders": {"label": {"type": "String"}}
+  },
+  "nodesAgeAny": "指定なし",
+  "nodesAgeHour": "1時間以内",
+  "nodesAge24h": "24時間以内",
+  "nodesAge7d": "7日以内",
+  "nodesDistAny": "指定なし",
+  "nodesDist100m": "100 m 以内",
+  "nodesDist500m": "500 m 以内",
+  "nodesDist5km": "5 km 以内",
+  "nodesDist25km": "25 km 以内",
+  "nodesStatusReady": "{shown}/{total}件 表示 · {inRange}件 範囲内 · {favs}件 コンタクト",
+  "@nodesStatusReady": {
+    "placeholders": {
+      "shown": {"type": "int"},
+      "total": {"type": "int"},
+      "inRange": {"type": "int"},
+      "favs": {"type": "int"}
+    }
+  },
+  "nodesStatusOffline": "未接続 — 設定 → 診断で接続",
+  "nodesInRangeBadge": "範囲内",
+  "nodesEmptyFiltered": "条件に一致するノードがありません。\n\n上の「クリア」で絞り込みを解除するか、各チップで条件を変更してください。",
+  "nodesEmptyReady": "ノードがまだありません。\n\n発見はアドバート駆動で、アドバートを受信したノードのみここに表示されます。Public でのチャットは発見につながりません。\n\n相手にも Advertise を実行してもらう (またはこちらで「Advertise」をタップ) 後、「Scan area」を実行してください。\n\nこの画面はメッシュの「ファブリック」(これまでに見たもの) を示します。スターをタップするとコンタクトに登録できます。",
+  "nodesEmptyOffline": "ラジオを接続して周辺ノードを発見してください。",
+  "nodesFavTooltip": "コンタクトに登録",
+  "nodesUnfavTooltip": "コンタクトから削除",
+
+  "gridTitle": "ハイパーローカルグリッド",
+  "gridShowLegend": "凡例を表示",
+  "gridHideLegend": "凡例を非表示",
+  "gridPlayTooltip": "再生 (一定間隔で更新)",
+  "gridPauseTooltip": "一時停止",
+  "gridIntervalTooltip": "更新間隔 (再生時)",
+  "gridRange": "範囲",
+  "gridRangeRoom": "部屋",
+  "gridRangeHome": "家",
+  "gridRangeBlock": "ブロック",
+  "gridRangeNeighborhood": "近隣",
+  "gridRangeArea": "エリア",
+  "gridRangeWide": "広域",
+  "gridLegend": "凡例",
+  "gridLegendRings": "同心円 3 本 = 距離帯。両端に GPS がある場合、外側のリングは上の「範囲」スケール (現在 ~{value})。GPS がない場合は RSSI 帯 (近 / 中 / 遠)。",
+  "@gridLegendRings": {
+    "placeholders": {"value": {"type": "String"}}
+  },
+  "gridLegendSelf": "中央 = 自分。十字 = 南北 / 東西の目安。",
+  "gridLegendDot": "ドット = 受信したファブリックノード。明るさ = 新しさ (受信直後 = 最大、24時間で 0 に減衰し消滅)。",
+  "gridLegendKnown": "パルス (緩やかに広がる輪) = 既知ノード — 直接やり取り (DM) があったノード。",
+  "gridLegendFavourite": "別色での速い点滅 = お気に入りのコンタクト。",
+  "gridLegendRipple": "中央からの波紋 = 匿名のチャネルメッセージ (プロトコル上、送信者を特定できません)。",
+  "gridLegendTap": "ノードをタップで詳細 + メッセージ / お気に入り。",
+  "gridEmpty": "まだ範囲内にファブリックがありません。\n\nアドバートを受信するとここに表示されます。Nodes 画面でスターをタップしてコンタクト登録 (速い点滅)。DM 交換したノードは既知になります (パルス)。",
+  "gridStatusReady": "{visible}件 ファブリック · {known}件 既知 · {favs}件 コンタクト · {playState}",
+  "@gridStatusReady": {
+    "placeholders": {
+      "visible": {"type": "int"},
+      "known": {"type": "int"},
+      "favs": {"type": "int"},
+      "playState": {"type": "String"}
+    }
+  },
+  "gridStatusOffline": "未接続 — 設定 → 診断で接続",
+  "gridPlayStatePaused": "一時停止中",
+  "gridPlayStateLive": "ライブ ({interval})",
+  "@gridPlayStateLive": {
+    "placeholders": {"interval": {"type": "String"}}
+  },
+  "gridFooter": "外側リング ≈ {label} ({value}) · ノードをタップで詳細 · ⓘ で凡例",
+  "@gridFooter": {
+    "placeholders": {
+      "label": {"type": "String"},
+      "value": {"type": "String"}
+    }
+  }
 }

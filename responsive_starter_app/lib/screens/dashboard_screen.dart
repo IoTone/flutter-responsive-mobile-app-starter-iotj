@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:provider/provider.dart';
 
+import '../gen/app_localizations.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/mesh_event.dart';
 import '../meshcore/meshcore_connection.dart';
@@ -18,18 +19,19 @@ import '../meshcore/own_location.dart';
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
-  ({String label, bool alert, bool busy}) _status(MeshcoreController mc) {
+  ({String label, bool alert, bool busy}) _status(
+      MeshcoreController mc, AppLocalizations l) {
     return switch (mc.state) {
       MeshcoreConnectionState.ready =>
-        (label: 'LINKED · NO ALERTS', alert: false, busy: false),
+        (label: l.statusLinked, alert: false, busy: false),
       MeshcoreConnectionState.handshaking =>
-        (label: 'SYNCING…', alert: false, busy: true),
+        (label: l.statusHandshaking, alert: false, busy: true),
       MeshcoreConnectionState.reconnecting =>
-        (label: 'RECONNECTING…', alert: true, busy: true),
+        (label: l.statusReconnecting, alert: true, busy: true),
       MeshcoreConnectionState.failed =>
-        (label: 'LINK LOST', alert: true, busy: false),
+        (label: l.statusLinkLost, alert: true, busy: false),
       MeshcoreConnectionState.disconnected => (
-          label: mc.isConnecting ? 'CONNECTING…' : 'OFFLINE',
+          label: mc.isConnecting ? l.statusConnecting : l.statusOffline,
           alert: !mc.isConnecting,
           busy: mc.isConnecting,
         ),
@@ -41,16 +43,17 @@ class DashboardScreen extends StatelessWidget {
     final MeshcoreController mc = context.watch<MeshcoreController>();
     final ColorScheme cs = Theme.of(context).colorScheme;
     final TextTheme tt = Theme.of(context).textTheme;
+    final AppLocalizations l = AppLocalizations.of(context);
     final int inRange =
         mc.nodes.where((DiscoveredNode n) => n.inRange).length;
-    final ({String label, bool alert, bool busy}) st = _status(mc);
+    final ({String label, bool alert, bool busy}) st = _status(mc, l);
     final SelfInfo? selfInfo = mc.selfInfo;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
       children: <Widget>[
         // Dominant numeral.
-        Text('PEERS IN RANGE',
+        Text(l.dashboardPeersInRange,
             style: TextStyle(
                 color: cs.onSurfaceVariant, fontSize: 12, letterSpacing: 4)),
         Text('$inRange',
@@ -61,7 +64,7 @@ class DashboardScreen extends StatelessWidget {
                     height: 1.0,
                     fontWeight: FontWeight.w300)),
         const SizedBox(height: 4),
-        Text('${mc.nodes.length} known',
+        Text(l.dashboardKnownCount(mc.nodes.length),
             style: TextStyle(color: cs.onSurfaceVariant)),
         const SizedBox(height: 24),
 
@@ -105,7 +108,7 @@ class DashboardScreen extends StatelessWidget {
                   mc.isDraining) ...<Widget>[
                 Icon(Icons.sync, size: 14, color: cs.primary),
                 const SizedBox(width: 4),
-                Text('SYNCING…',
+                Text(l.statusSyncing,
                     style: TextStyle(
                         color: cs.primary,
                         fontSize: 10,
@@ -116,12 +119,12 @@ class DashboardScreen extends StatelessWidget {
                   !mc.isConnecting)
                 TextButton(
                   onPressed: () => mc.connect(),
-                  child: const Text('CONNECT'),
+                  child: Text(l.actionConnect),
                 )
               else if (mc.state == MeshcoreConnectionState.failed)
                 TextButton(
                   onPressed: () => mc.connect(),
-                  child: const Text('RETRY'),
+                  child: Text(l.actionRetry),
                 ),
             ],
           ),
@@ -129,13 +132,13 @@ class DashboardScreen extends StatelessWidget {
         const SizedBox(height: 22),
 
         // Terse radio readout.
-        Text('RADIO',
+        Text(l.dashboardRadio,
             style: TextStyle(
                 color: cs.onSurfaceVariant, fontSize: 12, letterSpacing: 4)),
         const SizedBox(height: 4),
         Text(
           selfInfo == null
-              ? '— awaiting device —'
+              ? l.dashboardAwaitingDevice
               : '${selfInfo.name}\n'
                   '${selfInfo.frequencyMhz}MHz  '
                   'SF${selfInfo.spreadingFactor}  '
@@ -148,7 +151,7 @@ class DashboardScreen extends StatelessWidget {
         ),
         if (mc.pairedName != null) ...<Widget>[
           const SizedBox(height: 6),
-          Text('paired: ${mc.pairedName}',
+          Text(l.dashboardPaired(mc.pairedName!),
               style:
                   TextStyle(color: cs.onSurfaceVariant, fontSize: 12)),
         ],
@@ -159,16 +162,18 @@ class DashboardScreen extends StatelessWidget {
         _LocationTile(mc: mc),
         if (mc.batteryMillivolts != null) ...<Widget>[
           const SizedBox(height: 18),
-          Text('BATTERY',
+          Text(l.dashboardBattery,
               style: TextStyle(
                   color: cs.onSurfaceVariant,
                   fontSize: 12,
                   letterSpacing: 4)),
           const SizedBox(height: 4),
           Text(
-            '${mc.batteryVolts!.toStringAsFixed(2)}V · '
-            '~${mc.batteryPercent}%'
-            '${mc.charging == true ? '  ⚡ CHARGING' : ''}',
+            l.dashboardBatteryReadout(
+                  mc.batteryVolts!.toStringAsFixed(2),
+                  mc.batteryPercent ?? 0,
+                ) +
+                (mc.charging == true ? '  ⚡ ${l.dashboardCharging}' : ''),
             style: TextStyle(
                 color: mc.charging == true ? cs.tertiary : cs.onSurface,
                 fontFamily: 'monospace'),
@@ -177,12 +182,12 @@ class DashboardScreen extends StatelessWidget {
         const SizedBox(height: 24),
 
         // Recent activity.
-        Text('RECENT',
+        Text(l.dashboardRecent,
             style: TextStyle(
                 color: cs.onSurfaceVariant, fontSize: 12, letterSpacing: 4)),
         const SizedBox(height: 6),
         if (mc.recentEvents.isEmpty)
-          Text('— no activity —',
+          Text(l.dashboardNoActivity,
               style: TextStyle(color: cs.onSurfaceVariant))
         else
           ...mc.recentEvents.take(12).map((MeshEvent e) => Padding(
@@ -227,6 +232,7 @@ class _LocationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final AppLocalizations l = AppLocalizations.of(context);
     final OwnLocation? loc = mc.ownLocation;
     final SelfInfo? si = mc.selfInfo;
     final bool awaitingSelf = si == null;
@@ -234,7 +240,7 @@ class _LocationTile extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text('LOCATION',
+        Text(l.dashboardLocation,
             style: TextStyle(
                 color: cs.onSurfaceVariant,
                 fontSize: 12,
@@ -244,14 +250,14 @@ class _LocationTile extends StatelessWidget {
           Text(
             '${loc.latitude.toStringAsFixed(5)}, '
             '${loc.longitude.toStringAsFixed(5)}\n'
-            'source · ${loc.sourceLabel}',
+            '${l.dashboardLocationSourceLabel(loc.sourceLabel)}',
             style: TextStyle(
                 color: cs.onSurface,
                 fontFamily: 'monospace',
                 height: 1.5),
           )
         else if (awaitingSelf)
-          Text('— awaiting device location —',
+          Text(l.dashboardAwaitingDeviceLocation,
               style: TextStyle(color: cs.onSurfaceVariant))
         else
           Row(
@@ -261,13 +267,13 @@ class _LocationTile extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Not set — neither device nor phone fix yet',
+                  l.dashboardLocationNotSet,
                   style: TextStyle(color: cs.onSurface),
                 ),
               ),
               TextButton(
                 onPressed: () => context.push('/settings/device'),
-                child: const Text('CONFIGURE'),
+                child: Text(l.dashboardLocationConfigure),
               ),
             ],
           ),

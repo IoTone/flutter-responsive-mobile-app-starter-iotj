@@ -283,4 +283,220 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get firstRunOpenSettings => 'OS 設定を開く';
+
+  @override
+  String dashboardPaired(String name) {
+    return 'ペア済み: $name';
+  }
+
+  @override
+  String get dashboardCharging => '充電中';
+
+  @override
+  String dashboardBatteryReadout(String volts, int percent) {
+    return '${volts}V · 約$percent%';
+  }
+
+  @override
+  String get nodesScanArea => '周辺をスキャン';
+
+  @override
+  String get nodesScanning => 'スキャン中…';
+
+  @override
+  String get nodesAdvertise => 'アドバート送信';
+
+  @override
+  String get nodesSyncContacts => 'コンタクト同期';
+
+  @override
+  String get nodesHyperlocalGridTooltip => 'ハイパーローカルグリッド (R18)';
+
+  @override
+  String get nodesFloodAdvert => 'フラッドアドバート';
+
+  @override
+  String get nodesFloodAdvertBody => 'メッシュ全体 — 隣接 + リピーター。発見に最適。';
+
+  @override
+  String get nodesZeroHopAdvert => 'ゼロホップアドバート';
+
+  @override
+  String get nodesZeroHopAdvertBody => '隣接のみ — 再ブロードキャストなし。混雑したメッシュ向け。';
+
+  @override
+  String get nodesFloodAdvertSent =>
+      'フラッドアドバートを送信 — メッシュ全体に伝播 (隣接 + リピーター)。相手側でも Advertise を実行するまで表示されません。';
+
+  @override
+  String get nodesZeroHopAdvertSent =>
+      'ゼロホップアドバートを送信 — 隣接のみ、リピーターは再ブロードキャストしません。';
+
+  @override
+  String get nodesSearchHint => '名前 / shortId / 公開鍵で検索…';
+
+  @override
+  String get nodesFilterStarred => 'お気に入り';
+
+  @override
+  String get nodesFilterInRange => '範囲内';
+
+  @override
+  String get nodesFilterClear => 'クリア';
+
+  @override
+  String nodesFilterLastSeen(String label) {
+    return '最終受信 · $label';
+  }
+
+  @override
+  String nodesFilterWithin(String label) {
+    return '距離 · $label';
+  }
+
+  @override
+  String get nodesAgeAny => '指定なし';
+
+  @override
+  String get nodesAgeHour => '1時間以内';
+
+  @override
+  String get nodesAge24h => '24時間以内';
+
+  @override
+  String get nodesAge7d => '7日以内';
+
+  @override
+  String get nodesDistAny => '指定なし';
+
+  @override
+  String get nodesDist100m => '100 m 以内';
+
+  @override
+  String get nodesDist500m => '500 m 以内';
+
+  @override
+  String get nodesDist5km => '5 km 以内';
+
+  @override
+  String get nodesDist25km => '25 km 以内';
+
+  @override
+  String nodesStatusReady(int shown, int total, int inRange, int favs) {
+    return '$shown/$total件 表示 · $inRange件 範囲内 · $favs件 コンタクト';
+  }
+
+  @override
+  String get nodesStatusOffline => '未接続 — 設定 → 診断で接続';
+
+  @override
+  String get nodesInRangeBadge => '範囲内';
+
+  @override
+  String get nodesEmptyFiltered =>
+      '条件に一致するノードがありません。\n\n上の「クリア」で絞り込みを解除するか、各チップで条件を変更してください。';
+
+  @override
+  String get nodesEmptyReady =>
+      'ノードがまだありません。\n\n発見はアドバート駆動で、アドバートを受信したノードのみここに表示されます。Public でのチャットは発見につながりません。\n\n相手にも Advertise を実行してもらう (またはこちらで「Advertise」をタップ) 後、「Scan area」を実行してください。\n\nこの画面はメッシュの「ファブリック」(これまでに見たもの) を示します。スターをタップするとコンタクトに登録できます。';
+
+  @override
+  String get nodesEmptyOffline => 'ラジオを接続して周辺ノードを発見してください。';
+
+  @override
+  String get nodesFavTooltip => 'コンタクトに登録';
+
+  @override
+  String get nodesUnfavTooltip => 'コンタクトから削除';
+
+  @override
+  String get gridTitle => 'ハイパーローカルグリッド';
+
+  @override
+  String get gridShowLegend => '凡例を表示';
+
+  @override
+  String get gridHideLegend => '凡例を非表示';
+
+  @override
+  String get gridPlayTooltip => '再生 (一定間隔で更新)';
+
+  @override
+  String get gridPauseTooltip => '一時停止';
+
+  @override
+  String get gridIntervalTooltip => '更新間隔 (再生時)';
+
+  @override
+  String get gridRange => '範囲';
+
+  @override
+  String get gridRangeRoom => '部屋';
+
+  @override
+  String get gridRangeHome => '家';
+
+  @override
+  String get gridRangeBlock => 'ブロック';
+
+  @override
+  String get gridRangeNeighborhood => '近隣';
+
+  @override
+  String get gridRangeArea => 'エリア';
+
+  @override
+  String get gridRangeWide => '広域';
+
+  @override
+  String get gridLegend => '凡例';
+
+  @override
+  String gridLegendRings(String value) {
+    return '同心円 3 本 = 距離帯。両端に GPS がある場合、外側のリングは上の「範囲」スケール (現在 ~$value)。GPS がない場合は RSSI 帯 (近 / 中 / 遠)。';
+  }
+
+  @override
+  String get gridLegendSelf => '中央 = 自分。十字 = 南北 / 東西の目安。';
+
+  @override
+  String get gridLegendDot =>
+      'ドット = 受信したファブリックノード。明るさ = 新しさ (受信直後 = 最大、24時間で 0 に減衰し消滅)。';
+
+  @override
+  String get gridLegendKnown => 'パルス (緩やかに広がる輪) = 既知ノード — 直接やり取り (DM) があったノード。';
+
+  @override
+  String get gridLegendFavourite => '別色での速い点滅 = お気に入りのコンタクト。';
+
+  @override
+  String get gridLegendRipple => '中央からの波紋 = 匿名のチャネルメッセージ (プロトコル上、送信者を特定できません)。';
+
+  @override
+  String get gridLegendTap => 'ノードをタップで詳細 + メッセージ / お気に入り。';
+
+  @override
+  String get gridEmpty =>
+      'まだ範囲内にファブリックがありません。\n\nアドバートを受信するとここに表示されます。Nodes 画面でスターをタップしてコンタクト登録 (速い点滅)。DM 交換したノードは既知になります (パルス)。';
+
+  @override
+  String gridStatusReady(int visible, int known, int favs, String playState) {
+    return '$visible件 ファブリック · $known件 既知 · $favs件 コンタクト · $playState';
+  }
+
+  @override
+  String get gridStatusOffline => '未接続 — 設定 → 診断で接続';
+
+  @override
+  String get gridPlayStatePaused => '一時停止中';
+
+  @override
+  String gridPlayStateLive(String interval) {
+    return 'ライブ ($interval)';
+  }
+
+  @override
+  String gridFooter(String label, String value) {
+    return '外側リング ≈ $label ($value) · ノードをタップで詳細 · ⓘ で凡例';
+  }
 }

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../gen/app_localizations.dart';
 import '../theme/mm_tokens.dart';
 import '../theme/theme_controller.dart';
 
@@ -15,11 +16,12 @@ class PersonalizationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeController tc = context.watch<ThemeController>();
+    final AppLocalizations l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile & personalization')),
+      appBar: AppBar(title: Text(l.personalizationHeading)),
       body: ListView(
           children: <Widget>[
-            const _Section('THEME PRESET'),
+            _Section(l.personalizationThemePreset),
             // When High contrast is ON, the rendered theme is forced
             // to SEELE regardless of which preset is selected. Hint
             // the user so a tap that "does nothing" makes sense.
@@ -42,10 +44,7 @@ class PersonalizationScreen extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'High contrast is on — the SEELE high-contrast '
-                          'palette is forced regardless of your preset '
-                          'pick. Turn off High contrast below to use '
-                          'another theme.',
+                          l.personalizationHighContrastHint,
                           style: TextStyle(
                               color: Theme.of(context)
                                   .colorScheme
@@ -82,10 +81,10 @@ class PersonalizationScreen extends StatelessWidget {
                 ),
               ),
             const Divider(),
-          const _Section('TYPE'),
+          _Section(l.personalizationType),
           ListTile(
             dense: true,
-            title: const Text('Font size'),
+            title: Text(l.personalizationFontSize),
             subtitle: Slider(
               min: 0.8,
               max: 1.6,
@@ -96,35 +95,35 @@ class PersonalizationScreen extends StatelessWidget {
             ),
           ),
           const Divider(),
-          const _Section('ACCESSIBILITY (R13)'),
+          _Section(l.personalizationAccessibility),
           SwitchListTile(
             dense: true,
-            title: const Text('High contrast'),
-            subtitle: const Text('Force the SEELE high-contrast palette'),
+            title: Text(l.personalizationHighContrast),
+            subtitle: Text(l.personalizationHighContrastSubtitle),
             value: tc.highContrast,
             onChanged: tc.setHighContrast,
           ),
           SwitchListTile(
             dense: true,
-            title: const Text('Reduce motion'),
+            title: Text(l.personalizationReduceMotion),
             value: tc.reduceMotion,
             onChanged: tc.setReduceMotion,
           ),
           SwitchListTile(
             dense: true,
-            title: const Text('Visual + haptic only'),
-            subtitle: const Text('No information by sound; turns audio off'),
+            title: Text(l.personalizationVisualHapticOnly),
+            subtitle: Text(l.personalizationVisualHapticOnlySubtitle),
             value: tc.visualHapticOnly,
             onChanged: tc.setVisualHapticOnly,
           ),
           const Divider(),
-          const _Section('AUDIO ALERTS (R12)'),
+          _Section(l.personalizationAudioAlerts),
           SwitchListTile(
             dense: true,
-            title: const Text('Audio alerts'),
+            title: Text(l.personalizationAudioMaster),
             subtitle: Text(tc.visualHapticOnly
-                ? 'Disabled by "visual + haptic only"'
-                : 'Off by default; augmentation only'),
+                ? l.personalizationAudioMasterDisabled
+                : l.personalizationAudioMasterEnabled),
             value: tc.audioMaster,
             onChanged: tc.visualHapticOnly ? null : tc.setAudioMaster,
           ),

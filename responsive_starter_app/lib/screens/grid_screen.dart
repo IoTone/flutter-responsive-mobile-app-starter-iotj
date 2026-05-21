@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../gen/app_localizations.dart';
 import '../meshcore/chat_message.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
@@ -167,6 +168,26 @@ class _GridScreenState extends State<GridScreen>
     return '${d.inSeconds}s';
   }
 
+  /// Localised label for the current Range slider stop. The
+  /// stop list itself stays as English keys (matching the asset /
+  /// codepath identity); the user-facing label is translated.
+  String _rangeLabel(AppLocalizations l, int idx) {
+    return switch (idx) {
+      0 => l.gridRangeRoom,
+      1 => l.gridRangeHome,
+      2 => l.gridRangeBlock,
+      3 => l.gridRangeNeighborhood,
+      4 => l.gridRangeArea,
+      _ => l.gridRangeWide,
+    };
+  }
+
+  /// Pretty distance label for a scale stop (e.g. "25 m" / "5 km").
+  String _rangeValue(double km) {
+    if (km < 1) return '${(km * 1000).round()} m';
+    return '${km.toStringAsFixed(0)} km';
+  }
+
   /// Cheap "did the live node list change" check for the
   /// auto-track-until-interaction path. We compare by length first
   /// (the cheap case) then identity per index — both nodes lists
@@ -269,21 +290,21 @@ class _GridScreenState extends State<GridScreen>
     ];
 
     final double scaleKm = GridScreen.rangeStops[_scaleIndex].km;
-    final ({String label, double km}) scaleStop =
-        GridScreen.rangeStops[_scaleIndex];
+    final AppLocalizations l = AppLocalizations.of(context);
+    final String scaleLabel = _rangeLabel(l, _scaleIndex);
+    final String scaleValue = _rangeValue(scaleKm);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hyperlocal grid'),
+        title: Text(l.gridTitle),
         actions: <Widget>[
           IconButton(
-            tooltip:
-                _live ? 'Pause updates' : 'Play (refresh every interval)',
+            tooltip: _live ? l.gridPauseTooltip : l.gridPlayTooltip,
             icon: Icon(_live ? Icons.pause : Icons.play_arrow),
             onPressed: _togglePlay,
           ),
           PopupMenuButton<Duration>(
-            tooltip: 'Refresh interval (when playing)',
+            tooltip: l.gridIntervalTooltip,
             initialValue: _interval,
             onSelected: _changeInterval,
             itemBuilder: (BuildContext _) => <PopupMenuEntry<Duration>>[
@@ -310,7 +331,9 @@ class _GridScreenState extends State<GridScreen>
             ),
           ),
           IconButton(
-            tooltip: _legendVisible ? 'Hide legend' : 'Show legend',
+            tooltip: _legendVisible
+                ? l.gridHideLegend
+                : l.gridShowLegend,
             icon: Icon(_legendVisible
                 ? Icons.info
                 : Icons.info_outline),
@@ -325,11 +348,15 @@ class _GridScreenState extends State<GridScreen>
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
             child: Text(
               ready
-                  ? '${visible.length} in fabric · ${mc.known.length} '
-                      'known · ${mc.favorites.length} contact'
-                      '${mc.favorites.length == 1 ? '' : 's'}'
-                      ' · ${_live ? 'live (${_intervalLabel(_interval)})' : 'paused'}'
-                  : 'Not connected — Settings → Diagnostics & connect',
+                  ? l.gridStatusReady(
+                      visible.length,
+                      mc.known.length,
+                      mc.favorites.length,
+                      _live
+                          ? l.gridPlayStateLive(_intervalLabel(_interval))
+                          : l.gridPlayStatePaused,
+                    )
+                  : l.gridStatusOffline,
               style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
             ),
           ),
@@ -343,7 +370,7 @@ class _GridScreenState extends State<GridScreen>
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
             child: Row(
               children: <Widget>[
-                Text('Range',
+                Text(l.gridRange,
                     style: TextStyle(
                         color: cs.onSurfaceVariant,
                         fontSize: 11,
@@ -354,7 +381,7 @@ class _GridScreenState extends State<GridScreen>
                     min: 0,
                     max: (GridScreen.rangeStops.length - 1).toDouble(),
                     divisions: GridScreen.rangeStops.length - 1,
-                    label: scaleStop.label,
+                    label: scaleLabel,
                     onChanged: (double v) => setState(() {
                       _userInteracted = true;
                       _scaleIndex = v.round();
@@ -362,12 +389,9 @@ class _GridScreenState extends State<GridScreen>
                   ),
                 ),
                 SizedBox(
-                  width: 88,
+                  width: 96,
                   child: Text(
-                    '${scaleStop.label} · '
-                    '${scaleStop.km < 1
-                            ? '${(scaleStop.km * 1000).round()} m'
-                            : '${scaleStop.km.toStringAsFixed(scaleStop.km < 10 ? 0 : 0)} km'}',
+                    '$scaleLabel · $scaleValue',
                     textAlign: TextAlign.end,
                     style: TextStyle(
                         color: cs.onSurface, fontSize: 11),
@@ -376,7 +400,7 @@ class _GridScreenState extends State<GridScreen>
               ],
             ),
           ),
-          if (_legendVisible) _GridLegend(cs: cs, scaleKm: scaleKm),
+          if (_legendVisible) _GridLegend(cs: cs, scaleKm: scaleKm, l: l),
           const Divider(height: 1),
           Expanded(
             child: visible.isEmpty
@@ -384,10 +408,7 @@ class _GridScreenState extends State<GridScreen>
                     child: Padding(
                       padding: const EdgeInsets.all(28),
                       child: Text(
-                        'No fabric in range yet.\n\nNodes appear here as '
-                        'their adverts are heard. Star a node in '
-                        'Nodes to mark it as a contact (rapid blink). '
-                        'Nodes we DM with become known (pulse).',
+                        l.gridEmpty,
                         textAlign: TextAlign.center,
                         style: TextStyle(color: cs.onSurfaceVariant),
                       ),
@@ -444,9 +465,7 @@ class _GridScreenState extends State<GridScreen>
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
             child: Text(
-              'Outer ring ≈ ${scaleStop.label.toLowerCase()} '
-              '(${scaleStop.km < 1 ? '${(scaleStop.km * 1000).round()} m' : '${scaleStop.km.toStringAsFixed(0)} km'}) · '
-              'tap a node for details · info icon for the legend',
+              l.gridFooter(scaleLabel.toLowerCase(), scaleValue),
               style: TextStyle(color: cs.onSurfaceVariant, fontSize: 11),
             ),
           ),
@@ -460,9 +479,11 @@ class _GridScreenState extends State<GridScreen>
 /// node glyphs, the animations, and the ripple mean — every cue is
 /// in here so a new user can decode the grid at a glance.
 class _GridLegend extends StatelessWidget {
-  const _GridLegend({required this.cs, required this.scaleKm});
+  const _GridLegend(
+      {required this.cs, required this.scaleKm, required this.l});
   final ColorScheme cs;
   final double scaleKm;
+  final AppLocalizations l;
 
   @override
   Widget build(BuildContext context) {
@@ -483,6 +504,9 @@ class _GridLegend extends StatelessWidget {
             ],
           ),
         );
+    final String scaleValueDisplay = scaleKm < 1
+        ? '${(scaleKm * 1000).round()} m'
+        : '${scaleKm.toStringAsFixed(0)} km';
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.fromLTRB(12, 4, 12, 0),
@@ -495,33 +519,19 @@ class _GridLegend extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text('LEGEND',
+          Text(l.gridLegend,
               style: TextStyle(
                   color: cs.onSurfaceVariant,
                   fontSize: 11,
                   letterSpacing: 3)),
           const SizedBox(height: 6),
-          row(Icons.adjust,
-              'Three concentric rings = distance bands. With GPS '
-              'on both ends, the outer ring is the **Range** scale '
-              'above (~${scaleKm < 1 ? '${(scaleKm * 1000).round()} m' : '${scaleKm.toStringAsFixed(0)} km'} '
-              'right now). Without GPS, rings are RSSI bands '
-              '(near / mid / far).'),
-          row(Icons.my_location,
-              'Centre marker = you. Cross-hair = N-S / E-W guide.'),
-          row(Icons.circle,
-              'Dot = a fabric node we\'ve heard. Brightness = recency '
-              '(full = just now, fades to 0 over 24 h then disappears).'),
-          row(Icons.radio_button_checked,
-              'Pulse (slow growing halo) = a known node — we have had '
-              'a direct attributable exchange (DM) with them.'),
-          row(Icons.star,
-              'Rapid blink in alt-colour = a favourited contact.'),
-          row(Icons.waves,
-              'Centre-out ripple = an anonymous channel message (the '
-              'protocol doesn\'t attribute channel msgs to a sender).'),
-          row(Icons.touch_app,
-              'Tap a node to see details + Message / Favourite.'),
+          row(Icons.adjust, l.gridLegendRings(scaleValueDisplay)),
+          row(Icons.my_location, l.gridLegendSelf),
+          row(Icons.circle, l.gridLegendDot),
+          row(Icons.radio_button_checked, l.gridLegendKnown),
+          row(Icons.star, l.gridLegendFavourite),
+          row(Icons.waves, l.gridLegendRipple),
+          row(Icons.touch_app, l.gridLegendTap),
         ],
       ),
     );

@@ -619,6 +619,390 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open OS settings'**
   String get firstRunOpenSettings;
+
+  /// No description provided for @dashboardPaired.
+  ///
+  /// In en, this message translates to:
+  /// **'paired: {name}'**
+  String dashboardPaired(String name);
+
+  /// No description provided for @dashboardCharging.
+  ///
+  /// In en, this message translates to:
+  /// **'CHARGING'**
+  String get dashboardCharging;
+
+  /// No description provided for @dashboardBatteryReadout.
+  ///
+  /// In en, this message translates to:
+  /// **'{volts}V · ~{percent}%'**
+  String dashboardBatteryReadout(String volts, int percent);
+
+  /// No description provided for @nodesScanArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan area'**
+  String get nodesScanArea;
+
+  /// No description provided for @nodesScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning…'**
+  String get nodesScanning;
+
+  /// No description provided for @nodesAdvertise.
+  ///
+  /// In en, this message translates to:
+  /// **'Advertise'**
+  String get nodesAdvertise;
+
+  /// No description provided for @nodesSyncContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync contacts'**
+  String get nodesSyncContacts;
+
+  /// No description provided for @nodesHyperlocalGridTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Hyperlocal grid (R18)'**
+  String get nodesHyperlocalGridTooltip;
+
+  /// No description provided for @nodesFloodAdvert.
+  ///
+  /// In en, this message translates to:
+  /// **'Flood advert'**
+  String get nodesFloodAdvert;
+
+  /// No description provided for @nodesFloodAdvertBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole mesh — neighbours + repeaters. Best for discovery.'**
+  String get nodesFloodAdvertBody;
+
+  /// No description provided for @nodesZeroHopAdvert.
+  ///
+  /// In en, this message translates to:
+  /// **'Zero-hop advert'**
+  String get nodesZeroHopAdvert;
+
+  /// No description provided for @nodesZeroHopAdvertBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct neighbours only — not rebroadcast. Quieter on a busy mesh.'**
+  String get nodesZeroHopAdvertBody;
+
+  /// No description provided for @nodesFloodAdvertSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Flood advert sent — propagates across the whole mesh (neighbours + repeaters). The other node must Advertise too before it appears here.'**
+  String get nodesFloodAdvertSent;
+
+  /// No description provided for @nodesZeroHopAdvertSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Zero-hop advert sent — direct neighbours only, not rebroadcast by repeaters.'**
+  String get nodesZeroHopAdvertSent;
+
+  /// No description provided for @nodesSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, shortId, or pubkey…'**
+  String get nodesSearchHint;
+
+  /// No description provided for @nodesFilterStarred.
+  ///
+  /// In en, this message translates to:
+  /// **'Starred'**
+  String get nodesFilterStarred;
+
+  /// No description provided for @nodesFilterInRange.
+  ///
+  /// In en, this message translates to:
+  /// **'In range'**
+  String get nodesFilterInRange;
+
+  /// No description provided for @nodesFilterClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get nodesFilterClear;
+
+  /// No description provided for @nodesFilterLastSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen · {label}'**
+  String nodesFilterLastSeen(String label);
+
+  /// No description provided for @nodesFilterWithin.
+  ///
+  /// In en, this message translates to:
+  /// **'Within · {label}'**
+  String nodesFilterWithin(String label);
+
+  /// No description provided for @nodesAgeAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get nodesAgeAny;
+
+  /// No description provided for @nodesAgeHour.
+  ///
+  /// In en, this message translates to:
+  /// **'Last hour'**
+  String get nodesAgeHour;
+
+  /// No description provided for @nodesAge24h.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 24 h'**
+  String get nodesAge24h;
+
+  /// No description provided for @nodesAge7d.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 d'**
+  String get nodesAge7d;
+
+  /// No description provided for @nodesDistAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get nodesDistAny;
+
+  /// No description provided for @nodesDist100m.
+  ///
+  /// In en, this message translates to:
+  /// **'≤ 100 m'**
+  String get nodesDist100m;
+
+  /// No description provided for @nodesDist500m.
+  ///
+  /// In en, this message translates to:
+  /// **'≤ 500 m'**
+  String get nodesDist500m;
+
+  /// No description provided for @nodesDist5km.
+  ///
+  /// In en, this message translates to:
+  /// **'≤ 5 km'**
+  String get nodesDist5km;
+
+  /// No description provided for @nodesDist25km.
+  ///
+  /// In en, this message translates to:
+  /// **'≤ 25 km'**
+  String get nodesDist25km;
+
+  /// No description provided for @nodesStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total} in fabric · {inRange} in range · {favs, plural, =0{0 contacts} =1{1 contact} other{{favs} contacts}}'**
+  String nodesStatusReady(int shown, int total, int inRange, int favs);
+
+  /// No description provided for @nodesStatusOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected — Settings → Diagnostics & connect'**
+  String get nodesStatusOffline;
+
+  /// No description provided for @nodesInRangeBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'IN RANGE'**
+  String get nodesInRangeBadge;
+
+  /// No description provided for @nodesEmptyFiltered.
+  ///
+  /// In en, this message translates to:
+  /// **'No nodes match this filter.\n\nTap Clear to widen, or change the chip cutoffs above.'**
+  String get nodesEmptyFiltered;
+
+  /// No description provided for @nodesEmptyReady.
+  ///
+  /// In en, this message translates to:
+  /// **'No nodes yet.\n\nDiscovery is advert-driven: a node shows up only when its advert is heard. Chatting on Public does NOT make a node appear.\n\nAsk the other node to Advertise / Share (or tap \"Advertise\" here so it can find you), then \"Scan area\".\n\nThis view shows the mesh \"fabric\" (what you\'ve seen). Star a node to mark it as a contact.'**
+  String get nodesEmptyReady;
+
+  /// No description provided for @nodesEmptyOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect a radio to discover nearby nodes.'**
+  String get nodesEmptyOffline;
+
+  /// No description provided for @nodesFavTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite as contact'**
+  String get nodesFavTooltip;
+
+  /// No description provided for @nodesUnfavTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfavourite (remove from contacts)'**
+  String get nodesUnfavTooltip;
+
+  /// No description provided for @gridTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hyperlocal grid'**
+  String get gridTitle;
+
+  /// No description provided for @gridShowLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Show legend'**
+  String get gridShowLegend;
+
+  /// No description provided for @gridHideLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide legend'**
+  String get gridHideLegend;
+
+  /// No description provided for @gridPlayTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Play (refresh every interval)'**
+  String get gridPlayTooltip;
+
+  /// No description provided for @gridPauseTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause updates'**
+  String get gridPauseTooltip;
+
+  /// No description provided for @gridIntervalTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh interval (when playing)'**
+  String get gridIntervalTooltip;
+
+  /// No description provided for @gridRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Range'**
+  String get gridRange;
+
+  /// No description provided for @gridRangeRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Room'**
+  String get gridRangeRoom;
+
+  /// No description provided for @gridRangeHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get gridRangeHome;
+
+  /// No description provided for @gridRangeBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get gridRangeBlock;
+
+  /// No description provided for @gridRangeNeighborhood.
+  ///
+  /// In en, this message translates to:
+  /// **'Neighborhood'**
+  String get gridRangeNeighborhood;
+
+  /// No description provided for @gridRangeArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Area'**
+  String get gridRangeArea;
+
+  /// No description provided for @gridRangeWide.
+  ///
+  /// In en, this message translates to:
+  /// **'Wide'**
+  String get gridRangeWide;
+
+  /// No description provided for @gridLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'LEGEND'**
+  String get gridLegend;
+
+  /// No description provided for @gridLegendRings.
+  ///
+  /// In en, this message translates to:
+  /// **'Three concentric rings = distance bands. With GPS on both ends, the outer ring is the **Range** scale above (~{value} right now). Without GPS, rings are RSSI bands (near / mid / far).'**
+  String gridLegendRings(String value);
+
+  /// No description provided for @gridLegendSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre marker = you. Cross-hair = N-S / E-W guide.'**
+  String get gridLegendSelf;
+
+  /// No description provided for @gridLegendDot.
+  ///
+  /// In en, this message translates to:
+  /// **'Dot = a fabric node we\'ve heard. Brightness = recency (full = just now, fades to 0 over 24 h then disappears).'**
+  String get gridLegendDot;
+
+  /// No description provided for @gridLegendKnown.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulse (slow growing halo) = a known node — we have had a direct attributable exchange (DM) with them.'**
+  String get gridLegendKnown;
+
+  /// No description provided for @gridLegendFavourite.
+  ///
+  /// In en, this message translates to:
+  /// **'Rapid blink in alt-colour = a favourited contact.'**
+  String get gridLegendFavourite;
+
+  /// No description provided for @gridLegendRipple.
+  ///
+  /// In en, this message translates to:
+  /// **'Centre-out ripple = an anonymous channel message (the protocol doesn\'t attribute channel msgs to a sender).'**
+  String get gridLegendRipple;
+
+  /// No description provided for @gridLegendTap.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a node to see details + Message / Favourite.'**
+  String get gridLegendTap;
+
+  /// No description provided for @gridEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No fabric in range yet.\n\nNodes appear here as their adverts are heard. Star a node in Nodes to mark it as a contact (rapid blink). Nodes we DM with become known (pulse).'**
+  String get gridEmpty;
+
+  /// No description provided for @gridStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'{visible} in fabric · {known} known · {favs, plural, =0{0 contacts} =1{1 contact} other{{favs} contacts}} · {playState}'**
+  String gridStatusReady(int visible, int known, int favs, String playState);
+
+  /// No description provided for @gridStatusOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected — Settings → Diagnostics & connect'**
+  String get gridStatusOffline;
+
+  /// No description provided for @gridPlayStatePaused.
+  ///
+  /// In en, this message translates to:
+  /// **'paused'**
+  String get gridPlayStatePaused;
+
+  /// No description provided for @gridPlayStateLive.
+  ///
+  /// In en, this message translates to:
+  /// **'live ({interval})'**
+  String gridPlayStateLive(String interval);
+
+  /// No description provided for @gridFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Outer ring ≈ {label} ({value}) · tap a node for details · info icon for the legend'**
+  String gridFooter(String label, String value);
 }
 
 class _AppLocalizationsDelegate

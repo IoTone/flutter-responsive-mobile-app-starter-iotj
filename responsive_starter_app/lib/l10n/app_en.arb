@@ -102,5 +102,115 @@
   "firstRunSkip": "Continue offline (skip permissions)",
   "firstRunDeniedTransient": "Bluetooth wasn't granted — you can continue offline or open OS settings to change your mind.",
   "firstRunDeniedPermanent": "Bluetooth was permanently denied — open OS settings to grant it. You can still use the app offline.",
-  "firstRunOpenSettings": "Open OS settings"
+  "firstRunOpenSettings": "Open OS settings",
+
+  "dashboardPaired": "paired: {name}",
+  "@dashboardPaired": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "dashboardCharging": "CHARGING",
+  "dashboardBatteryReadout": "{volts}V · ~{percent}%",
+  "@dashboardBatteryReadout": {
+    "placeholders": {
+      "volts": {"type": "String"},
+      "percent": {"type": "int"}
+    }
+  },
+
+  "nodesScanArea": "Scan area",
+  "nodesScanning": "Scanning…",
+  "nodesAdvertise": "Advertise",
+  "nodesSyncContacts": "Sync contacts",
+  "nodesHyperlocalGridTooltip": "Hyperlocal grid (R18)",
+  "nodesFloodAdvert": "Flood advert",
+  "nodesFloodAdvertBody": "Whole mesh — neighbours + repeaters. Best for discovery.",
+  "nodesZeroHopAdvert": "Zero-hop advert",
+  "nodesZeroHopAdvertBody": "Direct neighbours only — not rebroadcast. Quieter on a busy mesh.",
+  "nodesFloodAdvertSent": "Flood advert sent — propagates across the whole mesh (neighbours + repeaters). The other node must Advertise too before it appears here.",
+  "nodesZeroHopAdvertSent": "Zero-hop advert sent — direct neighbours only, not rebroadcast by repeaters.",
+  "nodesSearchHint": "Search by name, shortId, or pubkey…",
+  "nodesFilterStarred": "Starred",
+  "nodesFilterInRange": "In range",
+  "nodesFilterClear": "Clear",
+  "nodesFilterLastSeen": "Last seen · {label}",
+  "@nodesFilterLastSeen": {
+    "placeholders": {"label": {"type": "String"}}
+  },
+  "nodesFilterWithin": "Within · {label}",
+  "@nodesFilterWithin": {
+    "placeholders": {"label": {"type": "String"}}
+  },
+  "nodesAgeAny": "Any",
+  "nodesAgeHour": "Last hour",
+  "nodesAge24h": "Last 24 h",
+  "nodesAge7d": "Last 7 d",
+  "nodesDistAny": "Any",
+  "nodesDist100m": "≤ 100 m",
+  "nodesDist500m": "≤ 500 m",
+  "nodesDist5km": "≤ 5 km",
+  "nodesDist25km": "≤ 25 km",
+  "nodesStatusReady": "{shown} of {total} in fabric · {inRange} in range · {favs, plural, =0{0 contacts} =1{1 contact} other{{favs} contacts}}",
+  "@nodesStatusReady": {
+    "placeholders": {
+      "shown": {"type": "int"},
+      "total": {"type": "int"},
+      "inRange": {"type": "int"},
+      "favs": {"type": "int"}
+    }
+  },
+  "nodesStatusOffline": "Not connected — Settings → Diagnostics & connect",
+  "nodesInRangeBadge": "IN RANGE",
+  "nodesEmptyFiltered": "No nodes match this filter.\n\nTap Clear to widen, or change the chip cutoffs above.",
+  "nodesEmptyReady": "No nodes yet.\n\nDiscovery is advert-driven: a node shows up only when its advert is heard. Chatting on Public does NOT make a node appear.\n\nAsk the other node to Advertise / Share (or tap \"Advertise\" here so it can find you), then \"Scan area\".\n\nThis view shows the mesh \"fabric\" (what you've seen). Star a node to mark it as a contact.",
+  "nodesEmptyOffline": "Connect a radio to discover nearby nodes.",
+  "nodesFavTooltip": "Favourite as contact",
+  "nodesUnfavTooltip": "Unfavourite (remove from contacts)",
+
+  "gridTitle": "Hyperlocal grid",
+  "gridShowLegend": "Show legend",
+  "gridHideLegend": "Hide legend",
+  "gridPlayTooltip": "Play (refresh every interval)",
+  "gridPauseTooltip": "Pause updates",
+  "gridIntervalTooltip": "Refresh interval (when playing)",
+  "gridRange": "Range",
+  "gridRangeRoom": "Room",
+  "gridRangeHome": "Home",
+  "gridRangeBlock": "Block",
+  "gridRangeNeighborhood": "Neighborhood",
+  "gridRangeArea": "Area",
+  "gridRangeWide": "Wide",
+  "gridLegend": "LEGEND",
+  "gridLegendRings": "Three concentric rings = distance bands. With GPS on both ends, the outer ring is the **Range** scale above (~{value} right now). Without GPS, rings are RSSI bands (near / mid / far).",
+  "@gridLegendRings": {
+    "placeholders": {"value": {"type": "String"}}
+  },
+  "gridLegendSelf": "Centre marker = you. Cross-hair = N-S / E-W guide.",
+  "gridLegendDot": "Dot = a fabric node we've heard. Brightness = recency (full = just now, fades to 0 over 24 h then disappears).",
+  "gridLegendKnown": "Pulse (slow growing halo) = a known node — we have had a direct attributable exchange (DM) with them.",
+  "gridLegendFavourite": "Rapid blink in alt-colour = a favourited contact.",
+  "gridLegendRipple": "Centre-out ripple = an anonymous channel message (the protocol doesn't attribute channel msgs to a sender).",
+  "gridLegendTap": "Tap a node to see details + Message / Favourite.",
+  "gridEmpty": "No fabric in range yet.\n\nNodes appear here as their adverts are heard. Star a node in Nodes to mark it as a contact (rapid blink). Nodes we DM with become known (pulse).",
+  "gridStatusReady": "{visible} in fabric · {known} known · {favs, plural, =0{0 contacts} =1{1 contact} other{{favs} contacts}} · {playState}",
+  "@gridStatusReady": {
+    "placeholders": {
+      "visible": {"type": "int"},
+      "known": {"type": "int"},
+      "favs": {"type": "int"},
+      "playState": {"type": "String"}
+    }
+  },
+  "gridStatusOffline": "Not connected — Settings → Diagnostics & connect",
+  "gridPlayStatePaused": "paused",
+  "gridPlayStateLive": "live ({interval})",
+  "@gridPlayStateLive": {
+    "placeholders": {"interval": {"type": "String"}}
+  },
+  "gridFooter": "Outer ring ≈ {label} ({value}) · tap a node for details · info icon for the legend",
+  "@gridFooter": {
+    "placeholders": {
+      "label": {"type": "String"},
+      "value": {"type": "String"}
+    }
+  }
 }

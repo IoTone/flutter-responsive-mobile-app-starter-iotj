@@ -302,4 +302,243 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get firstRunOpenSettings => 'Open OS settings';
+
+  @override
+  String dashboardPaired(String name) {
+    return 'paired: $name';
+  }
+
+  @override
+  String get dashboardCharging => 'CHARGING';
+
+  @override
+  String dashboardBatteryReadout(String volts, int percent) {
+    return '${volts}V · ~$percent%';
+  }
+
+  @override
+  String get nodesScanArea => 'Scan area';
+
+  @override
+  String get nodesScanning => 'Scanning…';
+
+  @override
+  String get nodesAdvertise => 'Advertise';
+
+  @override
+  String get nodesSyncContacts => 'Sync contacts';
+
+  @override
+  String get nodesHyperlocalGridTooltip => 'Hyperlocal grid (R18)';
+
+  @override
+  String get nodesFloodAdvert => 'Flood advert';
+
+  @override
+  String get nodesFloodAdvertBody =>
+      'Whole mesh — neighbours + repeaters. Best for discovery.';
+
+  @override
+  String get nodesZeroHopAdvert => 'Zero-hop advert';
+
+  @override
+  String get nodesZeroHopAdvertBody =>
+      'Direct neighbours only — not rebroadcast. Quieter on a busy mesh.';
+
+  @override
+  String get nodesFloodAdvertSent =>
+      'Flood advert sent — propagates across the whole mesh (neighbours + repeaters). The other node must Advertise too before it appears here.';
+
+  @override
+  String get nodesZeroHopAdvertSent =>
+      'Zero-hop advert sent — direct neighbours only, not rebroadcast by repeaters.';
+
+  @override
+  String get nodesSearchHint => 'Search by name, shortId, or pubkey…';
+
+  @override
+  String get nodesFilterStarred => 'Starred';
+
+  @override
+  String get nodesFilterInRange => 'In range';
+
+  @override
+  String get nodesFilterClear => 'Clear';
+
+  @override
+  String nodesFilterLastSeen(String label) {
+    return 'Last seen · $label';
+  }
+
+  @override
+  String nodesFilterWithin(String label) {
+    return 'Within · $label';
+  }
+
+  @override
+  String get nodesAgeAny => 'Any';
+
+  @override
+  String get nodesAgeHour => 'Last hour';
+
+  @override
+  String get nodesAge24h => 'Last 24 h';
+
+  @override
+  String get nodesAge7d => 'Last 7 d';
+
+  @override
+  String get nodesDistAny => 'Any';
+
+  @override
+  String get nodesDist100m => '≤ 100 m';
+
+  @override
+  String get nodesDist500m => '≤ 500 m';
+
+  @override
+  String get nodesDist5km => '≤ 5 km';
+
+  @override
+  String get nodesDist25km => '≤ 25 km';
+
+  @override
+  String nodesStatusReady(int shown, int total, int inRange, int favs) {
+    String _temp0 = intl.Intl.pluralLogic(
+      favs,
+      locale: localeName,
+      other: '$favs contacts',
+      one: '1 contact',
+      zero: '0 contacts',
+    );
+    return '$shown of $total in fabric · $inRange in range · $_temp0';
+  }
+
+  @override
+  String get nodesStatusOffline =>
+      'Not connected — Settings → Diagnostics & connect';
+
+  @override
+  String get nodesInRangeBadge => 'IN RANGE';
+
+  @override
+  String get nodesEmptyFiltered =>
+      'No nodes match this filter.\n\nTap Clear to widen, or change the chip cutoffs above.';
+
+  @override
+  String get nodesEmptyReady =>
+      'No nodes yet.\n\nDiscovery is advert-driven: a node shows up only when its advert is heard. Chatting on Public does NOT make a node appear.\n\nAsk the other node to Advertise / Share (or tap \"Advertise\" here so it can find you), then \"Scan area\".\n\nThis view shows the mesh \"fabric\" (what you\'ve seen). Star a node to mark it as a contact.';
+
+  @override
+  String get nodesEmptyOffline => 'Connect a radio to discover nearby nodes.';
+
+  @override
+  String get nodesFavTooltip => 'Favourite as contact';
+
+  @override
+  String get nodesUnfavTooltip => 'Unfavourite (remove from contacts)';
+
+  @override
+  String get gridTitle => 'Hyperlocal grid';
+
+  @override
+  String get gridShowLegend => 'Show legend';
+
+  @override
+  String get gridHideLegend => 'Hide legend';
+
+  @override
+  String get gridPlayTooltip => 'Play (refresh every interval)';
+
+  @override
+  String get gridPauseTooltip => 'Pause updates';
+
+  @override
+  String get gridIntervalTooltip => 'Refresh interval (when playing)';
+
+  @override
+  String get gridRange => 'Range';
+
+  @override
+  String get gridRangeRoom => 'Room';
+
+  @override
+  String get gridRangeHome => 'Home';
+
+  @override
+  String get gridRangeBlock => 'Block';
+
+  @override
+  String get gridRangeNeighborhood => 'Neighborhood';
+
+  @override
+  String get gridRangeArea => 'Area';
+
+  @override
+  String get gridRangeWide => 'Wide';
+
+  @override
+  String get gridLegend => 'LEGEND';
+
+  @override
+  String gridLegendRings(String value) {
+    return 'Three concentric rings = distance bands. With GPS on both ends, the outer ring is the **Range** scale above (~$value right now). Without GPS, rings are RSSI bands (near / mid / far).';
+  }
+
+  @override
+  String get gridLegendSelf =>
+      'Centre marker = you. Cross-hair = N-S / E-W guide.';
+
+  @override
+  String get gridLegendDot =>
+      'Dot = a fabric node we\'ve heard. Brightness = recency (full = just now, fades to 0 over 24 h then disappears).';
+
+  @override
+  String get gridLegendKnown =>
+      'Pulse (slow growing halo) = a known node — we have had a direct attributable exchange (DM) with them.';
+
+  @override
+  String get gridLegendFavourite =>
+      'Rapid blink in alt-colour = a favourited contact.';
+
+  @override
+  String get gridLegendRipple =>
+      'Centre-out ripple = an anonymous channel message (the protocol doesn\'t attribute channel msgs to a sender).';
+
+  @override
+  String get gridLegendTap =>
+      'Tap a node to see details + Message / Favourite.';
+
+  @override
+  String get gridEmpty =>
+      'No fabric in range yet.\n\nNodes appear here as their adverts are heard. Star a node in Nodes to mark it as a contact (rapid blink). Nodes we DM with become known (pulse).';
+
+  @override
+  String gridStatusReady(int visible, int known, int favs, String playState) {
+    String _temp0 = intl.Intl.pluralLogic(
+      favs,
+      locale: localeName,
+      other: '$favs contacts',
+      one: '1 contact',
+      zero: '0 contacts',
+    );
+    return '$visible in fabric · $known known · $_temp0 · $playState';
+  }
+
+  @override
+  String get gridStatusOffline =>
+      'Not connected — Settings → Diagnostics & connect';
+
+  @override
+  String get gridPlayStatePaused => 'paused';
+
+  @override
+  String gridPlayStateLive(String interval) {
+    return 'live ($interval)';
+  }
+
+  @override
+  String gridFooter(String label, String value) {
+    return 'Outer ring ≈ $label ($value) · tap a node for details · info icon for the legend';
+  }
 }
