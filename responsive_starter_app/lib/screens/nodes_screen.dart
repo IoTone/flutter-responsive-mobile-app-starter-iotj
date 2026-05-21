@@ -130,7 +130,7 @@ class NodesScreen extends StatelessWidget {
               ),
               IconButton(
                 tooltip: 'Hyperlocal grid (R18)',
-                icon: const Icon(Icons.grid_view),
+                icon: const Icon(Icons.radar),
                 onPressed: () => context.push('/grid'),
               ),
             ],

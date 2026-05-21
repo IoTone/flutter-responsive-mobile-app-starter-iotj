@@ -11,6 +11,7 @@ import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../theme/theme_controller.dart';
 import '../util/geo.dart' as geo;
+import 'node_detail_sheet.dart';
 
 /// R18 / U9 — the hyperlocal grid: a radial range-ring view of the
 /// mesh **fabric** relative to us. Brightness = recency (100 % at
@@ -53,6 +54,12 @@ class _GridScreenState extends State<GridScreen>
   DateTime? _rippleAt;
   static const Duration _rippleDuration = Duration(milliseconds: 900);
 
+  /// Whether the inline legend overlay is shown (info button in app bar).
+  bool _legendVisible = false;
+
+  /// Maximum hit-test radius (logical px) for tap-to-select on the grid.
+  static const double _tapRadius = 28.0;
+
   @override
   void initState() {
     super.initState();
@@ -75,6 +82,55 @@ class _GridScreenState extends State<GridScreen>
     super.dispose();
   }
 
+  /// Hit-test the visible node fleet against a tap. Picks the
+  /// closest node within `_tapRadius`. Returns null if none match.
+  DiscoveredNode? _hitTest({
+    required Offset tap,
+    required Size area,
+    required List<DiscoveredNode> visible,
+    required double? selfLat,
+    required double? selfLon,
+  }) {
+    final Offset center = Offset(area.width / 2, area.height / 2);
+    final double maxR = math.min(area.width, area.height) / 2 - 24;
+    if (maxR <= 0) return null;
+    DiscoveredNode? best;
+    double bestDist = double.infinity;
+    for (final DiscoveredNode n in visible) {
+      final Offset p = _GridPainter.positionFor(
+        node: n,
+        center: center,
+        maxR: maxR,
+        selfLat: selfLat,
+        selfLon: selfLon,
+      );
+      final double d = (p - tap).distance;
+      if (d <= _tapRadius && d < bestDist) {
+        best = n;
+        bestDist = d;
+      }
+    }
+    return best;
+  }
+
+  Future<void> _showDetail(
+      BuildContext ctx, MeshcoreController mc, DiscoveredNode n) async {
+    await showModalBottomSheet<void>(
+      context: ctx,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (BuildContext _) => NodeDetailSheet(
+        node: n,
+        distanceMeters: n.hasLocation
+            ? mc.distanceMetersTo(n.latitude!, n.longitude!)
+            : null,
+        isFavourite: mc.favorites.contains(n.pubKeyHex),
+        isKnown: mc.known.contains(n.pubKeyHex),
+        onToggleFavourite: () => mc.toggleFavorite(n.pubKeyHex),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final MeshcoreController mc = context.watch<MeshcoreController>();
@@ -91,7 +147,19 @@ class _GridScreenState extends State<GridScreen>
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Hyperlocal grid')),
+      appBar: AppBar(
+        title: const Text('Hyperlocal grid'),
+        actions: <Widget>[
+          IconButton(
+            tooltip: _legendVisible ? 'Hide legend' : 'Show legend',
+            icon: Icon(_legendVisible
+                ? Icons.info
+                : Icons.info_outline),
+            onPressed: () =>
+                setState(() => _legendVisible = !_legendVisible),
+          ),
+        ],
+      ),
       body: Column(
         children: <Widget>[
           Padding(
@@ -105,6 +173,7 @@ class _GridScreenState extends State<GridScreen>
               style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
             ),
           ),
+          if (_legendVisible) _GridLegend(cs: cs),
           const Divider(height: 1),
           Expanded(
             child: visible.isEmpty
@@ -122,41 +191,129 @@ class _GridScreenState extends State<GridScreen>
                     ),
                   )
                 : LayoutBuilder(
-                    builder: (BuildContext _, BoxConstraints c) =>
-                        AnimatedBuilder(
-                      animation: _tick,
-                      builder: (BuildContext _, Widget? __) =>
-                          CustomPaint(
-                        size: Size(c.maxWidth, c.maxHeight),
-                        painter: _GridPainter(
-                          nodes: visible,
-                          favorites: mc.favorites,
-                          known: mc.known,
-                          selfLat: mc.selfInfo?.latitude,
-                          selfLon: mc.selfInfo?.longitude,
-                          nowUnix: nowUnix,
-                          windowSec: windowSec,
-                          tick: _tick.value,
-                          reduceMotion: tc.reduceMotion,
-                          accent: cs.primary,
-                          subtle: cs.onSurface.withValues(alpha: .12),
-                          ringStroke: cs.outline.withValues(alpha: .35),
-                          base: cs.onSurfaceVariant,
-                          rippleAt: _rippleAt,
-                          rippleDuration: _rippleDuration,
+                    builder: (BuildContext _, BoxConstraints c) {
+                      final Size area =
+                          Size(c.maxWidth, c.maxHeight);
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTapDown: (TapDownDetails d) {
+                          final DiscoveredNode? hit = _hitTest(
+                            tap: d.localPosition,
+                            area: area,
+                            visible: visible,
+                            selfLat: mc.selfInfo?.latitude,
+                            selfLon: mc.selfInfo?.longitude,
+                          );
+                          if (hit != null) {
+                            _showDetail(context, mc, hit);
+                          }
+                        },
+                        child: AnimatedBuilder(
+                          animation: _tick,
+                          builder: (BuildContext _, Widget? __) =>
+                              CustomPaint(
+                            size: area,
+                            painter: _GridPainter(
+                              nodes: visible,
+                              favorites: mc.favorites,
+                              known: mc.known,
+                              selfLat: mc.selfInfo?.latitude,
+                              selfLon: mc.selfInfo?.longitude,
+                              nowUnix: nowUnix,
+                              windowSec: windowSec,
+                              tick: _tick.value,
+                              reduceMotion: tc.reduceMotion,
+                              accent: cs.primary,
+                              subtle: cs.onSurface.withValues(alpha: .12),
+                              ringStroke:
+                                  cs.outline.withValues(alpha: .35),
+                              base: cs.onSurfaceVariant,
+                              rippleAt: _rippleAt,
+                              rippleDuration: _rippleDuration,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
             child: Text(
               'Outer ring ≈ ${GridScreen.nominalRangeKm.toStringAsFixed(0)} km · '
-              'pulse = known · rapid blink = contact',
+              'tap a node for details · info icon for the legend',
               style: TextStyle(color: cs.onSurfaceVariant, fontSize: 11),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Toggleable legend overlay strip. Explains what the rings, the
+/// node glyphs, the animations, and the ripple mean — every cue is
+/// in here so a new user can decode the grid at a glance.
+class _GridLegend extends StatelessWidget {
+  const _GridLegend({required this.cs});
+  final ColorScheme cs;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(IconData icon, String text) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Icon(icon, size: 14, color: cs.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(text,
+                    style: TextStyle(
+                        color: cs.onSurface,
+                        fontSize: 12,
+                        height: 1.35)),
+              ),
+            ],
+          ),
+        );
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: cs.outline.withValues(alpha: .35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text('LEGEND',
+              style: TextStyle(
+                  color: cs.onSurfaceVariant,
+                  fontSize: 11,
+                  letterSpacing: 3)),
+          const SizedBox(height: 6),
+          row(Icons.adjust,
+              'Three concentric rings = distance bands. With GPS '
+              'on both ends, the outer ring is ~${GridScreen.nominalRangeKm.toStringAsFixed(0)} km. '
+              'Without GPS, rings are RSSI bands (near / mid / far).'),
+          row(Icons.my_location,
+              'Centre marker = you. Cross-hair = N-S / E-W guide.'),
+          row(Icons.circle,
+              'Dot = a fabric node we\'ve heard. Brightness = recency '
+              '(full = just now, fades to 0 over 24 h then disappears).'),
+          row(Icons.radio_button_checked,
+              'Pulse (slow growing halo) = a known node — we have had '
+              'a direct attributable exchange (DM) with them.'),
+          row(Icons.star,
+              'Rapid blink in alt-colour = a favourited contact.'),
+          row(Icons.waves,
+              'Centre-out ripple = an anonymous channel message (the '
+              'protocol doesn\'t attribute channel msgs to a sender).'),
+          row(Icons.touch_app,
+              'Tap a node to see details + Message / Favourite.'),
         ],
       ),
     );
@@ -198,9 +355,8 @@ class _GridPainter extends CustomPainter {
   final DateTime? rippleAt;
   final Duration rippleDuration;
 
-  bool _selfHasGps() =>
-      selfLat != null && selfLon != null &&
-      !(selfLat == 0 && selfLon == 0);
+  static bool _selfHasGpsStatic(double? lat, double? lon) =>
+      lat != null && lon != null && !(lat == 0 && lon == 0);
 
   /// Stable arbitrary angle from pubkey (so a node doesn't jump).
   static double _hashAngle(String pubKeyHex) {
@@ -216,6 +372,40 @@ class _GridPainter extends CustomPainter {
     if (rssi >= -60) return 0;
     if (rssi >= -90) return 1;
     return 2;
+  }
+
+  /// Pure position math — same logic the painter uses, exposed so
+  /// `GridScreen` can hit-test taps against the rendered fleet
+  /// without re-deriving it (no animation phase is involved, so this
+  /// is stable per node per snapshot).
+  static Offset positionFor({
+    required DiscoveredNode node,
+    required Offset center,
+    required double maxR,
+    required double? selfLat,
+    required double? selfLon,
+  }) {
+    final bool selfGps = _selfHasGpsStatic(selfLat, selfLon);
+    final double angle;
+    final double radius;
+    if (selfGps && node.hasLocation) {
+      final double dKm = geo.haversineMeters(
+              selfLat!, selfLon!, node.latitude!, node.longitude!) /
+          1000.0;
+      radius =
+          (dKm / GridScreen.nominalRangeKm).clamp(0.05, 1.0) * maxR;
+      angle = geo.bearingRadians(
+          selfLat, selfLon, node.latitude!, node.longitude!);
+    } else if (node.rssi != null) {
+      final int ringIdx = _ringFromRssi(node.rssi);
+      radius = maxR * <double>[1 / 3, 2 / 3, 1.0][ringIdx];
+      angle = _hashAngle(node.pubKeyHex);
+    } else {
+      radius = maxR;
+      angle = _hashAngle(node.pubKeyHex);
+    }
+    return center +
+        Offset(radius * math.sin(angle), -radius * math.cos(angle));
   }
 
   @override
@@ -269,34 +459,19 @@ class _GridPainter extends CustomPainter {
       }
     }
 
-    final bool selfGps = _selfHasGps();
-
     for (final DiscoveredNode n in nodes) {
       // Recency → brightness (linear 24h decay).
       final double age = (nowUnix - n.lastHeardUnix) / windowSec;
       final double bright = (1.0 - age).clamp(0.0, 1.0);
       if (bright <= 0) continue;
 
-      // Position.
-      final double angle;
-      final double radius;
-      if (selfGps && n.hasLocation) {
-        final double dKm = geo.haversineMeters(
-                selfLat!, selfLon!, n.latitude!, n.longitude!) /
-            1000.0;
-        radius = (dKm / GridScreen.nominalRangeKm).clamp(0.05, 1.0) * maxR;
-        angle = geo.bearingRadians(
-            selfLat!, selfLon!, n.latitude!, n.longitude!);
-      } else if (n.rssi != null) {
-        final int ringIdx = _ringFromRssi(n.rssi);
-        radius = maxR * <double>[1 / 3, 2 / 3, 1.0][ringIdx];
-        angle = _hashAngle(n.pubKeyHex);
-      } else {
-        radius = maxR; // abstract outer slot
-        angle = _hashAngle(n.pubKeyHex);
-      }
-      final Offset p = center +
-          Offset(radius * math.sin(angle), -radius * math.cos(angle));
+      final Offset p = positionFor(
+        node: n,
+        center: center,
+        maxR: maxR,
+        selfLat: selfLat,
+        selfLon: selfLon,
+      );
 
       final bool isFav = favorites.contains(n.pubKeyHex);
       final bool isKnown = known.contains(n.pubKeyHex);
