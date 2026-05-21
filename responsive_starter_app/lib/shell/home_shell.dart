@@ -209,40 +209,41 @@ class _SettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l = AppLocalizations.of(context);
     return ListView(
       children: <Widget>[
         ListTile(
           leading: const Icon(Icons.router_outlined),
-          title: const Text('Device configuration'),
-          subtitle: const Text('Meshcore radio & device (R7)'),
+          title: Text(l.settingsHubDevice),
+          subtitle: Text(l.settingsHubDeviceSub),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.push('/settings/device'),
         ),
         ListTile(
           leading: const Icon(Icons.tune),
-          title: const Text('App settings'),
-          subtitle: const Text('Connection, language, speech, data'),
+          title: Text(l.settingsHubApp),
+          subtitle: Text(l.settingsHubAppSub),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.push('/settings/app'),
         ),
         ListTile(
           leading: const Icon(Icons.palette_outlined),
-          title: const Text('Profile & personalization'),
-          subtitle: const Text('Theme, font size, audio, accessibility'),
+          title: Text(l.settingsHubProfile),
+          subtitle: Text(l.settingsHubProfileSub),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.push('/settings/profile'),
         ),
         ListTile(
           leading: const Icon(Icons.tag),
-          title: const Text('Channels'),
-          subtitle: const Text('Slots · name + PSK · #hashtag · active'),
+          title: Text(l.settingsHubChannels),
+          subtitle: Text(l.settingsHubChannelsSub),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.push('/settings/channels'),
         ),
         ListTile(
           leading: const Icon(Icons.bluetooth_searching),
-          title: const Text('Diagnostics & connect'),
-          subtitle: const Text('Connect a radio · frame log · M6 capture'),
+          title: Text(l.settingsHubDiagnostics),
+          subtitle: Text(l.settingsHubDiagnosticsSub),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.push('/settings/diagnostics'),
         ),

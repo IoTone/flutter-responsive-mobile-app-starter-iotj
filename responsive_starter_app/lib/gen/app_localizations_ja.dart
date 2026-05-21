@@ -532,4 +532,34 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get voicePreviewDisabledHint =>
       'プレビューを聴くには、アプリ設定で SPEECH を ON にしてください。';
+
+  @override
+  String get settingsHubDevice => 'デバイス設定';
+
+  @override
+  String get settingsHubDeviceSub => 'MeshCore ラジオ & デバイス (R7)';
+
+  @override
+  String get settingsHubApp => 'アプリ設定';
+
+  @override
+  String get settingsHubAppSub => '接続 · 言語 · 音声 · データ';
+
+  @override
+  String get settingsHubProfile => 'プロフィール & パーソナライズ';
+
+  @override
+  String get settingsHubProfileSub => 'テーマ · フォントサイズ · 音声 · アクセシビリティ';
+
+  @override
+  String get settingsHubChannels => 'チャンネル';
+
+  @override
+  String get settingsHubChannelsSub => 'スロット · 名前 + PSK · #ハッシュタグ · 有効';
+
+  @override
+  String get settingsHubDiagnostics => '診断 & 接続';
+
+  @override
+  String get settingsHubDiagnosticsSub => 'ラジオ接続 · フレームログ · M6 キャプチャ';
 }

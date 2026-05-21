@@ -223,5 +223,16 @@
   "voicePickerSystem": "System default",
   "voicePreview": "Try a phrase",
   "voicePreviewPhrase": "This is a Meshmore SNS voice preview.",
-  "voicePreviewDisabledHint": "Turn on SPEECH in App settings to audition a phrase."
+  "voicePreviewDisabledHint": "Turn on SPEECH in App settings to audition a phrase.",
+
+  "settingsHubDevice": "Device configuration",
+  "settingsHubDeviceSub": "Meshcore radio & device (R7)",
+  "settingsHubApp": "App settings",
+  "settingsHubAppSub": "Connection, language, speech, data",
+  "settingsHubProfile": "Profile & personalization",
+  "settingsHubProfileSub": "Theme, font size, audio, accessibility",
+  "settingsHubChannels": "Channels",
+  "settingsHubChannelsSub": "Slots · name + PSK · #hashtag · active",
+  "settingsHubDiagnostics": "Diagnostics & connect",
+  "settingsHubDiagnosticsSub": "Connect a radio · frame log · M6 capture"
 }

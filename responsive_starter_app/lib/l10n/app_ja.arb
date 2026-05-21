@@ -223,5 +223,16 @@
   "voicePickerSystem": "システム既定",
   "voicePreview": "サンプル再生",
   "voicePreviewPhrase": "これは Meshmore SNS の音声プレビューです。",
-  "voicePreviewDisabledHint": "プレビューを聴くには、アプリ設定で SPEECH を ON にしてください。"
+  "voicePreviewDisabledHint": "プレビューを聴くには、アプリ設定で SPEECH を ON にしてください。",
+
+  "settingsHubDevice": "デバイス設定",
+  "settingsHubDeviceSub": "MeshCore ラジオ & デバイス (R7)",
+  "settingsHubApp": "アプリ設定",
+  "settingsHubAppSub": "接続 · 言語 · 音声 · データ",
+  "settingsHubProfile": "プロフィール & パーソナライズ",
+  "settingsHubProfileSub": "テーマ · フォントサイズ · 音声 · アクセシビリティ",
+  "settingsHubChannels": "チャンネル",
+  "settingsHubChannelsSub": "スロット · 名前 + PSK · #ハッシュタグ · 有効",
+  "settingsHubDiagnostics": "診断 & 接続",
+  "settingsHubDiagnosticsSub": "ラジオ接続 · フレームログ · M6 キャプチャ"
 }

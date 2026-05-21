@@ -1063,6 +1063,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Turn on SPEECH in App settings to audition a phrase.'**
   String get voicePreviewDisabledHint;
+
+  /// No description provided for @settingsHubDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Device configuration'**
+  String get settingsHubDevice;
+
+  /// No description provided for @settingsHubDeviceSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Meshcore radio & device (R7)'**
+  String get settingsHubDeviceSub;
+
+  /// No description provided for @settingsHubApp.
+  ///
+  /// In en, this message translates to:
+  /// **'App settings'**
+  String get settingsHubApp;
+
+  /// No description provided for @settingsHubAppSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection, language, speech, data'**
+  String get settingsHubAppSub;
+
+  /// No description provided for @settingsHubProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile & personalization'**
+  String get settingsHubProfile;
+
+  /// No description provided for @settingsHubProfileSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme, font size, audio, accessibility'**
+  String get settingsHubProfileSub;
+
+  /// No description provided for @settingsHubChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get settingsHubChannels;
+
+  /// No description provided for @settingsHubChannelsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Slots · name + PSK · #hashtag · active'**
+  String get settingsHubChannelsSub;
+
+  /// No description provided for @settingsHubDiagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics & connect'**
+  String get settingsHubDiagnostics;
+
+  /// No description provided for @settingsHubDiagnosticsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect a radio · frame log · M6 capture'**
+  String get settingsHubDiagnosticsSub;
 }
 
 class _AppLocalizationsDelegate

@@ -574,4 +574,35 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get voicePreviewDisabledHint =>
       'Turn on SPEECH in App settings to audition a phrase.';
+
+  @override
+  String get settingsHubDevice => 'Device configuration';
+
+  @override
+  String get settingsHubDeviceSub => 'Meshcore radio & device (R7)';
+
+  @override
+  String get settingsHubApp => 'App settings';
+
+  @override
+  String get settingsHubAppSub => 'Connection, language, speech, data';
+
+  @override
+  String get settingsHubProfile => 'Profile & personalization';
+
+  @override
+  String get settingsHubProfileSub => 'Theme, font size, audio, accessibility';
+
+  @override
+  String get settingsHubChannels => 'Channels';
+
+  @override
+  String get settingsHubChannelsSub => 'Slots · name + PSK · #hashtag · active';
+
+  @override
+  String get settingsHubDiagnostics => 'Diagnostics & connect';
+
+  @override
+  String get settingsHubDiagnosticsSub =>
+      'Connect a radio · frame log · M6 capture';
 }
