@@ -96,6 +96,22 @@ class DashboardScreen extends StatelessWidget {
                         letterSpacing: 2,
                         fontWeight: FontWeight.w600)),
               ),
+              // Inline "SYNCING…" when the post-handshake drain is in
+              // flight. Surfaces the BLE round-trip work that runs for
+              // 1–3 s after a fresh link so it doesn't read as a
+              // freeze. Static glyph (no spinner) so widget tests'
+              // pumpAndSettle can still settle.
+              if (mc.state == MeshcoreConnectionState.ready &&
+                  mc.isDraining) ...<Widget>[
+                Icon(Icons.sync, size: 14, color: cs.primary),
+                const SizedBox(width: 4),
+                Text('SYNCING…',
+                    style: TextStyle(
+                        color: cs.primary,
+                        fontSize: 10,
+                        letterSpacing: 2)),
+                const SizedBox(width: 4),
+              ],
               if (mc.state == MeshcoreConnectionState.disconnected &&
                   !mc.isConnecting)
                 TextButton(

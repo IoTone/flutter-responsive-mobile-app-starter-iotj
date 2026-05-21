@@ -20,25 +20,66 @@ class PersonalizationScreen extends StatelessWidget {
       body: ListView(
           children: <Widget>[
             const _Section('THEME PRESET'),
+            // When High contrast is ON, the rendered theme is forced
+            // to SEELE regardless of which preset is selected. Hint
+            // the user so a tap that "does nothing" makes sense.
+            if (tc.highContrast)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      Icon(Icons.info_outline,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'High contrast is on — the SEELE high-contrast '
+                          'palette is forced regardless of your preset '
+                          'pick. Turn off High contrast below to use '
+                          'another theme.',
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface,
+                              fontSize: 12,
+                              height: 1.35),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             // Plain ListTile + onTap (rather than RadioGroup +
             // RadioListTile) — the latter wasn't reliably firing
             // `setPreset` in 3.35, so the chosen theme was a no-op.
             // We render the radio glyph by hand so the row visually
             // matches a RadioListTile.
             for (final MmThemePreset p in MmThemePreset.values)
-              ListTile(
-                dense: true,
-                onTap: () => tc.setPreset(p),
-                leading: Icon(
-                  tc.preset == p
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
-                  color: tc.preset == p
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
+              Opacity(
+                opacity: tc.highContrast ? 0.55 : 1.0,
+                child: ListTile(
+                  dense: true,
+                  onTap: () => tc.setPreset(p),
+                  leading: Icon(
+                    tc.preset == p
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_unchecked,
+                    color: tc.preset == p
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  title: Text(p.label),
+                  trailing: _Swatches(kMmPresets[p]!),
                 ),
-                title: Text(p.label),
-                trailing: _Swatches(kMmPresets[p]!),
               ),
             const Divider(),
           const _Section('TYPE'),

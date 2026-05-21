@@ -899,20 +899,33 @@ class MeshcoreController extends ChangeNotifier {
   int _drainSteps = 0;
   static const int _drainStepCap = 512; // runaway guard
 
+  /// True while the controller is in the middle of a SYNC drain
+  /// (post-handshake: pulling queued contacts/adverts/messages off the
+  /// radio). Exposed so the Dashboard can flag the initial 1–3 s
+  /// post-connect lag as "syncing…" rather than letting it feel like
+  /// a freeze.
+  bool get isDraining => _draining;
+
+  void _setDraining(bool v) {
+    if (_draining == v) return;
+    _draining = v;
+    notifyListeners();
+  }
+
   void _drainStart() {
     if (_draining) return;
-    _draining = true;
+    _setDraining(true);
     _drainSteps = 0;
     _drainStep();
   }
 
   void _drainStep() {
     if (++_drainSteps > _drainStepCap) {
-      _draining = false;
+      _setDraining(false);
       return;
     }
     unawaited(send(MeshcoreFrameCodec.syncNextMessage()).catchError((_) {
-      _draining = false;
+      _setDraining(false);
     }));
   }
 
@@ -925,7 +938,7 @@ class MeshcoreController extends ChangeNotifier {
     }
     if (!_draining) return;
     if (f is NoMoreMessagesFrame) {
-      _draining = false; // queue emptied
+      _setDraining(false); // queue emptied
     } else {
       // The frame we just received was the reply to our SYNC (a
       // queued contact/advert/message); pull the next one.
