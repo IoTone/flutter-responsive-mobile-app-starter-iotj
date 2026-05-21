@@ -9,6 +9,7 @@ import 'package:meshmore_sns_app/cue/cue_service.dart';
 import 'package:meshmore_sns_app/meshcore/background_keepalive.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/perms/first_run_controller.dart';
+import 'package:meshmore_sns_app/perms/location_service.dart';
 import 'package:meshmore_sns_app/perms/permissions_service.dart';
 import 'package:meshmore_sns_app/screens/first_run_intro_screen.dart';
 import 'package:meshmore_sns_app/theme/theme_controller.dart';
@@ -40,6 +41,7 @@ void main() {
           ChangeNotifierProvider<MeshcoreController>(
             create: (_) => MeshcoreController(
               backgroundKeepalive: createBackgroundKeepalive(),
+              locationService: const GeolocatorLocationService(),
             )..autoConnectIfPaired(),
           ),
           Provider<PermissionsService>(

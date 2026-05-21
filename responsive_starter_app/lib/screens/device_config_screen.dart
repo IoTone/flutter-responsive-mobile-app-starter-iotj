@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
+import '../meshcore/own_location.dart';
+import '../perms/permissions_service.dart';
 
 /// Device configuration (R7) + LoRa region selection (R15). The
 /// **Radio / Region** section is wired to the M4 protocol surface
@@ -119,6 +121,70 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     } catch (e) {
       _toast('Send failed: $e');
     }
+  }
+
+  /// R22 / U13 — read the device's own SelfInfo lat/lon back into
+  /// the form (in case the user typed something and wants to revert
+  /// to what the device is currently reporting).
+  void _readDeviceLocation(MeshcoreController mc) {
+    final SelfInfo? s = mc.selfInfo;
+    if (s == null) {
+      _toast('Device hasn\'t reported yet — try once linked');
+      return;
+    }
+    if (s.latitude == 0 && s.longitude == 0) {
+      _toast('Device has no location yet (no GPS fix)');
+      return;
+    }
+    setState(() {
+      _lat.text = s.latitude.toString();
+      _lon.text = s.longitude.toString();
+    });
+    _toast('Loaded device location · tap Set advert location to broadcast');
+  }
+
+  /// R22 / U13 — request a one-shot phone-GPS fix and populate the
+  /// lat/lon fields with it. Permission is requested just-in-time
+  /// (we don't ask at first-run; the user only pays the permission
+  /// cost if they actually take this action).
+  Future<void> _usePhoneLocation(MeshcoreController mc) async {
+    final PermissionsService perms = context.read<PermissionsService>();
+    final PermissionResult r = await perms.requestLocation();
+    if (!mounted) return;
+    if (r != PermissionResult.granted &&
+        r != PermissionResult.notApplicable) {
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: Text(r == PermissionResult.permanentlyDenied
+              ? 'Location permission permanently denied — open OS '
+                  'settings to grant it.'
+              : 'Location permission needed for a phone GPS fix.'),
+          action: SnackBarAction(
+            label: 'Open settings',
+            onPressed: () => perms.openAppSettingsPage(),
+          ),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+      return;
+    }
+    _toast('Getting phone GPS fix…');
+    final bool ok = await mc.requestPhoneLocationFix();
+    if (!mounted) return;
+    if (!ok) {
+      _toast('Phone GPS fix failed (services off or timeout)');
+      return;
+    }
+    final OwnLocation? loc = mc.phoneLocationFix;
+    if (loc == null) {
+      _toast('No fix returned');
+      return;
+    }
+    setState(() {
+      _lat.text = loc.latitude.toStringAsFixed(6);
+      _lon.text = loc.longitude.toStringAsFixed(6);
+    });
+    _toast('Got phone location · tap Set advert location to broadcast');
   }
 
   Future<void> _applyLocation(MeshcoreController mc) async {
@@ -311,6 +377,27 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
           ),
           num('Advert latitude (°)', _lat, 'e.g. 35.681'),
           num('Advert longitude (°)', _lon, 'e.g. 139.767'),
+          // R22 / U13 — populate-the-field actions (no broadcast).
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.smartphone, size: 16),
+                  label: const Text('Use phone location'),
+                  onPressed: () => _usePhoneLocation(mc),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.developer_board, size: 16),
+                  label: const Text('Read device location'),
+                  onPressed: () => _readDeviceLocation(mc),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton.icon(

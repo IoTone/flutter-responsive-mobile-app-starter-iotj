@@ -17,6 +17,7 @@ import 'meshcore_connection.dart';
 import 'own_location.dart';
 import 'paired_device_store.dart';
 import 'reconnect_policy.dart';
+import '../perms/location_service.dart';
 import '../util/geo.dart' as geo;
 
 /// App-facing facade over [MeshcoreConnection], exposed via Provider.
@@ -31,13 +32,15 @@ class MeshcoreController extends ChangeNotifier {
     ReconnectPolicy? reconnectPolicy,
     Future<void> Function(Duration)? reconnectDelay,
     BackgroundKeepalive? backgroundKeepalive,
+    LocationService? locationService,
   })  : _transportFactory =
             transportFactory ?? BleConnector.autoConnect,
         _keepalive =
             backgroundKeepalive ?? const NoopBackgroundKeepalive(),
         _connection = connection ?? MeshcoreConnection(),
         _reconnect = reconnectPolicy ?? ReconnectPolicy(),
-        _delay = reconnectDelay ?? Future<void>.delayed {
+        _delay = reconnectDelay ?? Future<void>.delayed,
+        _location = locationService ?? NoopLocationService() {
     _statesSub = _connection.states.listen((MeshcoreConnectionState s) {
       _state = s;
       notifyListeners();
@@ -249,6 +252,8 @@ class MeshcoreController extends ChangeNotifier {
 
   final ReconnectPolicy _reconnect;
   final Future<void> Function(Duration) _delay;
+  final LocationService _location;
+  OwnLocation? _phoneFix;
 
   MeshcoreConnectionState _state = MeshcoreConnectionState.disconnected;
   MeshcoreInbound? _lastFrame;
@@ -263,28 +268,59 @@ class MeshcoreController extends ChangeNotifier {
   MeshcoreInbound? get lastFrame => _lastFrame;
   SelfInfo? get selfInfo => _connection.selfInfo;
 
-  /// Phase A — own location resolved **device-first**. The MeshCore
-  /// `SelfInfo` response carries a `latitude`/`longitude` pair which
-  /// the device populates from its onboard GPS (or from a manually-
-  /// pinned advert location). We treat exactly `(0, 0)` as unset
-  /// — the canonical "no fix yet" sentinel the firmware initializes
-  /// to (yes, that's technically a real point in the Gulf of Guinea,
-  /// but no real deployment is there and the embedded code uses it
-  /// as a null).
+  /// Own location resolved **device-first**, then phone-fallback.
+  /// The MeshCore `SelfInfo` response carries a `latitude`/`longitude`
+  /// pair which the device populates from its onboard GPS (or from a
+  /// manually-pinned advert location). We treat exactly `(0, 0)` as
+  /// unset — the canonical "no fix yet" sentinel the firmware
+  /// initialises to.
   ///
-  /// Phase B (= U13) will let a phone-GPS one-shot or a manual entry
-  /// override this; the source enum captures provenance for the UI.
+  /// When the device reports unset (or hasn't responded yet), we
+  /// fall back to a one-shot phone fix captured by
+  /// [requestPhoneLocationFix] (Phase B / R22).
   OwnLocation? get ownLocation {
     final SelfInfo? si = selfInfo;
-    if (si == null) return null;
-    if (si.latitude.abs() < 1e-9 && si.longitude.abs() < 1e-9) {
-      return null;
+    if (si != null &&
+        !(si.latitude.abs() < 1e-9 && si.longitude.abs() < 1e-9)) {
+      return OwnLocation(
+        latitude: si.latitude,
+        longitude: si.longitude,
+        source: OwnLocationSource.deviceReported,
+      );
     }
-    return OwnLocation(
-      latitude: si.latitude,
-      longitude: si.longitude,
-      source: OwnLocationSource.deviceReported,
+    return _phoneFix;
+  }
+
+  /// The cached one-shot phone-GPS fix, if any. Cleared by
+  /// [clearPhoneLocationFix]. Used as the fallback inside
+  /// [ownLocation] when the device hasn't reported a fix.
+  OwnLocation? get phoneLocationFix => _phoneFix;
+
+  /// R22 / U13 — capture a single phone-GPS fix and cache it as
+  /// our fallback own-location. The caller is expected to have
+  /// already obtained the location permission (typically via
+  /// `PermissionsService.requestLocation`); this method just talks
+  /// to the [LocationService]. Returns true on success.
+  Future<bool> requestPhoneLocationFix({
+    Duration timeLimit = const Duration(seconds: 15),
+  }) async {
+    final PhoneFix? fix = await _location.currentFix(timeLimit: timeLimit);
+    if (fix == null) return false;
+    _phoneFix = OwnLocation(
+      latitude: fix.latitude,
+      longitude: fix.longitude,
+      source: OwnLocationSource.phoneFix,
     );
+    notifyListeners();
+    return true;
+  }
+
+  /// Wipes the cached phone fix (so [ownLocation] reverts to
+  /// device-reported, or null if neither is available).
+  void clearPhoneLocationFix() {
+    if (_phoneFix == null) return;
+    _phoneFix = null;
+    notifyListeners();
   }
 
   /// Great-circle distance (m) from our own location to the given

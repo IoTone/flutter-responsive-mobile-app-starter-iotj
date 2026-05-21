@@ -53,5 +53,10 @@
 		<string>Meshmore SNS uses Bluetooth to communicate with your Meshcore mesh radio.</string>
 		<key>NSBluetoothPeripheralUsageDescription</key>
 		<string>Meshmore SNS uses Bluetooth to communicate with your Meshcore mesh radio.</string>
+
+		<!-- Location usage string for R22 / U13 — one-shot phone GPS
+		     as a fallback when the MeshCore device has no fix. -->
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Meshmore SNS uses your location as a one-shot fix to populate the advertised location when your MeshCore radio has no GPS.</string>
 	</dict>
 </plist>

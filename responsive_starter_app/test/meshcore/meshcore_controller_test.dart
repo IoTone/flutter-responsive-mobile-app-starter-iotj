@@ -5,6 +5,8 @@ import 'package:meshmore_sns_app/meshcore/favorite_store.dart';
 import 'package:meshmore_sns_app/meshcore/known_store.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
+import 'package:meshmore_sns_app/meshcore/own_location.dart';
+import 'package:meshmore_sns_app/perms/location_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fake_transport.dart';
@@ -68,6 +70,64 @@ void main() {
         ctrl.distanceMetersTo(37.421 + 0.009, -122.084);
     expect(d1, isNotNull);
     expect(d1!, inInclusiveRange(900, 1100));
+    ctrl.dispose();
+  });
+
+  test('phone fix is used as ownLocation fallback when device unset; '
+      'device fix overrides it once it arrives', () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final NoopLocationService loc =
+        NoopLocationService(next: const PhoneFix(latitude: 1.0, longitude: 2.0));
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+      locationService: loc,
+    );
+    await ctrl.connect();
+    fake.emit(selfInfoFrame()); // device says (0,0) → unset
+    await Future<void>.delayed(Duration.zero);
+    expect(ctrl.ownLocation, isNull);
+
+    final bool ok = await ctrl.requestPhoneLocationFix();
+    expect(ok, isTrue);
+    expect(loc.callCount, 1);
+    expect(ctrl.ownLocation, isNotNull);
+    expect(ctrl.ownLocation!.source, OwnLocationSource.phoneFix);
+    expect(ctrl.ownLocation!.latitude, closeTo(1.0, 1e-6));
+
+    // Device now reports a real fix → it takes precedence.
+    fake.emit(selfInfoFrameAt(lat: 37.421, lon: -122.084));
+    await Future<void>.delayed(Duration.zero);
+    expect(ctrl.ownLocation!.source, OwnLocationSource.deviceReported);
+    expect(ctrl.ownLocation!.latitude, closeTo(37.421, 1e-5));
+
+    // Clearing the phone fix doesn't affect device-reported.
+    ctrl.clearPhoneLocationFix();
+    expect(ctrl.ownLocation!.source, OwnLocationSource.deviceReported);
+    expect(ctrl.phoneLocationFix, isNull);
+    ctrl.dispose();
+  });
+
+  test('requestPhoneLocationFix returns false when service has no fix',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final NoopLocationService loc = NoopLocationService(); // next == null
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+      locationService: loc,
+    );
+    // Drain the constructor's async pref loads (_loadBackgroundPref,
+    // ChatStore restore) before exercising the controller, otherwise
+    // a late notifyListeners fires on a disposed ChangeNotifier.
+    await Future<void>.delayed(Duration.zero);
+    final bool ok = await ctrl.requestPhoneLocationFix();
+    expect(ok, isFalse);
+    expect(ctrl.ownLocation, isNull);
     ctrl.dispose();
   });
 

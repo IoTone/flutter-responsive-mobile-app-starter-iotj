@@ -25,6 +25,12 @@ abstract class PermissionsService {
   Future<bool> notificationsGranted();
   Future<PermissionResult> requestNotifications();
 
+  /// R22 / U13 — when-in-use location for the phone-GPS one-shot
+  /// fallback. Maps to `ACCESS_FINE_LOCATION` (Android) /
+  /// `NSLocationWhenInUseUsageDescription` (iOS).
+  Future<bool> locationGranted();
+  Future<PermissionResult> requestLocation();
+
   /// Opens the OS app-settings page so the user can flip a
   /// permanently-denied permission back on.
   Future<void> openAppSettingsPage();
@@ -36,9 +42,11 @@ class NoopPermissionsService implements PermissionsService {
   NoopPermissionsService({
     this.ble = true,
     this.notifications = true,
+    this.location = true,
   });
   bool ble;
   bool notifications;
+  bool location;
 
   @override
   Future<bool> bleGranted() async => ble;
@@ -50,6 +58,11 @@ class NoopPermissionsService implements PermissionsService {
   @override
   Future<PermissionResult> requestNotifications() async =>
       notifications ? PermissionResult.granted : PermissionResult.denied;
+  @override
+  Future<bool> locationGranted() async => location;
+  @override
+  Future<PermissionResult> requestLocation() async =>
+      location ? PermissionResult.granted : PermissionResult.denied;
   @override
   Future<void> openAppSettingsPage() async {}
 }
@@ -98,6 +111,20 @@ class PlatformPermissionsService implements PermissionsService {
   Future<PermissionResult> requestNotifications() async {
     final ph.PermissionStatus s =
         await ph.Permission.notification.request();
+    return _map(s);
+  }
+
+  @override
+  Future<bool> locationGranted() async {
+    final ph.PermissionStatus s =
+        await ph.Permission.locationWhenInUse.status;
+    return _isGranted(s);
+  }
+
+  @override
+  Future<PermissionResult> requestLocation() async {
+    final ph.PermissionStatus s =
+        await ph.Permission.locationWhenInUse.request();
     return _map(s);
   }
 

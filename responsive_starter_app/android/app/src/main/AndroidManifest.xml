@@ -10,9 +10,14 @@
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <!-- Required on Android <= 11 for BLE scan results. -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
-        android:maxSdkVersion="30" />
+    <!-- Location (R22 / U13). Required on Android <= 11 for BLE scan
+         results AND required on all SDKs for the phone-GPS one-shot
+         fallback when the MeshCore device has no fix. We drop the
+         `maxSdkVersion=30` cap so geolocator can request it on
+         Android 12+ too; BLE is unaffected because we declare
+         `BLUETOOTH_SCAN` with `usesPermissionFlags="neverForLocation"`. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
 
