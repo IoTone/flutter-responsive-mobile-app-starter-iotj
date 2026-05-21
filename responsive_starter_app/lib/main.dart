@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import 'package:meshmore_sns_app/app_router.dart';
 import 'package:meshmore_sns_app/app_state_model.dart';
+import 'package:meshmore_sns_app/cue/asset_audio_pack.dart';
 import 'package:meshmore_sns_app/cue/cue_service.dart';
 import 'package:meshmore_sns_app/meshcore/background_keepalive.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
@@ -37,8 +38,15 @@ void main() {
             create: (_) => TtsController()..load(),
           ),
           Provider<CueService>(
-            create: (BuildContext ctx) =>
-                CueService(theme: ctx.read<ThemeController>()),
+            create: (BuildContext ctx) {
+              final ThemeController tc = ctx.read<ThemeController>();
+              return CueService(
+                theme: tc,
+                // R12 per-theme audio: pull WAV cues from
+                // assets/audio/<themeKey>/<cue>.wav at play time.
+                audio: AssetAudioPack(theme: tc),
+              );
+            },
           ),
           ChangeNotifierProvider<MeshcoreController>(
             create: (_) => MeshcoreController(

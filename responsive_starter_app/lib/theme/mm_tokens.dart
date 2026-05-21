@@ -18,6 +18,19 @@ extension MmThemePresetX on MmThemePreset {
         MmThemePreset.drPop => 'DR Pop',
         MmThemePreset.recon => 'Recon Night',
       };
+
+  /// Asset-folder slug for the R12 per-theme audio pack. Used by
+  /// `AssetAudioPack` to resolve `assets/audio/<key>/<cue>.wav`.
+  /// Also matches the slugs used in `brand/_audio_pack.py` and in
+  /// the per-theme grid mockups (`brand/_grid_mockup.py`).
+  String get audioPackKey => switch (this) {
+        MmThemePreset.nerv => 'nerv',
+        MmThemePreset.agHud => 'aghud',
+        MmThemePreset.hyperlocal => 'hyperlocal',
+        MmThemePreset.seele => 'seele',
+        MmThemePreset.drPop => 'drpop',
+        MmThemePreset.recon => 'recon',
+      };
 }
 
 /// Preset-independent semantic colour contract. Every preset supplies

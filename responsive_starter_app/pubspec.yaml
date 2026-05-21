@@ -66,6 +66,9 @@ dependencies:
   # --- Text-to-Speech (R5, off by default) ---
   flutter_tts: ^4.2.2
 
+  # --- Per-theme audio cue assets (R12) ---
+  audioplayers: ^6.1.0
+
   # --- Settings persistence (R7) ---
   shared_preferences: ^2.3.3
 
@@ -101,6 +104,14 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
       - assets/images/icon-192.png
+      # R12 per-theme audio cue packs — 7 WAVs per theme, synth'd
+      # offline by brand/_audio_pack.py.
+      - assets/audio/seele/
+      - assets/audio/nerv/
+      - assets/audio/aghud/
+      - assets/audio/hyperlocal/
+      - assets/audio/drpop/
+      - assets/audio/recon/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
