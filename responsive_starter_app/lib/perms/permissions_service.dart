@@ -58,10 +58,18 @@ class NoopPermissionsService implements PermissionsService {
 class PlatformPermissionsService implements PermissionsService {
   const PlatformPermissionsService();
 
+  /// On Android 12+ (API 31+) the granular `BLUETOOTH_SCAN` /
+  /// `BLUETOOTH_CONNECT` runtime permissions are what we actually
+  /// need. The legacy `Permission.bluetooth` maps to the pre-31
+  /// install-time `android.permission.BLUETOOTH` — which our
+  /// manifest declares with `maxSdkVersion="30"`, so on modern
+  /// Android requesting it makes `permission_handler` log
+  /// "Bluetooth permission missing in manifest" and surface a UI
+  /// error. We omit it; pre-31 devices are still covered by the
+  /// manifest's install-time `BLUETOOTH` / `BLUETOOTH_ADMIN`.
   static const List<ph.Permission> _bleSet = <ph.Permission>[
     ph.Permission.bluetoothScan,
     ph.Permission.bluetoothConnect,
-    ph.Permission.bluetooth,
   ];
 
   @override
