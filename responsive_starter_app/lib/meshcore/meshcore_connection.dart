@@ -131,10 +131,16 @@ class MeshcoreConnection {
   void _onFrame(Uint8List bytes) {
     if (!_rawInbound.isClosed) _rawInbound.add(Uint8List.fromList(bytes));
     final MeshcoreInbound frame = MeshcoreFrameCodec.decode(bytes);
+    if (frame is SelfInfoFrame) {
+      // Always cache the latest SelfInfo — the device can update us
+      // post-handshake (e.g. when it eventually acquires a GPS fix
+      // while the link is live), and downstream getters
+      // (`MeshcoreController.ownLocation`) want the freshest copy.
+      _selfInfo = frame.selfInfo;
+    }
     if (_state == MeshcoreConnectionState.handshaking &&
         frame is SelfInfoFrame) {
       _handshakeTimer?.cancel();
-      _selfInfo = frame.selfInfo;
       _setState(MeshcoreConnectionState.ready);
     }
     if (!_inbound.isClosed) _inbound.add(frame);

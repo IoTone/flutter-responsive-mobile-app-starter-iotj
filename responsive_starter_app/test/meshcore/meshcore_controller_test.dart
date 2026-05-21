@@ -35,6 +35,42 @@ void main() {
     ctrl.dispose();
   });
 
+  test('ownLocation is null when SelfInfo carries (0, 0) and resolves '
+      'to deviceReported when the device returns a non-zero fix',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    await ctrl.connect();
+    fake.emit(selfInfoFrame()); // lat=0, lon=0
+    await Future<void>.delayed(Duration.zero);
+    expect(ctrl.selfInfo, isNotNull);
+    expect(ctrl.ownLocation, isNull,
+        reason: '(0,0) is the unset sentinel');
+
+    fake.emit(selfInfoFrameAt(lat: 37.421, lon: -122.084));
+    await Future<void>.delayed(Duration.zero);
+    expect(ctrl.ownLocation, isNotNull);
+    expect(ctrl.ownLocation!.latitude, closeTo(37.421, 1e-5));
+    expect(ctrl.ownLocation!.longitude, closeTo(-122.084, 1e-5));
+
+    // Distance to a known point: ~0 km away from itself.
+    final double? d0 =
+        ctrl.distanceMetersTo(37.421, -122.084);
+    expect(d0, closeTo(0.0, 1.0));
+
+    // Distance ~1 km north (lat + ~0.009° ≈ 1 km).
+    final double? d1 =
+        ctrl.distanceMetersTo(37.421 + 0.009, -122.084);
+    expect(d1, isNotNull);
+    expect(d1!, inInclusiveRange(900, 1100));
+    ctrl.dispose();
+  });
+
   test('connect() surfaces transport factory failure', () async {
     final MeshcoreController ctrl = MeshcoreController(
       transportFactory: () async => throw StateError('no device'),

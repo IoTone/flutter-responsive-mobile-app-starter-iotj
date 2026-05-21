@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
+import '../util/geo.dart' as geo;
 
 /// Nodes "in the area" — the hyperlocal-discovery view (R6/R8).
 ///
@@ -201,15 +202,28 @@ class NodesScreen extends StatelessWidget {
                             ),
                         ],
                       ),
-                      subtitle: Text(<String>[
-                        n.typeLabel,
-                        if (n.signalLabel.isNotEmpty) n.signalLabel,
-                        if (n.hasLocation)
-                          '${n.latitude!.toStringAsFixed(4)},'
-                              '${n.longitude!.toStringAsFixed(4)}',
-                        n.shortId,
-                      ].join(' · '),
-                          style: TextStyle(color: cs.onSurfaceVariant)),
+                      subtitle: Builder(builder: (BuildContext _) {
+                        // Compute distance only when both endpoints
+                        // have lat/lon — microsecond cost per visible
+                        // row, no background machinery needed.
+                        String? distance;
+                        if (n.hasLocation) {
+                          distance = geo.formatDistance(
+                              mc.distanceMetersTo(
+                                  n.latitude!, n.longitude!));
+                        }
+                        return Text(<String>[
+                          n.typeLabel,
+                          if (n.signalLabel.isNotEmpty) n.signalLabel,
+                          if (distance != null) distance,
+                          if (n.hasLocation)
+                            '${n.latitude!.toStringAsFixed(4)},'
+                                '${n.longitude!.toStringAsFixed(4)}',
+                          n.shortId,
+                        ].join(' · '),
+                            style:
+                                TextStyle(color: cs.onSurfaceVariant));
+                      }),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[

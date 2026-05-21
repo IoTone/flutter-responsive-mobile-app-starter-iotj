@@ -10,6 +10,7 @@ import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../theme/theme_controller.dart';
+import '../util/geo.dart' as geo;
 
 /// R18 / U9 — the hyperlocal grid: a radial range-ring view of the
 /// mesh **fabric** relative to us. Brightness = recency (100 % at
@@ -201,31 +202,6 @@ class _GridPainter extends CustomPainter {
       selfLat != null && selfLon != null &&
       !(selfLat == 0 && selfLon == 0);
 
-  /// Great-circle distance in km.
-  static double _haversineKm(double a, double b, double c, double d) {
-    const double r = 6371.0;
-    final double dLat = (c - a) * math.pi / 180;
-    final double dLon = (d - b) * math.pi / 180;
-    final double x = math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(a * math.pi / 180) *
-            math.cos(c * math.pi / 180) *
-            math.sin(dLon / 2) *
-            math.sin(dLon / 2);
-    return r * 2 * math.atan2(math.sqrt(x), math.sqrt(1 - x));
-  }
-
-  /// Initial bearing in radians from north (clockwise).
-  static double _bearingRad(double a, double b, double c, double d) {
-    final double p1 = a * math.pi / 180;
-    final double p2 = c * math.pi / 180;
-    final double dLon = (d - b) * math.pi / 180;
-    final double y = math.sin(dLon) * math.cos(p2);
-    final double x =
-        math.cos(p1) * math.sin(p2) -
-            math.sin(p1) * math.cos(p2) * math.cos(dLon);
-    return math.atan2(y, x);
-  }
-
   /// Stable arbitrary angle from pubkey (so a node doesn't jump).
   static double _hashAngle(String pubKeyHex) {
     final String head =
@@ -305,10 +281,11 @@ class _GridPainter extends CustomPainter {
       final double angle;
       final double radius;
       if (selfGps && n.hasLocation) {
-        final double dKm = _haversineKm(
-            selfLat!, selfLon!, n.latitude!, n.longitude!);
+        final double dKm = geo.haversineMeters(
+                selfLat!, selfLon!, n.latitude!, n.longitude!) /
+            1000.0;
         radius = (dKm / GridScreen.nominalRangeKm).clamp(0.05, 1.0) * maxR;
-        angle = _bearingRad(
+        angle = geo.bearingRadians(
             selfLat!, selfLon!, n.latitude!, n.longitude!);
       } else if (n.rssi != null) {
         final int ringIdx = _ringFromRssi(n.rssi);

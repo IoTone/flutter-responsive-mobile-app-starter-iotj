@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:provider/provider.dart';
 
@@ -6,6 +7,7 @@ import '../meshcore/discovered_node.dart';
 import '../meshcore/mesh_event.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
+import '../meshcore/own_location.dart';
 
 /// R8 home — "SEELE Monolith" dashboard: one dominant numeral
 /// (peers in range), a full-width status slab that colour-inverts on
@@ -132,6 +134,11 @@ class DashboardScreen extends StatelessWidget {
               style:
                   TextStyle(color: cs.onSurfaceVariant, fontSize: 12)),
         ],
+        // Location surface (Phase A) — pulled from the device's
+        // SelfInfo when present, otherwise flagged as unset with a
+        // "Configure" CTA into Device config (manual lat/lon entry).
+        const SizedBox(height: 18),
+        _LocationTile(mc: mc),
         if (mc.batteryMillivolts != null) ...<Widget>[
           const SizedBox(height: 18),
           Text('BATTERY',
@@ -184,6 +191,68 @@ class DashboardScreen extends StatelessWidget {
                   ],
                 ),
               )),
+      ],
+    );
+  }
+}
+
+/// Dashboard "LOCATION" tile (Phase A). Three states:
+///   - device reported a non-zero fix → green dot + coordinates +
+///     source label ("device").
+///   - device responded but lat/lon are (0,0) → "not set" with a
+///     **Configure** CTA into Device config (manual entry).
+///   - device hasn't reported SelfInfo yet → muted "awaiting".
+class _LocationTile extends StatelessWidget {
+  const _LocationTile({required this.mc});
+  final MeshcoreController mc;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final OwnLocation? loc = mc.ownLocation;
+    final SelfInfo? si = mc.selfInfo;
+    final bool awaitingSelf = si == null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text('LOCATION',
+            style: TextStyle(
+                color: cs.onSurfaceVariant,
+                fontSize: 12,
+                letterSpacing: 4)),
+        const SizedBox(height: 4),
+        if (loc != null)
+          Text(
+            '${loc.latitude.toStringAsFixed(5)}, '
+            '${loc.longitude.toStringAsFixed(5)}\n'
+            'source · ${loc.sourceLabel}',
+            style: TextStyle(
+                color: cs.onSurface,
+                fontFamily: 'monospace',
+                height: 1.5),
+          )
+        else if (awaitingSelf)
+          Text('— awaiting device location —',
+              style: TextStyle(color: cs.onSurfaceVariant))
+        else
+          Row(
+            children: <Widget>[
+              Icon(Icons.location_off,
+                  size: 18, color: cs.error),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Not set — neither device nor phone fix yet',
+                  style: TextStyle(color: cs.onSurface),
+                ),
+              ),
+              TextButton(
+                onPressed: () => context.push('/settings/device'),
+                child: const Text('CONFIGURE'),
+              ),
+            ],
+          ),
       ],
     );
   }

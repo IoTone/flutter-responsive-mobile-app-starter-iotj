@@ -14,8 +14,10 @@ import 'favorite_store.dart';
 import 'known_store.dart';
 import 'mesh_event.dart';
 import 'meshcore_connection.dart';
+import 'own_location.dart';
 import 'paired_device_store.dart';
 import 'reconnect_policy.dart';
+import '../util/geo.dart' as geo;
 
 /// App-facing facade over [MeshcoreConnection], exposed via Provider.
 ///
@@ -260,6 +262,41 @@ class MeshcoreController extends ChangeNotifier {
   MeshcoreConnectionState get state => _state;
   MeshcoreInbound? get lastFrame => _lastFrame;
   SelfInfo? get selfInfo => _connection.selfInfo;
+
+  /// Phase A — own location resolved **device-first**. The MeshCore
+  /// `SelfInfo` response carries a `latitude`/`longitude` pair which
+  /// the device populates from its onboard GPS (or from a manually-
+  /// pinned advert location). We treat exactly `(0, 0)` as unset
+  /// — the canonical "no fix yet" sentinel the firmware initializes
+  /// to (yes, that's technically a real point in the Gulf of Guinea,
+  /// but no real deployment is there and the embedded code uses it
+  /// as a null).
+  ///
+  /// Phase B (= U13) will let a phone-GPS one-shot or a manual entry
+  /// override this; the source enum captures provenance for the UI.
+  OwnLocation? get ownLocation {
+    final SelfInfo? si = selfInfo;
+    if (si == null) return null;
+    if (si.latitude.abs() < 1e-9 && si.longitude.abs() < 1e-9) {
+      return null;
+    }
+    return OwnLocation(
+      latitude: si.latitude,
+      longitude: si.longitude,
+      source: OwnLocationSource.deviceReported,
+    );
+  }
+
+  /// Great-circle distance (m) from our own location to the given
+  /// point, or `null` when we don't have an own location yet.
+  /// Lazy by construction — call this from a `ListView.builder`
+  /// row and only visible rows pay the (microsecond) cost.
+  double? distanceMetersTo(double targetLat, double targetLon) {
+    final OwnLocation? own = ownLocation;
+    if (own == null) return null;
+    return geo.haversineMeters(
+        own.latitude, own.longitude, targetLat, targetLon);
+  }
   String? get error => _error;
   bool get isConnecting => _connecting;
   bool get isReady => _state == MeshcoreConnectionState.ready;

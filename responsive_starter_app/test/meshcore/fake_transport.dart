@@ -71,6 +71,20 @@ class FakeMeshcoreTransport implements MeshcoreTransport {
 /// empty trailing name. Decodes to a `SelfInfoFrame`.
 Uint8List selfInfoFrame() => Uint8List(58)..[0] = 0x05;
 
+/// SELF_INFO (0x05) frame carrying a non-zero device location.
+/// `lat` / `lon` are in degrees; we encode them as i32 micros LE
+/// at the same byte offsets the firmware uses (lat = bytes 36..39,
+/// lon = bytes 40..43; layout from `_decodeSelfInfo`).
+Uint8List selfInfoFrameAt({required double lat, required double lon}) {
+  final Uint8List f = Uint8List(58)..[0] = 0x05;
+  final int latMicros = (lat * 1e6).round();
+  final int lonMicros = (lon * 1e6).round();
+  final ByteData bd = ByteData.view(f.buffer);
+  bd.setInt32(36, latMicros, Endian.little);
+  bd.setInt32(40, lonMicros, Endian.little);
+  return f;
+}
+
 /// CURR_TIME (0x09) frame for unix = 1700000000 (0x6553F100 LE).
 Uint8List currentTimeFrame() =>
     Uint8List.fromList(<int>[0x09, 0x00, 0xF1, 0x53, 0x65]);
