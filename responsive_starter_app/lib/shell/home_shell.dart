@@ -261,17 +261,38 @@ class _AboutView extends StatelessWidget {
             Text('MESHMORE SNS',
                 style: TextStyle(
                     fontSize: 22, letterSpacing: 4, color: cs.onSurface)),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
+            Text('(Socialrobot Network Service)',
+                style: TextStyle(
+                    fontSize: 13,
+                    color: cs.onSurface.withValues(alpha: .8))),
+            const SizedBox(height: 2),
+            Text('(ソーシャルロボット・ネットワークサービス)',
+                style: TextStyle(
+                    fontSize: 13,
+                    color: cs.onSurface.withValues(alpha: .65))),
+            const SizedBox(height: 14),
             Text('v${app.getAppVersion()}',
                 style:
                     TextStyle(color: cs.onSurface.withValues(alpha: .6))),
             const SizedBox(height: 16),
             Text(
-              'A Meshcore companion client.\nCopyright IoTone Japan 2026.\n'
-              'Terms & Conditions — wired in U5.',
+              'A MeshCore companion client.\n'
+              'Copyright (c) 2026 IoTone, Inc.\n'
+              'Licensed under the MIT (X11) License.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: cs.onSurface.withValues(alpha: .55)),
+              style: TextStyle(color: cs.onSurface.withValues(alpha: .65)),
             ),
+            const SizedBox(height: 18),
+            Text('Made with ♥ in Fukuoka, Japan',
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: .55),
+                    fontStyle: FontStyle.italic)),
+            const SizedBox(height: 14),
+            Text('Terms & Conditions — wired in U5.',
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: .4),
+                    fontSize: 11)),
           ],
         ),
       ),
