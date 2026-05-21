@@ -57,8 +57,26 @@ void main() {
 
 /// Root widget. Owns the single MaterialApp + the go_router config;
 /// theme and font-scale come from [ThemeController] (R14).
-class MyApp extends StatelessWidget {
+///
+/// Lifts `FlutterNativeSplash.remove()` up to here (away from
+/// HomeShell) so the native splash dismisses regardless of which
+/// gate paints next — HomeShell, the first-run intro, or the
+/// loading placeholder.
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FlutterNativeSplash.remove();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
