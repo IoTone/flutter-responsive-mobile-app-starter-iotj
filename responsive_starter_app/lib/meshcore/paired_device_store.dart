@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The last successfully-connected radio, persisted so the app can

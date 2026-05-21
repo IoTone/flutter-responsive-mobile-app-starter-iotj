@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'package:permission_handler/permission_handler.dart' as ph;
 
 /// R21 / U12 — small interface in front of `permission_handler` so:

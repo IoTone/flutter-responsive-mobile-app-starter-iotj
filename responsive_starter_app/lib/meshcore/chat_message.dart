@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 /// One line in the channel chat (R6). Incoming lines are decoded from
 /// `ChannelMessageFrame`; outgoing lines are appended optimistically
 /// when we send (the radio performs the OTA encryption).

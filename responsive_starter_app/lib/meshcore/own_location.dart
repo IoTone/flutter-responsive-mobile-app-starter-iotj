@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 /// Where our own latitude/longitude came from for distance/bearing
 /// math (Nodes screen distances, R18 grid GPS positioning, R22
 /// "Set advert location" workflow).

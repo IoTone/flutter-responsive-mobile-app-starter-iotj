@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 /// A Meshcore node discovered "in the area" — from a contact list
 /// entry (`RESP_CODE_CONTACT`) or an over-the-air advertisement
 /// (`PUSH_CODE_ADVERTISEMENT`). Keyed by full public key.

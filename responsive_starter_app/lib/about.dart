@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'package:flutter/material.dart';
 import 'package:meshmore_sns_app/app_state_model.dart';
 import 'package:provider/provider.dart';

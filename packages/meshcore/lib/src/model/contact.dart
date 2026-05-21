@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'dart:typed_data';
 
 /// Decoded `RESP_CODE_CONTACT` (0x03).

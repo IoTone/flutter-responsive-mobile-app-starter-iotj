@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Persisted opt-in for the Android background keep-alive foreground

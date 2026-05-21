@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 /// A human-readable line for the Dashboard's recent-activity feed,
 /// derived from a decoded inbound frame.
 class MeshEvent {

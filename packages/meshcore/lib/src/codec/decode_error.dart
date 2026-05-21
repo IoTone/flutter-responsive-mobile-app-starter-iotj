@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 /// Why a frame failed to decode.
 ///
 /// Decoding is **total** (the TC2 invariant): every input yields a

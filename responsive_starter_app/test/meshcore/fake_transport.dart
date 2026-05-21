@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 /// Meshcore companion-radio protocol — pure-Dart implementation.
 ///
 /// Public API barrel. As milestones land, codec/model/crypto/session

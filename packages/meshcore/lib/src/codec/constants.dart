@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 // Meshcore companion-radio protocol constants.
 //
 // SOURCE OF TRUTH — transcribed from the MeshCore firmware repository,

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'dart:math';
 
 /// Exponential-backoff-with-full-jitter policy for reconnecting the

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'dart:async';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';

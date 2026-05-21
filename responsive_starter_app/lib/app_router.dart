@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'package:go_router/go_router.dart';
 
 import 'screens/app_settings_screen.dart';

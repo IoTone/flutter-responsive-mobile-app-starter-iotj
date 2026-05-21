@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'dart:typed_data';
 
 /// Decoded `RESP_CODE_SELF_INFO` (0x05) — also the reply to APP_START.

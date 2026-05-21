@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'package:geolocator/geolocator.dart';
 
 /// R22 / U13 — small interface for the **one-shot phone-GPS fix**

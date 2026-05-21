@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'package:flutter/material.dart';
 
 /// The six design-concept themes (UX brief A–F). **D "SEELE Monolith"

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 

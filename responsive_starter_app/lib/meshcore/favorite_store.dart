@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Persisted set of favourited node public keys (hex).

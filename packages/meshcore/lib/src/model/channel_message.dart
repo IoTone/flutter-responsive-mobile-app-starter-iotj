@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 /// A received channel (group) text message.
 ///
 /// Unifies `RESP_CODE_CHANNEL_MSG_RECV` (0x08) and its V3 variant

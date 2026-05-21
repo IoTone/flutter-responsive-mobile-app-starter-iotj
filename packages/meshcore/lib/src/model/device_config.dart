@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 /// Radio parameters for `CMD_SET_RADIO_PARAMS` (0x0B).
 ///
 /// On wire: `freq_kHz = round(frequencyMhz × 1000)` and

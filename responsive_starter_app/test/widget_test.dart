@@ -1,3 +1,5 @@
+// Copyright (c) 2026 IoTone, Inc.
+// SPDX-License-Identifier: MIT
 // Smoke test for Meshmore SNS app.
 
 import 'package:flutter/material.dart';
