@@ -401,22 +401,42 @@ class _NodesScreenState extends State<NodesScreen> {
                                 : Icons.contacts),
                         color: n.inRange ? cs.primary : cs.onSurfaceVariant,
                       ),
-                      title: Row(
-                        children: <Widget>[
-                          Flexible(
-                              child: Text(
-                                  n.name.isEmpty ? n.shortId : n.name)),
-                          if (n.inRange)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8),
-                              child: Text('IN RANGE',
-                                  style: TextStyle(
-                                      fontSize: 10,
-                                      letterSpacing: 1,
-                                      color: cs.primary)),
-                            ),
-                        ],
-                      ),
+                      title: Builder(builder: (BuildContext _) {
+                        final int dmN = mc.dmCountFor(n.pubKeyHex);
+                        return Row(
+                          children: <Widget>[
+                            Flexible(
+                                child: Text(
+                                    n.name.isEmpty ? n.shortId : n.name)),
+                            if (n.inRange)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: Text('IN RANGE',
+                                    style: TextStyle(
+                                        fontSize: 10,
+                                        letterSpacing: 1,
+                                        color: cs.primary)),
+                              ),
+                            if (dmN > 0)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    Icon(Icons.chat_bubble,
+                                        size: 12, color: cs.primary),
+                                    const SizedBox(width: 3),
+                                    Text('$dmN',
+                                        style: TextStyle(
+                                            fontSize: 11,
+                                            color: cs.primary,
+                                            fontWeight: FontWeight.w600)),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        );
+                      }),
                       subtitle: Builder(builder: (BuildContext _) {
                         String? distance;
                         if (n.hasLocation) {

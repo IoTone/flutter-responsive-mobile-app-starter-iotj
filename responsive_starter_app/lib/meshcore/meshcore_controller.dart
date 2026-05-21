@@ -576,6 +576,12 @@ class MeshcoreController extends ChangeNotifier {
         .toList(growable: false);
   }
 
+  /// Total count of DM messages exchanged with a peer (incoming +
+  /// outgoing). Used by the Nodes screen to render the per-row
+  /// "💬 N" badge — Option D DM-presence surfacing.
+  int dmCountFor(String peerPubKeyHex) =>
+      dmHistoryFor(peerPubKeyHex).length;
+
   /// Send a DM (`CMD_SEND_TXT_MSG` 0x02, addressed by 6-byte pubkey
   /// prefix). Optimistically appends an outgoing line. No-op if not
   /// ready, text is blank, or the peer hex is shorter than 12 chars.

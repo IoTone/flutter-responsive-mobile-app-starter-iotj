@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../meshcore/chat_message.dart';
 import '../meshcore/discovered_node.dart';
 import '../util/geo.dart' as geo;
 
@@ -21,6 +22,7 @@ class NodeDetailSheet extends StatefulWidget {
     required this.isKnown,
     required this.onToggleFavourite,
     this.isSelf = false,
+    this.recentDms = const <ChatMessage>[],
   });
 
   final DiscoveredNode node;
@@ -28,6 +30,11 @@ class NodeDetailSheet extends StatefulWidget {
   final bool isFavourite;
   final bool isKnown;
   final VoidCallback onToggleFavourite;
+
+  /// Most-recent DMs exchanged with this peer, oldest → newest. The
+  /// sheet renders the last few of these as a "RECENT DMS" excerpt
+  /// (Option D inbox surfacing).
+  final List<ChatMessage> recentDms;
 
   /// True when [node] is *our own* pubkey — suppress Message + the
   /// favourite affordance because "DM yourself" / "favourite yourself"
@@ -159,6 +166,52 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
                       color: cs.onSurfaceVariant,
                       fontStyle: FontStyle.italic,
                       fontSize: 12)),
+            ],
+            // Option D — RECENT DMS excerpt. Suppressed for own node.
+            if (!widget.isSelf && widget.recentDms.isNotEmpty) ...<Widget>[
+              const SizedBox(height: 14),
+              Text('RECENT DMS',
+                  style: TextStyle(
+                      color: cs.onSurfaceVariant,
+                      fontSize: 11,
+                      letterSpacing: 3)),
+              const SizedBox(height: 6),
+              for (final ChatMessage m
+                  in widget.recentDms.length > 3
+                      ? widget.recentDms.sublist(
+                          widget.recentDms.length - 3)
+                      : widget.recentDms)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      SizedBox(
+                        width: 56,
+                        child: Text(
+                          '${m.at.hour.toString().padLeft(2, '0')}:'
+                          '${m.at.minute.toString().padLeft(2, '0')} '
+                          '${m.outgoing ? '»' : '«'}',
+                          style: TextStyle(
+                              color: m.outgoing
+                                  ? cs.primary
+                                  : cs.onSurfaceVariant,
+                              fontFamily: 'monospace',
+                              fontSize: 11),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          m.text.length > 64
+                              ? '${m.text.substring(0, 64)}…'
+                              : m.text,
+                          style: TextStyle(
+                              color: cs.onSurface, fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
             const SizedBox(height: 14),
             if (!widget.isSelf)

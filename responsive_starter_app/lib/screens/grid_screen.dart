@@ -227,6 +227,7 @@ class _GridScreenState extends State<GridScreen>
         isFavourite: mc.favorites.contains(n.pubKeyHex),
         isKnown: mc.known.contains(n.pubKeyHex),
         onToggleFavourite: () => mc.toggleFavorite(n.pubKeyHex),
+        recentDms: mc.dmHistoryFor(n.pubKeyHex),
       ),
     );
   }
