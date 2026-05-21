@@ -212,5 +212,16 @@
       "label": {"type": "String"},
       "value": {"type": "String"}
     }
-  }
+  },
+
+  "voiceSettingsTitle": "音声 (TTS 品質)",
+  "voiceSettingsHint": "「アプリ設定」で SPEECH を ON にするまで無効。レート / ピッチ / 音声は次の発話から適用されます。",
+  "voiceRate": "速度",
+  "voicePitch": "ピッチ",
+  "voicePicker": "音声",
+  "voicePickerEmpty": "プラットフォームエンジンから利用可能な音声が報告されていません — システム既定を使用します。",
+  "voicePickerSystem": "システム既定",
+  "voicePreview": "サンプル再生",
+  "voicePreviewPhrase": "これは Meshmore SNS の音声プレビューです。",
+  "voicePreviewDisabledHint": "プレビューを聴くには、アプリ設定で SPEECH を ON にしてください。"
 }

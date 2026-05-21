@@ -9,6 +9,7 @@ import 'screens/dm_screen.dart';
 import 'screens/grid_screen.dart';
 import 'screens/diagnostics_screen.dart';
 import 'screens/personalization_screen.dart';
+import 'screens/voice_settings_screen.dart';
 import 'shell/home_shell.dart';
 
 /// App routes (R11). `/` hosts the 5-view swipe shell; the Settings
@@ -43,6 +44,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/settings/diagnostics',
       builder: (_, __) => const DiagnosticsScreen(),
+    ),
+    GoRoute(
+      path: '/settings/voice',
+      builder: (_, __) => const VoiceSettingsScreen(),
     ),
   ],
 );

@@ -7,12 +7,28 @@ import 'package:shared_preferences/shared_preferences.dart';
 class FakeTtsSpeaker implements TtsSpeaker {
   final List<String> spoken = <String>[];
   int stops = 0;
+  double? lastRate;
+  double? lastPitch;
+  TtsVoice? lastVoice;
+  List<TtsVoice> voices = const <TtsVoice>[];
 
   @override
   Future<void> speak(String text) async => spoken.add(text);
 
   @override
   Future<void> stop() async => stops++;
+
+  @override
+  Future<void> setRate(double rate) async => lastRate = rate;
+
+  @override
+  Future<void> setPitch(double pitch) async => lastPitch = pitch;
+
+  @override
+  Future<void> setVoice(TtsVoice? voice) async => lastVoice = voice;
+
+  @override
+  Future<List<TtsVoice>> listVoices() async => voices;
 }
 
 void main() {

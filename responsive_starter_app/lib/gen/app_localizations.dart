@@ -1003,6 +1003,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Outer ring ≈ {label} ({value}) · tap a node for details · info icon for the legend'**
   String gridFooter(String label, String value);
+
+  /// No description provided for @voiceSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice (TTS quality)'**
+  String get voiceSettingsTitle;
+
+  /// No description provided for @voiceSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Off until you turn on SPEECH in App settings. Rate / pitch / voice take effect on the next utterance.'**
+  String get voiceSettingsHint;
+
+  /// No description provided for @voiceRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate'**
+  String get voiceRate;
+
+  /// No description provided for @voicePitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Pitch'**
+  String get voicePitch;
+
+  /// No description provided for @voicePicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get voicePicker;
+
+  /// No description provided for @voicePickerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No voices reported by the platform engine — using the system default.'**
+  String get voicePickerEmpty;
+
+  /// No description provided for @voicePickerSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System default'**
+  String get voicePickerSystem;
+
+  /// No description provided for @voicePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a phrase'**
+  String get voicePreview;
+
+  /// No description provided for @voicePreviewPhrase.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a Meshmore SNS voice preview.'**
+  String get voicePreviewPhrase;
+
+  /// No description provided for @voicePreviewDisabledHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on SPEECH in App settings to audition a phrase.'**
+  String get voicePreviewDisabledHint;
 }
 
 class _AppLocalizationsDelegate

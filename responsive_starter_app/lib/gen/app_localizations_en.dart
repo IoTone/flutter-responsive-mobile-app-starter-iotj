@@ -541,4 +541,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String gridFooter(String label, String value) {
     return 'Outer ring ≈ $label ($value) · tap a node for details · info icon for the legend';
   }
+
+  @override
+  String get voiceSettingsTitle => 'Voice (TTS quality)';
+
+  @override
+  String get voiceSettingsHint =>
+      'Off until you turn on SPEECH in App settings. Rate / pitch / voice take effect on the next utterance.';
+
+  @override
+  String get voiceRate => 'Rate';
+
+  @override
+  String get voicePitch => 'Pitch';
+
+  @override
+  String get voicePicker => 'Voice';
+
+  @override
+  String get voicePickerEmpty =>
+      'No voices reported by the platform engine — using the system default.';
+
+  @override
+  String get voicePickerSystem => 'System default';
+
+  @override
+  String get voicePreview => 'Try a phrase';
+
+  @override
+  String get voicePreviewPhrase => 'This is a Meshmore SNS voice preview.';
+
+  @override
+  String get voicePreviewDisabledHint =>
+      'Turn on SPEECH in App settings to audition a phrase.';
 }

@@ -22,6 +22,14 @@ class _SilentSpeaker implements TtsSpeaker {
   Future<void> speak(String text) async {}
   @override
   Future<void> stop() async {}
+  @override
+  Future<void> setRate(double rate) async {}
+  @override
+  Future<void> setPitch(double pitch) async {}
+  @override
+  Future<void> setVoice(TtsVoice? voice) async {}
+  @override
+  Future<List<TtsVoice>> listVoices() async => const <TtsVoice>[];
 }
 
 void main() {

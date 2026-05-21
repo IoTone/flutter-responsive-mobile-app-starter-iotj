@@ -1,6 +1,7 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../gen/app_localizations.dart';
@@ -172,6 +173,21 @@ class AppSettingsScreen extends StatelessWidget {
                 tts.enabled ? Icons.record_voice_over : Icons.voice_over_off),
             value: tts.enabled,
             onChanged: (bool v) => tts.setEnabled(v),
+          ),
+          // R5 / U5 — Voice quality picker (rate / pitch / voice +
+          // preview). Always reachable, even when SPEECH is off —
+          // the preview button greys-out instead, with a hint.
+          ListTile(
+            leading: const Icon(Icons.tune),
+            title: Text(l.voiceSettingsTitle),
+            subtitle: Text(
+              '${l.voiceRate} · ${tts.rate.toStringAsFixed(2)}  ·  '
+              '${l.voicePitch} · ${tts.pitch.toStringAsFixed(2)}'
+              '${tts.voice == null ? '' : '  ·  ${tts.voice!.name}'}',
+              style: TextStyle(color: cs.onSurface.withValues(alpha: .6)),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/voice'),
           ),
           ListTile(
             title: Text(l.settingsNotifications),

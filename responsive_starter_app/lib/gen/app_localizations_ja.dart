@@ -499,4 +499,37 @@ class AppLocalizationsJa extends AppLocalizations {
   String gridFooter(String label, String value) {
     return '外側リング ≈ $label ($value) · ノードをタップで詳細 · ⓘ で凡例';
   }
+
+  @override
+  String get voiceSettingsTitle => '音声 (TTS 品質)';
+
+  @override
+  String get voiceSettingsHint =>
+      '「アプリ設定」で SPEECH を ON にするまで無効。レート / ピッチ / 音声は次の発話から適用されます。';
+
+  @override
+  String get voiceRate => '速度';
+
+  @override
+  String get voicePitch => 'ピッチ';
+
+  @override
+  String get voicePicker => '音声';
+
+  @override
+  String get voicePickerEmpty =>
+      'プラットフォームエンジンから利用可能な音声が報告されていません — システム既定を使用します。';
+
+  @override
+  String get voicePickerSystem => 'システム既定';
+
+  @override
+  String get voicePreview => 'サンプル再生';
+
+  @override
+  String get voicePreviewPhrase => 'これは Meshmore SNS の音声プレビューです。';
+
+  @override
+  String get voicePreviewDisabledHint =>
+      'プレビューを聴くには、アプリ設定で SPEECH を ON にしてください。';
 }

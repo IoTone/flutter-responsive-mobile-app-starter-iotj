@@ -212,5 +212,16 @@
       "label": {"type": "String"},
       "value": {"type": "String"}
     }
-  }
+  },
+
+  "voiceSettingsTitle": "Voice (TTS quality)",
+  "voiceSettingsHint": "Off until you turn on SPEECH in App settings. Rate / pitch / voice take effect on the next utterance.",
+  "voiceRate": "Rate",
+  "voicePitch": "Pitch",
+  "voicePicker": "Voice",
+  "voicePickerEmpty": "No voices reported by the platform engine — using the system default.",
+  "voicePickerSystem": "System default",
+  "voicePreview": "Try a phrase",
+  "voicePreviewPhrase": "This is a Meshmore SNS voice preview.",
+  "voicePreviewDisabledHint": "Turn on SPEECH in App settings to audition a phrase."
 }
