@@ -253,12 +253,18 @@ class _GridScreenState extends State<GridScreen>
     }
     final List<DiscoveredNode> source = _snapshot ?? mc.nodes;
 
-    // Filter visible nodes (within the 24h recency window).
+    // Filter visible nodes — within the 24 h recency window AND not
+    // ourselves (we shouldn't appear in our own fabric; the centre
+    // marker is us). `ownPubKeyHex` is null until SelfInfo arrives,
+    // in which case nothing is filtered.
     final int nowUnix = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final int windowSec = GridScreen.recencyWindow.inSeconds;
+    final String? selfPk = mc.ownPubKeyHex;
     final List<DiscoveredNode> visible = <DiscoveredNode>[
       for (final DiscoveredNode n in source)
-        if (nowUnix - n.lastHeardUnix < windowSec) n
+        if (nowUnix - n.lastHeardUnix < windowSec &&
+            n.pubKeyHex != selfPk)
+          n
     ];
 
     final double scaleKm = GridScreen.rangeStops[_scaleIndex].km;
@@ -618,13 +624,38 @@ class _GridPainter extends CustomPainter {
     final double maxR = math.min(size.width, size.height) / 2 - 24;
     if (maxR <= 0) return;
 
-    // Concentric range rings.
+    // Concentric range rings — slightly thicker stroke than 1 so
+    // they survive low-contrast themes; per-ring distance label on
+    // the +X axis so the user can read the scale at a glance.
     final Paint ring = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1
+      ..strokeWidth = 2
       ..color = ringStroke;
-    for (final double f in <double>[1 / 3, 2 / 3, 1.0]) {
+    const List<double> ringFracs = <double>[1 / 3, 2 / 3, 1.0];
+    for (final double f in ringFracs) {
       canvas.drawCircle(center, maxR * f, ring);
+    }
+    // Ring labels. Position each label just inside the ring on the
+    // right (+X) axis so they don't collide with node markers in
+    // typical fleets.
+    for (final double f in ringFracs) {
+      final double meters = scaleKm * f * 1000;
+      final String label = meters < 1000
+          ? '${meters.round()} m'
+          : '${(meters / 1000).toStringAsFixed(meters < 10000 ? 1 : 0)} km';
+      final TextPainter tp = TextPainter(
+        text: TextSpan(
+          text: label,
+          style: TextStyle(
+              color: base, fontSize: 10, fontFamily: 'monospace'),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(
+        canvas,
+        Offset(center.dx + maxR * f - tp.width - 4,
+            center.dy - tp.height - 2),
+      );
     }
     // Cross-hair guides (faint).
     final Paint cross = Paint()

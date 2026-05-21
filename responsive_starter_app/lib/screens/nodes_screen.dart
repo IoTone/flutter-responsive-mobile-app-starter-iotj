@@ -19,8 +19,29 @@ import '../util/geo.dart' as geo;
 /// is bilateral: **Advertise** makes this node findable by others;
 /// **Scan area** broadcasts our advert *and* collects the adverts we
 /// have heard.
-class NodesScreen extends StatelessWidget {
+class NodesScreen extends StatefulWidget {
   const NodesScreen({super.key});
+
+  @override
+  State<NodesScreen> createState() => _NodesScreenState();
+}
+
+class _NodesScreenState extends State<NodesScreen> {
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _query = '';
+  bool _starredOnly = false;
+  bool _inRangeOnly = false;
+  // null = any; otherwise hide nodes whose lastHeard is older than this.
+  Duration? _maxAge;
+  // null = any; otherwise hide GPS-positioned nodes farther than this
+  // (in metres). Nodes without distance pass through regardless.
+  double? _maxDistanceMeters;
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   String _ago(int unix) {
     if (unix <= 0) return '—';
@@ -32,16 +53,73 @@ class NodesScreen extends StatelessWidget {
     return '${s ~/ 86400}d';
   }
 
+  bool _passesFilters(
+      DiscoveredNode n, MeshcoreController mc, Set<String> favs) {
+    if (_query.isNotEmpty) {
+      final String q = _query.toLowerCase();
+      final bool nameHit = n.name.toLowerCase().contains(q);
+      final bool idHit = n.shortId.toLowerCase().contains(q);
+      final bool pkHit = n.pubKeyHex.toLowerCase().contains(q);
+      if (!nameHit && !idHit && !pkHit) return false;
+    }
+    if (_starredOnly && !favs.contains(n.pubKeyHex)) return false;
+    if (_inRangeOnly && !n.inRange) return false;
+    if (_maxAge != null) {
+      final int s =
+          DateTime.now().millisecondsSinceEpoch ~/ 1000 - n.lastHeardUnix;
+      if (s > _maxAge!.inSeconds) return false;
+    }
+    if (_maxDistanceMeters != null && n.hasLocation) {
+      final double? d = mc.distanceMetersTo(n.latitude!, n.longitude!);
+      if (d != null && d > _maxDistanceMeters!) return false;
+    }
+    return true;
+  }
+
+  String _ageLabel() {
+    if (_maxAge == null) return 'Any';
+    if (_maxAge!.inHours < 24) return '${_maxAge!.inHours}h';
+    return '${_maxAge!.inDays}d';
+  }
+
+  String _distLabel() {
+    if (_maxDistanceMeters == null) return 'Any';
+    final double m = _maxDistanceMeters!;
+    if (m < 1000) return '${m.round()}m';
+    return '${(m / 1000).toStringAsFixed(0)}km';
+  }
+
+  bool get _anyFilterActive =>
+      _query.isNotEmpty ||
+      _starredOnly ||
+      _inRangeOnly ||
+      _maxAge != null ||
+      _maxDistanceMeters != null;
+
+  void _clearFilters() {
+    setState(() {
+      _searchCtrl.clear();
+      _query = '';
+      _starredOnly = false;
+      _inRangeOnly = false;
+      _maxAge = null;
+      _maxDistanceMeters = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final MeshcoreController mc = context.watch<MeshcoreController>();
     final ColorScheme cs = Theme.of(context).colorScheme;
     final bool ready = mc.state == MeshcoreConnectionState.ready;
-    // Favourites (= "contacts" in the UX sense) sort to the top of the
-    // fabric. Within each group keep the controller's recency order.
     final Set<String> favs = mc.favorites;
-    final List<DiscoveredNode> nodes = <DiscoveredNode>[...mc.nodes]
-      ..sort((DiscoveredNode a, DiscoveredNode b) {
+    // Self gets excluded — we never want to DM ourselves and we're
+    // already on the dashboard, not in the discovered-fabric list.
+    final String? selfPk = mc.ownPubKeyHex;
+    final List<DiscoveredNode> nodes = <DiscoveredNode>[
+      for (final DiscoveredNode n in mc.nodes)
+        if (n.pubKeyHex != selfPk && _passesFilters(n, mc, favs)) n
+    ]..sort((DiscoveredNode a, DiscoveredNode b) {
         final bool af = favs.contains(a.pubKeyHex);
         final bool bf = favs.contains(b.pubKeyHex);
         if (af != bf) return af ? -1 : 1;
@@ -49,6 +127,9 @@ class NodesScreen extends StatelessWidget {
       });
 
     final int inRange = nodes.where((DiscoveredNode n) => n.inRange).length;
+    final int totalFabric = mc.nodes
+        .where((DiscoveredNode n) => n.pubKeyHex != selfPk)
+        .length;
 
     void advertise(bool flood) {
       mc.sendSelfAdvert(flood: flood);
@@ -138,11 +219,137 @@ class NodesScreen extends StatelessWidget {
             ],
           ),
         ),
+        // Filter bar — search by name / shortId / pubkey prefix +
+        // chip toggles for Starred / In range + popup menus for
+        // last-seen and max-distance cutoffs. Compose with the
+        // sort-favourites-to-top behaviour below.
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+          child: TextField(
+            controller: _searchCtrl,
+            onChanged: (String v) => setState(() => _query = v),
+            decoration: InputDecoration(
+              isDense: true,
+              prefixIcon: const Icon(Icons.search, size: 18),
+              suffixIcon: _query.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: 'Clear search',
+                      icon: const Icon(Icons.close, size: 18),
+                      onPressed: () {
+                        _searchCtrl.clear();
+                        setState(() => _query = '');
+                      },
+                    ),
+              hintText: 'Search by name, shortId, or pubkey…',
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 44,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                // No avatar icon: the chip's selected/unselected state
+                // colours the label clearly enough, and skipping the
+                // star/sensors avatars keeps the row's icon lookup
+                // unambiguous (the per-row trailing star icon stays
+                // the only star_border / star instance on screen).
+                child: FilterChip(
+                  label: const Text('Starred'),
+                  selected: _starredOnly,
+                  onSelected: (bool v) =>
+                      setState(() => _starredOnly = v),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: FilterChip(
+                  label: const Text('In range'),
+                  selected: _inRangeOnly,
+                  onSelected: (bool v) =>
+                      setState(() => _inRangeOnly = v),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: ActionChip(
+                  avatar: const Icon(Icons.schedule, size: 16),
+                  label: Text('Last seen · ${_ageLabel()}'),
+                  onPressed: () async {
+                    final Duration? picked = await showMenu<Duration?>(
+                      context: context,
+                      position: const RelativeRect.fromLTRB(
+                          16, 200, 16, 100),
+                      items: <PopupMenuEntry<Duration?>>[
+                        const PopupMenuItem<Duration?>(
+                            value: null, child: Text('Any')),
+                        const PopupMenuItem<Duration?>(
+                            value: Duration(hours: 1),
+                            child: Text('Last hour')),
+                        const PopupMenuItem<Duration?>(
+                            value: Duration(hours: 24),
+                            child: Text('Last 24 h')),
+                        const PopupMenuItem<Duration?>(
+                            value: Duration(days: 7),
+                            child: Text('Last 7 d')),
+                      ],
+                    );
+                    if (!mounted) return;
+                    setState(() => _maxAge = picked);
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: ActionChip(
+                  avatar: const Icon(Icons.straighten, size: 16),
+                  label: Text('Within · ${_distLabel()}'),
+                  onPressed: () async {
+                    final double? picked = await showMenu<double?>(
+                      context: context,
+                      position: const RelativeRect.fromLTRB(
+                          16, 200, 16, 100),
+                      items: <PopupMenuEntry<double?>>[
+                        const PopupMenuItem<double?>(
+                            value: null, child: Text('Any')),
+                        const PopupMenuItem<double?>(
+                            value: 100, child: Text('≤ 100 m')),
+                        const PopupMenuItem<double?>(
+                            value: 500, child: Text('≤ 500 m')),
+                        const PopupMenuItem<double?>(
+                            value: 5000, child: Text('≤ 5 km')),
+                        const PopupMenuItem<double?>(
+                            value: 25000, child: Text('≤ 25 km')),
+                      ],
+                    );
+                    if (!mounted) return;
+                    setState(() => _maxDistanceMeters = picked);
+                  },
+                ),
+              ),
+              if (_anyFilterActive)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: ActionChip(
+                    avatar: const Icon(Icons.clear_all, size: 16),
+                    label: const Text('Clear'),
+                    onPressed: _clearFilters,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
           child: Text(
             ready
-                ? '$inRange in range · ${nodes.length} in fabric · '
+                ? '${nodes.length} of $totalFabric in fabric · '
+                    '$inRange in range · '
                     '${favs.length} contact${favs.length == 1 ? '' : 's'}'
                 : 'Not connected — Settings → Diagnostics & connect',
             style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
@@ -155,18 +362,24 @@ class NodesScreen extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(28),
                     child: Text(
-                      ready
-                          ? 'No nodes yet.\n\n'
-                              'Discovery is advert-driven: a node shows '
-                              'up only when its advert is heard. Chatting '
-                              'on Public does NOT make a node appear.\n\n'
-                              'Ask the other node to Advertise / Share '
-                              '(or tap "Advertise" here so it can find '
-                              'you), then "Scan area".\n\n'
-                              'This view shows the mesh "fabric" '
-                              '(what you\'ve seen). Star a node to '
-                              'mark it as a contact.'
-                          : 'Connect a radio to discover nearby nodes.',
+                      _anyFilterActive
+                          ? 'No nodes match this filter.\n\n'
+                              'Tap Clear to widen, or change the chip '
+                              'cutoffs above.'
+                          : ready
+                              ? 'No nodes yet.\n\n'
+                                  'Discovery is advert-driven: a node '
+                                  'shows up only when its advert is '
+                                  'heard. Chatting on Public does NOT '
+                                  'make a node appear.\n\n'
+                                  'Ask the other node to Advertise / '
+                                  'Share (or tap "Advertise" here so it '
+                                  'can find you), then "Scan area".\n\n'
+                                  'This view shows the mesh "fabric" '
+                                  '(what you\'ve seen). Star a node to '
+                                  'mark it as a contact.'
+                              : 'Connect a radio to discover nearby '
+                                  'nodes.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: cs.onSurfaceVariant),
                     ),
@@ -205,9 +418,6 @@ class NodesScreen extends StatelessWidget {
                         ],
                       ),
                       subtitle: Builder(builder: (BuildContext _) {
-                        // Compute distance only when both endpoints
-                        // have lat/lon — microsecond cost per visible
-                        // row, no background machinery needed.
                         String? distance;
                         if (n.hasLocation) {
                           distance = geo.formatDistance(

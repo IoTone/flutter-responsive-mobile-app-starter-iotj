@@ -20,6 +20,7 @@ class NodeDetailSheet extends StatefulWidget {
     required this.isFavourite,
     required this.isKnown,
     required this.onToggleFavourite,
+    this.isSelf = false,
   });
 
   final DiscoveredNode node;
@@ -27,6 +28,13 @@ class NodeDetailSheet extends StatefulWidget {
   final bool isFavourite;
   final bool isKnown;
   final VoidCallback onToggleFavourite;
+
+  /// True when [node] is *our own* pubkey — suppress Message + the
+  /// favourite affordance because "DM yourself" / "favourite yourself"
+  /// are meaningless. Belt-and-suspenders: /grid already filters our
+  /// own pubkey out of the visible fleet, but this guards against
+  /// future code paths that might land here directly.
+  final bool isSelf;
 
   @override
   State<NodeDetailSheet> createState() => _NodeDetailSheetState();
@@ -144,8 +152,17 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
               kv('lat / lon',
                   '${n.latitude!.toStringAsFixed(5)}, '
                       '${n.longitude!.toStringAsFixed(5)}'),
+            if (widget.isSelf) ...<Widget>[
+              const SizedBox(height: 8),
+              Text('This is your own node — no Message / Favourite.',
+                  style: TextStyle(
+                      color: cs.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 12)),
+            ],
             const SizedBox(height: 14),
-            Row(
+            if (!widget.isSelf)
+              Row(
               children: <Widget>[
                 Expanded(
                   child: FilledButton.icon(

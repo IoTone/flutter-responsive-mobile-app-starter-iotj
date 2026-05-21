@@ -270,6 +270,21 @@ class MeshcoreController extends ChangeNotifier {
   MeshcoreInbound? get lastFrame => _lastFrame;
   SelfInfo? get selfInfo => _connection.selfInfo;
 
+  /// Our own node's 64-char pubkey hex (lower-case, no spaces), or
+  /// `null` until `SelfInfo` arrives. Used to filter ourselves out
+  /// of the fabric on /grid and the Nodes list (we don't want to
+  /// DM ourselves) and to suppress the Message action in
+  /// `NodeDetailSheet` when the tapped node IS us.
+  String? get ownPubKeyHex {
+    final SelfInfo? si = selfInfo;
+    if (si == null) return null;
+    final StringBuffer b = StringBuffer();
+    for (final int byte in si.publicKey) {
+      b.write(byte.toRadixString(16).padLeft(2, '0'));
+    }
+    return b.toString();
+  }
+
   /// Own location resolved **device-first**, then phone-fallback.
   /// The MeshCore `SelfInfo` response carries a `latitude`/`longitude`
   /// pair which the device populates from its onboard GPS (or from a
