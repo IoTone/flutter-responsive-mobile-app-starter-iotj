@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../gen/app_localizations.dart';
 import '../perms/first_run_controller.dart';
 import '../perms/permissions_service.dart';
 
@@ -46,13 +47,12 @@ class _FirstRunIntroScreenState extends State<FirstRunIntroScreen> {
       await fr.markDone();
       return;
     }
+    final AppLocalizations l = AppLocalizations.of(context);
     setState(() {
       _busy = false;
       _denialNote = r == PermissionResult.permanentlyDenied
-          ? "Bluetooth was permanently denied — open OS settings to "
-              "grant it. You can still use the app offline."
-          : "Bluetooth wasn't granted — you can continue offline or "
-              "open OS settings to change your mind.";
+          ? l.firstRunDeniedPermanent
+          : l.firstRunDeniedTransient;
     });
   }
 
@@ -78,41 +78,42 @@ class _FirstRunIntroScreenState extends State<FirstRunIntroScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text('MESHMORE · WELCOME',
-                  style: TextStyle(
-                      color: cs.onSurfaceVariant,
-                      fontSize: 12,
-                      letterSpacing: 3)),
-              const SizedBox(height: 16),
-              Text(
-                "Quick heads-up on what we'll ask for",
-                style: th.textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 18),
-              _PermBlock(
-                icon: Icons.bluetooth_searching,
-                title: 'Bluetooth',
-                body: 'To pair with your MeshCore radio and exchange '
-                    'messages over the local mesh. Required to send / '
-                    'receive over the air.',
-              ),
-              const SizedBox(height: 14),
-              _PermBlock(
-                icon: Icons.notifications_active_outlined,
-                title: 'Notifications',
-                body: 'Asked only if you turn on '
-                    '"Stay connected in background" later in App settings. '
-                    "Skipped today so you're not interrupted twice.",
-              ),
-              const SizedBox(height: 14),
-              _PermBlock(
-                icon: Icons.cloud_off,
-                title: 'Offline is fine',
-                body: "If you skip Bluetooth, the app still works — "
-                    'browse message history, configure channels, read '
-                    'diagnostics. Just no live mesh traffic until you '
-                    'grant Bluetooth.',
-              ),
+              Builder(builder: (BuildContext ctx) {
+                final AppLocalizations l = AppLocalizations.of(ctx);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(l.firstRunHeader,
+                        style: TextStyle(
+                            color: cs.onSurfaceVariant,
+                            fontSize: 12,
+                            letterSpacing: 3)),
+                    const SizedBox(height: 16),
+                    Text(
+                      l.firstRunTitle,
+                      style: th.textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 18),
+                    _PermBlock(
+                      icon: Icons.bluetooth_searching,
+                      title: l.firstRunBleTitle,
+                      body: l.firstRunBleBody,
+                    ),
+                    const SizedBox(height: 14),
+                    _PermBlock(
+                      icon: Icons.notifications_active_outlined,
+                      title: l.firstRunNotificationsTitle,
+                      body: l.firstRunNotificationsBody,
+                    ),
+                    const SizedBox(height: 14),
+                    _PermBlock(
+                      icon: Icons.cloud_off,
+                      title: l.firstRunOfflineTitle,
+                      body: l.firstRunOfflineBody,
+                    ),
+                  ],
+                );
+              }),
               const Spacer(),
               if (_denialNote != null) ...<Widget>[
                 Container(
@@ -142,7 +143,7 @@ class _FirstRunIntroScreenState extends State<FirstRunIntroScreen> {
                   child: TextButton.icon(
                     onPressed: _openSettings,
                     icon: const Icon(Icons.settings_outlined),
-                    label: const Text('Open OS settings'),
+                    label: Text(AppLocalizations.of(context).firstRunOpenSettings),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -152,7 +153,7 @@ class _FirstRunIntroScreenState extends State<FirstRunIntroScreen> {
                 child: FilledButton.icon(
                   onPressed: _busy ? null : _grantAndContinue,
                   icon: const Icon(Icons.check_circle_outline),
-                  label: const Text('Grant Bluetooth & continue'),
+                  label: Text(AppLocalizations.of(context).firstRunGrant),
                 ),
               ),
               const SizedBox(height: 8),
@@ -161,7 +162,7 @@ class _FirstRunIntroScreenState extends State<FirstRunIntroScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _busy ? null : _continueOffline,
                   icon: const Icon(Icons.cloud_off),
-                  label: const Text('Continue offline (skip permissions)'),
+                  label: Text(AppLocalizations.of(context).firstRunSkip),
                 ),
               ),
             ],

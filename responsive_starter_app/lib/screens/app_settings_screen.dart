@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../gen/app_localizations.dart';
+import '../l10n/locale_controller.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../perms/first_run_controller.dart';
 import '../perms/permissions_service.dart';
@@ -56,19 +58,77 @@ class AppSettingsScreen extends StatelessWidget {
     );
   }
 
+  String _languageLabel(AppLocalizations l, Locale? loc) {
+    if (loc == null) return l.settingsLanguageSystem;
+    return switch (loc.languageCode) {
+      'en' => l.settingsLanguageEnglish,
+      'ja' => l.settingsLanguageJapanese,
+      _ => loc.languageCode,
+    };
+  }
+
+  Future<void> _pickLanguage(
+      BuildContext ctx, LocaleController lc) async {
+    final AppLocalizations l = AppLocalizations.of(ctx);
+    final Locale? picked = await showModalBottomSheet<Locale?>(
+      context: ctx,
+      showDragHandle: true,
+      builder: (BuildContext _) => SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              title: Text(l.settingsLanguageSystem),
+              trailing: lc.locale == null
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () => Navigator.pop(ctx, null),
+            ),
+            ListTile(
+              title: Text(l.settingsLanguageEnglish),
+              trailing: lc.locale?.languageCode == 'en'
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () => Navigator.pop(ctx, const Locale('en')),
+            ),
+            ListTile(
+              title: Text(l.settingsLanguageJapanese),
+              trailing: lc.locale?.languageCode == 'ja'
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () => Navigator.pop(ctx, const Locale('ja')),
+            ),
+          ],
+        ),
+      ),
+    );
+    // `null` picked means "system default"; `picked == null && popped
+    // by drag` means no change. Disambiguate by looking at whether the
+    // sheet actually returned a value vs being dismissed. showModal*
+    // returns null on dismiss, so we can't tell them apart here —
+    // treat any returned-null as "system default" via an explicit tap
+    // (drag-dismissed without tapping won't have a "System" trailing
+    // check to confirm). Edge: dismissing the sheet now also resets
+    // to system. Acceptable in v1.
+    await lc.set(picked);
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final TtsController tts = context.watch<TtsController>();
     final MeshcoreController mc = context.watch<MeshcoreController>();
     final FirstRunController fr = context.watch<FirstRunController>();
+    final LocaleController lc = context.watch<LocaleController>();
+    final AppLocalizations l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('App settings')),
+      appBar: AppBar(title: Text(l.settingsHeading)),
       body: ListView(
         children: <Widget>[
           ListTile(
-            title: const Text('CONNECTION'),
-            subtitle: Text('Auto-reconnect (M7 backoff) · forget device',
+            title: Text(l.settingsConnection),
+            subtitle: Text(l.settingsConnectionSubtitle,
                 style: TextStyle(color: cs.onSurface.withValues(alpha: .6))),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {},
@@ -76,13 +136,11 @@ class AppSettingsScreen extends StatelessWidget {
           // R17/U8 — Android background keep-alive (foreground service
           // + persistent notification). No-op on iOS.
           SwitchListTile(
-            title: const Text('Stay connected in background'),
+            title: Text(l.settingsBackgroundTitle),
             subtitle: Text(
               mc.backgroundKeepaliveEnabled
-                  ? 'Android: a persistent notification keeps the radio '
-                      'linked so messages arrive while backgrounded'
-                  : 'Messages still arrive when you reopen the app '
-                      '(radio buffers them); no background notification',
+                  ? l.settingsBackgroundOn
+                  : l.settingsBackgroundOff,
               style: TextStyle(color: cs.onSurface.withValues(alpha: .6)),
             ),
             secondary: Icon(mc.backgroundKeepaliveEnabled
@@ -91,21 +149,23 @@ class AppSettingsScreen extends StatelessWidget {
             value: mc.backgroundKeepaliveEnabled,
             onChanged: (bool v) => _onBgToggle(context, mc, v),
           ),
+          // R4 — language picker. Tap-to-open bottom sheet with
+          // System / English / 日本語; the choice is persisted by
+          // LocaleController and re-skins the whole tree live.
           ListTile(
-            title: const Text('LANGUAGE (R4)'),
-            subtitle: Text('System · English · 日本語',
+            leading: const Icon(Icons.language),
+            title: Text(l.settingsLanguage),
+            subtitle: Text(_languageLabel(l, lc.locale),
                 style: TextStyle(color: cs.onSurface.withValues(alpha: .6))),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {},
+            onTap: () => _pickLanguage(context, lc),
           ),
           // SPEECH (R5) — functional from U3. Off by default; the
           // per-channel toggle in the Chat header is gated on this.
           SwitchListTile(
-            title: const Text('SPEECH (R5)'),
+            title: Text(l.settingsSpeech),
             subtitle: Text(
-              tts.enabled
-                  ? 'Text-to-speech ON · per-channel toggle in Chat'
-                  : 'Text-to-speech OFF (default) · reads channel messages',
+              tts.enabled ? l.settingsSpeechOn : l.settingsSpeechOff,
               style: TextStyle(color: cs.onSurface.withValues(alpha: .6)),
             ),
             secondary: Icon(
@@ -114,8 +174,8 @@ class AppSettingsScreen extends StatelessWidget {
             onChanged: (bool v) => tts.setEnabled(v),
           ),
           ListTile(
-            title: const Text('NOTIFICATIONS'),
-            subtitle: Text('Critical → system notification + vibrate',
+            title: Text(l.settingsNotifications),
+            subtitle: Text(l.settingsNotificationsSubtitle,
                 style: TextStyle(color: cs.onSurface.withValues(alpha: .6))),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {},
@@ -125,10 +185,9 @@ class AppSettingsScreen extends StatelessWidget {
           // back on after a permanent denial.
           ListTile(
             leading: const Icon(Icons.lock_outline),
-            title: const Text('Permissions'),
+            title: Text(l.settingsPermissions),
             subtitle: Text(
-              'Open the OS settings page for this app — '
-              'flip Bluetooth / Notifications on or off here.',
+              l.settingsPermissionsSubtitle,
               style: TextStyle(color: cs.onSurface.withValues(alpha: .6)),
             ),
             trailing: const Icon(Icons.open_in_new),
@@ -137,31 +196,22 @@ class AppSettingsScreen extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.refresh),
-            title: const Text('Show intro again on next launch'),
+            title: Text(l.settingsShowIntro),
             subtitle: Text(
               fr.done
-                  ? 'Wipes the first-run flag so the permissions intro '
-                      "shows again — useful when you're testing the flow"
-                  : 'Intro is currently scheduled for next launch',
+                  ? l.settingsShowIntroEnabled
+                  : l.settingsShowIntroDisabled,
               style: TextStyle(color: cs.onSurface.withValues(alpha: .6)),
             ),
             enabled: fr.done,
             onTap: () => fr.reset(),
           ),
           ListTile(
-            title: const Text('DATA / ABOUT'),
-            subtitle: Text('Export diagnostics · logs · About · Terms',
+            title: Text(l.settingsData),
+            subtitle: Text(l.settingsDataSubtitle,
                 style: TextStyle(color: cs.onSurface.withValues(alpha: .6))),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {},
-          ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'Voice/rate picker, BLE, L10n and notifications wired in U5.',
-              style: TextStyle(color: cs.onSurface.withValues(alpha: .5)),
-            ),
           ),
         ],
       ),

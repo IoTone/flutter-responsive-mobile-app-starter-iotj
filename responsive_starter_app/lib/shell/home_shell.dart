@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../app_state_model.dart';
 import '../cue/cue_bridge.dart';
 import '../cue/cue_service.dart';
+import '../gen/app_localizations.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../screens/chat_screen.dart';
@@ -19,12 +20,15 @@ import '../theme/theme_controller.dart';
 enum MmView { dashboard, chat, nodes, settings, about }
 
 extension on MmView {
-  String get title => switch (this) {
-        MmView.dashboard => 'Dashboard',
-        MmView.chat => 'Chat',
-        MmView.nodes => 'Nodes',
-        MmView.settings => 'Settings',
-        MmView.about => 'About',
+  /// Localised tab label. Pass `AppLocalizations.of(context)` from the
+  /// caller; we don't reach for a context here so the call sites
+  /// stay explicit about what they're translating.
+  String title(AppLocalizations l) => switch (this) {
+        MmView.dashboard => l.tabDashboard,
+        MmView.chat => l.tabChat,
+        MmView.nodes => l.tabNodes,
+        MmView.settings => l.tabSettings,
+        MmView.about => l.tabAbout,
       };
   IconData get icon => switch (this) {
         MmView.dashboard => Icons.dashboard_outlined,
@@ -98,6 +102,7 @@ class _HomeShellState extends State<HomeShell>
 
   Future<void> _openQuickNav() async {
     final bool reduceMotion = context.read<ThemeController>().reduceMotion;
+    final AppLocalizations l = AppLocalizations.of(context);
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -108,7 +113,7 @@ class _HomeShellState extends State<HomeShell>
             for (final MmView v in MmView.values)
               ListTile(
                 leading: Icon(v.icon),
-                title: Text(v.title),
+                title: Text(v.title(l)),
                 selected: v.index == _index,
                 onTap: () {
                   Navigator.of(ctx).pop();
@@ -124,6 +129,7 @@ class _HomeShellState extends State<HomeShell>
   @override
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final AppLocalizations l = AppLocalizations.of(context);
     final MmView current = MmView.values[_index];
     // Root back handling (R11): from a non-Dashboard tab, Back returns
     // to the Dashboard instead of trying to pop the root route (which
@@ -150,7 +156,7 @@ class _HomeShellState extends State<HomeShell>
             child: const Icon(Icons.menu_open),
           ),
         ),
-        title: Text(current.title),
+        title: Text(current.title(l)),
         actions: const <Widget>[RadioLinkIndicator()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(6),
@@ -252,6 +258,7 @@ class _AboutView extends StatelessWidget {
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final AppState app = context.watch<AppState>();
+    final AppLocalizations l = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(28),
@@ -262,34 +269,37 @@ class _AboutView extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 22, letterSpacing: 4, color: cs.onSurface)),
             const SizedBox(height: 4),
-            Text('(Socialrobot Network Service)',
+            // The EN + JP subtitles are intentionally rendered as a
+            // *pair* regardless of the active locale — the brand name
+            // is bilingual.
+            Text(l.aboutSubtitleEn,
                 style: TextStyle(
                     fontSize: 13,
                     color: cs.onSurface.withValues(alpha: .8))),
             const SizedBox(height: 2),
-            Text('(ソーシャルロボット・ネットワークサービス)',
+            Text(l.aboutSubtitleJa,
                 style: TextStyle(
                     fontSize: 13,
                     color: cs.onSurface.withValues(alpha: .65))),
             const SizedBox(height: 14),
-            Text('v${app.getAppVersion()}',
+            Text(l.aboutVersion(app.getAppVersion()),
                 style:
                     TextStyle(color: cs.onSurface.withValues(alpha: .6))),
             const SizedBox(height: 16),
             Text(
-              'A MeshCore companion client.\n'
-              'Copyright (c) 2026 IoTone, Inc.\n'
-              'Licensed under the MIT (X11) License.',
+              '${l.aboutDescription}\n'
+              '${l.aboutCopyright}\n'
+              '${l.aboutLicense}',
               textAlign: TextAlign.center,
               style: TextStyle(color: cs.onSurface.withValues(alpha: .65)),
             ),
             const SizedBox(height: 18),
-            Text('Made with ♥ in Fukuoka, Japan',
+            Text(l.aboutMadeWith,
                 style: TextStyle(
                     color: cs.onSurface.withValues(alpha: .55),
                     fontStyle: FontStyle.italic)),
             const SizedBox(height: 14),
-            Text('Terms & Conditions — wired in U5.',
+            Text(l.aboutTerms,
                 style: TextStyle(
                     color: cs.onSurface.withValues(alpha: .4),
                     fontSize: 11)),

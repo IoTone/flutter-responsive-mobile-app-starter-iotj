@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 
@@ -9,6 +10,8 @@ import 'package:meshmore_sns_app/app_router.dart';
 import 'package:meshmore_sns_app/app_state_model.dart';
 import 'package:meshmore_sns_app/cue/asset_audio_pack.dart';
 import 'package:meshmore_sns_app/cue/cue_service.dart';
+import 'package:meshmore_sns_app/gen/app_localizations.dart';
+import 'package:meshmore_sns_app/l10n/locale_controller.dart';
 import 'package:meshmore_sns_app/meshcore/background_keepalive.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/perms/first_run_controller.dart';
@@ -60,6 +63,9 @@ void main() {
           ChangeNotifierProvider<FirstRunController>(
             create: (_) => FirstRunController()..load(),
           ),
+          ChangeNotifierProvider<LocaleController>(
+            create: (_) => LocaleController()..load(),
+          ),
         ],
         child: const MyApp(),
       ),
@@ -90,10 +96,22 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  // R4 / U5 — l10n wiring shared between every MaterialApp branch:
+  // delegates for the generated AppLocalizations + Material + Cupertino
+  // + Widgets, plus the supported-locales list.
+  static const List<LocalizationsDelegate<Object>> _localeDelegates =
+      <LocalizationsDelegate<Object>>[
+    AppLocalizations.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ];
+
   @override
   Widget build(BuildContext context) {
     final ThemeController tc = context.watch<ThemeController>();
     final FirstRunController fr = context.watch<FirstRunController>();
+    final LocaleController lc = context.watch<LocaleController>();
 
     // R21 / U12 — gate the app on first-run state. While the pref
     // is loading we render the splash holder so the test binding
@@ -104,6 +122,9 @@ class _MyAppState extends State<MyApp> {
     if (!fr.loaded) {
       return MaterialApp(
         theme: tc.theme,
+        locale: lc.locale,
+        supportedLocales: LocaleController.supported,
+        localizationsDelegates: _localeDelegates,
         home: const Scaffold(body: SizedBox.shrink()),
       );
     }
@@ -111,12 +132,18 @@ class _MyAppState extends State<MyApp> {
       return MaterialApp(
         title: 'Meshmore SNS',
         theme: tc.theme,
+        locale: lc.locale,
+        supportedLocales: LocaleController.supported,
+        localizationsDelegates: _localeDelegates,
         home: const FirstRunIntroScreen(),
       );
     }
     return MaterialApp.router(
       title: 'Meshmore SNS',
       theme: tc.theme,
+      locale: lc.locale,
+      supportedLocales: LocaleController.supported,
+      localizationsDelegates: _localeDelegates,
       routerConfig: appRouter,
       builder: (BuildContext context, Widget? child) {
         // User font-size scale (R14) layered on top of the OS text

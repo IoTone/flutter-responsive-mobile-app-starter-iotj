@@ -1,9 +1,12 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
+import 'package:meshmore_sns_app/gen/app_localizations.dart';
+import 'package:meshmore_sns_app/l10n/locale_controller.dart';
 import 'package:meshmore_sns_app/perms/first_run_controller.dart';
 import 'package:meshmore_sns_app/perms/permissions_service.dart';
 import 'package:meshmore_sns_app/screens/first_run_intro_screen.dart';
@@ -13,7 +16,17 @@ Widget _host(FirstRunController fr, PermissionsService perms) => MultiProvider(
         ChangeNotifierProvider<FirstRunController>.value(value: fr),
         Provider<PermissionsService>.value(value: perms),
       ],
-      child: const MaterialApp(home: FirstRunIntroScreen()),
+      child: MaterialApp(
+        locale: const Locale('en'),
+        supportedLocales: LocaleController.supported,
+        localizationsDelegates: const <LocalizationsDelegate<Object>>[
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        home: const FirstRunIntroScreen(),
+      ),
     );
 
 void main() {
