@@ -25,13 +25,6 @@ const List<LocalizationsDelegate<Object>> _kLocaleDelegates =
   GlobalCupertinoLocalizations.delegate,
 ];
 
-Widget _wrap(Widget child) => MaterialApp(
-      locale: const Locale('en'),
-      supportedLocales: LocaleController.supported,
-      localizationsDelegates: _kLocaleDelegates,
-      home: child,
-    );
-
 void main() {
   testWidgets('discovers nodes from CONTACT + ADVERT frames',
       (WidgetTester t) async {

@@ -555,6 +555,20 @@ class MeshcoreController extends ChangeNotifier {
   /// messages are not emitted here.
   Stream<ChatMessage> get incomingChannelMessages => _incomingCh.stream;
 
+  /// Operations that failed (send / advert / scan / set-* throws).
+  /// `CueBridge` listens to this and fires `CueKind.taskError`.
+  /// Emitted as the operation name (e.g. "sendChannel", "sendDm",
+  /// "scan", "advert") so callers can label snackbars too.
+  final StreamController<String> _taskErrors =
+      StreamController<String>.broadcast();
+  Stream<String> get taskErrors => _taskErrors.stream;
+
+  /// Convenience for code paths that want to flag a failure without
+  /// throwing into the void.
+  void _emitTaskError(String op) {
+    if (!_taskErrors.isClosed) _taskErrors.add(op);
+  }
+
   void _addMessage(ChatMessage m) {
     _messages.add(m);
     if (_messages.length > _messagesCap) _messages.removeAt(0);
@@ -624,11 +638,16 @@ class MeshcoreController extends ChangeNotifier {
         int.parse(peerPubKeyHex.substring(i, i + 2), radix: 16),
     ];
     final int ts = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    await send(MeshcoreFrameCodec.sendTextMessage(
-      pubKeyPrefix: prefix,
-      timestamp: ts,
-      text: t,
-    ));
+    try {
+      await send(MeshcoreFrameCodec.sendTextMessage(
+        pubKeyPrefix: prefix,
+        timestamp: ts,
+        text: t,
+      ));
+    } catch (_) {
+      _emitTaskError('sendDm');
+      return;
+    }
     _addMessage(ChatMessage(
       channelIdx: -1,
       text: t,
@@ -872,11 +891,16 @@ class MeshcoreController extends ChangeNotifier {
     final String t = text.trim();
     if (t.isEmpty || !isReady) return;
     final int ts = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    await send(MeshcoreFrameCodec.sendChannelTextMessage(
-      channelIdx: _activeChannel,
-      timestamp: ts,
-      text: t,
-    ));
+    try {
+      await send(MeshcoreFrameCodec.sendChannelTextMessage(
+        channelIdx: _activeChannel,
+        timestamp: ts,
+        text: t,
+      ));
+    } catch (_) {
+      _emitTaskError('sendChannel');
+      return;
+    }
     _addMessage(ChatMessage(
       channelIdx: _activeChannel,
       text: t,
@@ -1100,6 +1124,7 @@ class MeshcoreController extends ChangeNotifier {
     unawaited(_keepalive.stop());
     unawaited(_incomingCh.close());
     unawaited(_incomingDm.close());
+    unawaited(_taskErrors.close());
     unawaited(_transport?.close());
     unawaited(_connection.dispose());
     super.dispose();

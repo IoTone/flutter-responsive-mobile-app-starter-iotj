@@ -29,6 +29,18 @@ enum CueKind {
 
   /// Critical: device error / handshake failure.
   alert,
+
+  /// Long-running task **kicked off** (scan / advert / connect attempt).
+  scanStart,
+
+  /// Long-running task **succeeded** (scan window elapsed, advert
+  /// acknowledged, etc.).
+  taskOk,
+
+  /// Long-running task **failed** (send threw, scan timed out without
+  /// any inbound, connect attempt failed). Less harsh than `alert`;
+  /// alert is reserved for protocol-level critical errors.
+  taskError,
 }
 
 /// Pluggable audio backend. The default uses built-in system sounds —
@@ -52,7 +64,8 @@ class SystemSoundAudioPack implements AudioPack {
   Future<void> play(CueKind kind) async {
     try {
       final SystemSoundType s = (kind == CueKind.alert ||
-              kind == CueKind.linkDown)
+              kind == CueKind.linkDown ||
+              kind == CueKind.taskError)
           ? SystemSoundType.alert
           : SystemSoundType.click;
       await SystemSound.play(s);
@@ -71,13 +84,16 @@ class SystemHapticBackend implements HapticBackend {
     try {
       switch (kind) {
         case CueKind.alert:
+        case CueKind.taskError:
           await HapticFeedback.heavyImpact();
         case CueKind.send:
         case CueKind.discovery:
         case CueKind.dmIn:
+        case CueKind.taskOk:
           await HapticFeedback.mediumImpact();
         case CueKind.linkUp:
         case CueKind.linkDown:
+        case CueKind.scanStart:
           await HapticFeedback.selectionClick();
         case CueKind.messageIn:
           await HapticFeedback.lightImpact();
