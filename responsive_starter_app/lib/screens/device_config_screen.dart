@@ -375,6 +375,64 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
               onPressed: ready ? () => _applyName(mc) : null,
             ),
           ),
+          // Advert location SOURCE — None / Pinned / GPS. Drives what
+          // the device broadcasts: 0 = nothing, 1 = the pinned lat/lon
+          // below, 2 = the on-board GPS reading. Sent via
+          // CMD_SET_OTHER_PARAMS (0x26).
+          const SizedBox(height: 6),
+          Text('Advert location source',
+              style: TextStyle(
+                  color: cs.onSurfaceVariant,
+                  fontSize: 12,
+                  letterSpacing: 1)),
+          const SizedBox(height: 4),
+          Builder(builder: (BuildContext _) {
+            final SelfInfo? si = mc.selfInfo;
+            final int current = si?.advertLocPolicy ?? 0;
+            return SegmentedButton<int>(
+              segments: const <ButtonSegment<int>>[
+                ButtonSegment<int>(
+                    value: 0,
+                    label: Text('None'),
+                    icon: Icon(Icons.do_not_disturb, size: 16)),
+                ButtonSegment<int>(
+                    value: 1,
+                    label: Text('Pinned'),
+                    icon: Icon(Icons.push_pin_outlined, size: 16)),
+                ButtonSegment<int>(
+                    value: 2,
+                    label: Text('Device GPS'),
+                    icon: Icon(Icons.satellite_alt, size: 16)),
+              ],
+              selected: <int>{current},
+              showSelectedIcon: false,
+              onSelectionChanged: ready && si != null
+                  ? (Set<int> next) async {
+                      final int v = next.first;
+                      if (v == current) return;
+                      try {
+                        await mc.setAdvertLocPolicy(v);
+                        _toast('Advert source: ${<String>[
+                          'None',
+                          'Pinned',
+                          'Device GPS'
+                        ][v]} — re-advertise to propagate');
+                      } catch (e) {
+                        _toast('Send failed: $e');
+                      }
+                    }
+                  : null,
+            );
+          }),
+          const SizedBox(height: 4),
+          Text(
+            'None = don\'t broadcast. Pinned = use the lat/lon below. '
+            'GPS = use the device\'s on-board fix (T1000-E etc.). The '
+            'choice only matters once you re-advertise.',
+            style:
+                TextStyle(color: cs.onSurfaceVariant, fontSize: 11),
+          ),
+          const SizedBox(height: 8),
           num('Advert latitude (°)', _lat, 'e.g. 35.681'),
           num('Advert longitude (°)', _lon, 'e.g. 139.767'),
           // R22 / U13 — populate-the-field actions (no broadcast).

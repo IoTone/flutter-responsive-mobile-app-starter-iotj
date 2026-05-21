@@ -110,6 +110,52 @@ void main() {
     ctrl.dispose();
   });
 
+  test('setAdvertLocPolicy emits CMD_SET_OTHER_PARAMS (0x26) and '
+      'preserves manualAdd/telemetry/multiAcks from SelfInfo',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    await ctrl.connect();
+    // selfInfoFrame() is all-zero past the opcode — so
+    // manualAddContacts=false → 0, telemetryModeRaw=0, multiAcks=0.
+    fake.emit(selfInfoFrame());
+    await Future<void>.delayed(Duration.zero);
+    fake.sent.clear(); // ignore APP_START etc. before the SET
+
+    await ctrl.setAdvertLocPolicy(2);
+    final Iterable<List<int>> setFrames =
+        fake.sent.where((f) => f.isNotEmpty && f[0] == 0x26);
+    expect(setFrames, hasLength(1));
+    final List<int> frame = setFrames.first;
+    // [0x26][manualAdd=0][telemetry=0][locPolicy=2][multiAcks=0]
+    expect(frame, <int>[0x26, 0x00, 0x00, 0x02, 0x00]);
+    ctrl.dispose();
+  });
+
+  test('setAdvertLocPolicy is a no-op when SelfInfo unavailable',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    await ctrl.connect();
+    fake.sent.clear();
+    // No selfInfoFrame emitted — controller stays in handshaking and
+    // selfInfo is null.
+    await ctrl.setAdvertLocPolicy(1);
+    expect(fake.sent.where((f) => f.isNotEmpty && f[0] == 0x26),
+        isEmpty);
+    ctrl.dispose();
+  });
+
   test('requestPhoneLocationFix returns false when service has no fix',
       () async {
     final FakeMeshcoreTransport fake =

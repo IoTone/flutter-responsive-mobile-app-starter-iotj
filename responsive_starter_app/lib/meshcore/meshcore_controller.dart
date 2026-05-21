@@ -763,6 +763,29 @@ class MeshcoreController extends ChangeNotifier {
     ));
   }
 
+  /// Set the device's **advert location policy** via `CMD_SET_OTHER_PARAMS`
+  /// (`0x26`). The policy determines what the device broadcasts:
+  ///   `0` = no location, `1` = pinned (manual), `2` = live GPS.
+  /// (Exact integer values vary by firmware revision — the codec
+  /// passes the byte through.)
+  ///
+  /// `SET_OTHER_PARAMS` is a *bundle* command: it always carries the
+  /// first two fields (manualAddContacts, telemetryModePacked) so the
+  /// device doesn't reset them. We read those + `multiAcks` back from
+  /// the cached `SelfInfo` to avoid clobbering unrelated settings.
+  /// No-op if not ready or if SelfInfo hasn't been received yet.
+  Future<void> setAdvertLocPolicy(int policy) async {
+    if (!isReady) return;
+    final SelfInfo? si = selfInfo;
+    if (si == null) return;
+    await send(MeshcoreFrameCodec.setOtherParams(
+      manualAddContacts: si.manualAddContacts ? 1 : 0,
+      telemetryModePacked: si.telemetryModeRaw,
+      advertLocPolicy: policy,
+      multiAcks: si.multiAcks,
+    ));
+  }
+
   void _trackBattery(MeshcoreInbound f) {
     if (f is! BatteryStorageFrame) return;
     _battery = f.battery;
