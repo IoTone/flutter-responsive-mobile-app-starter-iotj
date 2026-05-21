@@ -114,6 +114,71 @@ void main() {
     mc.dispose();
   });
 
+  testWidgets('long-press → Delete removes the row locally (R20)',
+      (WidgetTester t) async {
+    await t.binding.setSurfaceSize(const Size(900, 1600));
+    addTearDown(() => t.binding.setSurfaceSize(null));
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController mc = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    final TtsController tts = TtsController(speaker: FakeTtsSpeaker());
+    await t.pumpWidget(_host(mc, tts));
+    await mc.connect();
+    fake.emit(selfInfoFrame()); // → ready
+    await t.pump();
+    fake.emit(channelMsgFrame(text: 'delete me'));
+    await t.pump();
+    expect(find.text('delete me'), findsOneWidget);
+
+    await t.longPress(find.text('delete me'));
+    await t.pumpAndSettle();
+    expect(find.text('Delete locally'), findsOneWidget);
+    await t.tap(find.text('Delete locally'));
+    await t.pumpAndSettle();
+    expect(find.text('Delete this message locally?'), findsOneWidget);
+    await t.tap(find.text('Delete'));
+    await t.pumpAndSettle();
+
+    expect(find.text('delete me'), findsNothing);
+    expect(mc.messagesFor(0).where((m) => m.text == 'delete me'),
+        isEmpty);
+    mc.dispose();
+  });
+
+  testWidgets('Reply prepends a quoted prefix into the composer (R20)',
+      (WidgetTester t) async {
+    await t.binding.setSurfaceSize(const Size(900, 1600));
+    addTearDown(() => t.binding.setSurfaceSize(null));
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController mc = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    final TtsController tts = TtsController(speaker: FakeTtsSpeaker());
+    await t.pumpWidget(_host(mc, tts));
+    await mc.connect();
+    fake.emit(selfInfoFrame());
+    await t.pump();
+    fake.emit(channelMsgFrame(text: 'hey there'));
+    await t.pump();
+
+    await t.longPress(find.text('hey there'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Reply'));
+    await t.pumpAndSettle();
+
+    final TextField field =
+        t.widget<TextField>(find.byType(TextField));
+    expect(field.controller!.text, startsWith('> hey there'));
+    mc.dispose();
+  });
+
   testWidgets('inbound message IS spoken when TTS is on (R5)',
       (WidgetTester t) async {
     await t.binding.setSurfaceSize(const Size(900, 1600));

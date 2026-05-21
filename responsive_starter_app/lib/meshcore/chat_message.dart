@@ -3,6 +3,7 @@
 /// when we send (the radio performs the OTA encryption).
 class ChatMessage {
   ChatMessage({
+    String? id,
     required this.channelIdx,
     required this.text,
     required this.outgoing,
@@ -10,7 +11,20 @@ class ChatMessage {
     this.snrDb,
     this.isFlood = false,
     this.peerPubKeyHex,
-  }) : at = at ?? DateTime.now();
+  })  : id = id ?? _genId(),
+        at = at ?? DateTime.now();
+
+  /// Monotonic-ish per-process id so per-message actions (R20:
+  /// Reply / Copy / Delete) can target a specific row even across
+  /// JSON round-trips. Persisted in `toJson`; restored in `fromJson`.
+  final String id;
+
+  static int _seq = 0;
+  static String _genId() {
+    final int t = DateTime.now().microsecondsSinceEpoch;
+    _seq = (_seq + 1) & 0xFFFFFF;
+    return '${t.toRadixString(36)}.${_seq.toRadixString(36)}';
+  }
 
   final int channelIdx;
   final String text;
@@ -39,6 +53,7 @@ class ChatMessage {
   /// the companion protocol has no history-fetch; the device queue is
   /// drained destructively).
   Map<String, Object?> toJson() => <String, Object?>{
+        'i': id,
         'c': channelIdx,
         't': text,
         'o': outgoing,
@@ -49,6 +64,7 @@ class ChatMessage {
       };
 
   static ChatMessage fromJson(Map<String, Object?> j) => ChatMessage(
+        id: j['i'] as String?,
         channelIdx: (j['c'] as num?)?.toInt() ?? 0,
         text: j['t'] as String? ?? '',
         outgoing: j['o'] as bool? ?? false,

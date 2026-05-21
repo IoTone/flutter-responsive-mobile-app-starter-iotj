@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../chat/chat_actions.dart';
 import '../meshcore/chat_message.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
@@ -69,6 +70,26 @@ class _DmScreenState extends State<DmScreen> {
     _input.clear();
   }
 
+  Future<void> _onAction(MeshcoreController mc, ChatMessage m) async {
+    final ChatAction? action = await showChatActions(context, m);
+    if (action == null || !mounted) return;
+    switch (action) {
+      case ChatAction.reply:
+        final String quote = buildReplyQuote(m);
+        _input.text = quote + _input.text;
+        _input.selection = TextSelection.collapsed(offset: _input.text.length);
+        break;
+      case ChatAction.copy:
+        await copyMessageToClipboard(context, m);
+        break;
+      case ChatAction.delete:
+        if (!mounted) return;
+        final bool ok = await confirmDeleteMessage(context, m);
+        if (ok) mc.deleteMessageById(m.id);
+        break;
+    }
+  }
+
   void _autoScroll(int count) {
     if (count == _lastCount) return;
     _lastCount = count;
@@ -118,8 +139,10 @@ class _DmScreenState extends State<DmScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 8),
                     itemCount: msgs.length,
-                    itemBuilder: (BuildContext _, int i) =>
-                        _DmRow(msgs[i]),
+                    itemBuilder: (BuildContext _, int i) => _DmRow(
+                      msgs[i],
+                      onAction: () => _onAction(mc, msgs[i]),
+                    ),
                   ),
           ),
           SafeArea(
@@ -159,8 +182,9 @@ class _DmScreenState extends State<DmScreen> {
 }
 
 class _DmRow extends StatelessWidget {
-  const _DmRow(this.m);
+  const _DmRow(this.m, {required this.onAction});
   final ChatMessage m;
+  final VoidCallback onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -172,32 +196,47 @@ class _DmRow extends StatelessWidget {
       if (m.snrDb != null) 'SNR ${m.snrDb!.toStringAsFixed(1)}',
       if (m.isFlood) 'flood',
     ];
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          SizedBox(
-            width: 56,
-            child: Text('$time $tag',
-                style: TextStyle(
-                    color: m.outgoing ? cs.primary : cs.onSurfaceVariant,
-                    fontFamily: 'monospace',
-                    fontSize: 12)),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(m.text, style: TextStyle(color: cs.onSurface)),
-                if (meta.isNotEmpty)
-                  Text(meta.join(' · '),
-                      style: TextStyle(
-                          color: cs.onSurfaceVariant, fontSize: 11)),
-              ],
+    return InkWell(
+      onLongPress: onAction,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            SizedBox(
+              width: 56,
+              child: Text('$time $tag',
+                  style: TextStyle(
+                      color:
+                          m.outgoing ? cs.primary : cs.onSurfaceVariant,
+                      fontFamily: 'monospace',
+                      fontSize: 12)),
             ),
-          ),
-        ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(m.text, style: TextStyle(color: cs.onSurface)),
+                  if (meta.isNotEmpty)
+                    Text(meta.join(' · '),
+                        style: TextStyle(
+                            color: cs.onSurfaceVariant, fontSize: 11)),
+                ],
+              ),
+            ),
+            IconButton(
+              tooltip: 'Message actions',
+              iconSize: 18,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(
+                  minWidth: 32, minHeight: 32),
+              visualDensity: VisualDensity.compact,
+              onPressed: onAction,
+              icon: Icon(Icons.more_vert,
+                  color: cs.onSurfaceVariant),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -181,6 +181,19 @@ class MeshcoreController extends ChangeNotifier {
   void _persistChat() =>
       unawaited(ChatStore.save(List<ChatMessage>.from(_messages)));
 
+  /// R20 / U11 — delete a single message **locally**. The OTA copy
+  /// has already been delivered; MeshCore has no recall semantic, so
+  /// the UI must convey that the remote/other recipients still have
+  /// the message. Returns true if a row matched.
+  bool deleteMessageById(String id) {
+    final int before = _messages.length;
+    _messages.removeWhere((ChatMessage m) => m.id == id);
+    if (_messages.length == before) return false;
+    _persistChat();
+    notifyListeners();
+    return true;
+  }
+
   /// Recent raw inbound frames (hex), newest last. Bounded ring buffer
   /// for the M6 interop capture workflow.
   final List<String> _capture = <String>[];
