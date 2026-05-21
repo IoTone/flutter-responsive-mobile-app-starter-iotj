@@ -605,4 +605,31 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsHubDiagnosticsSub =>
       'Connect a radio · frame log · M6 capture';
+
+  @override
+  String get bootHeader => 'MESHMORE  /  SYNCHRONIZING';
+
+  @override
+  String get bootConnecting => 'CONNECTING TO RADIO…';
+
+  @override
+  String get bootHandshaking => 'HANDSHAKING…';
+
+  @override
+  String get bootSyncing => 'SYNCING DEVICE STATE…';
+
+  @override
+  String get bootReady => 'MESH ONLINE';
+
+  @override
+  String get bootOffline => 'OFFLINE — Settings → Diagnostics & connect';
+
+  @override
+  String get bootSkip => 'SKIP';
+
+  @override
+  String get bootRetry => 'RETRY';
+
+  @override
+  String get bootSubtitle => 'WAIT  /  進行中';
 }

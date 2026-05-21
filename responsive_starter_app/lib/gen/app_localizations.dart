@@ -1123,6 +1123,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect a radio · frame log · M6 capture'**
   String get settingsHubDiagnosticsSub;
+
+  /// No description provided for @bootHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'MESHMORE  /  SYNCHRONIZING'**
+  String get bootHeader;
+
+  /// No description provided for @bootConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'CONNECTING TO RADIO…'**
+  String get bootConnecting;
+
+  /// No description provided for @bootHandshaking.
+  ///
+  /// In en, this message translates to:
+  /// **'HANDSHAKING…'**
+  String get bootHandshaking;
+
+  /// No description provided for @bootSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'SYNCING DEVICE STATE…'**
+  String get bootSyncing;
+
+  /// No description provided for @bootReady.
+  ///
+  /// In en, this message translates to:
+  /// **'MESH ONLINE'**
+  String get bootReady;
+
+  /// No description provided for @bootOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'OFFLINE — Settings → Diagnostics & connect'**
+  String get bootOffline;
+
+  /// No description provided for @bootSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'SKIP'**
+  String get bootSkip;
+
+  /// No description provided for @bootRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'RETRY'**
+  String get bootRetry;
+
+  /// No description provided for @bootSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'WAIT  /  進行中'**
+  String get bootSubtitle;
 }
 
 class _AppLocalizationsDelegate

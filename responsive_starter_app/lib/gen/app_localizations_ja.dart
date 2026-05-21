@@ -562,4 +562,31 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsHubDiagnosticsSub => 'ラジオ接続 · フレームログ · M6 キャプチャ';
+
+  @override
+  String get bootHeader => 'MESHMORE  /  同期中';
+
+  @override
+  String get bootConnecting => 'ラジオに接続中…';
+
+  @override
+  String get bootHandshaking => 'ハンドシェイク中…';
+
+  @override
+  String get bootSyncing => 'デバイス状態を同期中…';
+
+  @override
+  String get bootReady => 'メッシュ オンライン';
+
+  @override
+  String get bootOffline => 'オフライン — 設定 → 診断 & 接続';
+
+  @override
+  String get bootSkip => 'スキップ';
+
+  @override
+  String get bootRetry => '再試行';
+
+  @override
+  String get bootSubtitle => '待機  /  WAIT';
 }

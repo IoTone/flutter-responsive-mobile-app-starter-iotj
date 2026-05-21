@@ -12,6 +12,7 @@ import '../gen/app_localizations.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../screens/chat_screen.dart';
+import 'boot_overlay.dart';
 import '../screens/dashboard_screen.dart';
 import '../screens/nodes_screen.dart';
 import '../theme/theme_controller.dart';
@@ -144,7 +145,7 @@ class _HomeShellState extends State<HomeShell>
                   context.read<ThemeController>().reduceMotion);
         }
       },
-      child: Scaffold(
+      child: BootOverlay(child: Scaffold(
       appBar: AppBar(
         leading: Semantics(
           button: true,
@@ -197,6 +198,7 @@ class _HomeShellState extends State<HomeShell>
           _SettingsView(),
           _AboutView(),
         ],
+      ),
       ),
       ),
     );

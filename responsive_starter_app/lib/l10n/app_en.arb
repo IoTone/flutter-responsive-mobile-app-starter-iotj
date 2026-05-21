@@ -234,5 +234,15 @@
   "settingsHubChannels": "Channels",
   "settingsHubChannelsSub": "Slots · name + PSK · #hashtag · active",
   "settingsHubDiagnostics": "Diagnostics & connect",
-  "settingsHubDiagnosticsSub": "Connect a radio · frame log · M6 capture"
+  "settingsHubDiagnosticsSub": "Connect a radio · frame log · M6 capture",
+
+  "bootHeader": "MESHMORE  /  SYNCHRONIZING",
+  "bootConnecting": "CONNECTING TO RADIO…",
+  "bootHandshaking": "HANDSHAKING…",
+  "bootSyncing": "SYNCING DEVICE STATE…",
+  "bootReady": "MESH ONLINE",
+  "bootOffline": "OFFLINE — Settings → Diagnostics & connect",
+  "bootSkip": "SKIP",
+  "bootRetry": "RETRY",
+  "bootSubtitle": "WAIT  /  進行中"
 }

@@ -234,5 +234,15 @@
   "settingsHubChannels": "チャンネル",
   "settingsHubChannelsSub": "スロット · 名前 + PSK · #ハッシュタグ · 有効",
   "settingsHubDiagnostics": "診断 & 接続",
-  "settingsHubDiagnosticsSub": "ラジオ接続 · フレームログ · M6 キャプチャ"
+  "settingsHubDiagnosticsSub": "ラジオ接続 · フレームログ · M6 キャプチャ",
+
+  "bootHeader": "MESHMORE  /  同期中",
+  "bootConnecting": "ラジオに接続中…",
+  "bootHandshaking": "ハンドシェイク中…",
+  "bootSyncing": "デバイス状態を同期中…",
+  "bootReady": "メッシュ オンライン",
+  "bootOffline": "オフライン — 設定 → 診断 & 接続",
+  "bootSkip": "スキップ",
+  "bootRetry": "再試行",
+  "bootSubtitle": "待機  /  WAIT"
 }
