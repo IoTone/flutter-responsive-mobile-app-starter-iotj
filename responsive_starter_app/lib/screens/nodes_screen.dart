@@ -8,6 +8,7 @@ import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../util/geo.dart' as geo;
+import 'node_detail_sheet.dart';
 
 /// Nodes "in the area" — the hyperlocal-discovery view (R6/R8).
 ///
@@ -95,6 +96,24 @@ class _NodesScreenState extends State<NodesScreen> {
       _inRangeOnly ||
       _maxAge != null ||
       _maxDistanceMeters != null;
+
+  Future<void> _showDetail(MeshcoreController mc, DiscoveredNode n) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (BuildContext _) => NodeDetailSheet(
+        node: n,
+        distanceMeters: n.hasLocation
+            ? mc.distanceMetersTo(n.latitude!, n.longitude!)
+            : null,
+        isFavourite: mc.favorites.contains(n.pubKeyHex),
+        isKnown: mc.known.contains(n.pubKeyHex),
+        onToggleFavourite: () => mc.toggleFavorite(n.pubKeyHex),
+        recentDms: mc.dmHistoryFor(n.pubKeyHex),
+      ),
+    );
+  }
 
   void _clearFilters() {
     setState(() {
@@ -391,8 +410,7 @@ class _NodesScreenState extends State<NodesScreen> {
                   itemBuilder: (BuildContext c, int i) {
                     final DiscoveredNode n = nodes[i];
                     return ListTile(
-                      onTap: () =>
-                          context.push('/dm/${n.pubKeyHex}'),
+                      onTap: () => _showDetail(mc, n),
                       leading: Icon(
                         n.inRange
                             ? Icons.sensors
@@ -403,6 +421,14 @@ class _NodesScreenState extends State<NodesScreen> {
                       ),
                       title: Builder(builder: (BuildContext _) {
                         final int dmN = mc.dmCountFor(n.pubKeyHex);
+                        final int unread = dmN == 0
+                            ? 0
+                            : mc.unreadDmCountFor(n.pubKeyHex);
+                        // Alt-colour the badge when unread > 0 so the
+                        // user can tell at a glance which threads
+                        // have new traffic since they last opened them.
+                        final Color badgeFg =
+                            unread > 0 ? cs.tertiary : cs.primary;
                         return Row(
                           children: <Widget>[
                             Flexible(
@@ -423,14 +449,22 @@ class _NodesScreenState extends State<NodesScreen> {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: <Widget>[
-                                    Icon(Icons.chat_bubble,
-                                        size: 12, color: cs.primary),
+                                    Icon(
+                                        unread > 0
+                                            ? Icons.mark_unread_chat_alt
+                                            : Icons.chat_bubble,
+                                        size: 12,
+                                        color: badgeFg),
                                     const SizedBox(width: 3),
-                                    Text('$dmN',
-                                        style: TextStyle(
-                                            fontSize: 11,
-                                            color: cs.primary,
-                                            fontWeight: FontWeight.w600)),
+                                    Text(
+                                      unread > 0
+                                          ? '$unread / $dmN'
+                                          : '$dmN',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: badgeFg,
+                                          fontWeight: FontWeight.w600),
+                                    ),
                                   ],
                                 ),
                               ),

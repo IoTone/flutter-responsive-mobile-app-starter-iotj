@@ -42,7 +42,15 @@ class _DmScreenState extends State<DmScreen> {
     // stream subscription is here only as a hook for future per-DM
     // TTS / haptic (R5/R12) without rebuilding the chat-screen
     // pattern.
-    _sub = mc.incomingDirectMessages.listen((_) {});
+    _sub = mc.incomingDirectMessages.listen((ChatMessage m) {
+      // Stay caught up: any new inbound DM that lands while the
+      // user is on this thread is read by definition.
+      if (m.peerPubKeyHex != null) {
+        mc.markDmRead(widget.peerPubKeyHex);
+      }
+    });
+    // Opening the thread marks everything currently in it as read.
+    mc.markDmRead(widget.peerPubKeyHex);
   }
 
   @override

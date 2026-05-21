@@ -12,6 +12,7 @@ import 'ble_connector.dart';
 import 'chat_message.dart';
 import 'chat_store.dart';
 import 'discovered_node.dart';
+import 'dm_read_store.dart';
 import 'favorite_store.dart';
 import 'known_store.dart';
 import 'mesh_event.dart';
@@ -95,7 +96,14 @@ class MeshcoreController extends ChangeNotifier {
     _loadBackgroundPref();
     _loadFavorites();
     _loadKnown();
+    unawaited(_dmReadStore.load().then((_) {
+      // Notify so any UI watching unread counts (Nodes badge, etc.)
+      // re-renders once the persisted last-read timestamps are in.
+      notifyListeners();
+    }));
   }
+
+  final DmReadStore _dmReadStore = DmReadStore();
 
   // --- "Known" nodes (R18) ---
   // Nodes we've had direct/attributable communication with (a
@@ -581,6 +589,28 @@ class MeshcoreController extends ChangeNotifier {
   /// "💬 N" badge — Option D DM-presence surfacing.
   int dmCountFor(String peerPubKeyHex) =>
       dmHistoryFor(peerPubKeyHex).length;
+
+  /// Count of **inbound** DMs from this peer that arrived after the
+  /// last time we marked the thread read. Drives the unread state of
+  /// the Nodes-row DM badge.
+  int unreadDmCountFor(String peerPubKeyHex) {
+    final int last = _dmReadStore.lastReadAtMs(peerPubKeyHex);
+    int n = 0;
+    for (final ChatMessage m in dmHistoryFor(peerPubKeyHex)) {
+      if (m.outgoing) continue;
+      if (m.at.millisecondsSinceEpoch > last) n++;
+    }
+    return n;
+  }
+
+  /// Mark all current DM messages with [peerPubKeyHex] as read. Called
+  /// from `DmScreen.initState` so opening a thread clears its unread
+  /// badge. Fire-and-forget — never blocks the UI.
+  void markDmRead(String peerPubKeyHex) {
+    unawaited(_dmReadStore.markRead(peerPubKeyHex).then((_) {
+      notifyListeners();
+    }));
+  }
 
   /// Send a DM (`CMD_SEND_TXT_MSG` 0x02, addressed by 6-byte pubkey
   /// prefix). Optimistically appends an outgoing line. No-op if not
