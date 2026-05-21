@@ -8,6 +8,9 @@ import 'package:meshmore_sns_app/app_state_model.dart';
 import 'package:meshmore_sns_app/cue/cue_service.dart';
 import 'package:meshmore_sns_app/meshcore/background_keepalive.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
+import 'package:meshmore_sns_app/perms/first_run_controller.dart';
+import 'package:meshmore_sns_app/perms/permissions_service.dart';
+import 'package:meshmore_sns_app/screens/first_run_intro_screen.dart';
 import 'package:meshmore_sns_app/theme/theme_controller.dart';
 import 'package:meshmore_sns_app/tts/tts_controller.dart';
 
@@ -39,6 +42,12 @@ void main() {
               backgroundKeepalive: createBackgroundKeepalive(),
             )..autoConnectIfPaired(),
           ),
+          Provider<PermissionsService>(
+            create: (_) => const PlatformPermissionsService(),
+          ),
+          ChangeNotifierProvider<FirstRunController>(
+            create: (_) => FirstRunController()..load(),
+          ),
         ],
         child: const MyApp(),
       ),
@@ -54,6 +63,27 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeController tc = context.watch<ThemeController>();
+    final FirstRunController fr = context.watch<FirstRunController>();
+
+    // R21 / U12 — gate the app on first-run state. While the pref
+    // is loading we render the splash holder so the test binding
+    // doesn't see a different MaterialApp shape mid-frame. When
+    // first-run is NOT done we mount a small MaterialApp around the
+    // intro screen (so it has theming + a Navigator without booting
+    // the full router). When done, the regular router-app boots.
+    if (!fr.loaded) {
+      return MaterialApp(
+        theme: tc.theme,
+        home: const Scaffold(body: SizedBox.shrink()),
+      );
+    }
+    if (!fr.done) {
+      return MaterialApp(
+        title: 'Meshmore SNS',
+        theme: tc.theme,
+        home: const FirstRunIntroScreen(),
+      );
+    }
     return MaterialApp.router(
       title: 'Meshmore SNS',
       theme: tc.theme,
