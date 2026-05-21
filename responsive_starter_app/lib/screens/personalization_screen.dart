@@ -17,20 +17,28 @@ class PersonalizationScreen extends StatelessWidget {
     final ThemeController tc = context.watch<ThemeController>();
     return Scaffold(
       appBar: AppBar(title: const Text('Profile & personalization')),
-      body: RadioGroup<MmThemePreset>(
-        groupValue: tc.preset,
-        onChanged: (MmThemePreset? v) {
-          if (v != null) tc.setPreset(v);
-        },
-        child: ListView(
+      body: ListView(
           children: <Widget>[
             const _Section('THEME PRESET'),
+            // Plain ListTile + onTap (rather than RadioGroup +
+            // RadioListTile) — the latter wasn't reliably firing
+            // `setPreset` in 3.35, so the chosen theme was a no-op.
+            // We render the radio glyph by hand so the row visually
+            // matches a RadioListTile.
             for (final MmThemePreset p in MmThemePreset.values)
-              RadioListTile<MmThemePreset>(
+              ListTile(
                 dense: true,
-                value: p,
+                onTap: () => tc.setPreset(p),
+                leading: Icon(
+                  tc.preset == p
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  color: tc.preset == p
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 title: Text(p.label),
-                secondary: _Swatches(kMmPresets[p]!),
+                trailing: _Swatches(kMmPresets[p]!),
               ),
             const Divider(),
           const _Section('TYPE'),
@@ -81,7 +89,6 @@ class PersonalizationScreen extends StatelessWidget {
           ),
           ],
         ),
-      ),
     );
   }
 }
