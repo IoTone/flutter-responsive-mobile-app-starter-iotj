@@ -650,4 +650,254 @@ class AppLocalizationsJa extends AppLocalizations {
   String eventQueuedWaitingN(String count) {
     return 'キュー待機中 ($count)';
   }
+
+  @override
+  String chatChannelHeader(String name) {
+    return 'チャンネル · $name';
+  }
+
+  @override
+  String get chatManageChannels => 'チャンネル管理';
+
+  @override
+  String get chatTtsDisabledHint => 'アプリ設定で TTS を有効化';
+
+  @override
+  String get chatTtsMuted => 'このチャンネルの TTS をミュート中';
+
+  @override
+  String get chatTtsActive => 'このチャンネルを TTS で読み上げ中';
+
+  @override
+  String get chatHideChannels => 'チャンネルを隠す';
+
+  @override
+  String get chatShowChannels => 'チャンネルを表示';
+
+  @override
+  String get chatEmpty => '— このチャンネルにメッセージはありません —';
+
+  @override
+  String chatComposerHint(String channel) {
+    return '$channel へメッセージ';
+  }
+
+  @override
+  String get chatComposerOffline => '送信するにはラジオに接続';
+
+  @override
+  String get chatSend => '送信';
+
+  @override
+  String get chatMessageActions => 'メッセージ操作';
+
+  @override
+  String dmTitle(String peer) {
+    return 'DM · $peer';
+  }
+
+  @override
+  String dmPubkeyLabel(String hex) {
+    return '公開鍵 · $hex';
+  }
+
+  @override
+  String get dmEmpty => '— メッセージはまだありません —';
+
+  @override
+  String dmComposerHint(String peer) {
+    return '$peer へメッセージ';
+  }
+
+  @override
+  String get dmSend => 'DM 送信';
+
+  @override
+  String get actionReply => '返信';
+
+  @override
+  String get actionReplySub => 'このメッセージを引用して返信';
+
+  @override
+  String get actionCopy => 'コピー';
+
+  @override
+  String get actionCopySub => 'メッセージ本文をクリップボードにコピー';
+
+  @override
+  String get actionDeleteLocal => 'ローカル削除';
+
+  @override
+  String get actionDeleteLocalSub => '履歴からこの行のみ削除 — OTA 送信済みのメッセージは取り消せません。';
+
+  @override
+  String get actionCopied => 'クリップボードにコピーしました';
+
+  @override
+  String get actionDeleteConfirmTitle => 'このメッセージをローカルから削除しますか?';
+
+  @override
+  String get actionDeleteConfirmBody =>
+      'ローカル履歴からこの行を削除します。MeshCore に取り消しはなく、受信者側には残ります。';
+
+  @override
+  String get actionCancel => 'キャンセル';
+
+  @override
+  String get actionDelete => '削除';
+
+  @override
+  String get nodeDetailSelf => 'これはあなた自身のノードです — メッセージ / お気に入りは利用不可。';
+
+  @override
+  String get nodeDetailRecentDms => '最近の DM';
+
+  @override
+  String get nodeDetailMessage => 'メッセージ';
+
+  @override
+  String get nodeDetailFavourite => 'お気に入り';
+
+  @override
+  String get nodeDetailContact => 'コンタクト';
+
+  @override
+  String get nodeDetailShowOnMap => '地図上に表示';
+
+  @override
+  String get nodeDetailShowOnMapSnack => 'リバースジオコード地図 (R25) は今後対応予定です。';
+
+  @override
+  String get nodeDetailCopyPubkey => '公開鍵をコピー';
+
+  @override
+  String get nodeDetailPubkeyCopied => '公開鍵をコピーしました';
+
+  @override
+  String get nodeDetailInRange => '範囲内';
+
+  @override
+  String get nodeDetailKnown => '既知';
+
+  @override
+  String get nodeDetailContactBadge => 'コンタクト';
+
+  @override
+  String get nodeDetailShortIdKv => 'shortId';
+
+  @override
+  String get nodeDetailPubkeyKv => '公開鍵';
+
+  @override
+  String get nodeDetailSignalKv => '信号';
+
+  @override
+  String get nodeDetailLastHeardKv => '最終受信';
+
+  @override
+  String get nodeDetailDistanceKv => '距離';
+
+  @override
+  String get nodeDetailLatLonKv => '緯度 / 経度';
+
+  @override
+  String nodeDetailAgoSeconds(int n) {
+    return '$n秒前';
+  }
+
+  @override
+  String nodeDetailAgoMinutes(int n) {
+    return '$n分前';
+  }
+
+  @override
+  String nodeDetailAgoHours(int n) {
+    return '$n時間前';
+  }
+
+  @override
+  String nodeDetailAgoDays(int n) {
+    return '$n日前';
+  }
+
+  @override
+  String get channelsTitle => 'チャンネル';
+
+  @override
+  String get channelsHelp =>
+      'チャンネル = スロット + 名前 + 16 バイト鍵。Public (スロット 0) は共有の既定。プライベートグループは全ノードで同じスロットに同じ名前 & PSK を設定してください。';
+
+  @override
+  String get channelsOfflineHint => 'チャンネルを編集するにはラジオを接続 (診断)。';
+
+  @override
+  String get channelsEmpty => '— 未設定 —';
+
+  @override
+  String channelsSlotLabel(int idx) {
+    return 'スロット $idx';
+  }
+
+  @override
+  String channelsSlotActive(int idx) {
+    return 'スロット $idx · 有効';
+  }
+
+  @override
+  String get channelsEdit => '編集';
+
+  @override
+  String get channelsSet => '設定';
+
+  @override
+  String channelsSetSnack(int idx, String name) {
+    return 'チャンネル $idx を「$name」に設定 — 全ノードで同じ名前 & PSK が必要';
+  }
+
+  @override
+  String channelsDialogTitle(int idx) {
+    return 'チャンネルスロット $idx';
+  }
+
+  @override
+  String get channelsName => 'チャンネル名';
+
+  @override
+  String get channelsKeySource => '鍵ソース';
+
+  @override
+  String get channelsKeyPublic => 'Public';
+
+  @override
+  String get channelsKeyHashtag => '#タグ';
+
+  @override
+  String get channelsKeyHex => 'Hex';
+
+  @override
+  String get channelsKeyPublicBody => '公開チャンネル既定鍵を使用。';
+
+  @override
+  String get channelsKeyHashtagHint => '例: #mygroup';
+
+  @override
+  String get channelsKeyHashtagHelper => 'タグから鍵を導出 (sha256)';
+
+  @override
+  String get channelsKeyHexHint => '16 進 32 文字 (16 バイト)';
+
+  @override
+  String get channelsErrorTag => '#ハッシュタグを入力してください';
+
+  @override
+  String get channelsErrorHex => 'PSK は 16 進 32 文字 (16 バイト) で入力してください';
+
+  @override
+  String get channelsErrorName => 'チャンネル名を入力してください';
+
+  @override
+  String get channelsCancel => 'キャンセル';
+
+  @override
+  String get channelsSave => '保存';
 }

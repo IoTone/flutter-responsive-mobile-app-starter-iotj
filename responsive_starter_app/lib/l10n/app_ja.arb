@@ -294,5 +294,126 @@
   "eventQueuedWaitingN": "キュー待機中 ({count})",
   "@eventQueuedWaitingN": {
     "placeholders": {"count": {"type": "String"}}
-  }
+  },
+
+  "chatChannelHeader": "チャンネル · {name}",
+  "@chatChannelHeader": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "chatManageChannels": "チャンネル管理",
+  "chatTtsDisabledHint": "アプリ設定で TTS を有効化",
+  "chatTtsMuted": "このチャンネルの TTS をミュート中",
+  "chatTtsActive": "このチャンネルを TTS で読み上げ中",
+  "chatHideChannels": "チャンネルを隠す",
+  "chatShowChannels": "チャンネルを表示",
+  "chatEmpty": "— このチャンネルにメッセージはありません —",
+  "chatComposerHint": "{channel} へメッセージ",
+  "@chatComposerHint": {
+    "placeholders": {"channel": {"type": "String"}}
+  },
+  "chatComposerOffline": "送信するにはラジオに接続",
+  "chatSend": "送信",
+  "chatMessageActions": "メッセージ操作",
+
+  "dmTitle": "DM · {peer}",
+  "@dmTitle": {
+    "placeholders": {"peer": {"type": "String"}}
+  },
+  "dmPubkeyLabel": "公開鍵 · {hex}",
+  "@dmPubkeyLabel": {
+    "placeholders": {"hex": {"type": "String"}}
+  },
+  "dmEmpty": "— メッセージはまだありません —",
+  "dmComposerHint": "{peer} へメッセージ",
+  "@dmComposerHint": {
+    "placeholders": {"peer": {"type": "String"}}
+  },
+  "dmSend": "DM 送信",
+
+  "actionReply": "返信",
+  "actionReplySub": "このメッセージを引用して返信",
+  "actionCopy": "コピー",
+  "actionCopySub": "メッセージ本文をクリップボードにコピー",
+  "actionDeleteLocal": "ローカル削除",
+  "actionDeleteLocalSub": "履歴からこの行のみ削除 — OTA 送信済みのメッセージは取り消せません。",
+  "actionCopied": "クリップボードにコピーしました",
+  "actionDeleteConfirmTitle": "このメッセージをローカルから削除しますか?",
+  "actionDeleteConfirmBody": "ローカル履歴からこの行を削除します。MeshCore に取り消しはなく、受信者側には残ります。",
+  "actionCancel": "キャンセル",
+  "actionDelete": "削除",
+
+  "nodeDetailSelf": "これはあなた自身のノードです — メッセージ / お気に入りは利用不可。",
+  "nodeDetailRecentDms": "最近の DM",
+  "nodeDetailMessage": "メッセージ",
+  "nodeDetailFavourite": "お気に入り",
+  "nodeDetailContact": "コンタクト",
+  "nodeDetailShowOnMap": "地図上に表示",
+  "nodeDetailShowOnMapSnack": "リバースジオコード地図 (R25) は今後対応予定です。",
+  "nodeDetailCopyPubkey": "公開鍵をコピー",
+  "nodeDetailPubkeyCopied": "公開鍵をコピーしました",
+  "nodeDetailInRange": "範囲内",
+  "nodeDetailKnown": "既知",
+  "nodeDetailContactBadge": "コンタクト",
+  "nodeDetailShortIdKv": "shortId",
+  "nodeDetailPubkeyKv": "公開鍵",
+  "nodeDetailSignalKv": "信号",
+  "nodeDetailLastHeardKv": "最終受信",
+  "nodeDetailDistanceKv": "距離",
+  "nodeDetailLatLonKv": "緯度 / 経度",
+  "nodeDetailAgoSeconds": "{n}秒前",
+  "@nodeDetailAgoSeconds": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "nodeDetailAgoMinutes": "{n}分前",
+  "@nodeDetailAgoMinutes": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "nodeDetailAgoHours": "{n}時間前",
+  "@nodeDetailAgoHours": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "nodeDetailAgoDays": "{n}日前",
+  "@nodeDetailAgoDays": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+
+  "channelsTitle": "チャンネル",
+  "channelsHelp": "チャンネル = スロット + 名前 + 16 バイト鍵。Public (スロット 0) は共有の既定。プライベートグループは全ノードで同じスロットに同じ名前 & PSK を設定してください。",
+  "channelsOfflineHint": "チャンネルを編集するにはラジオを接続 (診断)。",
+  "channelsEmpty": "— 未設定 —",
+  "channelsSlotLabel": "スロット {idx}",
+  "@channelsSlotLabel": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
+  "channelsSlotActive": "スロット {idx} · 有効",
+  "@channelsSlotActive": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
+  "channelsEdit": "編集",
+  "channelsSet": "設定",
+  "channelsSetSnack": "チャンネル {idx} を「{name}」に設定 — 全ノードで同じ名前 & PSK が必要",
+  "@channelsSetSnack": {
+    "placeholders": {
+      "idx": {"type": "int"},
+      "name": {"type": "String"}
+    }
+  },
+  "channelsDialogTitle": "チャンネルスロット {idx}",
+  "@channelsDialogTitle": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
+  "channelsName": "チャンネル名",
+  "channelsKeySource": "鍵ソース",
+  "channelsKeyPublic": "Public",
+  "channelsKeyHashtag": "#タグ",
+  "channelsKeyHex": "Hex",
+  "channelsKeyPublicBody": "公開チャンネル既定鍵を使用。",
+  "channelsKeyHashtagHint": "例: #mygroup",
+  "channelsKeyHashtagHelper": "タグから鍵を導出 (sha256)",
+  "channelsKeyHexHint": "16 進 32 文字 (16 バイト)",
+  "channelsErrorTag": "#ハッシュタグを入力してください",
+  "channelsErrorHex": "PSK は 16 進 32 文字 (16 バイト) で入力してください",
+  "channelsErrorName": "チャンネル名を入力してください",
+  "channelsCancel": "キャンセル",
+  "channelsSave": "保存"
 }

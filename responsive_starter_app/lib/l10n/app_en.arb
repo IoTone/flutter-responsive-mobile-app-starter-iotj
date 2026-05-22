@@ -294,5 +294,126 @@
   "eventQueuedWaitingN": "queued items waiting ({count})",
   "@eventQueuedWaitingN": {
     "placeholders": {"count": {"type": "String"}}
-  }
+  },
+
+  "chatChannelHeader": "CHANNEL · {name}",
+  "@chatChannelHeader": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "chatManageChannels": "Manage channels",
+  "chatTtsDisabledHint": "Enable TTS in App settings",
+  "chatTtsMuted": "TTS muted for this channel",
+  "chatTtsActive": "TTS reading this channel",
+  "chatHideChannels": "Hide channels",
+  "chatShowChannels": "Show channels",
+  "chatEmpty": "— no messages on this channel —",
+  "chatComposerHint": "Message {channel}",
+  "@chatComposerHint": {
+    "placeholders": {"channel": {"type": "String"}}
+  },
+  "chatComposerOffline": "Connect a radio to send",
+  "chatSend": "Send",
+  "chatMessageActions": "Message actions",
+
+  "dmTitle": "DM · {peer}",
+  "@dmTitle": {
+    "placeholders": {"peer": {"type": "String"}}
+  },
+  "dmPubkeyLabel": "pubkey · {hex}",
+  "@dmPubkeyLabel": {
+    "placeholders": {"hex": {"type": "String"}}
+  },
+  "dmEmpty": "— no messages yet —",
+  "dmComposerHint": "Message {peer}",
+  "@dmComposerHint": {
+    "placeholders": {"peer": {"type": "String"}}
+  },
+  "dmSend": "Send DM",
+
+  "actionReply": "Reply",
+  "actionReplySub": "Quote this message in your reply",
+  "actionCopy": "Copy",
+  "actionCopySub": "Copy the message text to the clipboard",
+  "actionDeleteLocal": "Delete locally",
+  "actionDeleteLocalSub": "Removes this row from your history only — over-the-air messages cannot be recalled.",
+  "actionCopied": "Copied to clipboard",
+  "actionDeleteConfirmTitle": "Delete this message locally?",
+  "actionDeleteConfirmBody": "This removes the row from your local history. MeshCore has no recall — the recipient still has it.",
+  "actionCancel": "Cancel",
+  "actionDelete": "Delete",
+
+  "nodeDetailSelf": "This is your own node — no Message / Favourite.",
+  "nodeDetailRecentDms": "RECENT DMS",
+  "nodeDetailMessage": "Message",
+  "nodeDetailFavourite": "Favourite",
+  "nodeDetailContact": "Contact",
+  "nodeDetailShowOnMap": "Show on geocoded map",
+  "nodeDetailShowOnMapSnack": "Reverse-geocoded map (R25) is on the roadmap.",
+  "nodeDetailCopyPubkey": "Copy full pubkey",
+  "nodeDetailPubkeyCopied": "Pubkey copied",
+  "nodeDetailInRange": "IN RANGE",
+  "nodeDetailKnown": "KNOWN",
+  "nodeDetailContactBadge": "CONTACT",
+  "nodeDetailShortIdKv": "shortId",
+  "nodeDetailPubkeyKv": "pubkey",
+  "nodeDetailSignalKv": "signal",
+  "nodeDetailLastHeardKv": "last heard",
+  "nodeDetailDistanceKv": "distance",
+  "nodeDetailLatLonKv": "lat / lon",
+  "nodeDetailAgoSeconds": "{n}s ago",
+  "@nodeDetailAgoSeconds": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "nodeDetailAgoMinutes": "{n} min ago",
+  "@nodeDetailAgoMinutes": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "nodeDetailAgoHours": "{n} h ago",
+  "@nodeDetailAgoHours": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "nodeDetailAgoDays": "{n} d ago",
+  "@nodeDetailAgoDays": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+
+  "channelsTitle": "Channels",
+  "channelsHelp": "A channel = slot + name + 16-byte key. Public (slot 0) is the shared default. For a private group, set the SAME name & PSK in the same slot on every node.",
+  "channelsOfflineHint": "Connect a radio (Diagnostics) to edit channels.",
+  "channelsEmpty": "— empty —",
+  "channelsSlotLabel": "slot {idx}",
+  "@channelsSlotLabel": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
+  "channelsSlotActive": "slot {idx} · ACTIVE",
+  "@channelsSlotActive": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
+  "channelsEdit": "Edit",
+  "channelsSet": "Set",
+  "channelsSetSnack": "Channel {idx} set to \"{name}\" — every node needs the same name & PSK here",
+  "@channelsSetSnack": {
+    "placeholders": {
+      "idx": {"type": "int"},
+      "name": {"type": "String"}
+    }
+  },
+  "channelsDialogTitle": "Channel slot {idx}",
+  "@channelsDialogTitle": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
+  "channelsName": "Channel name",
+  "channelsKeySource": "Key source",
+  "channelsKeyPublic": "Public",
+  "channelsKeyHashtag": "#tag",
+  "channelsKeyHex": "Hex",
+  "channelsKeyPublicBody": "Uses the well-known Public channel key.",
+  "channelsKeyHashtagHint": "e.g. #mygroup",
+  "channelsKeyHashtagHelper": "Key derived from the tag (sha256)",
+  "channelsKeyHexHint": "32 hex chars (16 bytes)",
+  "channelsErrorTag": "Enter a #hashtag",
+  "channelsErrorHex": "PSK must be 32 hex chars (16 bytes)",
+  "channelsErrorName": "Enter a channel name",
+  "channelsCancel": "Cancel",
+  "channelsSave": "Save"
 }

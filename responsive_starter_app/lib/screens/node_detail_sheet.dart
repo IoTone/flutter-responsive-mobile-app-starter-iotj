@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../gen/app_localizations.dart';
 import '../meshcore/chat_message.dart';
 import '../meshcore/discovered_node.dart';
 import '../util/geo.dart' as geo;
@@ -55,19 +56,22 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
     setState(() => _fav = !_fav);
   }
 
-  String _ago(int unixSec) {
+  String _ago(int unixSec, AppLocalizations l) {
     final int delta =
         DateTime.now().millisecondsSinceEpoch ~/ 1000 - unixSec;
-    if (delta < 60) return '${delta}s ago';
-    if (delta < 3600) return '${(delta / 60).floor()} min ago';
-    if (delta < 86400) return '${(delta / 3600).floor()} h ago';
-    return '${(delta / 86400).floor()} d ago';
+    if (delta < 60) return l.nodeDetailAgoSeconds(delta);
+    if (delta < 3600) return l.nodeDetailAgoMinutes((delta / 60).floor());
+    if (delta < 86400) {
+      return l.nodeDetailAgoHours((delta / 3600).floor());
+    }
+    return l.nodeDetailAgoDays((delta / 86400).floor());
   }
 
   @override
   Widget build(BuildContext context) {
     final DiscoveredNode n = widget.node;
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final AppLocalizations l = AppLocalizations.of(context);
     final String name = n.name.isEmpty ? n.shortId : n.name;
     final String? distance =
         geo.formatDistance(widget.distanceMeters);
@@ -131,7 +135,8 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (n.inRange) chip(Icons.sensors, 'IN RANGE', cs.primary),
+                if (n.inRange)
+                  chip(Icons.sensors, l.nodeDetailInRange, cs.primary),
               ],
             ),
             const SizedBox(height: 4),
@@ -141,27 +146,30 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
               children: <Widget>[
                 chip(Icons.cell_tower, n.typeLabel, cs.onSurfaceVariant),
                 if (widget.isKnown)
-                  chip(Icons.chat_bubble, 'KNOWN', cs.primary),
-                if (_fav) chip(Icons.star, 'CONTACT', cs.tertiary),
+                  chip(Icons.chat_bubble, l.nodeDetailKnown, cs.primary),
+                if (_fav)
+                  chip(Icons.star, l.nodeDetailContactBadge, cs.tertiary),
               ],
             ),
             const SizedBox(height: 14),
-            kv('shortId', n.shortId),
-            kv('pubkey',
+            kv(l.nodeDetailShortIdKv, n.shortId),
+            kv(
+                l.nodeDetailPubkeyKv,
                 n.pubKeyHex.length > 24
                     ? '${n.pubKeyHex.substring(0, 24)}…'
                     : n.pubKeyHex),
             if (n.signalLabel.isNotEmpty)
-              kv('signal', n.signalLabel),
-            kv('last heard', _ago(n.lastHeardUnix)),
-            if (distance != null) kv('distance', distance),
+              kv(l.nodeDetailSignalKv, n.signalLabel),
+            kv(l.nodeDetailLastHeardKv, _ago(n.lastHeardUnix, l)),
+            if (distance != null)
+              kv(l.nodeDetailDistanceKv, distance),
             if (n.hasLocation)
-              kv('lat / lon',
+              kv(l.nodeDetailLatLonKv,
                   '${n.latitude!.toStringAsFixed(5)}, '
                       '${n.longitude!.toStringAsFixed(5)}'),
             if (widget.isSelf) ...<Widget>[
               const SizedBox(height: 8),
-              Text('This is your own node — no Message / Favourite.',
+              Text(l.nodeDetailSelf,
                   style: TextStyle(
                       color: cs.onSurfaceVariant,
                       fontStyle: FontStyle.italic,
@@ -170,7 +178,7 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
             // Option D — RECENT DMS excerpt. Suppressed for own node.
             if (!widget.isSelf && widget.recentDms.isNotEmpty) ...<Widget>[
               const SizedBox(height: 14),
-              Text('RECENT DMS',
+              Text(l.nodeDetailRecentDms,
                   style: TextStyle(
                       color: cs.onSurfaceVariant,
                       fontSize: 11,
@@ -220,7 +228,7 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
                 Expanded(
                   child: FilledButton.icon(
                     icon: const Icon(Icons.send),
-                    label: const Text('Message'),
+                    label: Text(l.nodeDetailMessage),
                     onPressed: () {
                       Navigator.pop(context);
                       context.push('/dm/${n.pubKeyHex}');
@@ -231,7 +239,9 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
                 Expanded(
                   child: OutlinedButton.icon(
                     icon: Icon(_fav ? Icons.star : Icons.star_border),
-                    label: Text(_fav ? 'Contact' : 'Favourite'),
+                    label: Text(_fav
+                        ? l.nodeDetailContact
+                        : l.nodeDetailFavourite),
                     onPressed: _toggle,
                   ),
                 ),
@@ -240,13 +250,12 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
             const SizedBox(height: 6),
             OutlinedButton.icon(
               icon: const Icon(Icons.map_outlined),
-              label: const Text('Show on geocoded map'),
+              label: Text(l.nodeDetailShowOnMap),
               onPressed: () {
                 ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                        'Reverse-geocoded map (R25) is on the roadmap.'),
-                    duration: Duration(seconds: 3),
+                  SnackBar(
+                    content: Text(l.nodeDetailShowOnMapSnack),
+                    duration: const Duration(seconds: 3),
                   ),
                 );
               },
@@ -254,15 +263,15 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
             const SizedBox(height: 6),
             TextButton.icon(
               icon: const Icon(Icons.copy, size: 16),
-              label: const Text('Copy full pubkey'),
+              label: Text(l.nodeDetailCopyPubkey),
               onPressed: () async {
                 await Clipboard.setData(
                     ClipboardData(text: n.pubKeyHex));
                 if (!context.mounted) return;
                 ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                  const SnackBar(
-                    content: Text('Pubkey copied'),
-                    duration: Duration(seconds: 2),
+                  SnackBar(
+                    content: Text(l.nodeDetailPubkeyCopied),
+                    duration: const Duration(seconds: 2),
                   ),
                 );
               },

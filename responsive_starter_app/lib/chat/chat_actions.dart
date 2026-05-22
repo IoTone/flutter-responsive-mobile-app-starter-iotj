@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../gen/app_localizations.dart';
 import '../meshcore/chat_message.dart';
 
 /// R20 / U11 — per-message Reply / Copy / Delete actions for chat
@@ -17,6 +18,7 @@ enum ChatAction { reply, copy, delete }
 /// confirmation (Delete).
 Future<ChatAction?> showChatActions(
     BuildContext context, ChatMessage m) async {
+  final AppLocalizations l = AppLocalizations.of(context);
   return showModalBottomSheet<ChatAction>(
     context: context,
     showDragHandle: true,
@@ -27,23 +29,21 @@ Future<ChatAction?> showChatActions(
         children: <Widget>[
           ListTile(
             leading: const Icon(Icons.reply),
-            title: const Text('Reply'),
-            subtitle: const Text('Quote this message in your reply'),
+            title: Text(l.actionReply),
+            subtitle: Text(l.actionReplySub),
             onTap: () => Navigator.pop(ctx, ChatAction.reply),
           ),
           ListTile(
             leading: const Icon(Icons.copy_outlined),
-            title: const Text('Copy'),
-            subtitle: const Text('Copy the message text to the clipboard'),
+            title: Text(l.actionCopy),
+            subtitle: Text(l.actionCopySub),
             onTap: () => Navigator.pop(ctx, ChatAction.copy),
           ),
           ListTile(
             leading: Icon(Icons.delete_outline,
                 color: Theme.of(ctx).colorScheme.error),
-            title: const Text('Delete locally'),
-            subtitle: const Text(
-                'Removes this row from your history only — '
-                'over-the-air messages cannot be recalled.'),
+            title: Text(l.actionDeleteLocal),
+            subtitle: Text(l.actionDeleteLocalSub),
             onTap: () => Navigator.pop(ctx, ChatAction.delete),
           ),
           const SizedBox(height: 4),
@@ -57,12 +57,13 @@ Future<ChatAction?> showChatActions(
 /// a brief confirmation snack on [scaffoldKey].
 Future<void> copyMessageToClipboard(
     BuildContext context, ChatMessage m) async {
+  final AppLocalizations l = AppLocalizations.of(context);
   await Clipboard.setData(ClipboardData(text: m.text));
   if (!context.mounted) return;
   ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-    const SnackBar(
-      content: Text('Copied to clipboard'),
-      duration: Duration(seconds: 2),
+    SnackBar(
+      content: Text(l.actionCopied),
+      duration: const Duration(seconds: 2),
     ),
   );
 }
@@ -81,17 +82,16 @@ String buildReplyQuote(ChatMessage m) {
 /// confirmed.
 Future<bool> confirmDeleteMessage(
     BuildContext context, ChatMessage m) async {
+  final AppLocalizations l = AppLocalizations.of(context);
   final bool? ok = await showDialog<bool>(
     context: context,
     builder: (BuildContext ctx) => AlertDialog(
-      title: const Text('Delete this message locally?'),
-      content: const Text(
-          'This removes the row from your local history. '
-          'MeshCore has no recall — the recipient still has it.'),
+      title: Text(l.actionDeleteConfirmTitle),
+      content: Text(l.actionDeleteConfirmBody),
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancel'),
+          child: Text(l.actionCancel),
         ),
         FilledButton.tonal(
           onPressed: () => Navigator.pop(ctx, true),
@@ -99,7 +99,7 @@ Future<bool> confirmDeleteMessage(
             backgroundColor: Theme.of(ctx).colorScheme.errorContainer,
             foregroundColor: Theme.of(ctx).colorScheme.onErrorContainer,
           ),
-          child: const Text('Delete'),
+          child: Text(l.actionDelete),
         ),
       ],
     ),

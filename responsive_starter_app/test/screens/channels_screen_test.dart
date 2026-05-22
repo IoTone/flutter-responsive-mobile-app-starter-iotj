@@ -1,9 +1,12 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
+import 'package:meshmore_sns_app/gen/app_localizations.dart';
+import 'package:meshmore_sns_app/l10n/locale_controller.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/screens/channels_screen.dart';
@@ -22,6 +25,14 @@ Future<MeshcoreController> _ready(FakeMeshcoreTransport fake) async {
 }
 
 Widget _host(MeshcoreController mc) => MaterialApp(
+      locale: const Locale('en'),
+      supportedLocales: LocaleController.supported,
+      localizationsDelegates: const <LocalizationsDelegate<Object>>[
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: ChangeNotifierProvider<MeshcoreController>.value(
         value: mc,
         child: const ChannelsScreen(),

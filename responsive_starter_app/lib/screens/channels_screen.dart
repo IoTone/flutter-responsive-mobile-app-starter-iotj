@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:provider/provider.dart';
 
+import '../gen/app_localizations.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 
@@ -24,6 +25,7 @@ class ChannelsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final MeshcoreController mc = context.watch<MeshcoreController>();
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final AppLocalizations l = AppLocalizations.of(context);
     final bool ready = mc.state == MeshcoreConnectionState.ready;
     final Map<int, String> known = <int, String>{
       for (final MapEntry<int, String> e in mc.channels) e.key: e.value,
@@ -41,21 +43,18 @@ class ChannelsScreen extends StatelessWidget {
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
           ..showSnackBar(SnackBar(
-              content: Text('Channel $idx set to "${r.name}" — every '
-                  'node needs the same name & PSK here')));
+              content: Text(l.channelsSetSnack(idx, r.name))));
       }
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Channels')),
+      appBar: AppBar(title: Text(l.channelsTitle)),
       body: ListView(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
             child: Text(
-              'A channel = slot + name + 16-byte key. Public (slot 0) '
-              'is the shared default. For a private group, set the '
-              'SAME name & PSK in the same slot on every node.',
+              l.channelsHelp,
               style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
             ),
           ),
@@ -63,8 +62,7 @@ class ChannelsScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: 16, vertical: 8),
-              child: Text(
-                  'Connect a radio (Diagnostics) to edit channels.',
+              child: Text(l.channelsOfflineHint,
                   style: TextStyle(color: cs.error)),
             ),
           const Divider(height: 1),
@@ -78,19 +76,22 @@ class ChannelsScreen extends StatelessWidget {
                     ? cs.primary
                     : cs.onSurfaceVariant,
               ),
-              title: Text(known[idx] ?? '— empty —',
+              title: Text(known[idx] ?? l.channelsEmpty,
                   style: TextStyle(
                       color: known.containsKey(idx)
                           ? cs.onSurface
                           : cs.onSurfaceVariant)),
-              subtitle: Text('slot $idx'
-                  '${idx == mc.activeChannel ? ' · ACTIVE' : ''}'),
+              subtitle: Text(idx == mc.activeChannel
+                  ? l.channelsSlotActive(idx)
+                  : l.channelsSlotLabel(idx)),
               onTap: known.containsKey(idx)
                   ? () => mc.setActiveChannel(idx)
                   : null,
               trailing: TextButton(
                 onPressed: ready ? () => edit(idx) : null,
-                child: Text(known.containsKey(idx) ? 'Edit' : 'Set'),
+                child: Text(known.containsKey(idx)
+                    ? l.channelsEdit
+                    : l.channelsSet),
               ),
             ),
         ],
@@ -134,14 +135,14 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
     super.dispose();
   }
 
-  List<int>? _resolvePsk() {
+  List<int>? _resolvePsk(AppLocalizations l) {
     switch (_src) {
       case _PskSource.public:
         return kPublicChannelPsk;
       case _PskSource.hashtag:
         final String t = _tag.text.trim();
         if (t.isEmpty) {
-          _error = 'Enter a #hashtag';
+          _error = l.channelsErrorTag;
           return null;
         }
         return MeshcoreChannelCrypto.channelPskFromHashtag(t);
@@ -149,7 +150,7 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
         final String h =
             _hex.text.trim().replaceAll(RegExp(r'\s'), '');
         if (h.length != 32 || !RegExp(r'^[0-9a-fA-F]+$').hasMatch(h)) {
-          _error = 'PSK must be 32 hex chars (16 bytes)';
+          _error = l.channelsErrorHex;
           return null;
         }
         return <int>[
@@ -159,9 +160,9 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
     }
   }
 
-  void _save() {
+  void _save(AppLocalizations l) {
     setState(() => _error = null);
-    final List<int>? psk = _resolvePsk();
+    final List<int>? psk = _resolvePsk(l);
     if (psk == null) {
       setState(() {});
       return;
@@ -172,7 +173,7 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
       name = _tag.text.trim();
     }
     if (name.isEmpty) {
-      setState(() => _error = 'Enter a channel name');
+      setState(() => _error = l.channelsErrorName);
       return;
     }
     Navigator.pop(context, _ChannelEdit(widget.idx, name, psk));
@@ -180,8 +181,9 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l = AppLocalizations.of(context);
     return AlertDialog(
-      title: Text('Channel slot ${widget.idx}'),
+      title: Text(l.channelsDialogTitle(widget.idx)),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -189,19 +191,22 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
           children: <Widget>[
             TextField(
               controller: _name,
-              decoration: const InputDecoration(
-                  labelText: 'Channel name', isDense: true),
+              decoration: InputDecoration(
+                  labelText: l.channelsName, isDense: true),
             ),
             const SizedBox(height: 14),
-            const Text('Key source'),
+            Text(l.channelsKeySource),
             SegmentedButton<_PskSource>(
-              segments: const <ButtonSegment<_PskSource>>[
+              segments: <ButtonSegment<_PskSource>>[
                 ButtonSegment<_PskSource>(
-                    value: _PskSource.public, label: Text('Public')),
+                    value: _PskSource.public,
+                    label: Text(l.channelsKeyPublic)),
                 ButtonSegment<_PskSource>(
-                    value: _PskSource.hashtag, label: Text('#tag')),
+                    value: _PskSource.hashtag,
+                    label: Text(l.channelsKeyHashtag)),
                 ButtonSegment<_PskSource>(
-                    value: _PskSource.hex, label: Text('Hex')),
+                    value: _PskSource.hex,
+                    label: Text(l.channelsKeyHex)),
               ],
               selected: <_PskSource>{_src},
               onSelectionChanged: (Set<_PskSource> s) =>
@@ -209,14 +214,14 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
             ),
             const SizedBox(height: 10),
             if (_src == _PskSource.public)
-              const Text('Uses the well-known Public channel key.',
-                  style: TextStyle(fontSize: 12))
+              Text(l.channelsKeyPublicBody,
+                  style: const TextStyle(fontSize: 12))
             else if (_src == _PskSource.hashtag)
               TextField(
                 controller: _tag,
-                decoration: const InputDecoration(
-                    labelText: 'e.g. #mygroup',
-                    helperText: 'Key derived from the tag (sha256)',
+                decoration: InputDecoration(
+                    labelText: l.channelsKeyHashtagHint,
+                    helperText: l.channelsKeyHashtagHelper,
                     isDense: true),
               )
             else
@@ -226,9 +231,8 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
                   FilteringTextInputFormatter.allow(
                       RegExp(r'[0-9a-fA-F]')),
                 ],
-                decoration: const InputDecoration(
-                    labelText: '32 hex chars (16 bytes)',
-                    isDense: true),
+                decoration: InputDecoration(
+                    labelText: l.channelsKeyHexHint, isDense: true),
               ),
             if (_error != null) ...<Widget>[
               const SizedBox(height: 8),
@@ -243,8 +247,10 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
       actions: <Widget>[
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')),
-        FilledButton(onPressed: _save, child: const Text('Save')),
+            child: Text(l.channelsCancel)),
+        FilledButton(
+            onPressed: () => _save(l),
+            child: Text(l.channelsSave)),
       ],
     );
   }

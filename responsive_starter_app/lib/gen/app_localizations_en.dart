@@ -693,4 +693,258 @@ class AppLocalizationsEn extends AppLocalizations {
   String eventQueuedWaitingN(String count) {
     return 'queued items waiting ($count)';
   }
+
+  @override
+  String chatChannelHeader(String name) {
+    return 'CHANNEL · $name';
+  }
+
+  @override
+  String get chatManageChannels => 'Manage channels';
+
+  @override
+  String get chatTtsDisabledHint => 'Enable TTS in App settings';
+
+  @override
+  String get chatTtsMuted => 'TTS muted for this channel';
+
+  @override
+  String get chatTtsActive => 'TTS reading this channel';
+
+  @override
+  String get chatHideChannels => 'Hide channels';
+
+  @override
+  String get chatShowChannels => 'Show channels';
+
+  @override
+  String get chatEmpty => '— no messages on this channel —';
+
+  @override
+  String chatComposerHint(String channel) {
+    return 'Message $channel';
+  }
+
+  @override
+  String get chatComposerOffline => 'Connect a radio to send';
+
+  @override
+  String get chatSend => 'Send';
+
+  @override
+  String get chatMessageActions => 'Message actions';
+
+  @override
+  String dmTitle(String peer) {
+    return 'DM · $peer';
+  }
+
+  @override
+  String dmPubkeyLabel(String hex) {
+    return 'pubkey · $hex';
+  }
+
+  @override
+  String get dmEmpty => '— no messages yet —';
+
+  @override
+  String dmComposerHint(String peer) {
+    return 'Message $peer';
+  }
+
+  @override
+  String get dmSend => 'Send DM';
+
+  @override
+  String get actionReply => 'Reply';
+
+  @override
+  String get actionReplySub => 'Quote this message in your reply';
+
+  @override
+  String get actionCopy => 'Copy';
+
+  @override
+  String get actionCopySub => 'Copy the message text to the clipboard';
+
+  @override
+  String get actionDeleteLocal => 'Delete locally';
+
+  @override
+  String get actionDeleteLocalSub =>
+      'Removes this row from your history only — over-the-air messages cannot be recalled.';
+
+  @override
+  String get actionCopied => 'Copied to clipboard';
+
+  @override
+  String get actionDeleteConfirmTitle => 'Delete this message locally?';
+
+  @override
+  String get actionDeleteConfirmBody =>
+      'This removes the row from your local history. MeshCore has no recall — the recipient still has it.';
+
+  @override
+  String get actionCancel => 'Cancel';
+
+  @override
+  String get actionDelete => 'Delete';
+
+  @override
+  String get nodeDetailSelf =>
+      'This is your own node — no Message / Favourite.';
+
+  @override
+  String get nodeDetailRecentDms => 'RECENT DMS';
+
+  @override
+  String get nodeDetailMessage => 'Message';
+
+  @override
+  String get nodeDetailFavourite => 'Favourite';
+
+  @override
+  String get nodeDetailContact => 'Contact';
+
+  @override
+  String get nodeDetailShowOnMap => 'Show on geocoded map';
+
+  @override
+  String get nodeDetailShowOnMapSnack =>
+      'Reverse-geocoded map (R25) is on the roadmap.';
+
+  @override
+  String get nodeDetailCopyPubkey => 'Copy full pubkey';
+
+  @override
+  String get nodeDetailPubkeyCopied => 'Pubkey copied';
+
+  @override
+  String get nodeDetailInRange => 'IN RANGE';
+
+  @override
+  String get nodeDetailKnown => 'KNOWN';
+
+  @override
+  String get nodeDetailContactBadge => 'CONTACT';
+
+  @override
+  String get nodeDetailShortIdKv => 'shortId';
+
+  @override
+  String get nodeDetailPubkeyKv => 'pubkey';
+
+  @override
+  String get nodeDetailSignalKv => 'signal';
+
+  @override
+  String get nodeDetailLastHeardKv => 'last heard';
+
+  @override
+  String get nodeDetailDistanceKv => 'distance';
+
+  @override
+  String get nodeDetailLatLonKv => 'lat / lon';
+
+  @override
+  String nodeDetailAgoSeconds(int n) {
+    return '${n}s ago';
+  }
+
+  @override
+  String nodeDetailAgoMinutes(int n) {
+    return '$n min ago';
+  }
+
+  @override
+  String nodeDetailAgoHours(int n) {
+    return '$n h ago';
+  }
+
+  @override
+  String nodeDetailAgoDays(int n) {
+    return '$n d ago';
+  }
+
+  @override
+  String get channelsTitle => 'Channels';
+
+  @override
+  String get channelsHelp =>
+      'A channel = slot + name + 16-byte key. Public (slot 0) is the shared default. For a private group, set the SAME name & PSK in the same slot on every node.';
+
+  @override
+  String get channelsOfflineHint =>
+      'Connect a radio (Diagnostics) to edit channels.';
+
+  @override
+  String get channelsEmpty => '— empty —';
+
+  @override
+  String channelsSlotLabel(int idx) {
+    return 'slot $idx';
+  }
+
+  @override
+  String channelsSlotActive(int idx) {
+    return 'slot $idx · ACTIVE';
+  }
+
+  @override
+  String get channelsEdit => 'Edit';
+
+  @override
+  String get channelsSet => 'Set';
+
+  @override
+  String channelsSetSnack(int idx, String name) {
+    return 'Channel $idx set to \"$name\" — every node needs the same name & PSK here';
+  }
+
+  @override
+  String channelsDialogTitle(int idx) {
+    return 'Channel slot $idx';
+  }
+
+  @override
+  String get channelsName => 'Channel name';
+
+  @override
+  String get channelsKeySource => 'Key source';
+
+  @override
+  String get channelsKeyPublic => 'Public';
+
+  @override
+  String get channelsKeyHashtag => '#tag';
+
+  @override
+  String get channelsKeyHex => 'Hex';
+
+  @override
+  String get channelsKeyPublicBody => 'Uses the well-known Public channel key.';
+
+  @override
+  String get channelsKeyHashtagHint => 'e.g. #mygroup';
+
+  @override
+  String get channelsKeyHashtagHelper => 'Key derived from the tag (sha256)';
+
+  @override
+  String get channelsKeyHexHint => '32 hex chars (16 bytes)';
+
+  @override
+  String get channelsErrorTag => 'Enter a #hashtag';
+
+  @override
+  String get channelsErrorHex => 'PSK must be 32 hex chars (16 bytes)';
+
+  @override
+  String get channelsErrorName => 'Enter a channel name';
+
+  @override
+  String get channelsCancel => 'Cancel';
+
+  @override
+  String get channelsSave => 'Save';
 }

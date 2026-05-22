@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../chat/chat_actions.dart';
+import '../gen/app_localizations.dart';
 import '../meshcore/chat_message.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
@@ -115,22 +116,24 @@ class _DmScreenState extends State<DmScreen> {
     final MeshcoreController mc = context.watch<MeshcoreController>();
     final ColorScheme cs = Theme.of(context).colorScheme;
     final bool ready = mc.state == MeshcoreConnectionState.ready;
+    final AppLocalizations l = AppLocalizations.of(context);
     final List<ChatMessage> msgs =
         mc.dmHistoryFor(widget.peerPubKeyHex);
     _autoScroll(msgs.length);
+    final String pubkeyDisplay = widget.peerPubKeyHex.length >= 12
+        ? '${widget.peerPubKeyHex.substring(0, 12)}…'
+        : widget.peerPubKeyHex;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('DM · ${_peerName(mc)}'),
+        title: Text(l.dmTitle(_peerName(mc))),
       ),
       body: Column(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
             child: Text(
-              widget.peerPubKeyHex.length >= 12
-                  ? 'pubkey · ${widget.peerPubKeyHex.substring(0, 12)}…'
-                  : 'pubkey · ${widget.peerPubKeyHex}',
+              l.dmPubkeyLabel(pubkeyDisplay),
               style: TextStyle(
                   color: cs.onSurfaceVariant,
                   fontFamily: 'monospace',
@@ -141,7 +144,7 @@ class _DmScreenState extends State<DmScreen> {
           Expanded(
             child: msgs.isEmpty
                 ? Center(
-                    child: Text('— no messages yet —',
+                    child: Text(l.dmEmpty,
                         style: TextStyle(color: cs.onSurfaceVariant)),
                   )
                 : ListView.builder(
@@ -170,14 +173,14 @@ class _DmScreenState extends State<DmScreen> {
                       decoration: InputDecoration(
                         isDense: true,
                         hintText: ready
-                            ? 'Message ${_peerName(mc)}'
-                            : 'Connect a radio to send',
+                            ? l.dmComposerHint(_peerName(mc))
+                            : l.chatComposerOffline,
                         border: const OutlineInputBorder(),
                       ),
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Send DM',
+                    tooltip: l.dmSend,
                     onPressed: ready ? () => _send(mc) : null,
                     icon: const Icon(Icons.send),
                   ),
@@ -235,7 +238,7 @@ class _DmRow extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: 'Message actions',
+              tooltip: AppLocalizations.of(context).chatMessageActions,
               iconSize: 18,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(

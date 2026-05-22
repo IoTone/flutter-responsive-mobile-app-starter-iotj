@@ -1255,6 +1255,450 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'queued items waiting ({count})'**
   String eventQueuedWaitingN(String count);
+
+  /// No description provided for @chatChannelHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'CHANNEL · {name}'**
+  String chatChannelHeader(String name);
+
+  /// No description provided for @chatManageChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage channels'**
+  String get chatManageChannels;
+
+  /// No description provided for @chatTtsDisabledHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable TTS in App settings'**
+  String get chatTtsDisabledHint;
+
+  /// No description provided for @chatTtsMuted.
+  ///
+  /// In en, this message translates to:
+  /// **'TTS muted for this channel'**
+  String get chatTtsMuted;
+
+  /// No description provided for @chatTtsActive.
+  ///
+  /// In en, this message translates to:
+  /// **'TTS reading this channel'**
+  String get chatTtsActive;
+
+  /// No description provided for @chatHideChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide channels'**
+  String get chatHideChannels;
+
+  /// No description provided for @chatShowChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Show channels'**
+  String get chatShowChannels;
+
+  /// No description provided for @chatEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'— no messages on this channel —'**
+  String get chatEmpty;
+
+  /// No description provided for @chatComposerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Message {channel}'**
+  String chatComposerHint(String channel);
+
+  /// No description provided for @chatComposerOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect a radio to send'**
+  String get chatComposerOffline;
+
+  /// No description provided for @chatSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get chatSend;
+
+  /// No description provided for @chatMessageActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Message actions'**
+  String get chatMessageActions;
+
+  /// No description provided for @dmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'DM · {peer}'**
+  String dmTitle(String peer);
+
+  /// No description provided for @dmPubkeyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'pubkey · {hex}'**
+  String dmPubkeyLabel(String hex);
+
+  /// No description provided for @dmEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'— no messages yet —'**
+  String get dmEmpty;
+
+  /// No description provided for @dmComposerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Message {peer}'**
+  String dmComposerHint(String peer);
+
+  /// No description provided for @dmSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send DM'**
+  String get dmSend;
+
+  /// No description provided for @actionReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get actionReply;
+
+  /// No description provided for @actionReplySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Quote this message in your reply'**
+  String get actionReplySub;
+
+  /// No description provided for @actionCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get actionCopy;
+
+  /// No description provided for @actionCopySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy the message text to the clipboard'**
+  String get actionCopySub;
+
+  /// No description provided for @actionDeleteLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete locally'**
+  String get actionDeleteLocal;
+
+  /// No description provided for @actionDeleteLocalSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes this row from your history only — over-the-air messages cannot be recalled.'**
+  String get actionDeleteLocalSub;
+
+  /// No description provided for @actionCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get actionCopied;
+
+  /// No description provided for @actionDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this message locally?'**
+  String get actionDeleteConfirmTitle;
+
+  /// No description provided for @actionDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the row from your local history. MeshCore has no recall — the recipient still has it.'**
+  String get actionDeleteConfirmBody;
+
+  /// No description provided for @actionCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get actionCancel;
+
+  /// No description provided for @actionDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get actionDelete;
+
+  /// No description provided for @nodeDetailSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'This is your own node — no Message / Favourite.'**
+  String get nodeDetailSelf;
+
+  /// No description provided for @nodeDetailRecentDms.
+  ///
+  /// In en, this message translates to:
+  /// **'RECENT DMS'**
+  String get nodeDetailRecentDms;
+
+  /// No description provided for @nodeDetailMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get nodeDetailMessage;
+
+  /// No description provided for @nodeDetailFavourite.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite'**
+  String get nodeDetailFavourite;
+
+  /// No description provided for @nodeDetailContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get nodeDetailContact;
+
+  /// No description provided for @nodeDetailShowOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on geocoded map'**
+  String get nodeDetailShowOnMap;
+
+  /// No description provided for @nodeDetailShowOnMapSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse-geocoded map (R25) is on the roadmap.'**
+  String get nodeDetailShowOnMapSnack;
+
+  /// No description provided for @nodeDetailCopyPubkey.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy full pubkey'**
+  String get nodeDetailCopyPubkey;
+
+  /// No description provided for @nodeDetailPubkeyCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Pubkey copied'**
+  String get nodeDetailPubkeyCopied;
+
+  /// No description provided for @nodeDetailInRange.
+  ///
+  /// In en, this message translates to:
+  /// **'IN RANGE'**
+  String get nodeDetailInRange;
+
+  /// No description provided for @nodeDetailKnown.
+  ///
+  /// In en, this message translates to:
+  /// **'KNOWN'**
+  String get nodeDetailKnown;
+
+  /// No description provided for @nodeDetailContactBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTACT'**
+  String get nodeDetailContactBadge;
+
+  /// No description provided for @nodeDetailShortIdKv.
+  ///
+  /// In en, this message translates to:
+  /// **'shortId'**
+  String get nodeDetailShortIdKv;
+
+  /// No description provided for @nodeDetailPubkeyKv.
+  ///
+  /// In en, this message translates to:
+  /// **'pubkey'**
+  String get nodeDetailPubkeyKv;
+
+  /// No description provided for @nodeDetailSignalKv.
+  ///
+  /// In en, this message translates to:
+  /// **'signal'**
+  String get nodeDetailSignalKv;
+
+  /// No description provided for @nodeDetailLastHeardKv.
+  ///
+  /// In en, this message translates to:
+  /// **'last heard'**
+  String get nodeDetailLastHeardKv;
+
+  /// No description provided for @nodeDetailDistanceKv.
+  ///
+  /// In en, this message translates to:
+  /// **'distance'**
+  String get nodeDetailDistanceKv;
+
+  /// No description provided for @nodeDetailLatLonKv.
+  ///
+  /// In en, this message translates to:
+  /// **'lat / lon'**
+  String get nodeDetailLatLonKv;
+
+  /// No description provided for @nodeDetailAgoSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}s ago'**
+  String nodeDetailAgoSeconds(int n);
+
+  /// No description provided for @nodeDetailAgoMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} min ago'**
+  String nodeDetailAgoMinutes(int n);
+
+  /// No description provided for @nodeDetailAgoHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} h ago'**
+  String nodeDetailAgoHours(int n);
+
+  /// No description provided for @nodeDetailAgoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} d ago'**
+  String nodeDetailAgoDays(int n);
+
+  /// No description provided for @channelsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get channelsTitle;
+
+  /// No description provided for @channelsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'A channel = slot + name + 16-byte key. Public (slot 0) is the shared default. For a private group, set the SAME name & PSK in the same slot on every node.'**
+  String get channelsHelp;
+
+  /// No description provided for @channelsOfflineHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect a radio (Diagnostics) to edit channels.'**
+  String get channelsOfflineHint;
+
+  /// No description provided for @channelsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'— empty —'**
+  String get channelsEmpty;
+
+  /// No description provided for @channelsSlotLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'slot {idx}'**
+  String channelsSlotLabel(int idx);
+
+  /// No description provided for @channelsSlotActive.
+  ///
+  /// In en, this message translates to:
+  /// **'slot {idx} · ACTIVE'**
+  String channelsSlotActive(int idx);
+
+  /// No description provided for @channelsEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get channelsEdit;
+
+  /// No description provided for @channelsSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get channelsSet;
+
+  /// No description provided for @channelsSetSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel {idx} set to \"{name}\" — every node needs the same name & PSK here'**
+  String channelsSetSnack(int idx, String name);
+
+  /// No description provided for @channelsDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel slot {idx}'**
+  String channelsDialogTitle(int idx);
+
+  /// No description provided for @channelsName.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel name'**
+  String get channelsName;
+
+  /// No description provided for @channelsKeySource.
+  ///
+  /// In en, this message translates to:
+  /// **'Key source'**
+  String get channelsKeySource;
+
+  /// No description provided for @channelsKeyPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Public'**
+  String get channelsKeyPublic;
+
+  /// No description provided for @channelsKeyHashtag.
+  ///
+  /// In en, this message translates to:
+  /// **'#tag'**
+  String get channelsKeyHashtag;
+
+  /// No description provided for @channelsKeyHex.
+  ///
+  /// In en, this message translates to:
+  /// **'Hex'**
+  String get channelsKeyHex;
+
+  /// No description provided for @channelsKeyPublicBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses the well-known Public channel key.'**
+  String get channelsKeyPublicBody;
+
+  /// No description provided for @channelsKeyHashtagHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. #mygroup'**
+  String get channelsKeyHashtagHint;
+
+  /// No description provided for @channelsKeyHashtagHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Key derived from the tag (sha256)'**
+  String get channelsKeyHashtagHelper;
+
+  /// No description provided for @channelsKeyHexHint.
+  ///
+  /// In en, this message translates to:
+  /// **'32 hex chars (16 bytes)'**
+  String get channelsKeyHexHint;
+
+  /// No description provided for @channelsErrorTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a #hashtag'**
+  String get channelsErrorTag;
+
+  /// No description provided for @channelsErrorHex.
+  ///
+  /// In en, this message translates to:
+  /// **'PSK must be 32 hex chars (16 bytes)'**
+  String get channelsErrorHex;
+
+  /// No description provided for @channelsErrorName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a channel name'**
+  String get channelsErrorName;
+
+  /// No description provided for @channelsCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get channelsCancel;
+
+  /// No description provided for @channelsSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get channelsSave;
 }
 
 class _AppLocalizationsDelegate

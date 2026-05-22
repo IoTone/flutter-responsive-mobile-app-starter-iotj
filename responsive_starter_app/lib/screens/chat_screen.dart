@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../chat/chat_actions.dart';
+import '../gen/app_localizations.dart';
 import '../meshcore/chat_message.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
@@ -102,6 +103,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final bool muted = tts.isChannelMuted(active);
     final bool speaks = tts.channelSpeaks(active);
+    final AppLocalizations l = AppLocalizations.of(context);
 
     return Column(
       children: <Widget>[
@@ -112,7 +114,8 @@ class _ChatScreenState extends State<ChatScreen> {
             children: <Widget>[
               Expanded(
                 child: Text(
-                  'CHANNEL · ${mc.activeChannelName.toUpperCase()}',
+                  l.chatChannelHeader(
+                      mc.activeChannelName.toUpperCase()),
                   style: TextStyle(
                       color: cs.onSurfaceVariant,
                       fontSize: 12,
@@ -121,16 +124,16 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
               IconButton(
-                tooltip: 'Manage channels',
+                tooltip: l.chatManageChannels,
                 onPressed: () => context.push('/settings/channels'),
                 icon: const Icon(Icons.tag),
               ),
               IconButton(
                 tooltip: !tts.enabled
-                    ? 'Enable TTS in App settings'
+                    ? l.chatTtsDisabledHint
                     : muted
-                        ? 'TTS muted for this channel'
-                        : 'TTS reading this channel',
+                        ? l.chatTtsMuted
+                        : l.chatTtsActive,
                 onPressed: tts.enabled
                     ? () => tts.toggleChannelMute(active)
                     : null,
@@ -145,8 +148,8 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               IconButton(
                 tooltip: _stripCollapsed
-                    ? 'Show channels'
-                    : 'Hide channels',
+                    ? l.chatShowChannels
+                    : l.chatHideChannels,
                 onPressed: () => setState(
                     () => _stripCollapsed = !_stripCollapsed),
                 icon: Icon(_stripCollapsed
@@ -183,7 +186,7 @@ class _ChatScreenState extends State<ChatScreen> {
         Expanded(
           child: msgs.isEmpty
               ? Center(
-                  child: Text('— no messages on this channel —',
+                  child: Text(l.chatEmpty,
                       style: TextStyle(color: cs.onSurfaceVariant)),
                 )
               : ListView.builder(
@@ -214,14 +217,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     decoration: InputDecoration(
                       isDense: true,
                       hintText: ready
-                          ? 'Message ${mc.activeChannelName}'
-                          : 'Connect a radio to send',
+                          ? l.chatComposerHint(mc.activeChannelName)
+                          : l.chatComposerOffline,
                       border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Send',
+                  tooltip: l.chatSend,
                   onPressed: ready ? () => _send(mc) : null,
                   icon: const Icon(Icons.send),
                 ),
@@ -278,7 +281,7 @@ class _MessageRow extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: 'Message actions',
+              tooltip: AppLocalizations.of(context).chatMessageActions,
               iconSize: 18,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(
