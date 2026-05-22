@@ -947,4 +947,175 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get channelsSave => 'Save';
+
+  @override
+  String get deviceConfigTitle => 'Device configuration';
+
+  @override
+  String get deviceRegionBand => 'REGION / BAND';
+
+  @override
+  String get deviceRadioParams => 'RADIO PARAMS';
+
+  @override
+  String get deviceIdentityAdvert => 'IDENTITY / ADVERT';
+
+  @override
+  String get deviceChannelsSection => 'CHANNELS';
+
+  @override
+  String get deviceOtherParamsSection => 'OTHER PARAMS';
+
+  @override
+  String get deviceDeviceSection => 'DEVICE';
+
+  @override
+  String get deviceFrequency => 'Frequency (MHz)';
+
+  @override
+  String get deviceBandwidth => 'Bandwidth (kHz)';
+
+  @override
+  String get deviceSpreadingFactor => 'Spreading factor (5–12)';
+
+  @override
+  String get deviceCodingRate => 'Coding rate (5–8)';
+
+  @override
+  String get deviceTxPower => 'TX power (dBm)';
+
+  @override
+  String get deviceLoadFromDevice => 'Load from device';
+
+  @override
+  String get deviceApplyRadio => 'Apply radio params';
+
+  @override
+  String get deviceConnectFirst =>
+      'Connect a radio first (Diagnostics & connect).';
+
+  @override
+  String get deviceAdvertName => 'Advert name';
+
+  @override
+  String get deviceSetName => 'Set name';
+
+  @override
+  String get deviceAdvertLatitude => 'Advert latitude (°)';
+
+  @override
+  String get deviceAdvertLongitude => 'Advert longitude (°)';
+
+  @override
+  String get deviceUsePhoneLocation => 'Use phone location';
+
+  @override
+  String get deviceReadDeviceLocation => 'Read device location';
+
+  @override
+  String get deviceSetAdvertLocation => 'Set advert location';
+
+  @override
+  String get deviceAdvertSource => 'Advert location source';
+
+  @override
+  String get deviceAdvertSourceNone => 'None';
+
+  @override
+  String get deviceAdvertSourcePinned => 'Pinned';
+
+  @override
+  String get deviceAdvertSourceGps => 'Device GPS';
+
+  @override
+  String get deviceToastNameEmpty => 'Enter a node name';
+
+  @override
+  String get deviceToastNameSet =>
+      'Name set — re-advertise so neighbours pick it up';
+
+  @override
+  String deviceToastSendFailed(String error) {
+    return 'Send failed: $error';
+  }
+
+  @override
+  String get deviceToastNoDeviceYet =>
+      'Device hasn\'t reported yet — try once linked';
+
+  @override
+  String get deviceToastNoGpsYet => 'Device has no location yet (no GPS fix)';
+
+  @override
+  String get deviceToastLoadedDeviceLoc =>
+      'Loaded device location · tap Set advert location to broadcast';
+
+  @override
+  String get deviceToastGettingPhoneFix => 'Getting phone GPS fix…';
+
+  @override
+  String get deviceToastPhoneFixFailed =>
+      'Phone GPS fix failed (services off or timeout)';
+
+  @override
+  String get deviceToastNoFixReturned => 'No fix returned';
+
+  @override
+  String get deviceToastGotPhoneLoc =>
+      'Got phone location · tap Set advert location to broadcast';
+
+  @override
+  String get deviceToastInvalidLatLon =>
+      'Enter valid lat (−90..90) and lon (−180..180)';
+
+  @override
+  String get deviceToastAdvertLocSet => 'Advert location set';
+
+  @override
+  String get deviceToastInvalidRadio => 'Enter valid numbers for freq/BW/SF/CR';
+
+  @override
+  String get deviceToastRadioSent =>
+      'Radio params sent — restart/observe the device to confirm';
+
+  @override
+  String get deviceLocPermDenied =>
+      'Location permission needed for a phone GPS fix.';
+
+  @override
+  String get deviceLocPermDeniedPerm =>
+      'Location permission permanently denied — open OS settings to grant it.';
+
+  @override
+  String get deviceOpenSettings => 'Open settings';
+
+  @override
+  String get diagnosticsTitle => 'Diagnostics & connect';
+
+  @override
+  String get diagnosticsState => 'STATE';
+
+  @override
+  String get diagnosticsSends => 'SENDS';
+
+  @override
+  String get diagnosticsChannelTail => 'CHANNEL-TAIL ORACLE';
+
+  @override
+  String get diagnosticsCapture => 'CAPTURE / EXPORT';
+
+  @override
+  String get diagnosticsRawFrameLog => 'RAW FRAME LOG (newest first)';
+
+  @override
+  String get diagnosticsConnect => 'Connect';
+
+  @override
+  String get diagnosticsDisconnect => 'Disconnect';
+
+  @override
+  String get diagnosticsForget => 'Forget device';
+
+  @override
+  String get diagnosticsCopyLog => 'Copy log';
 }

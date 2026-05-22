@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:provider/provider.dart';
 
+import '../gen/app_localizations.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../meshcore/own_location.dart';
@@ -112,16 +113,17 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   }
 
   Future<void> _applyName(MeshcoreController mc) async {
+    final AppLocalizations l = AppLocalizations.of(context);
     final String n = _name.text.trim();
     if (n.isEmpty) {
-      _toast('Enter a node name');
+      _toast(l.deviceToastNameEmpty);
       return;
     }
     try {
       await mc.setAdvertName(n);
-      _toast('Name set — re-advertise so neighbours pick it up');
+      _toast(l.deviceToastNameSet);
     } catch (e) {
-      _toast('Send failed: $e');
+      _toast(l.deviceToastSendFailed('$e'));
     }
   }
 
@@ -129,20 +131,21 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   /// the form (in case the user typed something and wants to revert
   /// to what the device is currently reporting).
   void _readDeviceLocation(MeshcoreController mc) {
+    final AppLocalizations l = AppLocalizations.of(context);
     final SelfInfo? s = mc.selfInfo;
     if (s == null) {
-      _toast('Device hasn\'t reported yet — try once linked');
+      _toast(l.deviceToastNoDeviceYet);
       return;
     }
     if (s.latitude == 0 && s.longitude == 0) {
-      _toast('Device has no location yet (no GPS fix)');
+      _toast(l.deviceToastNoGpsYet);
       return;
     }
     setState(() {
       _lat.text = s.latitude.toString();
       _lon.text = s.longitude.toString();
     });
-    _toast('Loaded device location · tap Set advert location to broadcast');
+    _toast(l.deviceToastLoadedDeviceLoc);
   }
 
   /// R22 / U13 — request a one-shot phone-GPS fix and populate the
@@ -150,6 +153,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   /// (we don't ask at first-run; the user only pays the permission
   /// cost if they actually take this action).
   Future<void> _usePhoneLocation(MeshcoreController mc) async {
+    final AppLocalizations l = AppLocalizations.of(context);
     final PermissionsService perms = context.read<PermissionsService>();
     final PermissionResult r = await perms.requestLocation();
     if (!mounted) return;
@@ -158,11 +162,10 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       ScaffoldMessenger.maybeOf(context)?.showSnackBar(
         SnackBar(
           content: Text(r == PermissionResult.permanentlyDenied
-              ? 'Location permission permanently denied — open OS '
-                  'settings to grant it.'
-              : 'Location permission needed for a phone GPS fix.'),
+              ? l.deviceLocPermDeniedPerm
+              : l.deviceLocPermDenied),
           action: SnackBarAction(
-            label: 'Open settings',
+            label: l.deviceOpenSettings,
             onPressed: () => perms.openAppSettingsPage(),
           ),
           duration: const Duration(seconds: 5),
@@ -170,37 +173,38 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       );
       return;
     }
-    _toast('Getting phone GPS fix…');
+    _toast(l.deviceToastGettingPhoneFix);
     final bool ok = await mc.requestPhoneLocationFix();
     if (!mounted) return;
     if (!ok) {
-      _toast('Phone GPS fix failed (services off or timeout)');
+      _toast(l.deviceToastPhoneFixFailed);
       return;
     }
     final OwnLocation? loc = mc.phoneLocationFix;
     if (loc == null) {
-      _toast('No fix returned');
+      _toast(l.deviceToastNoFixReturned);
       return;
     }
     setState(() {
       _lat.text = loc.latitude.toStringAsFixed(6);
       _lon.text = loc.longitude.toStringAsFixed(6);
     });
-    _toast('Got phone location · tap Set advert location to broadcast');
+    _toast(l.deviceToastGotPhoneLoc);
   }
 
   Future<void> _applyLocation(MeshcoreController mc) async {
+    final AppLocalizations l = AppLocalizations.of(context);
     final double? la = double.tryParse(_lat.text.trim());
     final double? lo = double.tryParse(_lon.text.trim());
     if (la == null || lo == null || la.abs() > 90 || lo.abs() > 180) {
-      _toast('Enter valid lat (−90..90) and lon (−180..180)');
+      _toast(l.deviceToastInvalidLatLon);
       return;
     }
     try {
       await mc.setAdvertLatLon(latitude: la, longitude: lo);
-      _toast('Advert location set');
+      _toast(l.deviceToastAdvertLocSet);
     } catch (e) {
-      _toast('Send failed: $e');
+      _toast(l.deviceToastSendFailed('$e'));
     }
   }
 
@@ -229,12 +233,13 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     ..showSnackBar(SnackBar(content: Text(m)));
 
   Future<void> _applyRadio(MeshcoreController mc) async {
+    final AppLocalizations l = AppLocalizations.of(context);
     final double? f = double.tryParse(_freq.text);
     final double? b = double.tryParse(_bw.text);
     final int? sf = int.tryParse(_sf.text);
     final int? cr = int.tryParse(_cr.text);
     if (f == null || b == null || sf == null || cr == null) {
-      _toast('Enter valid numbers for freq/BW/SF/CR');
+      _toast(l.deviceToastInvalidRadio);
       return;
     }
     try {
@@ -248,9 +253,9 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       if (tx != null) {
         await mc.send(MeshcoreFrameCodec.setRadioTxPower(tx));
       }
-      _toast('Radio params sent — restart/observe the device to confirm');
+      _toast(l.deviceToastRadioSent);
     } catch (e) {
-      _toast('Send failed: $e');
+      _toast(l.deviceToastSendFailed('$e'));
     }
   }
 
@@ -258,6 +263,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   Widget build(BuildContext context) {
     final MeshcoreController mc = context.watch<MeshcoreController>();
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final AppLocalizations l = AppLocalizations.of(context);
     final bool ready = mc.state == MeshcoreConnectionState.ready;
     final SelfInfo? si = mc.selfInfo;
     if (!_loaded && si != null) {
@@ -282,11 +288,11 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
         );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Device configuration')),
+      appBar: AppBar(title: Text(l.deviceConfigTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
-          Text('REGION / BAND',
+          Text(l.deviceRegionBand,
               style: TextStyle(
                   color: cs.primary, fontSize: 12, letterSpacing: 3)),
           const SizedBox(height: 8),
@@ -314,7 +320,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
             ),
           ),
           const Divider(height: 28),
-          Text('RADIO PARAMS',
+          Text(l.deviceRadioParams,
               style: TextStyle(
                   color: cs.primary, fontSize: 12, letterSpacing: 3)),
           if (si != null)
@@ -329,23 +335,23 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                       fontFamily: 'monospace',
                       fontSize: 12)),
             ),
-          num('Frequency (MHz)', _freq, 'e.g. 915.0'),
-          num('Bandwidth (kHz)', _bw, 'e.g. 250'),
-          num('Spreading factor (5–12)', _sf, 'e.g. 7'),
-          num('Coding rate (5–8)', _cr, 'e.g. 5'),
-          num('TX power (dBm)', _tx, 'within regional limit'),
+          num(l.deviceFrequency, _freq, 'e.g. 915.0'),
+          num(l.deviceBandwidth, _bw, 'e.g. 250'),
+          num(l.deviceSpreadingFactor, _sf, 'e.g. 7'),
+          num(l.deviceCodingRate, _cr, 'e.g. 5'),
+          num(l.deviceTxPower, _tx, 'within regional limit'),
           const SizedBox(height: 12),
           Row(
             children: <Widget>[
               if (si != null)
                 TextButton(
                   onPressed: () => _loadFrom(si),
-                  child: const Text('Load from device'),
+                  child: Text(l.deviceLoadFromDevice),
                 ),
               const Spacer(),
               FilledButton.icon(
                 icon: const Icon(Icons.send),
-                label: const Text('Apply radio params'),
+                label: Text(l.deviceApplyRadio),
                 onPressed: ready ? () => _applyRadio(mc) : null,
               ),
             ],
@@ -353,27 +359,27 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
           if (!ready)
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text('Connect a radio first (Diagnostics & connect).',
+              child: Text(l.deviceConnectFirst,
                   style: TextStyle(color: cs.onSurfaceVariant)),
             ),
           const Divider(height: 28),
 
           // IDENTITY / ADVERT (R7)
-          Text('IDENTITY / ADVERT',
+          Text(l.deviceIdentityAdvert,
               style: TextStyle(
                   color: cs.primary, fontSize: 12, letterSpacing: 3)),
           const SizedBox(height: 6),
           TextField(
             controller: _name,
             maxLength: 31,
-            decoration: const InputDecoration(
-                labelText: 'Node name (advertised)', isDense: true),
+            decoration: InputDecoration(
+                labelText: l.deviceAdvertName, isDense: true),
           ),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton.icon(
               icon: const Icon(Icons.badge_outlined, size: 18),
-              label: const Text('Set name'),
+              label: Text(l.deviceSetName),
               onPressed: ready ? () => _applyName(mc) : null,
             ),
           ),
@@ -382,7 +388,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
           // below, 2 = the on-board GPS reading. Sent via
           // CMD_SET_OTHER_PARAMS (0x26).
           const SizedBox(height: 6),
-          Text('Advert location source',
+          Text(l.deviceAdvertSource,
               style: TextStyle(
                   color: cs.onSurfaceVariant,
                   fontSize: 12,
@@ -392,19 +398,19 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
             final SelfInfo? si = mc.selfInfo;
             final int current = si?.advertLocPolicy ?? 0;
             return SegmentedButton<int>(
-              segments: const <ButtonSegment<int>>[
+              segments: <ButtonSegment<int>>[
                 ButtonSegment<int>(
                     value: 0,
-                    label: Text('None'),
-                    icon: Icon(Icons.do_not_disturb, size: 16)),
+                    label: Text(l.deviceAdvertSourceNone),
+                    icon: const Icon(Icons.do_not_disturb, size: 16)),
                 ButtonSegment<int>(
                     value: 1,
-                    label: Text('Pinned'),
-                    icon: Icon(Icons.push_pin_outlined, size: 16)),
+                    label: Text(l.deviceAdvertSourcePinned),
+                    icon: const Icon(Icons.push_pin_outlined, size: 16)),
                 ButtonSegment<int>(
                     value: 2,
-                    label: Text('Device GPS'),
-                    icon: Icon(Icons.satellite_alt, size: 16)),
+                    label: Text(l.deviceAdvertSourceGps),
+                    icon: const Icon(Icons.satellite_alt, size: 16)),
               ],
               selected: <int>{current},
               showSelectedIcon: false,
@@ -414,36 +420,29 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                       if (v == current) return;
                       try {
                         await mc.setAdvertLocPolicy(v);
-                        _toast('Advert source: ${<String>[
-                          'None',
-                          'Pinned',
-                          'Device GPS'
-                        ][v]} — re-advertise to propagate');
+                        final List<String> labels = <String>[
+                          l.deviceAdvertSourceNone,
+                          l.deviceAdvertSourcePinned,
+                          l.deviceAdvertSourceGps,
+                        ];
+                        _toast(labels[v]);
                       } catch (e) {
-                        _toast('Send failed: $e');
+                        _toast(l.deviceToastSendFailed('$e'));
                       }
                     }
                   : null,
             );
           }),
-          const SizedBox(height: 4),
-          Text(
-            'None = don\'t broadcast. Pinned = use the lat/lon below. '
-            'GPS = use the device\'s on-board fix (T1000-E etc.). The '
-            'choice only matters once you re-advertise.',
-            style:
-                TextStyle(color: cs.onSurfaceVariant, fontSize: 11),
-          ),
           const SizedBox(height: 8),
-          num('Advert latitude (°)', _lat, 'e.g. 35.681'),
-          num('Advert longitude (°)', _lon, 'e.g. 139.767'),
+          num(l.deviceAdvertLatitude, _lat, 'e.g. 35.681'),
+          num(l.deviceAdvertLongitude, _lon, 'e.g. 139.767'),
           // R22 / U13 — populate-the-field actions (no broadcast).
           Row(
             children: <Widget>[
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.smartphone, size: 16),
-                  label: const Text('Use phone location'),
+                  label: Text(l.deviceUsePhoneLocation),
                   onPressed: () => _usePhoneLocation(mc),
                 ),
               ),
@@ -451,7 +450,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.developer_board, size: 16),
-                  label: const Text('Read device location'),
+                  label: Text(l.deviceReadDeviceLocation),
                   onPressed: () => _readDeviceLocation(mc),
                 ),
               ),
@@ -462,7 +461,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
             alignment: Alignment.centerRight,
             child: TextButton.icon(
               icon: const Icon(Icons.my_location, size: 18),
-              label: const Text('Set advert location'),
+              label: Text(l.deviceSetAdvertLocation),
               onPressed: ready ? () => _applyLocation(mc) : null,
             ),
           ),
@@ -474,7 +473,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
           const Divider(height: 28),
 
           // CHANNELS → dedicated screen
-          Text('CHANNELS',
+          Text(l.deviceChannelsSection,
               style: TextStyle(
                   color: cs.primary, fontSize: 12, letterSpacing: 3)),
           ListTile(
@@ -489,7 +488,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
           const Divider(height: 28),
 
           // OTHER PARAMS (read-only for now)
-          Text('OTHER PARAMS',
+          Text(l.deviceOtherParamsSection,
               style: TextStyle(
                   color: cs.primary, fontSize: 12, letterSpacing: 3)),
           const SizedBox(height: 4),
@@ -512,7 +511,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
           const Divider(height: 28),
 
           // DEVICE (read-only)
-          Text('DEVICE',
+          Text(l.deviceDeviceSection,
               style: TextStyle(
                   color: cs.primary, fontSize: 12, letterSpacing: 3)),
           const SizedBox(height: 4),

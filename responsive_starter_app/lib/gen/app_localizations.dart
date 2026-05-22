@@ -1699,6 +1699,324 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get channelsSave;
+
+  /// No description provided for @deviceConfigTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device configuration'**
+  String get deviceConfigTitle;
+
+  /// No description provided for @deviceRegionBand.
+  ///
+  /// In en, this message translates to:
+  /// **'REGION / BAND'**
+  String get deviceRegionBand;
+
+  /// No description provided for @deviceRadioParams.
+  ///
+  /// In en, this message translates to:
+  /// **'RADIO PARAMS'**
+  String get deviceRadioParams;
+
+  /// No description provided for @deviceIdentityAdvert.
+  ///
+  /// In en, this message translates to:
+  /// **'IDENTITY / ADVERT'**
+  String get deviceIdentityAdvert;
+
+  /// No description provided for @deviceChannelsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'CHANNELS'**
+  String get deviceChannelsSection;
+
+  /// No description provided for @deviceOtherParamsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'OTHER PARAMS'**
+  String get deviceOtherParamsSection;
+
+  /// No description provided for @deviceDeviceSection.
+  ///
+  /// In en, this message translates to:
+  /// **'DEVICE'**
+  String get deviceDeviceSection;
+
+  /// No description provided for @deviceFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency (MHz)'**
+  String get deviceFrequency;
+
+  /// No description provided for @deviceBandwidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Bandwidth (kHz)'**
+  String get deviceBandwidth;
+
+  /// No description provided for @deviceSpreadingFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'Spreading factor (5–12)'**
+  String get deviceSpreadingFactor;
+
+  /// No description provided for @deviceCodingRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Coding rate (5–8)'**
+  String get deviceCodingRate;
+
+  /// No description provided for @deviceTxPower.
+  ///
+  /// In en, this message translates to:
+  /// **'TX power (dBm)'**
+  String get deviceTxPower;
+
+  /// No description provided for @deviceLoadFromDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Load from device'**
+  String get deviceLoadFromDevice;
+
+  /// No description provided for @deviceApplyRadio.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply radio params'**
+  String get deviceApplyRadio;
+
+  /// No description provided for @deviceConnectFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect a radio first (Diagnostics & connect).'**
+  String get deviceConnectFirst;
+
+  /// No description provided for @deviceAdvertName.
+  ///
+  /// In en, this message translates to:
+  /// **'Advert name'**
+  String get deviceAdvertName;
+
+  /// No description provided for @deviceSetName.
+  ///
+  /// In en, this message translates to:
+  /// **'Set name'**
+  String get deviceSetName;
+
+  /// No description provided for @deviceAdvertLatitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Advert latitude (°)'**
+  String get deviceAdvertLatitude;
+
+  /// No description provided for @deviceAdvertLongitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Advert longitude (°)'**
+  String get deviceAdvertLongitude;
+
+  /// No description provided for @deviceUsePhoneLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use phone location'**
+  String get deviceUsePhoneLocation;
+
+  /// No description provided for @deviceReadDeviceLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Read device location'**
+  String get deviceReadDeviceLocation;
+
+  /// No description provided for @deviceSetAdvertLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Set advert location'**
+  String get deviceSetAdvertLocation;
+
+  /// No description provided for @deviceAdvertSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Advert location source'**
+  String get deviceAdvertSource;
+
+  /// No description provided for @deviceAdvertSourceNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get deviceAdvertSourceNone;
+
+  /// No description provided for @deviceAdvertSourcePinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get deviceAdvertSourcePinned;
+
+  /// No description provided for @deviceAdvertSourceGps.
+  ///
+  /// In en, this message translates to:
+  /// **'Device GPS'**
+  String get deviceAdvertSourceGps;
+
+  /// No description provided for @deviceToastNameEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a node name'**
+  String get deviceToastNameEmpty;
+
+  /// No description provided for @deviceToastNameSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Name set — re-advertise so neighbours pick it up'**
+  String get deviceToastNameSet;
+
+  /// No description provided for @deviceToastSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Send failed: {error}'**
+  String deviceToastSendFailed(String error);
+
+  /// No description provided for @deviceToastNoDeviceYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Device hasn\'t reported yet — try once linked'**
+  String get deviceToastNoDeviceYet;
+
+  /// No description provided for @deviceToastNoGpsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Device has no location yet (no GPS fix)'**
+  String get deviceToastNoGpsYet;
+
+  /// No description provided for @deviceToastLoadedDeviceLoc.
+  ///
+  /// In en, this message translates to:
+  /// **'Loaded device location · tap Set advert location to broadcast'**
+  String get deviceToastLoadedDeviceLoc;
+
+  /// No description provided for @deviceToastGettingPhoneFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting phone GPS fix…'**
+  String get deviceToastGettingPhoneFix;
+
+  /// No description provided for @deviceToastPhoneFixFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone GPS fix failed (services off or timeout)'**
+  String get deviceToastPhoneFixFailed;
+
+  /// No description provided for @deviceToastNoFixReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'No fix returned'**
+  String get deviceToastNoFixReturned;
+
+  /// No description provided for @deviceToastGotPhoneLoc.
+  ///
+  /// In en, this message translates to:
+  /// **'Got phone location · tap Set advert location to broadcast'**
+  String get deviceToastGotPhoneLoc;
+
+  /// No description provided for @deviceToastInvalidLatLon.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid lat (−90..90) and lon (−180..180)'**
+  String get deviceToastInvalidLatLon;
+
+  /// No description provided for @deviceToastAdvertLocSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Advert location set'**
+  String get deviceToastAdvertLocSet;
+
+  /// No description provided for @deviceToastInvalidRadio.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid numbers for freq/BW/SF/CR'**
+  String get deviceToastInvalidRadio;
+
+  /// No description provided for @deviceToastRadioSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Radio params sent — restart/observe the device to confirm'**
+  String get deviceToastRadioSent;
+
+  /// No description provided for @deviceLocPermDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission needed for a phone GPS fix.'**
+  String get deviceLocPermDenied;
+
+  /// No description provided for @deviceLocPermDeniedPerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission permanently denied — open OS settings to grant it.'**
+  String get deviceLocPermDeniedPerm;
+
+  /// No description provided for @deviceOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get deviceOpenSettings;
+
+  /// No description provided for @diagnosticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics & connect'**
+  String get diagnosticsTitle;
+
+  /// No description provided for @diagnosticsState.
+  ///
+  /// In en, this message translates to:
+  /// **'STATE'**
+  String get diagnosticsState;
+
+  /// No description provided for @diagnosticsSends.
+  ///
+  /// In en, this message translates to:
+  /// **'SENDS'**
+  String get diagnosticsSends;
+
+  /// No description provided for @diagnosticsChannelTail.
+  ///
+  /// In en, this message translates to:
+  /// **'CHANNEL-TAIL ORACLE'**
+  String get diagnosticsChannelTail;
+
+  /// No description provided for @diagnosticsCapture.
+  ///
+  /// In en, this message translates to:
+  /// **'CAPTURE / EXPORT'**
+  String get diagnosticsCapture;
+
+  /// No description provided for @diagnosticsRawFrameLog.
+  ///
+  /// In en, this message translates to:
+  /// **'RAW FRAME LOG (newest first)'**
+  String get diagnosticsRawFrameLog;
+
+  /// No description provided for @diagnosticsConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get diagnosticsConnect;
+
+  /// No description provided for @diagnosticsDisconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get diagnosticsDisconnect;
+
+  /// No description provided for @diagnosticsForget.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget device'**
+  String get diagnosticsForget;
+
+  /// No description provided for @diagnosticsCopyLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy log'**
+  String get diagnosticsCopyLog;
 }
 
 class _AppLocalizationsDelegate

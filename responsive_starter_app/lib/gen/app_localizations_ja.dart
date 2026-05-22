@@ -900,4 +900,167 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get channelsSave => '保存';
+
+  @override
+  String get deviceConfigTitle => 'デバイス設定';
+
+  @override
+  String get deviceRegionBand => 'リージョン / バンド';
+
+  @override
+  String get deviceRadioParams => 'ラジオパラメータ';
+
+  @override
+  String get deviceIdentityAdvert => 'アイデンティティ / アドバート';
+
+  @override
+  String get deviceChannelsSection => 'チャンネル';
+
+  @override
+  String get deviceOtherParamsSection => 'その他のパラメータ';
+
+  @override
+  String get deviceDeviceSection => 'デバイス';
+
+  @override
+  String get deviceFrequency => '周波数 (MHz)';
+
+  @override
+  String get deviceBandwidth => '帯域幅 (kHz)';
+
+  @override
+  String get deviceSpreadingFactor => '拡散率 (5–12)';
+
+  @override
+  String get deviceCodingRate => '符号化率 (5–8)';
+
+  @override
+  String get deviceTxPower => '送信電力 (dBm)';
+
+  @override
+  String get deviceLoadFromDevice => 'デバイスから読込';
+
+  @override
+  String get deviceApplyRadio => 'ラジオパラメータを適用';
+
+  @override
+  String get deviceConnectFirst => 'まずラジオに接続してください (診断 & 接続)。';
+
+  @override
+  String get deviceAdvertName => 'アドバート名';
+
+  @override
+  String get deviceSetName => '名前を設定';
+
+  @override
+  String get deviceAdvertLatitude => 'アドバート緯度 (°)';
+
+  @override
+  String get deviceAdvertLongitude => 'アドバート経度 (°)';
+
+  @override
+  String get deviceUsePhoneLocation => 'スマートフォンの位置を使用';
+
+  @override
+  String get deviceReadDeviceLocation => 'デバイスの位置を読込';
+
+  @override
+  String get deviceSetAdvertLocation => 'アドバート位置を設定';
+
+  @override
+  String get deviceAdvertSource => 'アドバート位置ソース';
+
+  @override
+  String get deviceAdvertSourceNone => 'なし';
+
+  @override
+  String get deviceAdvertSourcePinned => 'ピン留め';
+
+  @override
+  String get deviceAdvertSourceGps => 'デバイス GPS';
+
+  @override
+  String get deviceToastNameEmpty => 'ノード名を入力してください';
+
+  @override
+  String get deviceToastNameSet => '名前を設定 — 隣接ノードに反映するため再アドバートを実行';
+
+  @override
+  String deviceToastSendFailed(String error) {
+    return '送信失敗: $error';
+  }
+
+  @override
+  String get deviceToastNoDeviceYet => 'デバイス未応答 — 接続後に再試行';
+
+  @override
+  String get deviceToastNoGpsYet => 'デバイスにまだ位置情報がありません (GPS 未取得)';
+
+  @override
+  String get deviceToastLoadedDeviceLoc =>
+      'デバイス位置を読込 · ブロードキャストするには「アドバート位置を設定」をタップ';
+
+  @override
+  String get deviceToastGettingPhoneFix => 'スマートフォン GPS を取得中…';
+
+  @override
+  String get deviceToastPhoneFixFailed => 'スマートフォン GPS の取得失敗 (サービス無効またはタイムアウト)';
+
+  @override
+  String get deviceToastNoFixReturned => '位置情報が返されませんでした';
+
+  @override
+  String get deviceToastGotPhoneLoc =>
+      'スマートフォン位置を取得 · ブロードキャストするには「アドバート位置を設定」をタップ';
+
+  @override
+  String get deviceToastInvalidLatLon => '有効な緯度 (−90..90) と経度 (−180..180) を入力';
+
+  @override
+  String get deviceToastAdvertLocSet => 'アドバート位置を設定しました';
+
+  @override
+  String get deviceToastInvalidRadio => 'freq/BW/SF/CR に有効な数値を入力';
+
+  @override
+  String get deviceToastRadioSent => 'ラジオパラメータを送信 — デバイスを再起動 / 観測して確認';
+
+  @override
+  String get deviceLocPermDenied => 'スマートフォン GPS 取得には位置情報の許可が必要です。';
+
+  @override
+  String get deviceLocPermDeniedPerm => '位置情報が永続的に拒否されました — OS 設定で許可してください。';
+
+  @override
+  String get deviceOpenSettings => '設定を開く';
+
+  @override
+  String get diagnosticsTitle => '診断 & 接続';
+
+  @override
+  String get diagnosticsState => '状態';
+
+  @override
+  String get diagnosticsSends => '送信';
+
+  @override
+  String get diagnosticsChannelTail => 'チャンネルテール オラクル';
+
+  @override
+  String get diagnosticsCapture => 'キャプチャ / エクスポート';
+
+  @override
+  String get diagnosticsRawFrameLog => 'RAW フレームログ (新しい順)';
+
+  @override
+  String get diagnosticsConnect => '接続';
+
+  @override
+  String get diagnosticsDisconnect => '切断';
+
+  @override
+  String get diagnosticsForget => 'デバイスを解除';
+
+  @override
+  String get diagnosticsCopyLog => 'ログをコピー';
 }

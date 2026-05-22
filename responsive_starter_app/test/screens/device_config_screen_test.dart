@@ -1,14 +1,25 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
+import 'package:meshmore_sns_app/gen/app_localizations.dart';
+import 'package:meshmore_sns_app/l10n/locale_controller.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/screens/device_config_screen.dart';
 
 import '../meshcore/fake_transport.dart';
+
+const List<LocalizationsDelegate<Object>> _kLocaleDelegates =
+    <LocalizationsDelegate<Object>>[
+  AppLocalizations.delegate,
+  GlobalMaterialLocalizations.delegate,
+  GlobalWidgetsLocalizations.delegate,
+  GlobalCupertinoLocalizations.delegate,
+];
 
 void main() {
   testWidgets('radio config: preset fills freq, Apply sends 0x0B',
@@ -24,6 +35,9 @@ void main() {
     );
     await t.pumpWidget(
       MaterialApp(
+        locale: const Locale('en'),
+        supportedLocales: LocaleController.supported,
+        localizationsDelegates: _kLocaleDelegates,
         home: ChangeNotifierProvider<MeshcoreController>.value(
           value: ctrl,
           child: const DeviceConfigScreen(),
@@ -72,6 +86,9 @@ void main() {
     );
     await t.pumpWidget(
       MaterialApp(
+        locale: const Locale('en'),
+        supportedLocales: LocaleController.supported,
+        localizationsDelegates: _kLocaleDelegates,
         home: ChangeNotifierProvider<MeshcoreController>.value(
           value: ctrl,
           child: const DeviceConfigScreen(),
@@ -118,6 +135,9 @@ void main() {
     );
     await t.pumpWidget(
       MaterialApp(
+        locale: const Locale('en'),
+        supportedLocales: LocaleController.supported,
+        localizationsDelegates: _kLocaleDelegates,
         home: ChangeNotifierProvider<MeshcoreController>.value(
           value: ctrl,
           child: const DeviceConfigScreen(),
@@ -132,7 +152,7 @@ void main() {
     await t.scrollUntilVisible(find.text('Set name'), 400,
         scrollable: scrollable);
     await t.enterText(
-        find.widgetWithText(TextField, 'Node name (advertised)'),
+        find.widgetWithText(TextField, 'Advert name'),
         'NodeA');
     await t.tap(find.text('Set name'));
     await t.pumpAndSettle();

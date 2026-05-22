@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:provider/provider.dart';
 
+import '../gen/app_localizations.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 
@@ -125,7 +126,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
         );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Diagnostics & connect')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).diagnosticsTitle)),
       body: ListView(
         children: <Widget>[
           section('CONNECTION'),
@@ -281,7 +282,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
             child: Row(
               children: <Widget>[
                 Expanded(
-                  child: Text('RAW FRAME LOG (newest first)',
+                  child: Text(AppLocalizations.of(context).diagnosticsRawFrameLog,
                       style: TextStyle(
                           fontSize: 11,
                           letterSpacing: 2,
@@ -300,7 +301,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                               'paste into the chat');
                         },
                   icon: const Icon(Icons.copy, size: 16),
-                  label: const Text('Copy log'),
+                  label: Text(AppLocalizations.of(context).diagnosticsCopyLog),
                 ),
               ],
             ),
