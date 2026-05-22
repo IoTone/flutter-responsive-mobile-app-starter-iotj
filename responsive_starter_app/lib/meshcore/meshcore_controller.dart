@@ -190,6 +190,7 @@ class MeshcoreController extends ChangeNotifier {
     if (_messages.length > _messagesCap) {
       _messages.removeRange(0, _messages.length - _messagesCap);
     }
+    _invalidateMessagesCache();
     notifyListeners();
   }
 
@@ -204,6 +205,7 @@ class MeshcoreController extends ChangeNotifier {
     final int before = _messages.length;
     _messages.removeWhere((ChatMessage m) => m.id == id);
     if (_messages.length == before) return false;
+    _invalidateMessagesCache();
     _persistChat();
     notifyListeners();
     return true;
@@ -532,11 +534,21 @@ class MeshcoreController extends ChangeNotifier {
   /// Currently selected chat channel index.
   int get activeChannel => _activeChannel;
 
+  /// Cached sorted view of `_channels`. Invalidated whenever the
+  /// underlying map mutates, so `context.select<MC, channels>` can
+  /// short-circuit rebuilds when the channel list is unchanged.
+  List<MapEntry<int, String>>? _channelsCache;
+
+  void _invalidateChannelsCache() => _channelsCache = null;
+
   /// Known channels, ascending by index.
   List<MapEntry<int, String>> get channels {
+    final List<MapEntry<int, String>>? cached = _channelsCache;
+    if (cached != null) return cached;
     final List<MapEntry<int, String>> v = _channels.entries.toList()
       ..sort((MapEntry<int, String> a, MapEntry<int, String> b) =>
           a.key.compareTo(b.key));
+    _channelsCache = v;
     return v;
   }
 
@@ -561,17 +573,39 @@ class MeshcoreController extends ChangeNotifier {
     if (!isReady) return;
     await send(MeshcoreFrameCodec.setChannel(
         channelIdx: idx, name: name, psk: psk));
-    if (name.isNotEmpty) _channels[idx] = name; // optimistic
+    if (name.isNotEmpty) {
+      _channels[idx] = name; // optimistic
+      _invalidateChannelsCache();
+    }
     notifyListeners();
     unawaited(send(MeshcoreFrameCodec.getChannel(idx)).catchError((_) {}));
   }
 
+  /// Per-channel cache of the filtered message list. Filled lazily on
+  /// `messagesFor`; invalidated on every `_messages` mutation. Returning
+  /// a stable list ref lets `Selector` / `context.select` short-circuit
+  /// rebuilds when nothing on that channel changed.
+  final Map<int, List<ChatMessage>> _messagesByChannel =
+      <int, List<ChatMessage>>{};
+
+  void _invalidateMessagesCache([int? idx]) {
+    if (idx == null) {
+      _messagesByChannel.clear();
+    } else {
+      _messagesByChannel.remove(idx);
+    }
+  }
+
   /// Messages for [idx] (default: the active channel), oldest first.
+  /// Cached per channel; the cache is invalidated whenever the
+  /// underlying `_messages` list mutates.
   List<ChatMessage> messagesFor([int? idx]) {
     final int c = idx ?? _activeChannel;
-    return _messages
-        .where((ChatMessage m) => m.channelIdx == c)
-        .toList(growable: false);
+    return _messagesByChannel.putIfAbsent(
+        c,
+        () => _messages
+            .where((ChatMessage m) => m.channelIdx == c)
+            .toList(growable: false));
   }
 
   final StreamController<ChatMessage> _incomingCh =
@@ -597,7 +631,15 @@ class MeshcoreController extends ChangeNotifier {
 
   void _addMessage(ChatMessage m) {
     _messages.add(m);
-    if (_messages.length > _messagesCap) _messages.removeAt(0);
+    if (_messages.length > _messagesCap) {
+      _messages.removeAt(0);
+      // The cap-eviction may have removed a row from any channel,
+      // not just `m.channelIdx`. Conservative: clear the whole cache
+      // when we evict; otherwise just invalidate the affected slot.
+      _invalidateMessagesCache();
+    } else {
+      _invalidateMessagesCache(m.channelIdx);
+    }
     _persistChat();
   }
 
@@ -743,7 +785,10 @@ class MeshcoreController extends ChangeNotifier {
       if (!_incomingCh.isClosed) _incomingCh.add(m);
     } else if (f is ChannelInfoFrame) {
       final ChannelInfo ci = f.info;
-      if (ci.name.isNotEmpty) _channels[ci.channelIdx] = ci.name;
+      if (ci.name.isNotEmpty) {
+        _channels[ci.channelIdx] = ci.name;
+        _invalidateChannelsCache();
+      }
     }
   }
 

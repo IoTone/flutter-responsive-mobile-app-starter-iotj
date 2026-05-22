@@ -27,7 +27,13 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen>
+    with AutomaticKeepAliveClientMixin<ChatScreen> {
+  // Keep state alive across PageView swipes — first build pays the
+  // construction cost; returning to this tab is then near-free.
+  @override
+  bool get wantKeepAlive => true;
+
   final TextEditingController _input = TextEditingController();
   final ScrollController _scroll = ScrollController();
   StreamSubscription<ChatMessage>? _incomingSub;
@@ -93,16 +99,38 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final MeshcoreController mc = context.watch<MeshcoreController>();
-    final TtsController tts = context.watch<TtsController>();
-    final ColorScheme cs = Theme.of(context).colorScheme;
-    final bool ready = mc.state == MeshcoreConnectionState.ready;
-    final int active = mc.activeChannel;
-    final List<ChatMessage> msgs = mc.messagesFor(active);
-    _autoScroll(msgs.length);
+    super.build(context); // for AutomaticKeepAliveClientMixin
 
-    final bool muted = tts.isChannelMuted(active);
-    final bool speaks = tts.channelSpeaks(active);
+    // Selectorised subscriptions — only rebuild this screen when one
+    // of these specific slices changes. Avoids per-advert / per-
+    // battery-sample / per-drain rebuilds that the previous
+    // `context.watch<MeshcoreController>()` would cause.
+    final bool ready = context.select<MeshcoreController, bool>(
+        (MeshcoreController mc) =>
+            mc.state == MeshcoreConnectionState.ready);
+    final int active = context.select<MeshcoreController, int>(
+        (MeshcoreController mc) => mc.activeChannel);
+    final String activeName = context.select<MeshcoreController, String>(
+        (MeshcoreController mc) => mc.activeChannelName);
+    final List<MapEntry<int, String>> channels =
+        context.select<MeshcoreController, List<MapEntry<int, String>>>(
+            (MeshcoreController mc) => mc.channels);
+    final List<ChatMessage> msgs =
+        context.select<MeshcoreController, List<ChatMessage>>(
+            (MeshcoreController mc) => mc.messagesFor(active));
+    final bool ttsEnabled = context.select<TtsController, bool>(
+        (TtsController t) => t.enabled);
+    final bool muted = context.select<TtsController, bool>(
+        (TtsController t) => t.isChannelMuted(active));
+    final bool speaks = context.select<TtsController, bool>(
+        (TtsController t) => t.channelSpeaks(active));
+
+    // Read (no listen) for action callbacks + values we deliberately
+    // didn't list above (channel name + chip list are derived from
+    // cached state, so they update via the slices we *do* watch).
+    final MeshcoreController mc = context.read<MeshcoreController>();
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    _autoScroll(msgs.length);
     final AppLocalizations l = AppLocalizations.of(context);
 
     return Column(
@@ -114,8 +142,7 @@ class _ChatScreenState extends State<ChatScreen> {
             children: <Widget>[
               Expanded(
                 child: Text(
-                  l.chatChannelHeader(
-                      mc.activeChannelName.toUpperCase()),
+                  l.chatChannelHeader(activeName.toUpperCase()),
                   style: TextStyle(
                       color: cs.onSurfaceVariant,
                       fontSize: 12,
@@ -129,16 +156,18 @@ class _ChatScreenState extends State<ChatScreen> {
                 icon: const Icon(Icons.tag),
               ),
               IconButton(
-                tooltip: !tts.enabled
+                tooltip: !ttsEnabled
                     ? l.chatTtsDisabledHint
                     : muted
                         ? l.chatTtsMuted
                         : l.chatTtsActive,
-                onPressed: tts.enabled
-                    ? () => tts.toggleChannelMute(active)
+                onPressed: ttsEnabled
+                    ? () => context
+                        .read<TtsController>()
+                        .toggleChannelMute(active)
                     : null,
                 icon: Icon(
-                  !tts.enabled
+                  !ttsEnabled
                       ? Icons.volume_off_outlined
                       : speaks
                           ? Icons.volume_up
@@ -168,7 +197,7 @@ class _ChatScreenState extends State<ChatScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               children: <Widget>[
-                for (final MapEntry<int, String> ch in mc.channels)
+                for (final MapEntry<int, String> ch in channels)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: ChoiceChip(
@@ -217,7 +246,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     decoration: InputDecoration(
                       isDense: true,
                       hintText: ready
-                          ? l.chatComposerHint(mc.activeChannelName)
+                          ? l.chatComposerHint(activeName)
                           : l.chatComposerOffline,
                       border: const OutlineInputBorder(),
                     ),
