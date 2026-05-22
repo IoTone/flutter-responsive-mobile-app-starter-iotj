@@ -45,13 +45,18 @@ class _GlobeViewState extends State<GlobeView> {
   double _centreLatDeg = 0;
   bool _centeredOnSelf = false;
 
-  /// Pinch-zoom scale. 1.0 = base (sphere fills the canvas as
-  /// before); higher = closer view. Clamped at min/max so the
-  /// sphere can't shrink invisible or blow past the bezel.
-  double _scale = 1.0;
+  /// Pinch-zoom scale. 1.0 = base (whole hemisphere fits in the
+  /// canvas); higher = closer view. Default opens at **regional**
+  /// scale (3.5×) so the user lands on a country / nearby-country
+  /// view centred on their own pin rather than a tiny dot on the
+  /// world — true metro-level (~city block) is the R25 equal-grid
+  /// map's job; the 110m continent data here gets jagged past
+  /// ~8–10×.
+  static const double _scaleDefault = 3.5;
   static const double _scaleMin = 1.0;
-  static const double _scaleMax = 6.0;
-  double _scaleAtGestureStart = 1.0;
+  static const double _scaleMax = 10.0;
+  double _scale = _scaleDefault;
+  double _scaleAtGestureStart = _scaleDefault;
 
   bool _showArcs = true;
   bool _showRegions = false;
