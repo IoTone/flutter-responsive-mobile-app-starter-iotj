@@ -190,6 +190,15 @@
   "gridLegendFavourite": "別色での速い点滅 = お気に入りのコンタクト。",
   "gridLegendRipple": "中央からの波紋 = 匿名のチャネルメッセージ (プロトコル上、送信者を特定できません)。",
   "gridLegendTap": "ノードをタップで詳細 + メッセージ / お気に入り。",
+  "gridViewRadial": "ラジアル",
+  "gridViewGlobe": "グローブ",
+  "globeFooter": "位置情報のある {n} 件のピアを表示",
+  "globeOverlayArcs": "アーク",
+  "globeOverlayRegion": "地域",
+  "globeOverlayLabels": "ラベル",
+  "@globeFooter": {
+    "placeholders": {"n": {"type": "int"}}
+  },
   "gridEmpty": "まだ範囲内にファブリックがありません。\n\nアドバートを受信するとここに表示されます。Nodes 画面でスターをタップしてコンタクト登録 (速い点滅)。DM 交換したノードは既知になります (パルス)。",
   "gridStatusReady": "{visible}件 ファブリック · {known}件 既知 · {favs}件 コンタクト · {playState}",
   "@gridStatusReady": {

@@ -14,7 +14,13 @@ import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../theme/theme_controller.dart';
 import '../util/geo.dart' as geo;
+import 'globe_view.dart';
 import 'node_detail_sheet.dart';
+
+/// R27 — three map views in the /grid picker:
+/// `radial` (R18, default) + `globe` (this commit). R25's
+/// reverse-geocoded equal-grid will slot in here as a third entry.
+enum _GridViewMode { radial, globe }
 
 /// R18 / U9 — the hyperlocal grid: a radial range-ring view of the
 /// mesh **fabric** relative to us. Brightness = recency (100 % at
@@ -84,6 +90,9 @@ class _GridScreenState extends State<GridScreen>
 
   /// Whether the inline legend overlay is shown (info button in app bar).
   bool _legendVisible = false;
+
+  /// R27 — which of the available map views is showing.
+  _GridViewMode _viewMode = _GridViewMode.radial;
 
   /// Maximum hit-test radius (logical px) for tap-to-select on the grid.
   static const double _tapRadius = 28.0;
@@ -298,6 +307,21 @@ class _GridScreenState extends State<GridScreen>
       appBar: AppBar(
         title: Text(l.gridTitle),
         actions: <Widget>[
+          // R27 — view-mode toggle. Tap to cycle radial ↔ globe.
+          // (Future: a third stop for R25 equal-grid will slot in.)
+          IconButton(
+            tooltip: _viewMode == _GridViewMode.radial
+                ? l.gridViewGlobe
+                : l.gridViewRadial,
+            icon: Icon(_viewMode == _GridViewMode.radial
+                ? Icons.public
+                : Icons.radar),
+            onPressed: () => setState(() {
+              _viewMode = _viewMode == _GridViewMode.radial
+                  ? _GridViewMode.globe
+                  : _GridViewMode.radial;
+            }),
+          ),
           IconButton(
             tooltip: _live ? l.gridPauseTooltip : l.gridPlayTooltip,
             icon: Icon(_live ? Icons.pause : Icons.play_arrow),
@@ -342,7 +366,9 @@ class _GridScreenState extends State<GridScreen>
           ),
         ],
       ),
-      body: Column(
+      body: _viewMode == _GridViewMode.globe
+          ? const GlobeView()
+          : Column(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),

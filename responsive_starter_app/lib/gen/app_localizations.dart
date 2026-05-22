@@ -968,6 +968,42 @@ abstract class AppLocalizations {
   /// **'Tap a node to see details + Message / Favourite.'**
   String get gridLegendTap;
 
+  /// No description provided for @gridViewRadial.
+  ///
+  /// In en, this message translates to:
+  /// **'Radial'**
+  String get gridViewRadial;
+
+  /// No description provided for @gridViewGlobe.
+  ///
+  /// In en, this message translates to:
+  /// **'Globe'**
+  String get gridViewGlobe;
+
+  /// No description provided for @globeFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing {n} peers with known location'**
+  String globeFooter(int n);
+
+  /// No description provided for @globeOverlayArcs.
+  ///
+  /// In en, this message translates to:
+  /// **'arcs'**
+  String get globeOverlayArcs;
+
+  /// No description provided for @globeOverlayRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'region'**
+  String get globeOverlayRegion;
+
+  /// No description provided for @globeOverlayLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'labels'**
+  String get globeOverlayLabels;
+
   /// No description provided for @gridEmpty.
   ///
   /// In en, this message translates to:

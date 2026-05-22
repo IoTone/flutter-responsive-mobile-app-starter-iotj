@@ -510,6 +510,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tap a node to see details + Message / Favourite.';
 
   @override
+  String get gridViewRadial => 'Radial';
+
+  @override
+  String get gridViewGlobe => 'Globe';
+
+  @override
+  String globeFooter(int n) {
+    return 'Showing $n peers with known location';
+  }
+
+  @override
+  String get globeOverlayArcs => 'arcs';
+
+  @override
+  String get globeOverlayRegion => 'region';
+
+  @override
+  String get globeOverlayLabels => 'labels';
+
+  @override
   String get gridEmpty =>
       'No fabric in range yet.\n\nNodes appear here as their adverts are heard. Star a node in Nodes to mark it as a contact (rapid blink). Nodes we DM with become known (pulse).';
 

@@ -190,6 +190,15 @@
   "gridLegendFavourite": "Rapid blink in alt-colour = a favourited contact.",
   "gridLegendRipple": "Centre-out ripple = an anonymous channel message (the protocol doesn't attribute channel msgs to a sender).",
   "gridLegendTap": "Tap a node to see details + Message / Favourite.",
+  "gridViewRadial": "Radial",
+  "gridViewGlobe": "Globe",
+  "globeFooter": "Showing {n} peers with known location",
+  "globeOverlayArcs": "arcs",
+  "globeOverlayRegion": "region",
+  "globeOverlayLabels": "labels",
+  "@globeFooter": {
+    "placeholders": {"n": {"type": "int"}}
+  },
   "gridEmpty": "No fabric in range yet.\n\nNodes appear here as their adverts are heard. Star a node in Nodes to mark it as a contact (rapid blink). Nodes we DM with become known (pulse).",
   "gridStatusReady": "{visible} in fabric · {known} known · {favs, plural, =0{0 contacts} =1{1 contact} other{{favs} contacts}} · {playState}",
   "@gridStatusReady": {

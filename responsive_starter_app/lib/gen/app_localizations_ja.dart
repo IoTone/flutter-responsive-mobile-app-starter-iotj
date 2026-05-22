@@ -476,6 +476,26 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridLegendTap => 'ノードをタップで詳細 + メッセージ / お気に入り。';
 
   @override
+  String get gridViewRadial => 'ラジアル';
+
+  @override
+  String get gridViewGlobe => 'グローブ';
+
+  @override
+  String globeFooter(int n) {
+    return '位置情報のある $n 件のピアを表示';
+  }
+
+  @override
+  String get globeOverlayArcs => 'アーク';
+
+  @override
+  String get globeOverlayRegion => '地域';
+
+  @override
+  String get globeOverlayLabels => 'ラベル';
+
+  @override
   String get gridEmpty =>
       'まだ範囲内にファブリックがありません。\n\nアドバートを受信するとここに表示されます。Nodes 画面でスターをタップしてコンタクト登録 (速い点滅)。DM 交換したノードは既知になります (パルス)。';
 
