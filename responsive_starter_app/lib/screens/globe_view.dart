@@ -49,12 +49,13 @@ class _GlobeViewState extends State<GlobeView> {
   /// canvas); higher = closer view. Default opens at **regional**
   /// scale (3.5×) so the user lands on a country / nearby-country
   /// view centred on their own pin rather than a tiny dot on the
-  /// world — true metro-level (~city block) is the R25 equal-grid
-  /// map's job; the 110m continent data here gets jagged past
-  /// ~8–10×.
+  /// world. Max is 50× so the user can pull into a metro-region
+  /// view (~150–200 km visible radius) when they want; past ~10×
+  /// the 110m continent polygons are visibly coarse — true street
+  /// / block-level fidelity stays the R25 equal-grid map's domain.
   static const double _scaleDefault = 3.5;
   static const double _scaleMin = 1.0;
-  static const double _scaleMax = 10.0;
+  static const double _scaleMax = 50.0;
   double _scale = _scaleDefault;
   double _scaleAtGestureStart = _scaleDefault;
 
