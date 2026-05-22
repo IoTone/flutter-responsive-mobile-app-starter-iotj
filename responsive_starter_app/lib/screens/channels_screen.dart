@@ -1,5 +1,7 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meshcore/meshcore.dart';
@@ -38,6 +40,34 @@ class ChannelsScreen extends StatelessWidget {
             _EditChannelDialog(idx: idx, initialName: known[idx] ?? ''),
       );
       if (r == null) return;
+      if (!context.mounted) return;
+      // Slot-0 overwrite warning. Writing a non-Public PSK to slot 0
+      // means we lose the shared Public channel — surface that as an
+      // explicit confirm rather than letting it happen silently.
+      if (idx == 0 && !_pskMatchesPublic(r.psk)) {
+        final bool? proceed = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext ctx) => AlertDialog(
+            title: Text(l.channelsSlot0WarnTitle),
+            content: Text(l.channelsSlot0WarnBody),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l.channelsSlot0WarnCancel),
+              ),
+              FilledButton.tonal(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: FilledButton.styleFrom(
+                  backgroundColor: cs.errorContainer,
+                  foregroundColor: cs.onErrorContainer,
+                ),
+                child: Text(l.channelsSlot0WarnContinue),
+              ),
+            ],
+          ),
+        );
+        if (proceed != true) return;
+      }
       await mc.setChannel(idx: r.idx, name: r.name, psk: r.psk);
       if (context.mounted) {
         ScaffoldMessenger.of(context)
@@ -56,6 +86,34 @@ class ChannelsScreen extends StatelessWidget {
             child: Text(
               l.channelsHelp,
               style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: cs.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: cs.outline.withValues(alpha: .35)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Icon(Icons.lock_outline,
+                      size: 16, color: cs.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l.channelsHelpEncryption,
+                      style: TextStyle(
+                          color: cs.onSurface,
+                          fontSize: 12,
+                          height: 1.35),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           if (!ready)
@@ -100,6 +158,17 @@ class ChannelsScreen extends StatelessWidget {
   }
 }
 
+/// Byte-equality check vs the well-known Public PSK. We use the
+/// `kPublicChannelPsk` constant exported by the meshcore codec —
+/// matching it means "this slot is still effectively Public."
+bool _pskMatchesPublic(List<int> psk) {
+  if (psk.length != kPublicChannelPsk.length) return false;
+  for (int i = 0; i < psk.length; i++) {
+    if (psk[i] != kPublicChannelPsk[i]) return false;
+  }
+  return true;
+}
+
 /// Result of the edit dialog.
 class _ChannelEdit {
   const _ChannelEdit(this.idx, this.name, this.psk);
@@ -133,6 +202,43 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
     _tag.dispose();
     _hex.dispose();
     super.dispose();
+  }
+
+  /// Common-word denylist for the #tag strength hint. Tags in this
+  /// list (or their `#`-prefixed forms) are easy to grind from the
+  /// surface attacker's side; we warn but don't block. The list is
+  /// English / katakana-pop on purpose since #tag derivation is
+  /// SHA-256 of the literal string — a tag that looks weak in EN
+  /// is just as weak in JA.
+  static const Set<String> _weakTagDeny = <String>{
+    'public', 'private', 'group', 'channel', 'mesh', 'meshcore',
+    'meshmore', 'chat', 'test', 'hello', 'home', 'work', 'family',
+    'friends', 'main', 'general', 'team', 'crew', 'fleet',
+    'パブリック', 'プライベート', 'グループ', 'チャンネル', 'メッシュ',
+    'チャット', 'テスト', '家', '家族', '仲間', 'チーム',
+  };
+
+  String? _tagWeakHint(AppLocalizations l) {
+    final String raw =
+        _tag.text.trim().toLowerCase().replaceAll(RegExp(r'^#'), '');
+    if (raw.isEmpty) return null;
+    if (raw.length < 8) return l.channelsTagWeakShort;
+    if (_weakTagDeny.contains(raw)) return l.channelsTagWeakCommon;
+    return null;
+  }
+
+  /// Cryptographically-random 16-byte PSK, rendered as 32 hex chars
+  /// into the field. Uses `Random.secure()` (platform OS-RNG).
+  void _generateRandomPsk() {
+    final math.Random r = math.Random.secure();
+    final List<int> bytes = <int>[
+      for (int i = 0; i < 16; i++) r.nextInt(256),
+    ];
+    setState(() {
+      _hex.text = bytes
+          .map((int b) => b.toRadixString(16).padLeft(2, '0'))
+          .join();
+    });
   }
 
   List<int>? _resolvePsk(AppLocalizations l) {
@@ -216,15 +322,36 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
             if (_src == _PskSource.public)
               Text(l.channelsKeyPublicBody,
                   style: const TextStyle(fontSize: 12))
-            else if (_src == _PskSource.hashtag)
+            else if (_src == _PskSource.hashtag) ...<Widget>[
               TextField(
                 controller: _tag,
+                onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                     labelText: l.channelsKeyHashtagHint,
                     helperText: l.channelsKeyHashtagHelper,
                     isDense: true),
-              )
-            else
+              ),
+              if (_tagWeakHint(l) != null) ...<Widget>[
+                const SizedBox(height: 6),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Icon(Icons.warning_amber_rounded,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.tertiary),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(_tagWeakHint(l)!,
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .tertiary,
+                              fontSize: 11)),
+                    ),
+                  ],
+                ),
+              ],
+            ] else ...<Widget>[
               TextField(
                 controller: _hex,
                 inputFormatters: <TextInputFormatter>[
@@ -234,6 +361,33 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
                 decoration: InputDecoration(
                     labelText: l.channelsKeyHexHint, isDense: true),
               ),
+              const SizedBox(height: 6),
+              Row(
+                children: <Widget>[
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.casino, size: 16),
+                    label: Text(l.channelsHexGenerate),
+                    onPressed: _generateRandomPsk,
+                  ),
+                  const SizedBox(width: 8),
+                  if (_hex.text.trim().length == 32)
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.copy, size: 16),
+                      label: Text(l.channelsHexCopy),
+                      onPressed: () async {
+                        await Clipboard.setData(ClipboardData(
+                            text: _hex.text.trim().toLowerCase()));
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.maybeOf(context)
+                          ?.showSnackBar(SnackBar(
+                              content: Text(l.channelsHexCopied),
+                              duration:
+                                  const Duration(seconds: 2)));
+                      },
+                    ),
+                ],
+              ),
+            ],
             if (_error != null) ...<Widget>[
               const SizedBox(height: 8),
               Text(_error!,

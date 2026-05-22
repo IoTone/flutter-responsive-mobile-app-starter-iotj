@@ -902,6 +902,39 @@ class AppLocalizationsJa extends AppLocalizations {
   String get channelsSave => '保存';
 
   @override
+  String get channelsHelpEncryption =>
+      'スロット 0 (Public) は既知の鍵を使用 — ファームウェアを持つ全員が読めます。他のスロットは設定した 16 バイト PSK で AES-128 暗号化。同じ PSK を持つノードのみ復号できます。';
+
+  @override
+  String get channelsHexGenerate => 'PSK をランダム生成';
+
+  @override
+  String get channelsHexCopy => 'コピー';
+
+  @override
+  String get channelsHexCopied => 'PSK をクリップボードにコピー';
+
+  @override
+  String get channelsTagWeakShort => '短いタグは推測されやすい。12 文字以上または独自の表現を使用してください。';
+
+  @override
+  String get channelsTagWeakCommon =>
+      '一般的な単語は推測されやすい — 攻撃者にタグ総当りを許します。独自の表現を使用してください。';
+
+  @override
+  String get channelsSlot0WarnTitle => 'Public チャンネルを上書きしますか?';
+
+  @override
+  String get channelsSlot0WarnBody =>
+      'スロット 0 は既知の Public チャンネルです。ここにプライベート PSK を書き込むと、同じ鍵を持つノードとしか通話できなくなり、共通の Public チャンネルを失います。続行しますか?';
+
+  @override
+  String get channelsSlot0WarnContinue => 'スロット 0 を上書き';
+
+  @override
+  String get channelsSlot0WarnCancel => 'キャンセル';
+
+  @override
   String get deviceConfigTitle => 'デバイス設定';
 
   @override

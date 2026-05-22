@@ -949,6 +949,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get channelsSave => 'Save';
 
   @override
+  String get channelsHelpEncryption =>
+      'Slot 0 (Public) uses a well-known key — everyone with the firmware can read it. Other slots are AES-128 encrypted with the 16-byte PSK you set; only nodes with the same PSK can decrypt.';
+
+  @override
+  String get channelsHexGenerate => 'Generate random PSK';
+
+  @override
+  String get channelsHexCopy => 'Copy';
+
+  @override
+  String get channelsHexCopied => 'PSK copied to clipboard';
+
+  @override
+  String get channelsTagWeakShort =>
+      'Short tags are guessable. Use 12+ chars or unusual phrasing.';
+
+  @override
+  String get channelsTagWeakCommon =>
+      'Common words are guessable — an attacker can grind tags. Use unusual phrasing.';
+
+  @override
+  String get channelsSlot0WarnTitle => 'Overwriting the Public channel?';
+
+  @override
+  String get channelsSlot0WarnBody =>
+      'Slot 0 is the well-known Public channel. Writing a private PSK here means you\'ll only be able to talk to nodes that use this exact key in slot 0 — you\'ll lose the shared Public channel. Proceed?';
+
+  @override
+  String get channelsSlot0WarnContinue => 'Overwrite slot 0';
+
+  @override
+  String get channelsSlot0WarnCancel => 'Cancel';
+
+  @override
   String get deviceConfigTitle => 'Device configuration';
 
   @override

@@ -1700,6 +1700,66 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get channelsSave;
 
+  /// No description provided for @channelsHelpEncryption.
+  ///
+  /// In en, this message translates to:
+  /// **'Slot 0 (Public) uses a well-known key — everyone with the firmware can read it. Other slots are AES-128 encrypted with the 16-byte PSK you set; only nodes with the same PSK can decrypt.'**
+  String get channelsHelpEncryption;
+
+  /// No description provided for @channelsHexGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate random PSK'**
+  String get channelsHexGenerate;
+
+  /// No description provided for @channelsHexCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get channelsHexCopy;
+
+  /// No description provided for @channelsHexCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'PSK copied to clipboard'**
+  String get channelsHexCopied;
+
+  /// No description provided for @channelsTagWeakShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Short tags are guessable. Use 12+ chars or unusual phrasing.'**
+  String get channelsTagWeakShort;
+
+  /// No description provided for @channelsTagWeakCommon.
+  ///
+  /// In en, this message translates to:
+  /// **'Common words are guessable — an attacker can grind tags. Use unusual phrasing.'**
+  String get channelsTagWeakCommon;
+
+  /// No description provided for @channelsSlot0WarnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overwriting the Public channel?'**
+  String get channelsSlot0WarnTitle;
+
+  /// No description provided for @channelsSlot0WarnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Slot 0 is the well-known Public channel. Writing a private PSK here means you\'ll only be able to talk to nodes that use this exact key in slot 0 — you\'ll lose the shared Public channel. Proceed?'**
+  String get channelsSlot0WarnBody;
+
+  /// No description provided for @channelsSlot0WarnContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overwrite slot 0'**
+  String get channelsSlot0WarnContinue;
+
+  /// No description provided for @channelsSlot0WarnCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get channelsSlot0WarnCancel;
+
   /// No description provided for @deviceConfigTitle.
   ///
   /// In en, this message translates to:
