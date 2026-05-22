@@ -140,6 +140,54 @@ void main() {
     ctrl.dispose();
   });
 
+  test('setManualAddContacts emits 0x26 with the new bool + preserved fields',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    await ctrl.connect();
+    fake.emit(selfInfoFrame()); // all-zero
+    await Future<void>.delayed(Duration.zero);
+    fake.sent.clear();
+
+    await ctrl.setManualAddContacts(true);
+    final List<int> frame =
+        fake.sent.firstWhere((f) => f.isNotEmpty && f[0] == 0x26);
+    // [opcode, manualAdd=1, telemetry=0, loc=0, multiAcks=0]
+    expect(frame, <int>[0x26, 0x01, 0x00, 0x00, 0x00]);
+    ctrl.dispose();
+  });
+
+  test('setTelemetryMode + setMultiAcks emit 0x26 with the right fields',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    await ctrl.connect();
+    fake.emit(selfInfoFrame());
+    await Future<void>.delayed(Duration.zero);
+    fake.sent.clear();
+
+    await ctrl.setTelemetryMode(7);
+    expect(
+        fake.sent.firstWhere((f) => f.isNotEmpty && f[0] == 0x26),
+        <int>[0x26, 0x00, 0x07, 0x00, 0x00]);
+    fake.sent.clear();
+    await ctrl.setMultiAcks(2);
+    expect(
+        fake.sent.firstWhere((f) => f.isNotEmpty && f[0] == 0x26),
+        <int>[0x26, 0x00, 0x00, 0x00, 0x02]);
+    ctrl.dispose();
+  });
+
   test('setAdvertLocPolicy is a no-op when SelfInfo unavailable',
       () async {
     final FakeMeshcoreTransport fake =

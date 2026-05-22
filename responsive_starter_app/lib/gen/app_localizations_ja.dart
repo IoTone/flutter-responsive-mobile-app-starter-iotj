@@ -1063,4 +1063,35 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get diagnosticsCopyLog => 'ログをコピー';
+
+  @override
+  String get otherManualAddTitle => 'コンタクトを手動追加';
+
+  @override
+  String get otherManualAddSubOn => '受信したノードは必要時に手動でコンタクトに追加します。';
+
+  @override
+  String get otherManualAddSubOff => '受信したノードは自動でコンタクトに昇格します。';
+
+  @override
+  String get otherTelemetryLabel => 'テレメトリモード (生バイト)';
+
+  @override
+  String get otherTelemetryHelper => '0 = オフ · 意味はファームウェアに依存します。';
+
+  @override
+  String get otherMultiAcksLabel => 'マルチ ACK (0–3)';
+
+  @override
+  String get otherMultiAcksHelper =>
+      '0 = シングル ACK (既定)。値が大きいほど送信確定までに待つ追加 ACK 数。';
+
+  @override
+  String get otherApply => '適用';
+
+  @override
+  String get otherSentSnack => 'OTHER PARAMS を送信 — デバイス側の書込に時間がかかる場合があります。';
+
+  @override
+  String get otherAwaitingDevice => '— デバイス待機中 —';
 }

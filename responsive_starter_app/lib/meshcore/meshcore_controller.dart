@@ -884,6 +884,55 @@ class MeshcoreController extends ChangeNotifier {
     ));
   }
 
+  /// Toggle whether the device requires the user to **manually add**
+  /// heard nodes as contacts (instead of auto-promoting every advert).
+  /// Wraps `CMD_SET_OTHER_PARAMS` (0x26); preserves the other three
+  /// fields by reading them off the cached `SelfInfo`.
+  Future<void> setManualAddContacts(bool v) async {
+    if (!isReady) return;
+    final SelfInfo? si = selfInfo;
+    if (si == null) return;
+    await send(MeshcoreFrameCodec.setOtherParams(
+      manualAddContacts: v ? 1 : 0,
+      telemetryModePacked: si.telemetryModeRaw,
+      advertLocPolicy: si.advertLocPolicy,
+      multiAcks: si.multiAcks,
+    ));
+  }
+
+  /// Set the device's **telemetry mode** byte. The protocol packs
+  /// several flags into this single byte; semantics are firmware-
+  /// dependent (env/battery/location reporting cadence + format).
+  /// We expose it as a raw int so power users can match what their
+  /// MeshCore docs say. 0 = telemetry off.
+  Future<void> setTelemetryMode(int packed) async {
+    if (!isReady) return;
+    final SelfInfo? si = selfInfo;
+    if (si == null) return;
+    await send(MeshcoreFrameCodec.setOtherParams(
+      manualAddContacts: si.manualAddContacts ? 1 : 0,
+      telemetryModePacked: packed & 0xFF,
+      advertLocPolicy: si.advertLocPolicy,
+      multiAcks: si.multiAcks,
+    ));
+  }
+
+  /// Set the device's **multi-acks** count. The radio can be asked
+  /// to expect up to N additional acks before considering a send
+  /// confirmed; typical range 0–3. 0 = single ack (default).
+  Future<void> setMultiAcks(int n) async {
+    if (!isReady) return;
+    final SelfInfo? si = selfInfo;
+    if (si == null) return;
+    final int clamped = n.clamp(0, 7);
+    await send(MeshcoreFrameCodec.setOtherParams(
+      manualAddContacts: si.manualAddContacts ? 1 : 0,
+      telemetryModePacked: si.telemetryModeRaw,
+      advertLocPolicy: si.advertLocPolicy,
+      multiAcks: clamped,
+    ));
+  }
+
   void _trackBattery(MeshcoreInbound f) {
     if (f is! BatteryStorageFrame) return;
     _battery = f.battery;

@@ -487,27 +487,21 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
           ),
           const Divider(height: 28),
 
-          // OTHER PARAMS (read-only for now)
+          // OTHER PARAMS — editable. Each setter wraps
+          // CMD_SET_OTHER_PARAMS (0x26) and preserves the other
+          // three fields by reading them off SelfInfo.
           Text(l.deviceOtherParamsSection,
               style: TextStyle(
                   color: cs.primary, fontSize: 12, letterSpacing: 3)),
           const SizedBox(height: 4),
-          Text(
-            si == null
-                ? '— awaiting device —'
-                : 'manual-add contacts: ${si.manualAddContacts}\n'
-                    'telemetry mode: ${si.telemetryModeRaw}\n'
-                    'advert loc policy: ${si.advertLocPolicy}\n'
-                    'multi-acks: ${si.multiAcks}',
-            style: TextStyle(
-                color: cs.onSurface,
-                fontFamily: 'monospace',
-                height: 1.5),
-          ),
-          Text('Editing these (telemetry / manual-add / acks) is a '
-              'later step.',
-              style:
-                  TextStyle(color: cs.onSurfaceVariant, fontSize: 12)),
+          if (si == null)
+            Text(l.otherAwaitingDevice,
+                style: TextStyle(
+                    color: cs.onSurface,
+                    fontFamily: 'monospace',
+                    height: 1.5))
+          else
+            _OtherParamsEditor(mc: mc, si: si, enabled: ready),
           const Divider(height: 28),
 
           // DEVICE (read-only)
@@ -540,6 +534,152 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
           }),
         ],
       ),
+    );
+  }
+}
+
+/// Editable OTHER PARAMS block. The three settings (manual-add,
+/// telemetry mode, multi-acks) all share the same `CMD_SET_OTHER_PARAMS`
+/// (0x26) wire surface; each setter on `MeshcoreController` preserves
+/// the other fields so we don't accidentally clobber them when only
+/// one changes.
+class _OtherParamsEditor extends StatefulWidget {
+  const _OtherParamsEditor({
+    required this.mc,
+    required this.si,
+    required this.enabled,
+  });
+  final MeshcoreController mc;
+  final SelfInfo si;
+  final bool enabled;
+
+  @override
+  State<_OtherParamsEditor> createState() => _OtherParamsEditorState();
+}
+
+class _OtherParamsEditorState extends State<_OtherParamsEditor> {
+  late final TextEditingController _telemetry =
+      TextEditingController(text: widget.si.telemetryModeRaw.toString());
+  late int _multiAcks = widget.si.multiAcks;
+
+  @override
+  void didUpdateWidget(_OtherParamsEditor old) {
+    super.didUpdateWidget(old);
+    // SelfInfo can change underfoot (the device echoes back the new
+    // value after a successful SET) — re-sync the local UI state to
+    // match the truth.
+    if (old.si.telemetryModeRaw != widget.si.telemetryModeRaw) {
+      _telemetry.text = widget.si.telemetryModeRaw.toString();
+    }
+    if (old.si.multiAcks != widget.si.multiAcks) {
+      _multiAcks = widget.si.multiAcks;
+    }
+  }
+
+  @override
+  void dispose() {
+    _telemetry.dispose();
+    super.dispose();
+  }
+
+  Future<void> _applyTelemetry() async {
+    final int? v = int.tryParse(_telemetry.text.trim());
+    if (v == null) return;
+    await widget.mc.setTelemetryMode(v);
+    _snack();
+  }
+
+  Future<void> _applyMultiAcks(int v) async {
+    setState(() => _multiAcks = v);
+    await widget.mc.setMultiAcks(v);
+    _snack();
+  }
+
+  void _snack() {
+    if (!mounted) return;
+    final AppLocalizations l = AppLocalizations.of(context);
+    ScaffoldMessenger.maybeOf(context)
+      ?..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text(l.otherSentSnack)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l = AppLocalizations.of(context);
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        // manual-add — boolean.
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          title: Text(l.otherManualAddTitle),
+          subtitle: Text(
+            widget.si.manualAddContacts
+                ? l.otherManualAddSubOn
+                : l.otherManualAddSubOff,
+            style: TextStyle(
+                color: cs.onSurface.withValues(alpha: .6),
+                fontSize: 12),
+          ),
+          value: widget.si.manualAddContacts,
+          onChanged: widget.enabled
+              ? (bool v) async {
+                  await widget.mc.setManualAddContacts(v);
+                  _snack();
+                }
+              : null,
+        ),
+        const SizedBox(height: 6),
+        // multi-acks — 0..3 segmented.
+        Text(l.otherMultiAcksLabel,
+            style: TextStyle(
+                color: cs.onSurfaceVariant,
+                fontSize: 12,
+                letterSpacing: 1)),
+        const SizedBox(height: 4),
+        SegmentedButton<int>(
+          segments: const <ButtonSegment<int>>[
+            ButtonSegment<int>(value: 0, label: Text('0')),
+            ButtonSegment<int>(value: 1, label: Text('1')),
+            ButtonSegment<int>(value: 2, label: Text('2')),
+            ButtonSegment<int>(value: 3, label: Text('3')),
+          ],
+          selected: <int>{_multiAcks.clamp(0, 3)},
+          showSelectedIcon: false,
+          onSelectionChanged: widget.enabled
+              ? (Set<int> next) => _applyMultiAcks(next.first)
+              : null,
+        ),
+        const SizedBox(height: 4),
+        Text(l.otherMultiAcksHelper,
+            style:
+                TextStyle(color: cs.onSurfaceVariant, fontSize: 11)),
+        const SizedBox(height: 10),
+        // telemetry mode — raw byte.
+        TextField(
+          controller: _telemetry,
+          enabled: widget.enabled,
+          keyboardType: TextInputType.number,
+          inputFormatters: <TextInputFormatter>[
+            FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+          ],
+          decoration: InputDecoration(
+            labelText: l.otherTelemetryLabel,
+            helperText: l.otherTelemetryHelper,
+            isDense: true,
+          ),
+        ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            icon: const Icon(Icons.send, size: 16),
+            label: Text(l.otherApply),
+            onPressed: widget.enabled ? _applyTelemetry : null,
+          ),
+        ),
+      ],
     );
   }
 }

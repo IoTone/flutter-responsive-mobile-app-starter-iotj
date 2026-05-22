@@ -473,5 +473,16 @@
   "diagnosticsConnect": "接続",
   "diagnosticsDisconnect": "切断",
   "diagnosticsForget": "デバイスを解除",
-  "diagnosticsCopyLog": "ログをコピー"
+  "diagnosticsCopyLog": "ログをコピー",
+
+  "otherManualAddTitle": "コンタクトを手動追加",
+  "otherManualAddSubOn": "受信したノードは必要時に手動でコンタクトに追加します。",
+  "otherManualAddSubOff": "受信したノードは自動でコンタクトに昇格します。",
+  "otherTelemetryLabel": "テレメトリモード (生バイト)",
+  "otherTelemetryHelper": "0 = オフ · 意味はファームウェアに依存します。",
+  "otherMultiAcksLabel": "マルチ ACK (0–3)",
+  "otherMultiAcksHelper": "0 = シングル ACK (既定)。値が大きいほど送信確定までに待つ追加 ACK 数。",
+  "otherApply": "適用",
+  "otherSentSnack": "OTHER PARAMS を送信 — デバイス側の書込に時間がかかる場合があります。",
+  "otherAwaitingDevice": "— デバイス待機中 —"
 }

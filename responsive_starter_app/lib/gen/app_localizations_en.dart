@@ -1118,4 +1118,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diagnosticsCopyLog => 'Copy log';
+
+  @override
+  String get otherManualAddTitle => 'Manual-add contacts';
+
+  @override
+  String get otherManualAddSubOn =>
+      'You add heard nodes as contacts on demand.';
+
+  @override
+  String get otherManualAddSubOff => 'Heard nodes auto-promote to contacts.';
+
+  @override
+  String get otherTelemetryLabel => 'Telemetry mode (raw byte)';
+
+  @override
+  String get otherTelemetryHelper =>
+      '0 = off · semantics are firmware-defined.';
+
+  @override
+  String get otherMultiAcksLabel => 'Multi-acks (0–3)';
+
+  @override
+  String get otherMultiAcksHelper =>
+      '0 = single ack (default). Higher = wait for N extra acks before considering a send confirmed.';
+
+  @override
+  String get otherApply => 'Apply';
+
+  @override
+  String get otherSentSnack =>
+      'OTHER PARAMS sent — device-side write may take a moment.';
+
+  @override
+  String get otherAwaitingDevice => '— awaiting device —';
 }

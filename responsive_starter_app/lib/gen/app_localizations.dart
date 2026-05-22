@@ -2017,6 +2017,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy log'**
   String get diagnosticsCopyLog;
+
+  /// No description provided for @otherManualAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual-add contacts'**
+  String get otherManualAddTitle;
+
+  /// No description provided for @otherManualAddSubOn.
+  ///
+  /// In en, this message translates to:
+  /// **'You add heard nodes as contacts on demand.'**
+  String get otherManualAddSubOn;
+
+  /// No description provided for @otherManualAddSubOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Heard nodes auto-promote to contacts.'**
+  String get otherManualAddSubOff;
+
+  /// No description provided for @otherTelemetryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Telemetry mode (raw byte)'**
+  String get otherTelemetryLabel;
+
+  /// No description provided for @otherTelemetryHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'0 = off · semantics are firmware-defined.'**
+  String get otherTelemetryHelper;
+
+  /// No description provided for @otherMultiAcksLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-acks (0–3)'**
+  String get otherMultiAcksLabel;
+
+  /// No description provided for @otherMultiAcksHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'0 = single ack (default). Higher = wait for N extra acks before considering a send confirmed.'**
+  String get otherMultiAcksHelper;
+
+  /// No description provided for @otherApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get otherApply;
+
+  /// No description provided for @otherSentSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'OTHER PARAMS sent — device-side write may take a moment.'**
+  String get otherSentSnack;
+
+  /// No description provided for @otherAwaitingDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'— awaiting device —'**
+  String get otherAwaitingDevice;
 }
 
 class _AppLocalizationsDelegate
