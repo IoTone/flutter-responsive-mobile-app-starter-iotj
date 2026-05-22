@@ -362,14 +362,19 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
                     labelText: l.channelsKeyHexHint, isDense: true),
               ),
               const SizedBox(height: 6),
-              Row(
+              // Buttons in a Wrap so they break to a second line on
+              // narrow dialogs / dense locales. The JA labels
+              // ("PSK をランダム生成" + "コピー") overflow the 283-wide
+              // dialog content area as a single Row.
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
                 children: <Widget>[
                   OutlinedButton.icon(
                     icon: const Icon(Icons.casino, size: 16),
                     label: Text(l.channelsHexGenerate),
                     onPressed: _generateRandomPsk,
                   ),
-                  const SizedBox(width: 8),
                   if (_hex.text.trim().length == 32)
                     OutlinedButton.icon(
                       icon: const Icon(Icons.copy, size: 16),
