@@ -463,6 +463,14 @@
   "channelsShakeReroll": "再ロール",
   "channelsShakeUse": "この鍵を使用",
   "channelsShakeTapFallback": "タップでロール (reduceMotion 有効 — Random.secure を使用)",
+  "channelsShareQr": "QR で共有",
+  "channelsQrTitle": "チャンネル {idx} を共有",
+  "@channelsQrTitle": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
+  "channelsQrBody": "Meshmore デバイス、または任意の QR リーダーでスキャン。このコードを持つ人はチャンネルに参加できます — 信頼できる相手のみと共有してください。",
+  "channelsQrPayload": "ペイロード (コピー用)",
+  "channelsQrClose": "閉じる",
 
   "deviceConfigTitle": "デバイス設定",
   "deviceRegionBand": "リージョン / バンド",

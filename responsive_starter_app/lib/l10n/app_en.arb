@@ -463,6 +463,14 @@
   "channelsShakeReroll": "Reroll",
   "channelsShakeUse": "Use this key",
   "channelsShakeTapFallback": "Tap to roll (reduceMotion is on — uses Random.secure instead)",
+  "channelsShareQr": "Share via QR",
+  "channelsQrTitle": "Share channel {idx}",
+  "@channelsQrTitle": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
+  "channelsQrBody": "Scan with a Meshmore device or any QR reader. Anyone with this code can join the channel — share only with trusted peers.",
+  "channelsQrPayload": "Payload (also copy-friendly)",
+  "channelsQrClose": "Close",
 
   "deviceConfigTitle": "Device configuration",
   "deviceRegionBand": "REGION / BAND",

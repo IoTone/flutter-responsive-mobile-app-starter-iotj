@@ -1058,6 +1058,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tap to roll (reduceMotion is on — uses Random.secure instead)';
 
   @override
+  String get channelsShareQr => 'Share via QR';
+
+  @override
+  String channelsQrTitle(int idx) {
+    return 'Share channel $idx';
+  }
+
+  @override
+  String get channelsQrBody =>
+      'Scan with a Meshmore device or any QR reader. Anyone with this code can join the channel — share only with trusted peers.';
+
+  @override
+  String get channelsQrPayload => 'Payload (also copy-friendly)';
+
+  @override
+  String get channelsQrClose => 'Close';
+
+  @override
   String get deviceConfigTitle => 'Device configuration';
 
   @override

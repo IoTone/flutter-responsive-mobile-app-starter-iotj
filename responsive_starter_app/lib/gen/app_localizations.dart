@@ -1886,6 +1886,36 @@ abstract class AppLocalizations {
   /// **'Tap to roll (reduceMotion is on — uses Random.secure instead)'**
   String get channelsShakeTapFallback;
 
+  /// No description provided for @channelsShareQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Share via QR'**
+  String get channelsShareQr;
+
+  /// No description provided for @channelsQrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share channel {idx}'**
+  String channelsQrTitle(int idx);
+
+  /// No description provided for @channelsQrBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan with a Meshmore device or any QR reader. Anyone with this code can join the channel — share only with trusted peers.'**
+  String get channelsQrBody;
+
+  /// No description provided for @channelsQrPayload.
+  ///
+  /// In en, this message translates to:
+  /// **'Payload (also copy-friendly)'**
+  String get channelsQrPayload;
+
+  /// No description provided for @channelsQrClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get channelsQrClose;
+
   /// No description provided for @deviceConfigTitle.
   ///
   /// In en, this message translates to:

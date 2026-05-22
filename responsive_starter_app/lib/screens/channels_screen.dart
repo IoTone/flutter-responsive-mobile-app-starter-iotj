@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../cryptokit/dice_roll_entropy.dart';
 import '../gen/app_localizations.dart';
@@ -608,6 +609,21 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
                   style: const TextStyle(
                       fontFamily: 'monospace', fontSize: 11),
                 ),
+              // QR-share — only meaningful for non-Public slots
+              // (Public's key is world-known, no point sharing).
+              if (!_pskMatchesPublic(widget.currentPsk!)) ...<Widget>[
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.qr_code_2, size: 16),
+                    label: Text(l.channelsShareQr),
+                    onPressed: () => _showQrShare(
+                        context, widget.idx, widget.initialName,
+                        widget.currentPsk!),
+                  ),
+                ),
+              ],
             ],
             if (_error != null) ...<Widget>[
               const SizedBox(height: 8),
@@ -686,6 +702,84 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
 /// Shows a circular progress ring + a 32-char hex preview that
 /// fills in as the underlying SHA-256 digest stabilises + a
 /// "Reroll" affordance that wipes the buffer and re-starts.
+/// Encode a channel slot + name + 16-byte PSK as a compact URI
+/// the matching `decodeChannelShareUri` can parse back. Format:
+/// `meshmore://channel?idx=N&name=URL-ENC&psk=HEX`. Kept small
+/// on purpose (fits inside NTAG213 user memory for R34 NFC).
+String encodeChannelShareUri(int idx, String name, List<int> psk) {
+  final String hex = psk
+      .map((int b) => b.toRadixString(16).padLeft(2, '0'))
+      .join();
+  return 'meshmore://channel?idx=$idx'
+      '&name=${Uri.encodeQueryComponent(name)}'
+      '&psk=$hex';
+}
+
+void _showQrShare(BuildContext outer, int idx, String name,
+    List<int> psk) {
+  final AppLocalizations l = AppLocalizations.of(outer);
+  final String payload = encodeChannelShareUri(idx, name, psk);
+  showDialog<void>(
+    context: outer,
+    builder: (BuildContext ctx) {
+      final ColorScheme cs = Theme.of(ctx).colorScheme;
+      return AlertDialog(
+        title: Text(l.channelsQrTitle(idx)),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 320),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Text(l.channelsQrBody,
+                    style: TextStyle(
+                        color: cs.onSurfaceVariant, fontSize: 12)),
+                const SizedBox(height: 14),
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: QrImageView(
+                      data: payload,
+                      version: QrVersions.auto,
+                      size: 240,
+                      backgroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(l.channelsQrPayload,
+                    style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontSize: 11,
+                        letterSpacing: 1)),
+                const SizedBox(height: 4),
+                SelectableText(
+                  payload,
+                  style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                      height: 1.4),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l.channelsQrClose),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 class _DiceRollPanel extends StatelessWidget {
   const _DiceRollPanel({
     required this.getOrInit,

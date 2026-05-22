@@ -1009,6 +1009,24 @@ class AppLocalizationsJa extends AppLocalizations {
       'タップでロール (reduceMotion 有効 — Random.secure を使用)';
 
   @override
+  String get channelsShareQr => 'QR で共有';
+
+  @override
+  String channelsQrTitle(int idx) {
+    return 'チャンネル $idx を共有';
+  }
+
+  @override
+  String get channelsQrBody =>
+      'Meshmore デバイス、または任意の QR リーダーでスキャン。このコードを持つ人はチャンネルに参加できます — 信頼できる相手のみと共有してください。';
+
+  @override
+  String get channelsQrPayload => 'ペイロード (コピー用)';
+
+  @override
+  String get channelsQrClose => '閉じる';
+
+  @override
   String get deviceConfigTitle => 'デバイス設定';
 
   @override
