@@ -29,6 +29,8 @@ class FakeTtsSpeaker implements TtsSpeaker {
   Future<void> setVoice(TtsVoice? voice) async {}
   @override
   Future<List<TtsVoice>> listVoices() async => const <TtsVoice>[];
+  @override
+  Future<bool> isLanguageAvailable(String locale) async => true;
 }
 
 Widget _host(MeshcoreController mc, TtsController tts) => MaterialApp(

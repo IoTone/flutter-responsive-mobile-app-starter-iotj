@@ -30,6 +30,8 @@ class _SilentSpeaker implements TtsSpeaker {
   Future<void> setVoice(TtsVoice? voice) async {}
   @override
   Future<List<TtsVoice>> listVoices() async => const <TtsVoice>[];
+  @override
+  Future<bool> isLanguageAvailable(String locale) async => true;
 }
 
 void main() {

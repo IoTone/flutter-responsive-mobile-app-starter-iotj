@@ -29,6 +29,13 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
   List<TtsVoice>? _voices;
   bool _loadingVoices = true;
 
+  /// Cache of `flutter_tts.isLanguageAvailable(locale)` answers,
+  /// resolved per unique locale (not per voice — many voices share
+  /// the same locale). Lets us flag each voice row with an
+  /// **OFFLINE** badge once the local language pack lookup has
+  /// answered.
+  final Map<String, bool> _offline = <String, bool>{};
+
   @override
   void initState() {
     super.initState();
@@ -43,6 +50,15 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
       _voices = v;
       _loadingVoices = false;
     });
+    // Resolve offline-availability per unique locale in the
+    // background. setState as each completes so badges fade in
+    // without blocking the initial render.
+    final Set<String> locales = <String>{for (final TtsVoice voice in v) voice.locale};
+    for (final String locale in locales) {
+      final bool available = await tc.isLanguageAvailable(locale);
+      if (!mounted) return;
+      setState(() => _offline[locale] = available);
+    }
   }
 
   @override
@@ -145,7 +161,16 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                       ? cs.primary
                       : cs.onSurfaceVariant,
                 ),
-                title: Text(v.name),
+                title: Row(
+                  children: <Widget>[
+                    Expanded(child: Text(v.name)),
+                    if (_offline[v.locale] == true)
+                      _OfflineBadge(
+                        label: l.voiceOfflineBadge,
+                        color: cs.tertiary,
+                      ),
+                  ],
+                ),
                 subtitle: Text(
                   v.qualityHint == null
                       ? v.locale
@@ -180,6 +205,36 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Small "OFFLINE" pill rendered next to a voice's name when the
+/// platform reports its language pack is installed locally. Honest
+/// signal for users who care about offline operation (privacy /
+/// battery / field use without coverage).
+class _OfflineBadge extends StatelessWidget {
+  const _OfflineBadge({required this.label, required this.color});
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .15),
+        borderRadius: BorderRadius.circular(3),
+        border: Border.all(color: color.withValues(alpha: .55)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+            color: color,
+            fontSize: 9,
+            letterSpacing: 1,
+            fontWeight: FontWeight.w600),
       ),
     );
   }

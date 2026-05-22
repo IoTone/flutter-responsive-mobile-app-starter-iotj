@@ -48,6 +48,14 @@ abstract class TtsSpeaker {
   /// empty on platforms where the plugin can't enumerate (returns
   /// empty list rather than throwing).
   Future<List<TtsVoice>> listVoices();
+
+  /// True when the language pack backing [locale] (e.g. `"en-US"`)
+  /// is installed locally on the device — i.e. synthesis works
+  /// offline. False when the locale would require network access
+  /// (or isn't available). Best-effort: on iOS this is effectively
+  /// "is this voice known to the system"; on Android it tracks
+  /// the active engine's downloaded language packs.
+  Future<bool> isLanguageAvailable(String locale);
 }
 
 /// Default speaker — thin wrapper over `flutter_tts`. Not exercised in
@@ -83,6 +91,21 @@ class FlutterTtsSpeaker implements TtsSpeaker {
     } catch (_) {
       // Voice not installed any more / plugin disagreed — fall
       // through to the platform default. Silent: not worth a snack.
+    }
+  }
+
+  @override
+  Future<bool> isLanguageAvailable(String locale) async {
+    try {
+      final dynamic raw = await _tts.isLanguageAvailable(locale);
+      // Android returns int (0..2, "available + installed"); iOS
+      // returns bool. Map both to a strict-offline "true" only
+      // when the platform's strongest signal is set.
+      if (raw is bool) return raw;
+      if (raw is int) return raw >= 1;
+      return false;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -220,6 +243,12 @@ class TtsController extends ChangeNotifier {
   /// Enumerates voices the platform engine knows about (filtered to
   /// the locales we use). May be empty on test backends.
   Future<List<TtsVoice>> listVoices() => _speaker.listVoices();
+
+  /// True when [locale] (e.g. `"en-US"`) is installed locally —
+  /// synthesis will work offline for that pack. Exposed for the
+  /// Voice settings UI to badge each row.
+  Future<bool> isLanguageAvailable(String locale) =>
+      _speaker.isLanguageAvailable(locale);
 
   /// Speak a one-off preview phrase (used by the App-settings "Try
   /// a phrase" button). Bypasses the per-channel mute since the user

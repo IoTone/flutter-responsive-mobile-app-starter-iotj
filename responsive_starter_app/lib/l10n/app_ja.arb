@@ -196,6 +196,8 @@
   "globeOverlayArcs": "アーク",
   "globeOverlayRegion": "地域",
   "globeOverlayLabels": "ラベル",
+  "globeZoom": "ズーム",
+  "voiceOfflineBadge": "オフライン",
   "@globeFooter": {
     "placeholders": {"n": {"type": "int"}}
   },

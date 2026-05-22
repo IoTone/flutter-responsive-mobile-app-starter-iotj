@@ -29,6 +29,12 @@ class FakeTtsSpeaker implements TtsSpeaker {
 
   @override
   Future<List<TtsVoice>> listVoices() async => voices;
+
+  /// Locale → offline-availability lookup the test can stub.
+  Map<String, bool> availability = const <String, bool>{};
+  @override
+  Future<bool> isLanguageAvailable(String locale) async =>
+      availability[locale] ?? false;
 }
 
 void main() {

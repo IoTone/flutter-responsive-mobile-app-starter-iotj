@@ -196,6 +196,8 @@
   "globeOverlayArcs": "arcs",
   "globeOverlayRegion": "region",
   "globeOverlayLabels": "labels",
+  "globeZoom": "ZOOM",
+  "voiceOfflineBadge": "OFFLINE",
   "@globeFooter": {
     "placeholders": {"n": {"type": "int"}}
   },

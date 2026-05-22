@@ -1004,6 +1004,18 @@ abstract class AppLocalizations {
   /// **'labels'**
   String get globeOverlayLabels;
 
+  /// No description provided for @globeZoom.
+  ///
+  /// In en, this message translates to:
+  /// **'ZOOM'**
+  String get globeZoom;
+
+  /// No description provided for @voiceOfflineBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'OFFLINE'**
+  String get voiceOfflineBadge;
+
   /// No description provided for @gridEmpty.
   ///
   /// In en, this message translates to:

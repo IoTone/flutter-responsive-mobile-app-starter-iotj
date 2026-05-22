@@ -45,6 +45,14 @@ class _GlobeViewState extends State<GlobeView> {
   double _centreLatDeg = 0;
   bool _centeredOnSelf = false;
 
+  /// Pinch-zoom scale. 1.0 = base (sphere fills the canvas as
+  /// before); higher = closer view. Clamped at min/max so the
+  /// sphere can't shrink invisible or blow past the bezel.
+  double _scale = 1.0;
+  static const double _scaleMin = 1.0;
+  static const double _scaleMax = 6.0;
+  double _scaleAtGestureStart = 1.0;
+
   bool _showArcs = true;
   bool _showRegions = false;
   bool _showLabels = false;
@@ -138,18 +146,23 @@ class _GlobeViewState extends State<GlobeView> {
     ];
 
     return GestureDetector(
-      onPanUpdate: (DragUpdateDetails d) {
-        // Trackball semantics: dragging the globe with your finger
-        // pulls that part of the surface in the drag direction.
-        // - drag right (dx > 0) → centre shifts to a more westerly
-        //   longitude (content that was off-left rolls into view).
-        // - drag down (dy > 0) → centre shifts to a higher latitude
-        //   (the northern hemisphere rolls into view).
+      onScaleStart: (_) => _scaleAtGestureStart = _scale,
+      onScaleUpdate: (ScaleUpdateDetails d) {
+        // Trackball drag + pinch zoom in one handler. With a single
+        // pointer, `scale` is always 1.0 and `focalPointDelta` is
+        // the pan delta; with two pointers we get both. Scale-aware
+        // drag: when zoomed in (higher _scale), the same pixel
+        // distance maps to a smaller angular rotation so the globe
+        // doesn't fly past under the finger.
         setState(() {
-          _centreLonDeg = ((_centreLonDeg - d.delta.dx * 0.5) + 540) %
-                  360 -
-              180;
-          _centreLatDeg = (_centreLatDeg + d.delta.dy * 0.5)
+          _scale = (_scaleAtGestureStart * d.scale)
+              .clamp(_scaleMin, _scaleMax);
+          final double k = 0.5 / _scale;
+          _centreLonDeg =
+              ((_centreLonDeg - d.focalPointDelta.dx * k) + 540) %
+                      360 -
+                  180;
+          _centreLatDeg = (_centreLatDeg + d.focalPointDelta.dy * k)
               .clamp(-89.0, 89.0);
         });
       },
@@ -160,6 +173,7 @@ class _GlobeViewState extends State<GlobeView> {
               painter: _GlobePainter(
                 centreLonDeg: _centreLonDeg,
                 centreLatDeg: _centreLatDeg,
+                scale: _scale,
                 ocean: cs.surfaceContainerHighest,
                 land: cs.surfaceContainer,
                 landStroke: cs.outline.withValues(alpha: .55),
@@ -247,6 +261,53 @@ class _GlobeViewState extends State<GlobeView> {
               ),
             ),
           ),
+          // Zoom slider — bottom-right. Mirrors the pinch gesture
+          // so users without two-finger touch (or who just prefer
+          // a discrete control) can still scale the view.
+          Positioned(
+            right: 12,
+            bottom: 12,
+            child: Container(
+              width: 180,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: cs.surface.withValues(alpha: .75),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                    color: cs.outline.withValues(alpha: .4)),
+              ),
+              child: Row(
+                children: <Widget>[
+                  Text(l.globeZoom,
+                      style: TextStyle(
+                          color: cs.onSurfaceVariant,
+                          fontSize: 10,
+                          letterSpacing: 1.2)),
+                  Expanded(
+                    child: Slider(
+                      min: _scaleMin,
+                      max: _scaleMax,
+                      value: _scale,
+                      onChanged: (double v) =>
+                          setState(() => _scale = v),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 32,
+                    child: Text(
+                      '${_scale.toStringAsFixed(1)}×',
+                      textAlign: TextAlign.end,
+                      style: TextStyle(
+                          color: cs.onSurface,
+                          fontFamily: 'monospace',
+                          fontSize: 10),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -303,6 +364,7 @@ class _GlobePainter extends CustomPainter {
   _GlobePainter({
     required this.centreLonDeg,
     required this.centreLatDeg,
+    required this.scale,
     required this.ocean,
     required this.land,
     required this.landStroke,
@@ -330,6 +392,9 @@ class _GlobePainter extends CustomPainter {
 
   /// Latitude (°N) currently centred in the projection.
   final double centreLatDeg;
+
+  /// Zoom factor — multiplies the projection radius. 1.0 = base.
+  final double scale;
   final Color ocean;
   final Color land;
   final Color landStroke;
@@ -354,7 +419,8 @@ class _GlobePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Offset centre = size.center(Offset.zero);
-    final double r = math.min(size.width, size.height) * 0.45;
+    final double r =
+        math.min(size.width, size.height) * 0.45 * scale;
     // Convert centre to radians once; pass to every project call.
     final double rotLon = centreLonDeg * math.pi / 180;
     final double rotLat = centreLatDeg * math.pi / 180;
@@ -635,6 +701,7 @@ class _GlobePainter extends CustomPainter {
   bool shouldRepaint(covariant _GlobePainter old) =>
       old.centreLonDeg != centreLonDeg ||
       old.centreLatDeg != centreLatDeg ||
+      old.scale != scale ||
       old.selfLat != selfLat ||
       old.selfLon != selfLon ||
       old.peers.length != peers.length ||
