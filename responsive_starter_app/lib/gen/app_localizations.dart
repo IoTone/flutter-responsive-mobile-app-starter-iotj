@@ -1814,6 +1814,78 @@ abstract class AppLocalizations {
   /// **'Slot {idx} cleared (reset to Public defaults)'**
   String channelsClearSnack(int idx);
 
+  /// No description provided for @channelsDefaultBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'DEFAULT'**
+  String get channelsDefaultBadge;
+
+  /// No description provided for @channelsSetDefaultTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as default channel on launch'**
+  String get channelsSetDefaultTooltip;
+
+  /// No description provided for @channelsClearDefaultTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear default channel preference'**
+  String get channelsClearDefaultTooltip;
+
+  /// No description provided for @channelsSetDefaultSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Slot {idx} is now the launch default'**
+  String channelsSetDefaultSnack(int idx);
+
+  /// No description provided for @channelsClearedDefaultSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch default cleared'**
+  String get channelsClearedDefaultSnack;
+
+  /// No description provided for @channelsKeyShake.
+  ///
+  /// In en, this message translates to:
+  /// **'Shake'**
+  String get channelsKeyShake;
+
+  /// No description provided for @channelsShakeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shake to roll dice'**
+  String get channelsShakeTitle;
+
+  /// No description provided for @channelsShakeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Shake your phone — each accepted motion sample feeds the hash. Stop once the ring fills.'**
+  String get channelsShakeBody;
+
+  /// No description provided for @channelsShakeProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{accepted} of {target} samples · {pct}%'**
+  String channelsShakeProgress(int accepted, int target, int pct);
+
+  /// No description provided for @channelsShakeReroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Reroll'**
+  String get channelsShakeReroll;
+
+  /// No description provided for @channelsShakeUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this key'**
+  String get channelsShakeUse;
+
+  /// No description provided for @channelsShakeTapFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to roll (reduceMotion is on — uses Random.secure instead)'**
+  String get channelsShakeTapFallback;
+
   /// No description provided for @deviceConfigTitle.
   ///
   /// In en, this message translates to:

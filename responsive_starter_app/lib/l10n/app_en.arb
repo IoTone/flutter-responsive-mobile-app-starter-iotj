@@ -441,6 +441,28 @@
   "@channelsClearSnack": {
     "placeholders": {"idx": {"type": "int"}}
   },
+  "channelsDefaultBadge": "DEFAULT",
+  "channelsSetDefaultTooltip": "Set as default channel on launch",
+  "channelsClearDefaultTooltip": "Clear default channel preference",
+  "channelsSetDefaultSnack": "Slot {idx} is now the launch default",
+  "@channelsSetDefaultSnack": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
+  "channelsClearedDefaultSnack": "Launch default cleared",
+  "channelsKeyShake": "Shake",
+  "channelsShakeTitle": "Shake to roll dice",
+  "channelsShakeBody": "Shake your phone — each accepted motion sample feeds the hash. Stop once the ring fills.",
+  "channelsShakeProgress": "{accepted} of {target} samples · {pct}%",
+  "@channelsShakeProgress": {
+    "placeholders": {
+      "accepted": {"type": "int"},
+      "target": {"type": "int"},
+      "pct": {"type": "int"}
+    }
+  },
+  "channelsShakeReroll": "Reroll",
+  "channelsShakeUse": "Use this key",
+  "channelsShakeTapFallback": "Tap to roll (reduceMotion is on — uses Random.secure instead)",
 
   "deviceConfigTitle": "Device configuration",
   "deviceRegionBand": "REGION / BAND",

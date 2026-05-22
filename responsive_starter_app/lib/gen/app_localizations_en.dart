@@ -1016,6 +1016,48 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get channelsDefaultBadge => 'DEFAULT';
+
+  @override
+  String get channelsSetDefaultTooltip => 'Set as default channel on launch';
+
+  @override
+  String get channelsClearDefaultTooltip => 'Clear default channel preference';
+
+  @override
+  String channelsSetDefaultSnack(int idx) {
+    return 'Slot $idx is now the launch default';
+  }
+
+  @override
+  String get channelsClearedDefaultSnack => 'Launch default cleared';
+
+  @override
+  String get channelsKeyShake => 'Shake';
+
+  @override
+  String get channelsShakeTitle => 'Shake to roll dice';
+
+  @override
+  String get channelsShakeBody =>
+      'Shake your phone — each accepted motion sample feeds the hash. Stop once the ring fills.';
+
+  @override
+  String channelsShakeProgress(int accepted, int target, int pct) {
+    return '$accepted of $target samples · $pct%';
+  }
+
+  @override
+  String get channelsShakeReroll => 'Reroll';
+
+  @override
+  String get channelsShakeUse => 'Use this key';
+
+  @override
+  String get channelsShakeTapFallback =>
+      'Tap to roll (reduceMotion is on — uses Random.secure instead)';
+
+  @override
   String get deviceConfigTitle => 'Device configuration';
 
   @override

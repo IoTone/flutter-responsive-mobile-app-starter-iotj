@@ -7,9 +7,11 @@ import 'package:flutter/services.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:provider/provider.dart';
 
+import '../cryptokit/dice_roll_entropy.dart';
 import '../gen/app_localizations.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
+import '../theme/theme_controller.dart';
 
 /// Channel management (R6): list the device's channel slots, set the
 /// active one, and create/overwrite a slot's name + PSK. A channel is
@@ -149,22 +151,82 @@ class ChannelsScreen extends StatelessWidget {
                     ? cs.primary
                     : cs.onSurfaceVariant,
               ),
-              title: Text(known[idx] ?? l.channelsEmpty,
-                  style: TextStyle(
-                      color: known.containsKey(idx)
-                          ? cs.onSurface
-                          : cs.onSurfaceVariant)),
+              title: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(known[idx] ?? l.channelsEmpty,
+                        style: TextStyle(
+                            color: known.containsKey(idx)
+                                ? cs.onSurface
+                                : cs.onSurfaceVariant)),
+                  ),
+                  if (mc.isDefaultChannel(idx))
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: cs.tertiary.withValues(alpha: .15),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                            color: cs.tertiary.withValues(alpha: .55)),
+                      ),
+                      child: Text(l.channelsDefaultBadge,
+                          style: TextStyle(
+                              color: cs.tertiary,
+                              fontSize: 10,
+                              letterSpacing: 1.5)),
+                    ),
+                ],
+              ),
               subtitle: Text(idx == mc.activeChannel
                   ? l.channelsSlotActive(idx)
                   : l.channelsSlotLabel(idx)),
               onTap: known.containsKey(idx)
                   ? () => mc.setActiveChannel(idx)
                   : null,
-              trailing: TextButton(
-                onPressed: ready ? () => edit(idx) : null,
-                child: Text(known.containsKey(idx)
-                    ? l.channelsEdit
-                    : l.channelsSet),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  if (known.containsKey(idx))
+                    IconButton(
+                      tooltip: mc.isDefaultChannel(idx)
+                          ? l.channelsClearDefaultTooltip
+                          : l.channelsSetDefaultTooltip,
+                      icon: Icon(
+                          mc.isDefaultChannel(idx)
+                              ? Icons.star
+                              : Icons.star_border,
+                          size: 20,
+                          color: mc.isDefaultChannel(idx)
+                              ? cs.tertiary
+                              : cs.onSurfaceVariant),
+                      onPressed: () async {
+                        if (mc.isDefaultChannel(idx)) {
+                          await mc.setDefaultChannelIdx(null);
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context)
+                            ..clearSnackBars()
+                            ..showSnackBar(SnackBar(
+                                content: Text(
+                                    l.channelsClearedDefaultSnack)));
+                        } else {
+                          await mc.setDefaultChannelIdx(idx);
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context)
+                            ..clearSnackBars()
+                            ..showSnackBar(SnackBar(
+                                content: Text(
+                                    l.channelsSetDefaultSnack(idx))));
+                        }
+                      },
+                    ),
+                  TextButton(
+                    onPressed: ready ? () => edit(idx) : null,
+                    child: Text(known.containsKey(idx)
+                        ? l.channelsEdit
+                        : l.channelsSet),
+                  ),
+                ],
               ),
             ),
         ],
@@ -192,7 +254,7 @@ class _ChannelEdit {
   final List<int> psk;
 }
 
-enum _PskSource { public, hashtag, hex }
+enum _PskSource { public, hashtag, hex, shake }
 
 class _EditChannelDialog extends StatefulWidget {
   const _EditChannelDialog({
@@ -217,19 +279,45 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
   late final TextEditingController _name =
       TextEditingController(text: widget.initialName);
   final TextEditingController _tag = TextEditingController();
-  final TextEditingController _hex = TextEditingController();
-  _PskSource _src = _PskSource.public;
+  late final TextEditingController _hex = TextEditingController(
+    // Pre-fill Hex mode with the existing key (if the slot is
+    // already set and the key isn't the well-known Public PSK).
+    // Lets the user see what's there and tweak it instead of
+    // re-typing 32 hex chars from scratch.
+    text: widget.currentPsk != null &&
+            !_pskMatchesPublic(widget.currentPsk!)
+        ? widget.currentPsk!
+            .map((int b) => b.toRadixString(16).padLeft(2, '0'))
+            .join()
+        : '',
+  );
+  // Default the key-source segmented button by inspecting the
+  // current PSK: Public if it matches the well-known key (or no
+  // slot data), Hex otherwise. We can't distinguish hashtag-derived
+  // from random-hex keys after the fact (both are opaque bytes), so
+  // any non-Public slot reads as Hex on re-open. The user can
+  // switch modes manually if they prefer to re-derive from a tag.
+  late _PskSource _src = widget.currentPsk == null ||
+          _pskMatchesPublic(widget.currentPsk!)
+      ? _PskSource.public
+      : _PskSource.hex;
   String? _error;
 
   /// "Show current key" reveal state. Latched per-dialog session;
   /// dismissing & reopening the dialog requires another tap.
   bool _revealCurrent = false;
 
+  /// R32 — dice-roll entropy collector. Lazily constructed when
+  /// the user picks the Shake mode so we don't subscribe to the
+  /// accelerometer in the common cases. Disposed on dialog close.
+  DiceRollEntropy? _dice;
+
   @override
   void dispose() {
     _name.dispose();
     _tag.dispose();
     _hex.dispose();
+    _dice?.dispose();
     super.dispose();
   }
 
@@ -292,6 +380,17 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
           for (int i = 0; i < 32; i += 2)
             int.parse(h.substring(i, i + 2), radix: 16),
         ];
+      case _PskSource.shake:
+        // The dice-roll widget hands the user a derived key once
+        // entropy reaches `complete`. The Save button is disabled
+        // while incomplete (see build), so this branch only ever
+        // sees a finished digest.
+        final DiceRollEntropy? d = _dice;
+        if (d == null || !d.complete) {
+          _error = l.channelsErrorHex; // generic — UI gates this
+          return null;
+        }
+        return d.psk;
     }
   }
 
@@ -342,10 +441,24 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
                 ButtonSegment<_PskSource>(
                     value: _PskSource.hex,
                     label: Text(l.channelsKeyHex)),
+                ButtonSegment<_PskSource>(
+                    value: _PskSource.shake,
+                    label: Text(l.channelsKeyShake)),
               ],
               selected: <_PskSource>{_src},
-              onSelectionChanged: (Set<_PskSource> s) =>
-                  setState(() => _src = s.first),
+              onSelectionChanged: (Set<_PskSource> s) {
+                final _PskSource next = s.first;
+                setState(() {
+                  // Tearing down the entropy collector when the user
+                  // leaves Shake mode avoids surprise background
+                  // accelerometer sampling.
+                  if (_src == _PskSource.shake &&
+                      next != _PskSource.shake) {
+                    _dice?.freeze();
+                  }
+                  _src = next;
+                });
+              },
             ),
             const SizedBox(height: 10),
             if (_src == _PskSource.public)
@@ -380,7 +493,7 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
                   ],
                 ),
               ],
-            ] else ...<Widget>[
+            ] else if (_src == _PskSource.hex) ...<Widget>[
               TextField(
                 controller: _hex,
                 inputFormatters: <TextInputFormatter>[
@@ -421,7 +534,39 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
                     ),
                 ],
               ),
-            ],
+            ] else if (_src == _PskSource.shake)
+              _DiceRollPanel(
+                getOrInit: () {
+                  // Lazy-init the entropy collector + start
+                  // sampling. Latched: subsequent rebuilds reuse
+                  // the same instance.
+                  if (_dice == null) {
+                    _dice = DiceRollEntropy();
+                    // If the user has reduceMotion on, prime the
+                    // digest from Random.secure once instead of
+                    // listening to the accelerometer. We still
+                    // present a Reroll button, which re-seeds.
+                    final ThemeController tc =
+                        context.read<ThemeController>();
+                    if (tc.reduceMotion) {
+                      _dice!.seedFromSecureRandom();
+                    } else {
+                      _dice!.start();
+                    }
+                  }
+                  return _dice!;
+                },
+                reroll: () {
+                  _dice?.reset();
+                  final ThemeController tc =
+                      context.read<ThemeController>();
+                  if (tc.reduceMotion) {
+                    _dice!.seedFromSecureRandom();
+                  } else {
+                    _dice!.start();
+                  }
+                },
+              ),
             // Reveal-current-key block (R6 follow-on). Only shown
             // when the controller has actually cached a PSK for
             // this slot. Latched behind a Reveal tap so the key
@@ -530,6 +675,94 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
             onPressed: () => _save(l),
             child: Text(l.channelsSave)),
       ],
+    );
+  }
+}
+
+/// R32 — UI surface for the dice-roll PSK derivation.
+///
+/// Hands the parent dialog a [DiceRollEntropy] via `getOrInit`
+/// and re-renders as that collector accumulates motion samples.
+/// Shows a circular progress ring + a 32-char hex preview that
+/// fills in as the underlying SHA-256 digest stabilises + a
+/// "Reroll" affordance that wipes the buffer and re-starts.
+class _DiceRollPanel extends StatelessWidget {
+  const _DiceRollPanel({
+    required this.getOrInit,
+    required this.reroll,
+  });
+
+  final DiceRollEntropy Function() getOrInit;
+  final VoidCallback reroll;
+
+  @override
+  Widget build(BuildContext context) {
+    final DiceRollEntropy d = getOrInit();
+    final AppLocalizations l = AppLocalizations.of(context);
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final ThemeController tc = context.watch<ThemeController>();
+    return AnimatedBuilder(
+      animation: d,
+      builder: (BuildContext _, Widget? __) {
+        final String hex = d.psk
+            .map((int b) => b.toRadixString(16).padLeft(2, '0'))
+            .join();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(l.channelsShakeTitle,
+                style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 6),
+            Text(
+              tc.reduceMotion
+                  ? l.channelsShakeTapFallback
+                  : l.channelsShakeBody,
+              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: <Widget>[
+                SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: CircularProgressIndicator(
+                    value: d.progress,
+                    strokeWidth: 4,
+                    color: d.complete ? cs.tertiary : cs.primary,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: SelectableText(
+                    hex,
+                    style: TextStyle(
+                        color: d.complete ? cs.onSurface : cs.onSurfaceVariant,
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                        height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l.channelsShakeProgress(
+                d.acceptedSamples,
+                (d.targetBits / d.bitsPerSample).round(),
+                (d.progress * 100).round(),
+              ),
+              style: TextStyle(
+                  color: cs.onSurfaceVariant, fontSize: 11),
+            ),
+            const SizedBox(height: 6),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.refresh, size: 16),
+              label: Text(l.channelsShakeReroll),
+              onPressed: reroll,
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -441,6 +441,28 @@
   "@channelsClearSnack": {
     "placeholders": {"idx": {"type": "int"}}
   },
+  "channelsDefaultBadge": "既定",
+  "channelsSetDefaultTooltip": "起動時の既定チャンネルに設定",
+  "channelsClearDefaultTooltip": "既定チャンネル設定を解除",
+  "channelsSetDefaultSnack": "スロット {idx} を起動時の既定に設定",
+  "@channelsSetDefaultSnack": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
+  "channelsClearedDefaultSnack": "起動時の既定を解除しました",
+  "channelsKeyShake": "振る",
+  "channelsShakeTitle": "シェイクでダイスロール",
+  "channelsShakeBody": "スマートフォンを振ってください — 検出された動きサンプルがハッシュに加算されます。リングが満たされたら停止。",
+  "channelsShakeProgress": "{accepted} / {target} サンプル · {pct}%",
+  "@channelsShakeProgress": {
+    "placeholders": {
+      "accepted": {"type": "int"},
+      "target": {"type": "int"},
+      "pct": {"type": "int"}
+    }
+  },
+  "channelsShakeReroll": "再ロール",
+  "channelsShakeUse": "この鍵を使用",
+  "channelsShakeTapFallback": "タップでロール (reduceMotion 有効 — Random.secure を使用)",
 
   "deviceConfigTitle": "デバイス設定",
   "deviceRegionBand": "リージョン / バンド",

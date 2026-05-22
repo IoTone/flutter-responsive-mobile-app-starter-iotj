@@ -967,6 +967,48 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get channelsDefaultBadge => '既定';
+
+  @override
+  String get channelsSetDefaultTooltip => '起動時の既定チャンネルに設定';
+
+  @override
+  String get channelsClearDefaultTooltip => '既定チャンネル設定を解除';
+
+  @override
+  String channelsSetDefaultSnack(int idx) {
+    return 'スロット $idx を起動時の既定に設定';
+  }
+
+  @override
+  String get channelsClearedDefaultSnack => '起動時の既定を解除しました';
+
+  @override
+  String get channelsKeyShake => '振る';
+
+  @override
+  String get channelsShakeTitle => 'シェイクでダイスロール';
+
+  @override
+  String get channelsShakeBody =>
+      'スマートフォンを振ってください — 検出された動きサンプルがハッシュに加算されます。リングが満たされたら停止。';
+
+  @override
+  String channelsShakeProgress(int accepted, int target, int pct) {
+    return '$accepted / $target サンプル · $pct%';
+  }
+
+  @override
+  String get channelsShakeReroll => '再ロール';
+
+  @override
+  String get channelsShakeUse => 'この鍵を使用';
+
+  @override
+  String get channelsShakeTapFallback =>
+      'タップでロール (reduceMotion 有効 — Random.secure を使用)';
+
+  @override
   String get deviceConfigTitle => 'デバイス設定';
 
   @override

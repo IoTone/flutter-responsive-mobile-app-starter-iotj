@@ -8,6 +8,7 @@ import 'package:meshcore/meshcore.dart';
 
 import 'background_keepalive.dart';
 import 'background_prefs.dart';
+import 'default_channel_store.dart';
 import 'ble_connector.dart';
 import 'chat_message.dart';
 import 'chat_store.dart';
@@ -67,6 +68,17 @@ class MeshcoreController extends ChangeNotifier {
         // Keep the process alive in the background so the link +
         // drain survive Doze (Android only; no-op elsewhere).
         if (_bgKeepaliveEnabled) unawaited(_keepalive.start());
+        // R33 — if the user has a saved default channel slot,
+        // switch to it now. The device persists its own active
+        // slot too; this preference wins on app launch so a
+        // user with multiple radios always lands on their
+        // preferred slot rather than whatever each device
+        // happens to remember. One-shot per ready transition
+        // (subsequent in-session reconnects don't re-apply).
+        if (!_appliedDefaultChannel) {
+          _appliedDefaultChannel = true;
+          unawaited(_applyDefaultChannel());
+        }
       } else if (s == MeshcoreConnectionState.reconnecting ||
           s == MeshcoreConnectionState.failed) {
         _maybeScheduleReconnect();
@@ -94,6 +106,7 @@ class MeshcoreController extends ChangeNotifier {
     });
     _loadChatHistory();
     _loadBackgroundPref();
+    _loadDefaultChannel();
     _loadFavorites();
     _loadKnown();
     unawaited(_dmReadStore.load().then((_) {
@@ -574,6 +587,46 @@ class MeshcoreController extends ChangeNotifier {
     if (idx == _activeChannel) return;
     _activeChannel = idx;
     notifyListeners();
+  }
+
+  // R33 — user-preferred default channel slot to land on at app
+  // launch. `_appliedDefaultChannel` latches so we only apply the
+  // preference once per controller lifetime (i.e. once per cold
+  // launch); mid-session reconnects keep whatever the user has
+  // since switched to.
+  int? _defaultChannelIdx;
+  bool _appliedDefaultChannel = false;
+
+  int? get defaultChannelIdx => _defaultChannelIdx;
+
+  /// True iff [idx] is the user-saved default slot.
+  bool isDefaultChannel(int idx) => _defaultChannelIdx == idx;
+
+  /// Persist [idx] as the default slot. Pass `null` to clear the
+  /// preference. Does not change the active slot live; the new
+  /// default applies on the next cold launch (when the device
+  /// reaches `ready` and `_applyDefaultChannel` runs).
+  Future<void> setDefaultChannelIdx(int? idx) async {
+    if (idx == _defaultChannelIdx) return;
+    _defaultChannelIdx = idx;
+    notifyListeners();
+    await DefaultChannelStore.write(idx);
+  }
+
+  /// Pre-load the saved default so the Channels-mgmt UI can show
+  /// the "★ default" indicator before the device has connected.
+  Future<void> _loadDefaultChannel() async {
+    _defaultChannelIdx = await DefaultChannelStore.read();
+    notifyListeners();
+  }
+
+  /// One-shot at first reach-ready: if a default slot has been
+  /// saved, switch the active channel to it. No-op if the
+  /// preference is unset or already matches.
+  Future<void> _applyDefaultChannel() async {
+    final int? saved = _defaultChannelIdx ?? await DefaultChannelStore.read();
+    if (saved == null) return;
+    if (saved != _activeChannel) setActiveChannel(saved);
   }
 
   /// Create/overwrite a channel slot (`SET_CHANNEL` 0x20) then refresh
