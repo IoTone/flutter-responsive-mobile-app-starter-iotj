@@ -632,4 +632,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bootSubtitle => 'WAIT  /  進行中';
+
+  @override
+  String eventAdvert(String name) {
+    return 'advert · $name';
+  }
+
+  @override
+  String eventChannelMsg(String channel, String text) {
+    return 'ch$channel · \"$text\"';
+  }
+
+  @override
+  String eventDm(String text) {
+    return 'dm · \"$text\"';
+  }
+
+  @override
+  String eventContact(String name) {
+    return 'contact · $name';
+  }
+
+  @override
+  String eventBattery(String volts) {
+    return 'battery ${volts}V';
+  }
+
+  @override
+  String eventDeviceError(String code) {
+    return 'device error (code $code)';
+  }
+
+  @override
+  String get eventDeviceClockSynced => 'device clock in sync';
+
+  @override
+  String eventDeviceClockSkew(String seconds) {
+    return 'device clock read (offset ${seconds}s)';
+  }
+
+  @override
+  String eventMsgSent(String ack) {
+    return 'msg sent (ack $ack)';
+  }
+
+  @override
+  String eventDeviceInfo(String version) {
+    return 'device $version';
+  }
+
+  @override
+  String eventSelfInfo(String name) {
+    return 'self-info · $name';
+  }
+
+  @override
+  String get eventQueuedWaiting => 'queued items waiting';
+
+  @override
+  String eventQueuedWaitingN(String count) {
+    return 'queued items waiting ($count)';
+  }
 }

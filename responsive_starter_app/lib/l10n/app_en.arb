@@ -244,5 +244,55 @@
   "bootOffline": "OFFLINE — Settings → Diagnostics & connect",
   "bootSkip": "SKIP",
   "bootRetry": "RETRY",
-  "bootSubtitle": "WAIT  /  進行中"
+  "bootSubtitle": "WAIT  /  進行中",
+
+  "eventAdvert": "advert · {name}",
+  "@eventAdvert": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "eventChannelMsg": "ch{channel} · \"{text}\"",
+  "@eventChannelMsg": {
+    "placeholders": {
+      "channel": {"type": "String"},
+      "text": {"type": "String"}
+    }
+  },
+  "eventDm": "dm · \"{text}\"",
+  "@eventDm": {
+    "placeholders": {"text": {"type": "String"}}
+  },
+  "eventContact": "contact · {name}",
+  "@eventContact": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "eventBattery": "battery {volts}V",
+  "@eventBattery": {
+    "placeholders": {"volts": {"type": "String"}}
+  },
+  "eventDeviceError": "device error (code {code})",
+  "@eventDeviceError": {
+    "placeholders": {"code": {"type": "String"}}
+  },
+  "eventDeviceClockSynced": "device clock in sync",
+  "eventDeviceClockSkew": "device clock read (offset {seconds}s)",
+  "@eventDeviceClockSkew": {
+    "placeholders": {"seconds": {"type": "String"}}
+  },
+  "eventMsgSent": "msg sent (ack {ack})",
+  "@eventMsgSent": {
+    "placeholders": {"ack": {"type": "String"}}
+  },
+  "eventDeviceInfo": "device {version}",
+  "@eventDeviceInfo": {
+    "placeholders": {"version": {"type": "String"}}
+  },
+  "eventSelfInfo": "self-info · {name}",
+  "@eventSelfInfo": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "eventQueuedWaiting": "queued items waiting",
+  "eventQueuedWaitingN": "queued items waiting ({count})",
+  "@eventQueuedWaitingN": {
+    "placeholders": {"count": {"type": "String"}}
+  }
 }

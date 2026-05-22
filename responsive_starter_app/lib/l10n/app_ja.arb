@@ -244,5 +244,55 @@
   "bootOffline": "オフライン — 設定 → 診断 & 接続",
   "bootSkip": "スキップ",
   "bootRetry": "再試行",
-  "bootSubtitle": "待機  /  WAIT"
+  "bootSubtitle": "待機  /  WAIT",
+
+  "eventAdvert": "アドバート · {name}",
+  "@eventAdvert": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "eventChannelMsg": "ch{channel} · 「{text}」",
+  "@eventChannelMsg": {
+    "placeholders": {
+      "channel": {"type": "String"},
+      "text": {"type": "String"}
+    }
+  },
+  "eventDm": "DM · 「{text}」",
+  "@eventDm": {
+    "placeholders": {"text": {"type": "String"}}
+  },
+  "eventContact": "コンタクト · {name}",
+  "@eventContact": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "eventBattery": "バッテリー {volts}V",
+  "@eventBattery": {
+    "placeholders": {"volts": {"type": "String"}}
+  },
+  "eventDeviceError": "デバイスエラー (コード {code})",
+  "@eventDeviceError": {
+    "placeholders": {"code": {"type": "String"}}
+  },
+  "eventDeviceClockSynced": "デバイス時計 同期",
+  "eventDeviceClockSkew": "デバイス時計 読取 (オフセット {seconds}s)",
+  "@eventDeviceClockSkew": {
+    "placeholders": {"seconds": {"type": "String"}}
+  },
+  "eventMsgSent": "メッセージ送信 (ack {ack})",
+  "@eventMsgSent": {
+    "placeholders": {"ack": {"type": "String"}}
+  },
+  "eventDeviceInfo": "デバイス {version}",
+  "@eventDeviceInfo": {
+    "placeholders": {"version": {"type": "String"}}
+  },
+  "eventSelfInfo": "セルフ情報 · {name}",
+  "@eventSelfInfo": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "eventQueuedWaiting": "キュー待機中",
+  "eventQueuedWaitingN": "キュー待機中 ({count})",
+  "@eventQueuedWaitingN": {
+    "placeholders": {"count": {"type": "String"}}
+  }
 }

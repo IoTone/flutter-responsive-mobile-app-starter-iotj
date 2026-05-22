@@ -208,7 +208,7 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                     Expanded(
-                      child: Text(e.text,
+                      child: Text(_eventLine(l, e),
                           style: TextStyle(color: cs.onSurface)),
                     ),
                   ],
@@ -217,6 +217,32 @@ class DashboardScreen extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Localise a single RECENT-feed event line. The controller emits
+/// a discriminated `kind` + an args map; this function picks the
+/// matching arb format and substitutes the args, so every event
+/// row reads in the user's chosen locale.
+String _eventLine(AppLocalizations l, MeshEvent e) {
+  final Map<String, String> a = e.args;
+  return switch (e.kind) {
+    MeshEventKind.advert => l.eventAdvert(a['name'] ?? '?'),
+    MeshEventKind.channelMsg => l.eventChannelMsg(
+        a['channel'] ?? '?', a['text'] ?? ''),
+    MeshEventKind.dm => l.eventDm(a['text'] ?? ''),
+    MeshEventKind.contact => l.eventContact(a['name'] ?? '?'),
+    MeshEventKind.battery => l.eventBattery(a['volts'] ?? '?'),
+    MeshEventKind.deviceError => l.eventDeviceError(a['code'] ?? '?'),
+    MeshEventKind.deviceClockSynced => l.eventDeviceClockSynced,
+    MeshEventKind.deviceClockSkew =>
+      l.eventDeviceClockSkew(a['seconds'] ?? '?'),
+    MeshEventKind.msgSent => l.eventMsgSent(a['ack'] ?? '?'),
+    MeshEventKind.deviceInfo => l.eventDeviceInfo(a['version'] ?? '?'),
+    MeshEventKind.selfInfo => l.eventSelfInfo(a['name'] ?? '?'),
+    MeshEventKind.queuedWaiting => a.containsKey('count')
+        ? l.eventQueuedWaitingN(a['count']!)
+        : l.eventQueuedWaiting,
+  };
 }
 
 /// Dashboard "LOCATION" tile (Phase A). Three states:

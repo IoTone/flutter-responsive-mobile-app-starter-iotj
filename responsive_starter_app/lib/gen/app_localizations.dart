@@ -1177,6 +1177,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'WAIT  /  進行中'**
   String get bootSubtitle;
+
+  /// No description provided for @eventAdvert.
+  ///
+  /// In en, this message translates to:
+  /// **'advert · {name}'**
+  String eventAdvert(String name);
+
+  /// No description provided for @eventChannelMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'ch{channel} · \"{text}\"'**
+  String eventChannelMsg(String channel, String text);
+
+  /// No description provided for @eventDm.
+  ///
+  /// In en, this message translates to:
+  /// **'dm · \"{text}\"'**
+  String eventDm(String text);
+
+  /// No description provided for @eventContact.
+  ///
+  /// In en, this message translates to:
+  /// **'contact · {name}'**
+  String eventContact(String name);
+
+  /// No description provided for @eventBattery.
+  ///
+  /// In en, this message translates to:
+  /// **'battery {volts}V'**
+  String eventBattery(String volts);
+
+  /// No description provided for @eventDeviceError.
+  ///
+  /// In en, this message translates to:
+  /// **'device error (code {code})'**
+  String eventDeviceError(String code);
+
+  /// No description provided for @eventDeviceClockSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'device clock in sync'**
+  String get eventDeviceClockSynced;
+
+  /// No description provided for @eventDeviceClockSkew.
+  ///
+  /// In en, this message translates to:
+  /// **'device clock read (offset {seconds}s)'**
+  String eventDeviceClockSkew(String seconds);
+
+  /// No description provided for @eventMsgSent.
+  ///
+  /// In en, this message translates to:
+  /// **'msg sent (ack {ack})'**
+  String eventMsgSent(String ack);
+
+  /// No description provided for @eventDeviceInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'device {version}'**
+  String eventDeviceInfo(String version);
+
+  /// No description provided for @eventSelfInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'self-info · {name}'**
+  String eventSelfInfo(String name);
+
+  /// No description provided for @eventQueuedWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'queued items waiting'**
+  String get eventQueuedWaiting;
+
+  /// No description provided for @eventQueuedWaitingN.
+  ///
+  /// In en, this message translates to:
+  /// **'queued items waiting ({count})'**
+  String eventQueuedWaitingN(String count);
 }
 
 class _AppLocalizationsDelegate

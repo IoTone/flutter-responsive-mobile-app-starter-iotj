@@ -5,6 +5,7 @@ import 'package:meshcore/meshcore.dart';
 import 'package:meshmore_sns_app/meshcore/background_prefs.dart';
 import 'package:meshmore_sns_app/meshcore/favorite_store.dart';
 import 'package:meshmore_sns_app/meshcore/known_store.dart';
+import 'package:meshmore_sns_app/meshcore/mesh_event.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/meshcore/own_location.dart';
@@ -256,9 +257,13 @@ void main() {
     await Future<void>.delayed(Duration.zero);
 
     expect(ctrl.recentEvents, isNotEmpty);
-    expect(ctrl.recentEvents.first.text, contains('device clock'));
     expect(
-      ctrl.recentEvents.any((e) => e.text.contains('self-info')),
+        ctrl.recentEvents.first.kind,
+        anyOf(MeshEventKind.deviceClockSynced,
+            MeshEventKind.deviceClockSkew));
+    expect(
+      ctrl.recentEvents
+          .any((e) => e.kind == MeshEventKind.selfInfo),
       isTrue,
     );
     ctrl.dispose();
@@ -433,8 +438,9 @@ void main() {
       fake.emit(errorFrame(6)); // ERR code 6
       await Future<void>.delayed(Duration.zero);
       expect(
-        ctrl.recentEvents.any((e) => e.text.contains('device error '
-            '(code 6)')),
+        ctrl.recentEvents.any((e) =>
+            e.kind == MeshEventKind.deviceError &&
+            e.args['code'] == '6'),
         isTrue,
       );
       ctrl.dispose();

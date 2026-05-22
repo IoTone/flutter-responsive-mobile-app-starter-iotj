@@ -449,39 +449,65 @@ class MeshcoreController extends ChangeNotifier {
   List<MeshEvent> get recentEvents => _events.reversed.toList();
 
   void _logEvent(MeshcoreInbound f) {
-    String? text;
+    MeshEvent? ev;
     if (f is AdvertFrame) {
       final Advert a = f.advert;
-      text = 'advert · ${a.name ?? _hex(a.publicKey).substring(0, 8)}';
+      ev = MeshEvent(kind: MeshEventKind.advert, args: <String, String>{
+        'name': a.name ?? _hex(a.publicKey).substring(0, 8),
+      });
     } else if (f is ChannelMessageFrame) {
       final ChannelMessage m = f.message;
-      text = 'ch${m.channelIdx} · "${m.text}"';
+      ev = MeshEvent(
+          kind: MeshEventKind.channelMsg,
+          args: <String, String>{
+            'channel': '${m.channelIdx}',
+            'text': m.text,
+          });
     } else if (f is ContactMessageFrame) {
-      text = 'dm · "${f.message.text}"';
+      ev = MeshEvent(kind: MeshEventKind.dm, args: <String, String>{
+        'text': f.message.text,
+      });
     } else if (f is ContactFrame) {
-      text = 'contact · ${f.contact.name}';
+      ev = MeshEvent(kind: MeshEventKind.contact, args: <String, String>{
+        'name': f.contact.name,
+      });
     } else if (f is BatteryStorageFrame) {
-      text = 'battery ${f.battery.batteryVolts.toStringAsFixed(2)}V';
+      ev = MeshEvent(kind: MeshEventKind.battery, args: <String, String>{
+        'volts': f.battery.batteryVolts.toStringAsFixed(2),
+      });
     } else if (f is ErrorFrame) {
-      text = 'device error (code ${f.code ?? '?'})';
+      ev = MeshEvent(
+          kind: MeshEventKind.deviceError,
+          args: <String, String>{'code': '${f.code ?? '?'}'});
     } else if (f is CurrentTimeFrame) {
       final int skew = _deviceClockOffsetSec.abs();
-      text = skew > 5
-          ? 'device clock read (offset ${_deviceClockOffsetSec}s)'
-          : 'device clock in sync';
+      ev = skew > 5
+          ? MeshEvent(
+              kind: MeshEventKind.deviceClockSkew,
+              args: <String, String>{
+                'seconds': '$_deviceClockOffsetSec',
+              })
+          : MeshEvent(kind: MeshEventKind.deviceClockSynced);
     } else if (f is MsgSentFrame) {
-      text = 'msg sent (ack ${f.sent.expectedAck})';
+      ev = MeshEvent(kind: MeshEventKind.msgSent, args: <String, String>{
+        'ack': '${f.sent.expectedAck}',
+      });
     } else if (f is DeviceInfoFrame) {
-      text = 'device ${f.info.firmwareVersion}';
+      ev = MeshEvent(
+          kind: MeshEventKind.deviceInfo,
+          args: <String, String>{'version': f.info.firmwareVersion});
     } else if (f is SelfInfoFrame) {
-      text = 'self-info · ${f.selfInfo.name}';
+      ev = MeshEvent(kind: MeshEventKind.selfInfo, args: <String, String>{
+        'name': f.selfInfo.name,
+      });
     }
-    if (text == null) return;
-    _logEventText(text);
+    if (ev == null) return;
+    _pushEvent(ev);
   }
 
-  void _logEventText(String text) {
-    _events.add(MeshEvent(text));
+  /// Append an event to the rolling RECENT-feed buffer.
+  void _pushEvent(MeshEvent ev) {
+    _events.add(ev);
     if (_events.length > _eventsCap) _events.removeAt(0);
   }
 
@@ -955,8 +981,12 @@ class MeshcoreController extends ChangeNotifier {
 
   void _maybeDrain(MeshcoreInbound f) {
     if (f is MessagesWaitingFrame) {
-      _logEventText(
-          'queued items waiting${f.count == null ? '' : ' (${f.count})'}');
+      _pushEvent(MeshEvent(
+        kind: MeshEventKind.queuedWaiting,
+        args: f.count == null
+            ? const <String, String>{}
+            : <String, String>{'count': '${f.count}'},
+      ));
       _drainStart();
       return;
     }

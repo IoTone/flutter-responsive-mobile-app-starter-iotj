@@ -589,4 +589,65 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get bootSubtitle => '待機  /  WAIT';
+
+  @override
+  String eventAdvert(String name) {
+    return 'アドバート · $name';
+  }
+
+  @override
+  String eventChannelMsg(String channel, String text) {
+    return 'ch$channel · 「$text」';
+  }
+
+  @override
+  String eventDm(String text) {
+    return 'DM · 「$text」';
+  }
+
+  @override
+  String eventContact(String name) {
+    return 'コンタクト · $name';
+  }
+
+  @override
+  String eventBattery(String volts) {
+    return 'バッテリー ${volts}V';
+  }
+
+  @override
+  String eventDeviceError(String code) {
+    return 'デバイスエラー (コード $code)';
+  }
+
+  @override
+  String get eventDeviceClockSynced => 'デバイス時計 同期';
+
+  @override
+  String eventDeviceClockSkew(String seconds) {
+    return 'デバイス時計 読取 (オフセット ${seconds}s)';
+  }
+
+  @override
+  String eventMsgSent(String ack) {
+    return 'メッセージ送信 (ack $ack)';
+  }
+
+  @override
+  String eventDeviceInfo(String version) {
+    return 'デバイス $version';
+  }
+
+  @override
+  String eventSelfInfo(String name) {
+    return 'セルフ情報 · $name';
+  }
+
+  @override
+  String get eventQueuedWaiting => 'キュー待機中';
+
+  @override
+  String eventQueuedWaitingN(String count) {
+    return 'キュー待機中 ($count)';
+  }
 }
