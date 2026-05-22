@@ -102,7 +102,7 @@ class _MyAppState extends State<MyApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FlutterNativeSplash.remove();
     });
-    Future<void>.delayed(const Duration(milliseconds: 1500), () {
+    Future<void>.delayed(const Duration(milliseconds: 2200), () {
       if (mounted) setState(() => _minSplashElapsed = true);
     });
   }

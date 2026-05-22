@@ -1,5 +1,7 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -45,15 +47,17 @@ class _BrandedSplashScreenState extends State<BrandedSplashScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
+              // Flutter-rendered brand mark (no asset dep so it
+              // always reflects the active theme + doesn't fall
+              // back to a stale launcher template).
               RotationTransition(
                 turns: _spin,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Image.asset(
-                    'assets/images/icon-192.png',
-                    width: 96,
-                    height: 96,
-                    fit: BoxFit.cover,
+                child: CustomPaint(
+                  size: const Size(96, 96),
+                  painter: _BrandMarkPainter(
+                    accent: cs.primary,
+                    alt: cs.tertiary,
+                    bg: cs.surface,
                   ),
                 ),
               ),
@@ -97,4 +101,91 @@ class _BrandedSplashScreenState extends State<BrandedSplashScreen>
       ),
     );
   }
+}
+
+/// Programmatic brand mark — concentric ring, three radial spokes
+/// with bullet caps (mesh nodes), and a centre diamond. Mirrors
+/// the SVG brand icons in `meshmore-sns/brand/<theme>/icon.svg`
+/// at a much smaller scale; uses the active theme's
+/// `primary` + `tertiary` so it stays on-theme.
+class _BrandMarkPainter extends CustomPainter {
+  _BrandMarkPainter({
+    required this.accent,
+    required this.alt,
+    required this.bg,
+  });
+
+  final Color accent;
+  final Color alt;
+  final Color bg;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Offset c = size.center(Offset.zero);
+    final double r = math.min(size.width, size.height) / 2;
+
+    // Outer ring (subtle).
+    canvas.drawCircle(
+      c,
+      r - 4,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = accent.withValues(alpha: .35),
+    );
+    // Inner ring (stronger).
+    canvas.drawCircle(
+      c,
+      r - 14,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = accent.withValues(alpha: .55),
+    );
+
+    // Three radial spokes at 12, 8, 4 o'clock with bullet endcaps
+    // — meant to read as "three peers on the mesh."
+    final List<double> spokes = <double>[
+      -math.pi / 2,
+      -math.pi / 2 + 2 * math.pi / 3,
+      -math.pi / 2 + 4 * math.pi / 3,
+    ];
+    final double spokeLen = r - 18;
+    final Paint spoke = Paint()
+      ..color = accent.withValues(alpha: .65)
+      ..strokeWidth = 3;
+    for (final double a in spokes) {
+      final Offset endp =
+          c + Offset(spokeLen * math.cos(a), spokeLen * math.sin(a));
+      canvas.drawLine(c, endp, spoke);
+      canvas.drawCircle(
+        endp,
+        5,
+        Paint()..color = bg,
+      );
+      canvas.drawCircle(
+        endp,
+        5,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..color = accent,
+      );
+    }
+
+    // Centre diamond + alt-colour dot at its centre.
+    final double d = r * 0.30;
+    final Path diamond = Path()
+      ..moveTo(c.dx, c.dy - d)
+      ..lineTo(c.dx + d, c.dy)
+      ..lineTo(c.dx, c.dy + d)
+      ..lineTo(c.dx - d, c.dy)
+      ..close();
+    canvas.drawPath(diamond, Paint()..color = accent);
+    canvas.drawCircle(c, d * 0.30, Paint()..color = alt);
+  }
+
+  @override
+  bool shouldRepaint(covariant _BrandMarkPainter old) =>
+      old.accent != accent || old.alt != alt || old.bg != bg;
 }
