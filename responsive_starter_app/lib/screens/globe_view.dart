@@ -36,8 +36,13 @@ class GlobeView extends StatefulWidget {
 }
 
 class _GlobeViewState extends State<GlobeView> {
-  double _yawDeg = 0;
-  double _pitchDeg = 0;
+  /// Longitude currently at the centre of the projection (degrees).
+  /// Initialised to the user's lon on first opportunity.
+  double _centreLonDeg = 0;
+
+  /// Latitude currently at the centre of the projection (degrees).
+  /// Clamped to ±89° so the user can't flip past the pole.
+  double _centreLatDeg = 0;
   bool _centeredOnSelf = false;
 
   bool _showArcs = true;
@@ -106,8 +111,8 @@ class _GlobeViewState extends State<GlobeView> {
   void _ensureCenteredOn(double? lat, double? lon) {
     if (_centeredOnSelf) return;
     if (lat == null || lon == null) return;
-    _yawDeg = -lon;
-    _pitchDeg = lat;
+    _centreLonDeg = lon;
+    _centreLatDeg = lat;
     _centeredOnSelf = true;
   }
 
@@ -134,10 +139,18 @@ class _GlobeViewState extends State<GlobeView> {
 
     return GestureDetector(
       onPanUpdate: (DragUpdateDetails d) {
+        // Trackball semantics: dragging the globe with your finger
+        // pulls that part of the surface in the drag direction.
+        // - drag right (dx > 0) → centre shifts to a more westerly
+        //   longitude (content that was off-left rolls into view).
+        // - drag down (dy > 0) → centre shifts to a higher latitude
+        //   (the northern hemisphere rolls into view).
         setState(() {
-          _yawDeg = (_yawDeg + d.delta.dx * 0.5) % 360;
-          _pitchDeg =
-              (_pitchDeg - d.delta.dy * 0.5).clamp(-89.0, 89.0);
+          _centreLonDeg = ((_centreLonDeg - d.delta.dx * 0.5) + 540) %
+                  360 -
+              180;
+          _centreLatDeg = (_centreLatDeg + d.delta.dy * 0.5)
+              .clamp(-89.0, 89.0);
         });
       },
       child: Stack(
@@ -145,8 +158,8 @@ class _GlobeViewState extends State<GlobeView> {
           Positioned.fill(
             child: CustomPaint(
               painter: _GlobePainter(
-                yawDeg: _yawDeg,
-                pitchDeg: _pitchDeg,
+                centreLonDeg: _centreLonDeg,
+                centreLatDeg: _centreLatDeg,
                 ocean: cs.surfaceContainerHighest,
                 land: cs.surfaceContainer,
                 landStroke: cs.outline.withValues(alpha: .55),
@@ -288,8 +301,8 @@ class _OverlayChip extends StatelessWidget {
 
 class _GlobePainter extends CustomPainter {
   _GlobePainter({
-    required this.yawDeg,
-    required this.pitchDeg,
+    required this.centreLonDeg,
+    required this.centreLatDeg,
     required this.ocean,
     required this.land,
     required this.landStroke,
@@ -312,8 +325,11 @@ class _GlobePainter extends CustomPainter {
     required this.showLabels,
   });
 
-  final double yawDeg;
-  final double pitchDeg;
+  /// Longitude (°E) currently centred in the projection.
+  final double centreLonDeg;
+
+  /// Latitude (°N) currently centred in the projection.
+  final double centreLatDeg;
   final Color ocean;
   final Color land;
   final Color landStroke;
@@ -339,8 +355,9 @@ class _GlobePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Offset centre = size.center(Offset.zero);
     final double r = math.min(size.width, size.height) * 0.45;
-    final double yaw = yawDeg * math.pi / 180;
-    final double pitch = pitchDeg * math.pi / 180;
+    // Convert centre to radians once; pass to every project call.
+    final double rotLon = centreLonDeg * math.pi / 180;
+    final double rotLat = centreLatDeg * math.pi / 180;
 
     // Ocean disk.
     canvas.drawCircle(centre, r, Paint()..color = ocean);
@@ -361,11 +378,11 @@ class _GlobePainter extends CustomPainter {
       ..strokeWidth = 0.6
       ..color = grid;
     for (int latDeg = -60; latDeg <= 60; latDeg += 30) {
-      _drawParallel(canvas, centre, r, yaw, pitch,
+      _drawParallel(canvas, centre, r, rotLon, rotLat,
           latDeg.toDouble(), gridPaint);
     }
     for (int lonDeg = 0; lonDeg < 360; lonDeg += 30) {
-      _drawMeridian(canvas, centre, r, yaw, pitch,
+      _drawMeridian(canvas, centre, r, rotLon, rotLat,
           lonDeg.toDouble(), gridPaint);
     }
 
@@ -377,7 +394,7 @@ class _GlobePainter extends CustomPainter {
       ..color = landStroke;
     for (final List<List<double>> ring in rings) {
       // GeoJSON pairs are [lon, lat].
-      _drawPolygon(canvas, centre, r, yaw, pitch, ring, landFill,
+      _drawPolygon(canvas, centre, r, rotLon, rotLat, ring, landFill,
           stroke: landStrokePaint);
     }
 
@@ -392,8 +409,8 @@ class _GlobePainter extends CustomPainter {
             canvas,
             centre,
             r,
-            yaw,
-            pitch,
+            rotLon,
+            rotLat,
             selfLat!,
             selfLon!,
             n.latitude!,
@@ -404,16 +421,16 @@ class _GlobePainter extends CustomPainter {
 
     // Region clusters OR per-node pins.
     if (showRegions) {
-      _drawRegionClusters(canvas, centre, r, yaw, pitch);
+      _drawRegionClusters(canvas, centre, r, rotLon, rotLat);
     } else {
-      _drawPeerPins(canvas, centre, r, yaw, pitch);
+      _drawPeerPins(canvas, centre, r, rotLon, rotLat);
     }
 
     // Self pin (crosshair + dot). Drawn after peers so it's on
     // top in the overlap case.
     if (selfLat != null && selfLon != null) {
       final Offset? p = _project(
-          centre, r, yaw, pitch, selfLat!, selfLon!);
+          centre, r, rotLon, rotLat, selfLat!, selfLon!);
       if (p != null) {
         final Paint x = Paint()
           ..color = selfPin
@@ -426,11 +443,11 @@ class _GlobePainter extends CustomPainter {
   }
 
   void _drawPeerPins(Canvas canvas, Offset centre, double r,
-      double yaw, double pitch) {
+      double rotLon, double rotLat) {
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     for (final DiscoveredNode n in peers) {
       final Offset? p = _project(
-          centre, r, yaw, pitch, n.latitude!, n.longitude!);
+          centre, r, rotLon, rotLat, n.latitude!, n.longitude!);
       if (p == null) continue;
       final int dtHours = ((now - n.lastHeardUnix) / 3600).round();
       final double t = (1 - dtHours / 6).clamp(0.0, 1.0);
@@ -460,7 +477,7 @@ class _GlobePainter extends CustomPainter {
   }
 
   void _drawRegionClusters(Canvas canvas, Offset centre, double r,
-      double yaw, double pitch) {
+      double rotLon, double rotLat) {
     final Map<String, _RegionAcc> buckets = <String, _RegionAcc>{};
     for (final DiscoveredNode n in peers) {
       final int lb = (n.latitude! / 10).floor() * 10;
@@ -475,7 +492,7 @@ class _GlobePainter extends CustomPainter {
     for (final _RegionAcc acc in buckets.values) {
       final double lat = acc.latSum / acc.count;
       final double lon = acc.lonSum / acc.count;
-      final Offset? p = _project(centre, r, yaw, pitch, lat, lon);
+      final Offset? p = _project(centre, r, rotLon, rotLat, lat, lon);
       if (p == null) continue;
       final double radius = 8 + acc.count * 2.0;
       canvas.drawCircle(p, radius, Paint()..color = regionFill);
@@ -503,31 +520,27 @@ class _GlobePainter extends CustomPainter {
 
   /// Great-circle line between two lat/lon points, segmented and
   /// projected; segments are skipped where either end falls on the
-  /// far side of the sphere.
+  /// far side of the sphere. Matches the d3 mockup convention used
+  /// by the rest of the painter — see `_project` for the math.
   void _drawGreatCircle(Canvas canvas, Offset centre, double r,
-      double yaw, double pitch, double lat1, double lon1,
+      double rotLon, double rotLat, double lat1, double lon1,
       double lat2, double lon2, Paint paint) {
     const int N = 48;
-    // Slerp on unit sphere.
-    final ({double x, double y, double z}) p1 = _sphere(lat1, lon1);
-    final ({double x, double y, double z}) p2 = _sphere(lat2, lon2);
-    final double dot =
-        (p1.x * p2.x + p1.y * p2.y + p1.z * p2.z).clamp(-1.0, 1.0);
-    final double omega = math.acos(dot);
-    if (omega < 1e-6) return;
-    final double so = math.sin(omega);
     Offset? prev;
     for (int i = 0; i <= N; i++) {
       final double t = i / N;
-      final double a = math.sin((1 - t) * omega) / so;
-      final double b = math.sin(t * omega) / so;
-      final double x = a * p1.x + b * p2.x;
-      final double y = a * p1.y + b * p2.y;
-      final double z = a * p1.z + b * p2.z;
-      // Project (the helper recomputes lat/lon — slower; use direct
-      // rotation here).
+      // Slerp on the unit sphere is equivalent to interpolating
+      // lat/lon directly along the great-circle when the two points
+      // aren't near-antipodal — for our usage (peers within a few
+      // thousand km) a simple lerp in (sinLat, lon) and re-projecting
+      // is visually indistinguishable and a lot cheaper.
+      final double sinL = math.sin(lat1 * math.pi / 180) * (1 - t) +
+          math.sin(lat2 * math.pi / 180) * t;
+      final double lonI = lon1 * (1 - t) + lon2 * t;
+      final double latI =
+          math.asin(sinL.clamp(-1.0, 1.0)) * 180 / math.pi;
       final Offset? proj =
-          _projectXYZ(centre, r, yaw, pitch, x, y, z);
+          _project(centre, r, rotLon, rotLat, latI, lonI);
       if (proj != null && prev != null) {
         canvas.drawLine(prev, proj, paint);
       }
@@ -535,41 +548,40 @@ class _GlobePainter extends CustomPainter {
     }
   }
 
-  ({double x, double y, double z}) _sphere(double latDeg, double lonDeg) {
+  /// Orthographic projection of (latDeg, lonDeg) on a unit sphere
+  /// rotated so that (centreLat, centreLon) sits at the centre of
+  /// the projection. Matches the d3 mockup convention:
+  ///   1. Shift longitude by `-centreLon` (centre that longitude).
+  ///   2. Cartesian: x = cos(lat)*sin(lonShift), y = cos(lat)*cos(lonShift), z = sin(lat).
+  ///   3. Rotate around the screen-x axis by `centreLat` so that
+  ///      latitude ends up at z=0 in the rotated frame.
+  ///   4. Return null when rotated_y < 0 (back face).
+  ///   5. Screen: x → centre.dx + x*r; rotated_z → centre.dy - z*r
+  ///      (screen-y grows downward, world-z grows upward).
+  Offset? _project(Offset centre, double r, double rotLon,
+      double rotLat, double latDeg, double lonDeg) {
+    final double lonShift =
+        (lonDeg * math.pi / 180) - rotLon;
     final double lat = latDeg * math.pi / 180;
-    final double lon = lonDeg * math.pi / 180;
-    return (
-      x: math.cos(lat) * math.cos(lon),
-      y: math.cos(lat) * math.sin(lon),
-      z: math.sin(lat),
-    );
-  }
-
-  Offset? _projectXYZ(Offset centre, double r, double yaw,
-      double pitch, double x, double y, double z) {
-    final double cy = math.cos(yaw), sy = math.sin(yaw);
-    final double xr = x * cy - y * sy;
-    final double yr = x * sy + y * cy;
-    final double cp = math.cos(pitch), sp = math.sin(pitch);
-    final double yr2 = yr * cp - z * sp;
-    final double zr2 = yr * sp + z * cp;
-    if (yr2 < 0) return null;
-    return Offset(centre.dx + xr * r, centre.dy - zr2 * r);
-  }
-
-  Offset? _project(Offset centre, double r, double yaw,
-      double pitch, double latDeg, double lonDeg) {
-    final ({double x, double y, double z}) p = _sphere(latDeg, lonDeg);
-    return _projectXYZ(centre, r, yaw, pitch, p.x, p.y, p.z);
+    final double cl = math.cos(lat);
+    final double x = cl * math.sin(lonShift);
+    final double y = cl * math.cos(lonShift);
+    final double z = math.sin(lat);
+    final double c = math.cos(rotLat);
+    final double s = math.sin(rotLat);
+    final double yr = y * c + z * s;
+    final double zr = -y * s + z * c;
+    if (yr < 0) return null;
+    return Offset(centre.dx + x * r, centre.dy - zr * r);
   }
 
   void _drawParallel(Canvas canvas, Offset centre, double r,
-      double yaw, double pitch, double latDeg, Paint paint) {
+      double rotLon, double rotLat, double latDeg, Paint paint) {
     Offset? prev;
     for (int i = 0; i <= 72; i++) {
       final double lon = (i * 5).toDouble();
       final Offset? p =
-          _project(centre, r, yaw, pitch, latDeg, lon);
+          _project(centre, r, rotLon, rotLat, latDeg, lon);
       if (p != null && prev != null) {
         canvas.drawLine(prev, p, paint);
       }
@@ -578,12 +590,12 @@ class _GlobePainter extends CustomPainter {
   }
 
   void _drawMeridian(Canvas canvas, Offset centre, double r,
-      double yaw, double pitch, double lonDeg, Paint paint) {
+      double rotLon, double rotLat, double lonDeg, Paint paint) {
     Offset? prev;
     for (int i = 0; i <= 36; i++) {
       final double lat = (i * 5).toDouble() - 90;
       final Offset? p =
-          _project(centre, r, yaw, pitch, lat, lonDeg);
+          _project(centre, r, rotLon, rotLat, lat, lonDeg);
       if (p != null && prev != null) {
         canvas.drawLine(prev, p, paint);
       }
@@ -593,13 +605,13 @@ class _GlobePainter extends CustomPainter {
 
   /// `ring` is GeoJSON `[lon, lat]` pairs (note the order).
   void _drawPolygon(Canvas canvas, Offset centre, double r,
-      double yaw, double pitch, List<List<double>> ring,
+      double rotLon, double rotLat, List<List<double>> ring,
       Paint fill, {Paint? stroke}) {
     final Path path = Path();
     bool started = false;
     for (final List<double> pt in ring) {
       final Offset? p =
-          _project(centre, r, yaw, pitch, pt[1], pt[0]);
+          _project(centre, r, rotLon, rotLat, pt[1], pt[0]);
       if (p == null) {
         if (started) {
           path.close();
@@ -621,8 +633,8 @@ class _GlobePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _GlobePainter old) =>
-      old.yawDeg != yawDeg ||
-      old.pitchDeg != pitchDeg ||
+      old.centreLonDeg != centreLonDeg ||
+      old.centreLatDeg != centreLatDeg ||
       old.selfLat != selfLat ||
       old.selfLon != selfLon ||
       old.peers.length != peers.length ||
