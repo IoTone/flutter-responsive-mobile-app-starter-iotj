@@ -195,7 +195,12 @@ class _BootSurface extends StatelessWidget {
                   painter: _CornerBracketsPainter(accent),
                 ),
               ),
-              // Top header strip.
+              // Top header strip. Both labels are letter-spaced
+              // monospace; on narrow screens (or with JA copy where
+              // `MESHMORE / 同期中` and `待機 / WAIT` are dense)
+              // they can overflow the available width. Wrap each in
+              // Flexible + ellipsis so the row clips gracefully
+              // instead of throwing a RenderFlex overflow.
               Positioned(
                 top: 24,
                 left: 24,
@@ -203,18 +208,30 @@ class _BootSurface extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text(header,
+                    Flexible(
+                      child: Text(
+                        header,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                             color: accent,
                             fontFamily: 'monospace',
                             fontSize: 11,
-                            letterSpacing: 4)),
-                    Text(subtitle,
+                            letterSpacing: 4),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(
+                        subtitle,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
                         style: TextStyle(
                             color: alt,
                             fontFamily: 'monospace',
                             fontSize: 11,
-                            letterSpacing: 4)),
+                            letterSpacing: 4),
+                      ),
+                    ),
                   ],
                 ),
               ),
