@@ -18,6 +18,7 @@ import 'package:meshmore_sns_app/perms/first_run_controller.dart';
 import 'package:meshmore_sns_app/perms/location_service.dart';
 import 'package:meshmore_sns_app/perms/permissions_service.dart';
 import 'package:meshmore_sns_app/screens/first_run_intro_screen.dart';
+import 'package:meshmore_sns_app/splash/branded_splash_screen.dart';
 import 'package:meshmore_sns_app/theme/theme_controller.dart';
 import 'package:meshmore_sns_app/tts/tts_controller.dart';
 
@@ -88,11 +89,21 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  /// Flutter-side splash min-display gate. Even when first-run prefs
+  /// resolve in microseconds the user gets ~1.5 s of the branded
+  /// splash with the rotating icon + version readout. Without this,
+  /// shared_preferences typically resolves before the first frame
+  /// and the splash never shows.
+  bool _minSplashElapsed = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FlutterNativeSplash.remove();
+    });
+    Future<void>.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) setState(() => _minSplashElapsed = true);
     });
   }
 
@@ -119,13 +130,18 @@ class _MyAppState extends State<MyApp> {
     // first-run is NOT done we mount a small MaterialApp around the
     // intro screen (so it has theming + a Navigator without booting
     // the full router). When done, the regular router-app boots.
-    if (!fr.loaded) {
+    // Show the branded Flutter splash while either (a) first-run
+    // prefs are still loading OR (b) the 1.5 s min-display gate
+    // hasn't elapsed. Without (b) the splash never appears on
+    // device — shared_preferences usually resolves before the
+    // first frame.
+    if (!fr.loaded || !_minSplashElapsed) {
       return MaterialApp(
         theme: tc.theme,
         locale: lc.locale,
         supportedLocales: LocaleController.supported,
         localizationsDelegates: _localeDelegates,
-        home: const Scaffold(body: SizedBox.shrink()),
+        home: const BrandedSplashScreen(),
       );
     }
     if (!fr.done) {
