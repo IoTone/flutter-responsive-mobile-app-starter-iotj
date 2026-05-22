@@ -525,6 +525,20 @@ class MeshcoreController extends ChangeNotifier {
   /// exists; the rest are filled in from `CHANNEL_INFO` replies.
   final Map<int, String> _channels = <int, String>{0: 'Public'};
 
+  /// Cache of the **per-slot 16-byte PSK** as reported by the device
+  /// (RESP_CODE_CHANNEL_INFO). Lets the Edit dialog reveal the
+  /// current key for a slot without a second device round-trip.
+  /// Slot 0 (Public) is pre-seeded so we never have to ask the
+  /// device for the well-known key.
+  final Map<int, List<int>> _channelPsks = <int, List<int>>{
+    0: List<int>.unmodifiable(kPublicChannelPsk),
+  };
+
+  /// 16-byte AES-128 PSK currently set on [idx], or null if we
+  /// haven't observed a `ChannelInfoFrame` for that slot yet.
+  /// The list is unmodifiable; copy if you need to mutate.
+  List<int>? channelPsk(int idx) => _channelPsks[idx];
+
   /// Probe this many channel slots on link-up (typical meshes use a
   /// handful; the radio answers only the ones it has).
   static const int _channelProbeCount = 4;
@@ -577,8 +591,26 @@ class MeshcoreController extends ChangeNotifier {
       _channels[idx] = name; // optimistic
       _invalidateChannelsCache();
     }
+    // Optimistic PSK cache — the GET_CHANNEL below will confirm.
+    _channelPsks[idx] = List<int>.unmodifiable(psk);
     notifyListeners();
     unawaited(send(MeshcoreFrameCodec.getChannel(idx)).catchError((_) {}));
+  }
+
+  /// "Clear" a slot. The companion protocol has no destructive
+  /// `CLEAR_CHANNEL` opcode, so the pragmatic implementation is to
+  /// overwrite the slot back to the well-known Public defaults
+  /// (`"Public"` + `kPublicChannelPsk`). For slot 0 this is a no-op
+  /// since that's already the Public channel; for higher slots it
+  /// makes them indistinguishable from a fresh device and lets the
+  /// shared Public channel work through that slot too.
+  Future<void> clearChannel(int idx) async {
+    if (!isReady) return;
+    await setChannel(
+      idx: idx,
+      name: 'Public',
+      psk: List<int>.from(kPublicChannelPsk),
+    );
   }
 
   /// Per-channel cache of the filtered message list. Filled lazily on
@@ -789,6 +821,11 @@ class MeshcoreController extends ChangeNotifier {
         _channels[ci.channelIdx] = ci.name;
         _invalidateChannelsCache();
       }
+      // Cache the PSK so the Edit dialog can offer "Show current
+      // key" without re-querying the device every time. The codec
+      // carries 16 bytes — the AES-128 key. We store a defensive
+      // copy because Uint8List can be a view.
+      _channelPsks[ci.channelIdx] = List<int>.unmodifiable(ci.psk);
     }
   }
 

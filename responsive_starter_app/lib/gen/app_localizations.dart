@@ -1760,6 +1760,60 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get channelsSlot0WarnCancel;
 
+  /// No description provided for @channelsCurrentKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Current key'**
+  String get channelsCurrentKey;
+
+  /// No description provided for @channelsRevealKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveal'**
+  String get channelsRevealKey;
+
+  /// No description provided for @channelsHideKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get channelsHideKey;
+
+  /// No description provided for @channelsCurrentKeyUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not loaded yet — open then close this dialog after the device has synced.'**
+  String get channelsCurrentKeyUnknown;
+
+  /// No description provided for @channelsClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear slot'**
+  String get channelsClear;
+
+  /// No description provided for @channelsClearConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear slot {idx}?'**
+  String channelsClearConfirmTitle(int idx);
+
+  /// No description provided for @channelsClearConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MeshCore has no protocol-level \"clear\" — this slot will be overwritten back to the well-known Public defaults (name + key). Other nodes will need to do the same to talk on it again.'**
+  String get channelsClearConfirmBody;
+
+  /// No description provided for @channelsClearConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get channelsClearConfirmAction;
+
+  /// No description provided for @channelsClearSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Slot {idx} cleared (reset to Public defaults)'**
+  String channelsClearSnack(int idx);
+
   /// No description provided for @deviceConfigTitle.
   ///
   /// In en, this message translates to:

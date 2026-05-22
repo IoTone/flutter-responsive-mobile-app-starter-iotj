@@ -426,6 +426,21 @@
   "channelsSlot0WarnBody": "Slot 0 is the well-known Public channel. Writing a private PSK here means you'll only be able to talk to nodes that use this exact key in slot 0 — you'll lose the shared Public channel. Proceed?",
   "channelsSlot0WarnContinue": "Overwrite slot 0",
   "channelsSlot0WarnCancel": "Cancel",
+  "channelsCurrentKey": "Current key",
+  "channelsRevealKey": "Reveal",
+  "channelsHideKey": "Hide",
+  "channelsCurrentKeyUnknown": "Not loaded yet — open then close this dialog after the device has synced.",
+  "channelsClear": "Clear slot",
+  "channelsClearConfirmTitle": "Clear slot {idx}?",
+  "@channelsClearConfirmTitle": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
+  "channelsClearConfirmBody": "MeshCore has no protocol-level \"clear\" — this slot will be overwritten back to the well-known Public defaults (name + key). Other nodes will need to do the same to talk on it again.",
+  "channelsClearConfirmAction": "Clear",
+  "channelsClearSnack": "Slot {idx} cleared (reset to Public defaults)",
+  "@channelsClearSnack": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
 
   "deviceConfigTitle": "Device configuration",
   "deviceRegionBand": "REGION / BAND",

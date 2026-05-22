@@ -37,10 +37,25 @@ class ChannelsScreen extends StatelessWidget {
       final _ChannelEdit? r = await showDialog<_ChannelEdit>(
         context: context,
         builder: (BuildContext _) =>
-            _EditChannelDialog(idx: idx, initialName: known[idx] ?? ''),
+            _EditChannelDialog(
+                idx: idx,
+                initialName: known[idx] ?? '',
+                currentPsk: mc.channelPsk(idx)),
       );
       if (r == null) return;
       if (!context.mounted) return;
+      // Clear-slot sentinel — the dialog already showed its own
+      // confirm; we just need to call the controller + snack.
+      if (r.name == '__clear__') {
+        await mc.clearChannel(idx);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context)
+            ..clearSnackBars()
+            ..showSnackBar(SnackBar(
+                content: Text(l.channelsClearSnack(idx))));
+        }
+        return;
+      }
       // Slot-0 overwrite warning. Writing a non-Public PSK to slot 0
       // means we lose the shared Public channel — surface that as an
       // explicit confirm rather than letting it happen silently.
@@ -180,9 +195,19 @@ class _ChannelEdit {
 enum _PskSource { public, hashtag, hex }
 
 class _EditChannelDialog extends StatefulWidget {
-  const _EditChannelDialog({required this.idx, required this.initialName});
+  const _EditChannelDialog({
+    required this.idx,
+    required this.initialName,
+    this.currentPsk,
+  });
   final int idx;
   final String initialName;
+
+  /// The 16-byte PSK the controller has cached for this slot, if
+  /// any. Null when we've never observed a `ChannelInfoFrame` for
+  /// this slot (e.g. the user is creating it fresh) — in that case
+  /// the reveal section is suppressed.
+  final List<int>? currentPsk;
 
   @override
   State<_EditChannelDialog> createState() => _EditChannelDialogState();
@@ -195,6 +220,10 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
   final TextEditingController _hex = TextEditingController();
   _PskSource _src = _PskSource.public;
   String? _error;
+
+  /// "Show current key" reveal state. Latched per-dialog session;
+  /// dismissing & reopening the dialog requires another tap.
+  bool _revealCurrent = false;
 
   @override
   void dispose() {
@@ -393,6 +422,48 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
                 ],
               ),
             ],
+            // Reveal-current-key block (R6 follow-on). Only shown
+            // when the controller has actually cached a PSK for
+            // this slot. Latched behind a Reveal tap so the key
+            // doesn't appear on every dialog-open. Slot 0's
+            // "current key" is the well-known kPublicChannelPsk —
+            // we still surface it for symmetry.
+            if (widget.currentPsk != null) ...<Widget>[
+              const Divider(height: 24),
+              Row(
+                children: <Widget>[
+                  Icon(Icons.vpn_key,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 6),
+                  Text(l.channelsCurrentKey,
+                      style: const TextStyle(
+                          fontSize: 12, letterSpacing: 1)),
+                  const Spacer(),
+                  TextButton.icon(
+                    icon: Icon(
+                        _revealCurrent
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        size: 16),
+                    label: Text(_revealCurrent
+                        ? l.channelsHideKey
+                        : l.channelsRevealKey),
+                    onPressed: () => setState(
+                        () => _revealCurrent = !_revealCurrent),
+                  ),
+                ],
+              ),
+              if (_revealCurrent)
+                SelectableText(
+                  widget.currentPsk!
+                      .map((int b) =>
+                          b.toRadixString(16).padLeft(2, '0'))
+                      .join(),
+                  style: const TextStyle(
+                      fontFamily: 'monospace', fontSize: 11),
+                ),
+            ],
             if (_error != null) ...<Widget>[
               const SizedBox(height: 8),
               Text(_error!,
@@ -404,6 +475,54 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
         ),
       ),
       actions: <Widget>[
+        // Clear slot: only offered when the slot has actually been
+        // configured (currentPsk known). Slot 0 is also clearable —
+        // clearChannel(0) is a no-op (already Public).
+        if (widget.currentPsk != null)
+          TextButton.icon(
+            icon: const Icon(Icons.delete_outline, size: 16),
+            label: Text(l.channelsClear),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: () async {
+              final bool? ok = await showDialog<bool>(
+                context: context,
+                builder: (BuildContext ctx) => AlertDialog(
+                  title: Text(
+                      l.channelsClearConfirmTitle(widget.idx)),
+                  content: Text(l.channelsClearConfirmBody),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: Text(l.channelsCancel),
+                    ),
+                    FilledButton.tonal(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Theme.of(ctx)
+                            .colorScheme
+                            .errorContainer,
+                        foregroundColor: Theme.of(ctx)
+                            .colorScheme
+                            .onErrorContainer,
+                      ),
+                      child: Text(l.channelsClearConfirmAction),
+                    ),
+                  ],
+                ),
+              );
+              if (ok != true) return;
+              if (!context.mounted) return;
+              // Pop with a special marker the outer screen reads
+              // as "the user wants to clear this slot." We could
+              // call mc.clearChannel here directly, but the outer
+              // screen owns the snack + provider lookup, so it's
+              // cleaner to delegate.
+              Navigator.pop(
+                  context, _ChannelEdit(widget.idx, '__clear__', const <int>[]));
+            },
+          ),
         TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(l.channelsCancel)),

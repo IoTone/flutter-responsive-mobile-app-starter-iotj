@@ -983,6 +983,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get channelsSlot0WarnCancel => 'Cancel';
 
   @override
+  String get channelsCurrentKey => 'Current key';
+
+  @override
+  String get channelsRevealKey => 'Reveal';
+
+  @override
+  String get channelsHideKey => 'Hide';
+
+  @override
+  String get channelsCurrentKeyUnknown =>
+      'Not loaded yet — open then close this dialog after the device has synced.';
+
+  @override
+  String get channelsClear => 'Clear slot';
+
+  @override
+  String channelsClearConfirmTitle(int idx) {
+    return 'Clear slot $idx?';
+  }
+
+  @override
+  String get channelsClearConfirmBody =>
+      'MeshCore has no protocol-level \"clear\" — this slot will be overwritten back to the well-known Public defaults (name + key). Other nodes will need to do the same to talk on it again.';
+
+  @override
+  String get channelsClearConfirmAction => 'Clear';
+
+  @override
+  String channelsClearSnack(int idx) {
+    return 'Slot $idx cleared (reset to Public defaults)';
+  }
+
+  @override
   String get deviceConfigTitle => 'Device configuration';
 
   @override

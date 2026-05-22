@@ -935,6 +935,38 @@ class AppLocalizationsJa extends AppLocalizations {
   String get channelsSlot0WarnCancel => 'キャンセル';
 
   @override
+  String get channelsCurrentKey => '現在の鍵';
+
+  @override
+  String get channelsRevealKey => '表示';
+
+  @override
+  String get channelsHideKey => '隠す';
+
+  @override
+  String get channelsCurrentKeyUnknown => '未取得 — デバイス同期後にダイアログを開き直してください。';
+
+  @override
+  String get channelsClear => 'スロットをクリア';
+
+  @override
+  String channelsClearConfirmTitle(int idx) {
+    return 'スロット $idx をクリアしますか?';
+  }
+
+  @override
+  String get channelsClearConfirmBody =>
+      'MeshCore にはプロトコルレベルの「クリア」がありません — このスロットは Public 既定値 (名前 + 鍵) に上書きされます。他ノードも同様の操作が必要です。';
+
+  @override
+  String get channelsClearConfirmAction => 'クリア';
+
+  @override
+  String channelsClearSnack(int idx) {
+    return 'スロット $idx をクリア (Public 既定値にリセット)';
+  }
+
+  @override
   String get deviceConfigTitle => 'デバイス設定';
 
   @override

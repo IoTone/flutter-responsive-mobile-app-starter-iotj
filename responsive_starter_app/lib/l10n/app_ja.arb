@@ -426,6 +426,21 @@
   "channelsSlot0WarnBody": "スロット 0 は既知の Public チャンネルです。ここにプライベート PSK を書き込むと、同じ鍵を持つノードとしか通話できなくなり、共通の Public チャンネルを失います。続行しますか?",
   "channelsSlot0WarnContinue": "スロット 0 を上書き",
   "channelsSlot0WarnCancel": "キャンセル",
+  "channelsCurrentKey": "現在の鍵",
+  "channelsRevealKey": "表示",
+  "channelsHideKey": "隠す",
+  "channelsCurrentKeyUnknown": "未取得 — デバイス同期後にダイアログを開き直してください。",
+  "channelsClear": "スロットをクリア",
+  "channelsClearConfirmTitle": "スロット {idx} をクリアしますか?",
+  "@channelsClearConfirmTitle": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
+  "channelsClearConfirmBody": "MeshCore にはプロトコルレベルの「クリア」がありません — このスロットは Public 既定値 (名前 + 鍵) に上書きされます。他ノードも同様の操作が必要です。",
+  "channelsClearConfirmAction": "クリア",
+  "channelsClearSnack": "スロット {idx} をクリア (Public 既定値にリセット)",
+  "@channelsClearSnack": {
+    "placeholders": {"idx": {"type": "int"}}
+  },
 
   "deviceConfigTitle": "デバイス設定",
   "deviceRegionBand": "リージョン / バンド",
