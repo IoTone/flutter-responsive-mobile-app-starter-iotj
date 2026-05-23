@@ -505,6 +505,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dashboardLocationRefresh => 'デバイスから位置を更新';
 
   @override
+  String get deviceLocReportsAwaiting => 'デバイス報告値: (待機中)';
+
+  @override
+  String get deviceLocReportsNone => 'デバイス報告値: GPS 未取得 (0, 0)';
+
+  @override
+  String deviceLocReportsValue(String lat, String lon) {
+    return 'デバイス報告値: $lat, $lon';
+  }
+
+  @override
+  String get deviceLocUnsaved => '✱ 未保存';
+
+  @override
   String get gridEmpty =>
       'まだ範囲内にファブリックがありません。\n\nアドバートを受信するとここに表示されます。Nodes 画面でスターをタップしてコンタクト登録 (速い点滅)。DM 交換したノードは既知になります (パルス)。';
 

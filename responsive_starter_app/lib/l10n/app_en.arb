@@ -199,6 +199,16 @@
   "globeZoom": "ZOOM",
   "voiceOfflineBadge": "OFFLINE",
   "dashboardLocationRefresh": "Refresh location from device",
+  "deviceLocReportsAwaiting": "Device reports: (awaiting)",
+  "deviceLocReportsNone": "Device reports: no GPS fix (0, 0)",
+  "deviceLocReportsValue": "Device reports: {lat}, {lon}",
+  "@deviceLocReportsValue": {
+    "placeholders": {
+      "lat": {"type": "String"},
+      "lon": {"type": "String"}
+    }
+  },
+  "deviceLocUnsaved": "✱ unsaved",
   "@globeFooter": {
     "placeholders": {"n": {"type": "int"}}
   },

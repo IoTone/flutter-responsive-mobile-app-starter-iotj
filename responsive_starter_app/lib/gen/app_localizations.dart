@@ -1022,6 +1022,30 @@ abstract class AppLocalizations {
   /// **'Refresh location from device'**
   String get dashboardLocationRefresh;
 
+  /// No description provided for @deviceLocReportsAwaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Device reports: (awaiting)'**
+  String get deviceLocReportsAwaiting;
+
+  /// No description provided for @deviceLocReportsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Device reports: no GPS fix (0, 0)'**
+  String get deviceLocReportsNone;
+
+  /// No description provided for @deviceLocReportsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Device reports: {lat}, {lon}'**
+  String deviceLocReportsValue(String lat, String lon);
+
+  /// No description provided for @deviceLocUnsaved.
+  ///
+  /// In en, this message translates to:
+  /// **'✱ unsaved'**
+  String get deviceLocUnsaved;
+
   /// No description provided for @gridEmpty.
   ///
   /// In en, this message translates to:

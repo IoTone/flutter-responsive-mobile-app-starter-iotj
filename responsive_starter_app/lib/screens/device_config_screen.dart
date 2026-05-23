@@ -477,8 +477,52 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
             );
           }),
           const SizedBox(height: 8),
-          num(l.deviceAdvertLatitude, _lat, 'e.g. 35.681'),
-          num(l.deviceAdvertLongitude, _lon, 'e.g. 139.767'),
+          // What the device currently reports — read-only "ground
+          // truth" line. The editable text fields below are
+          // **staging**; this line is the wire-side value. Always
+          // shown so divergence is visible at a glance.
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: <Widget>[
+                Icon(Icons.developer_board,
+                    size: 14, color: cs.onSurfaceVariant),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    () {
+                      if (si == null) return l.deviceLocReportsAwaiting;
+                      if (si.latitude.abs() < 1e-9 &&
+                          si.longitude.abs() < 1e-9) {
+                        return l.deviceLocReportsNone;
+                      }
+                      return l.deviceLocReportsValue(
+                          si.latitude.toStringAsFixed(5),
+                          si.longitude.toStringAsFixed(5));
+                    }(),
+                    style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontSize: 11,
+                        fontFamily: 'monospace'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _LatLonField(
+            label: l.deviceAdvertLatitude,
+            hint: 'e.g. 35.681',
+            controller: _lat,
+            deviceValue: si?.latitude,
+            unsavedLabel: l.deviceLocUnsaved,
+          ),
+          _LatLonField(
+            label: l.deviceAdvertLongitude,
+            hint: 'e.g. 139.767',
+            controller: _lon,
+            deviceValue: si?.longitude,
+            unsavedLabel: l.deviceLocUnsaved,
+          ),
           // R22 / U13 — populate-the-field actions (no broadcast).
           Row(
             children: <Widget>[
@@ -723,6 +767,100 @@ class _OtherParamsEditorState extends State<_OtherParamsEditor> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Lat/lon `TextField` that subscribes to its own controller +
+/// compares the typed text against the device's current
+/// `selfInfo` value. When they diverge, an "✱ unsaved" suffix
+/// renders in the input decoration so the user knows the
+/// staged value hasn't been pushed to the device yet.
+///
+/// The comparison tolerates floating-point noise (1e-5 ≈ 1.1 m
+/// at the equator) — typing "35.681" should not show "unsaved"
+/// against a device value of 35.6810002 from JSON round-tripping.
+class _LatLonField extends StatefulWidget {
+  const _LatLonField({
+    required this.label,
+    required this.hint,
+    required this.controller,
+    required this.deviceValue,
+    required this.unsavedLabel,
+  });
+
+  final String label;
+  final String hint;
+  final TextEditingController controller;
+
+  /// The device's last-reported value for this field. May be null
+  /// (no selfInfo yet) — in that case we never show "unsaved"
+  /// since we have no baseline.
+  final double? deviceValue;
+
+  final String unsavedLabel;
+
+  @override
+  State<_LatLonField> createState() => _LatLonFieldState();
+}
+
+class _LatLonFieldState extends State<_LatLonField> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onChanged);
+    super.dispose();
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
+  bool get _unsaved {
+    final double? dev = widget.deviceValue;
+    if (dev == null) return false;
+    final double? typed =
+        double.tryParse(widget.controller.text.trim());
+    if (typed == null) {
+      // Empty / unparseable text: treat as unsaved iff the device
+      // has a non-zero value.
+      return dev.abs() >= 1e-9;
+    }
+    return (typed - dev).abs() > 1e-5;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: TextField(
+        controller: widget.controller,
+        keyboardType: const TextInputType.numberWithOptions(
+            decimal: true, signed: true),
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.allow(RegExp(r'[0-9.\-]')),
+        ],
+        decoration: InputDecoration(
+          labelText: widget.label,
+          hintText: widget.hint,
+          isDense: true,
+          suffix: _unsaved
+              ? Text(
+                  widget.unsavedLabel,
+                  style: TextStyle(
+                      color: cs.tertiary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600),
+                )
+              : null,
+        ),
+      ),
     );
   }
 }

@@ -199,6 +199,16 @@
   "globeZoom": "ズーム",
   "voiceOfflineBadge": "オフライン",
   "dashboardLocationRefresh": "デバイスから位置を更新",
+  "deviceLocReportsAwaiting": "デバイス報告値: (待機中)",
+  "deviceLocReportsNone": "デバイス報告値: GPS 未取得 (0, 0)",
+  "deviceLocReportsValue": "デバイス報告値: {lat}, {lon}",
+  "@deviceLocReportsValue": {
+    "placeholders": {
+      "lat": {"type": "String"},
+      "lon": {"type": "String"}
+    }
+  },
+  "deviceLocUnsaved": "✱ 未保存",
   "@globeFooter": {
     "placeholders": {"n": {"type": "int"}}
   },

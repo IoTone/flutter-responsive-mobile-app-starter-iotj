@@ -539,6 +539,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardLocationRefresh => 'Refresh location from device';
 
   @override
+  String get deviceLocReportsAwaiting => 'Device reports: (awaiting)';
+
+  @override
+  String get deviceLocReportsNone => 'Device reports: no GPS fix (0, 0)';
+
+  @override
+  String deviceLocReportsValue(String lat, String lon) {
+    return 'Device reports: $lat, $lon';
+  }
+
+  @override
+  String get deviceLocUnsaved => '✱ unsaved';
+
+  @override
   String get gridEmpty =>
       'No fabric in range yet.\n\nNodes appear here as their adverts are heard. Star a node in Nodes to mark it as a contact (rapid blink). Nodes we DM with become known (pulse).';
 
