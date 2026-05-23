@@ -1003,11 +1003,23 @@ class MeshcoreController extends ChangeNotifier {
     print('[meshcore.loc] refreshSelfInfo fired '
         '(before: ${before == null ? 'null' : 'lat=${before.latitude} '
             'lon=${before.longitude} pol=${before.advertLocPolicy}'})');
-    // 1) Zero-hop advert triggers firmware GPS read + state update.
+    // **Option B** — re-send the *existing* advertLocPolicy as a
+    // no-op `setOtherParams` call. The v37 trace showed the
+    // firmware returning byte-identical SelfInfo across multiple
+    // sendSelfAdvert+appStart cycles, suggesting the advert build
+    // doesn't actually re-read GPS. Some firmware variants do
+    // refresh GPS into selfInfo when handling `setOtherParams`
+    // though — sending the same policy back as a no-op may shake
+    // the cache loose without changing any state.
+    if (before != null) {
+      await setAdvertLocPolicy(before.advertLocPolicy)
+          .catchError((_) {});
+    }
+    // 1) Zero-hop advert triggers firmware GPS read + state update
+    //    (theoretically — confirmed by the v37 capture that this
+    //    alone wasn't enough).
     await sendSelfAdvert(flood: false).catchError((_) {});
-    // 2) appStart re-fetches the updated SelfInfo. Some firmware
-    //    variants update selfInfo on the advert TX itself; either
-    //    way the appStart response carries the freshest snapshot.
+    // 2) appStart re-fetches the SelfInfo response.
     await send(MeshcoreFrameCodec.appStart(
       appName: _connection.appName,
     )).catchError((_) {});

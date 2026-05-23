@@ -213,8 +213,13 @@ void main() {
     await ctrl.refreshSelfInfo();
     await Future<void>.delayed(Duration.zero);
 
-    // Two frames: 0x07 (CMD_SEND_SELF_ADVERT) with flood=0, then
-    // 0x01 (CMD_APP_START) with the appName payload.
+    // Three frames are expected: 0x26 (CMD_SET_OTHER_PARAMS — the
+    // Option-B no-op policy re-set), 0x07 (CMD_SEND_SELF_ADVERT,
+    // flood=0), 0x01 (CMD_APP_START with appName).
+    final List<int> otherParams = fake.sent
+        .firstWhere((List<int> f) => f.isNotEmpty && f[0] == 0x26,
+            orElse: () => Uint8List(0))
+        .toList();
     final List<int> advert = fake.sent
         .firstWhere((List<int> f) => f.isNotEmpty && f[0] == 0x07,
             orElse: () => Uint8List(0))
@@ -223,6 +228,9 @@ void main() {
         .firstWhere((List<int> f) => f.isNotEmpty && f[0] == 0x01,
             orElse: () => Uint8List(0))
         .toList();
+    expect(otherParams, isNotEmpty,
+        reason: 'refreshSelfInfo should re-send the current '
+            'advertLocPolicy via setOtherParams (0x26)');
     expect(advert, isNotEmpty,
         reason: 'refreshSelfInfo should emit sendSelfAdvert (0x07)');
     expect(advert.length, 2,
