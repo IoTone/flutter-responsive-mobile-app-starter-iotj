@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import '../gen/app_localizations.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_controller.dart';
+import 'node_detail_sheet.dart';
 
 /// R27 — macro globe view. Renders the mesh fabric on a 3D earth
 /// using **real Natural Earth 110m land polygons** (asset
@@ -122,12 +123,59 @@ class _GlobeViewState extends State<GlobeView> {
     }
   }
 
+  /// Last paint size — written by the painter on every paint pass.
+  /// Used by the tap hit-test to convert the tap-local position
+  /// into projected sphere coordinates without a second
+  /// LayoutBuilder.
+  Size? _lastPaintSize;
+
   void _ensureCenteredOn(double? lat, double? lon) {
     if (_centeredOnSelf) return;
     if (lat == null || lon == null) return;
     _centreLonDeg = lon;
     _centreLatDeg = lat;
     _centeredOnSelf = true;
+  }
+
+  /// Duplicate of the painter's projection, public to the state
+  /// class so the tap hit-test can reuse it without going through
+  /// the painter's private method.
+  ({Offset offset, double rotY}) _projectPoint(Offset centre,
+      double r, double rotLon, double rotLat, double latDeg,
+      double lonDeg) {
+    final double lonShift = (lonDeg * math.pi / 180) - rotLon;
+    final double lat = latDeg * math.pi / 180;
+    final double cl = math.cos(lat);
+    final double x = cl * math.sin(lonShift);
+    final double y = cl * math.cos(lonShift);
+    final double z = math.sin(lat);
+    final double c = math.cos(rotLat);
+    final double s = math.sin(rotLat);
+    final double yr = y * c + z * s;
+    final double zr = -y * s + z * c;
+    return (
+      offset: Offset(centre.dx + x * r, centre.dy - zr * r),
+      rotY: yr,
+    );
+  }
+
+  Future<void> _showDetail(
+      BuildContext ctx, MeshcoreController mc, DiscoveredNode n) {
+    return showModalBottomSheet<void>(
+      context: ctx,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (BuildContext _) => NodeDetailSheet(
+        node: n,
+        distanceMeters: n.hasLocation
+            ? mc.distanceMetersTo(n.latitude!, n.longitude!)
+            : null,
+        isFavourite: mc.favorites.contains(n.pubKeyHex),
+        isKnown: mc.known.contains(n.pubKeyHex),
+        onToggleFavourite: () => mc.toggleFavorite(n.pubKeyHex),
+        recentDms: mc.dmHistoryFor(n.pubKeyHex),
+      ),
+    );
   }
 
   @override
@@ -153,6 +201,35 @@ class _GlobeViewState extends State<GlobeView> {
 
     return GestureDetector(
       onScaleStart: (_) => _scaleAtGestureStart = _scale,
+      onTapUp: (TapUpDetails d) {
+        // Hit-test the tap against every visible peer pin. We
+        // need the surface size for the projection; LayoutBuilder
+        // gave us a Size we cached in `_lastPaintSize` during
+        // paint. Fall back to context.size if we haven't painted
+        // yet (e.g. first frame race).
+        final Size size = _lastPaintSize ?? context.size ?? Size.zero;
+        if (size.isEmpty) return;
+        final Offset centre = size.center(Offset.zero);
+        final double r =
+            math.min(size.width, size.height) * 0.45 * _scale;
+        final double rotLon = _centreLonDeg * math.pi / 180;
+        final double rotLat = _centreLatDeg * math.pi / 180;
+        DiscoveredNode? best;
+        double bestSq = 24 * 24; // 24-px tap radius²
+        for (final DiscoveredNode n in withLoc) {
+          final ({Offset offset, double rotY}) pp = _projectPoint(
+              centre, r, rotLon, rotLat, n.latitude!, n.longitude!);
+          if (pp.rotY < 0) continue;
+          final double dx = pp.offset.dx - d.localPosition.dx;
+          final double dy = pp.offset.dy - d.localPosition.dy;
+          final double sq = dx * dx + dy * dy;
+          if (sq < bestSq) {
+            bestSq = sq;
+            best = n;
+          }
+        }
+        if (best != null) _showDetail(context, mc, best);
+      },
       onScaleUpdate: (ScaleUpdateDetails d) {
         // Trackball drag + pinch zoom in one handler. With a single
         // pointer, `scale` is always 1.0 and `focalPointDelta` is
@@ -175,7 +252,20 @@ class _GlobeViewState extends State<GlobeView> {
       child: Stack(
         children: <Widget>[
           Positioned.fill(
-            child: CustomPaint(
+            child: LayoutBuilder(builder:
+                (BuildContext _, BoxConstraints constraints) {
+              // Cache the size so the tap hit-test in
+              // GestureDetector has the same coords the painter
+              // used. Done post-frame so we don't setState during
+              // a build.
+              final Size sz =
+                  Size(constraints.maxWidth, constraints.maxHeight);
+              if (_lastPaintSize != sz) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) _lastPaintSize = sz;
+                });
+              }
+              return CustomPaint(
               painter: _GlobePainter(
                 centreLonDeg: _centreLonDeg,
                 centreLatDeg: _centreLatDeg,
@@ -201,7 +291,8 @@ class _GlobeViewState extends State<GlobeView> {
                 showRegions: _showRegions,
                 showLabels: _showLabels,
               ),
-            ),
+            );
+            }),
           ),
           // Overlay toggle strip — top-right, three small chips.
           Positioned(
@@ -501,9 +592,10 @@ class _GlobePainter extends CustomPainter {
     // Self pin (crosshair + dot). Drawn after peers so it's on
     // top in the overlap case.
     if (selfLat != null && selfLon != null) {
-      final Offset? p = _project(
+      final ({Offset offset, double rotY}) pp = _project(
           centre, r, rotLon, rotLat, selfLat!, selfLon!);
-      if (p != null) {
+      if (pp.rotY >= 0) {
+        final Offset p = pp.offset;
         final Paint x = Paint()
           ..color = selfPin
           ..strokeWidth = 1.6;
@@ -518,20 +610,14 @@ class _GlobePainter extends CustomPainter {
       double rotLon, double rotLat) {
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     for (final DiscoveredNode n in peers) {
-      final Offset? p = _project(
+      final ({Offset offset, double rotY}) pp = _project(
           centre, r, rotLon, rotLat, n.latitude!, n.longitude!);
-      if (p == null) continue;
+      if (pp.rotY < 0) continue;
+      final Offset p = pp.offset;
       final int dtHours = ((now - n.lastHeardUnix) / 3600).round();
       final double t = (1 - dtHours / 6).clamp(0.0, 1.0);
       final Color c = Color.lerp(peerStale, peerRecent, t) ?? peerRecent;
-      canvas.drawCircle(p, 4, Paint()..color = c);
-      canvas.drawCircle(
-          p,
-          4,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1
-            ..color = ocean);
+      _drawPeerShape(canvas, p, n.type, c, ocean);
       if (showLabels && n.name.isNotEmpty) {
         final TextPainter tp = TextPainter(
           text: TextSpan(
@@ -564,8 +650,10 @@ class _GlobePainter extends CustomPainter {
     for (final _RegionAcc acc in buckets.values) {
       final double lat = acc.latSum / acc.count;
       final double lon = acc.lonSum / acc.count;
-      final Offset? p = _project(centre, r, rotLon, rotLat, lat, lon);
-      if (p == null) continue;
+      final ({Offset offset, double rotY}) pp =
+          _project(centre, r, rotLon, rotLat, lat, lon);
+      if (pp.rotY < 0) continue;
+      final Offset p = pp.offset;
       final double radius = 8 + acc.count * 2.0;
       canvas.drawCircle(p, radius, Paint()..color = regionFill);
       canvas.drawCircle(
@@ -611,8 +699,9 @@ class _GlobePainter extends CustomPainter {
       final double lonI = lon1 * (1 - t) + lon2 * t;
       final double latI =
           math.asin(sinL.clamp(-1.0, 1.0)) * 180 / math.pi;
-      final Offset? proj =
+      final ({Offset offset, double rotY}) pp =
           _project(centre, r, rotLon, rotLat, latI, lonI);
+      final Offset? proj = pp.rotY < 0 ? null : pp.offset;
       if (proj != null && prev != null) {
         canvas.drawLine(prev, proj, paint);
       }
@@ -622,16 +711,16 @@ class _GlobePainter extends CustomPainter {
 
   /// Orthographic projection of (latDeg, lonDeg) on a unit sphere
   /// rotated so that (centreLat, centreLon) sits at the centre of
-  /// the projection. Matches the d3 mockup convention:
-  ///   1. Shift longitude by `-centreLon` (centre that longitude).
-  ///   2. Cartesian: x = cos(lat)*sin(lonShift), y = cos(lat)*cos(lonShift), z = sin(lat).
-  ///   3. Rotate around the screen-x axis by `centreLat` so that
-  ///      latitude ends up at z=0 in the rotated frame.
-  ///   4. Return null when rotated_y < 0 (back face).
-  ///   5. Screen: x → centre.dx + x*r; rotated_z → centre.dy - z*r
-  ///      (screen-y grows downward, world-z grows upward).
-  Offset? _project(Offset centre, double r, double rotLon,
-      double rotLat, double latDeg, double lonDeg) {
+  /// the projection. See class docstring for full convention.
+  ///
+  /// Returns both the screen Offset AND the rotated-y component
+  /// (i.e. depth toward the camera). Callers can:
+  ///   - Treat `rotY < 0` as "back-face, skip drawing this point";
+  ///   - Use both points' `rotY` values to interpolate the
+  ///     **horizon-crossing** point on the great-circle when a
+  ///     polygon edge transitions from visible to invisible.
+  ({Offset offset, double rotY}) _project(Offset centre, double r,
+      double rotLon, double rotLat, double latDeg, double lonDeg) {
     final double lonShift =
         (lonDeg * math.pi / 180) - rotLon;
     final double lat = latDeg * math.pi / 180;
@@ -643,8 +732,10 @@ class _GlobePainter extends CustomPainter {
     final double s = math.sin(rotLat);
     final double yr = y * c + z * s;
     final double zr = -y * s + z * c;
-    if (yr < 0) return null;
-    return Offset(centre.dx + x * r, centre.dy - zr * r);
+    return (
+      offset: Offset(centre.dx + x * r, centre.dy - zr * r),
+      rotY: yr,
+    );
   }
 
   void _drawParallel(Canvas canvas, Offset centre, double r,
@@ -652,8 +743,9 @@ class _GlobePainter extends CustomPainter {
     Offset? prev;
     for (int i = 0; i <= 72; i++) {
       final double lon = (i * 5).toDouble();
-      final Offset? p =
+      final ({Offset offset, double rotY}) pp =
           _project(centre, r, rotLon, rotLat, latDeg, lon);
+      final Offset? p = pp.rotY < 0 ? null : pp.offset;
       if (p != null && prev != null) {
         canvas.drawLine(prev, p, paint);
       }
@@ -666,8 +758,9 @@ class _GlobePainter extends CustomPainter {
     Offset? prev;
     for (int i = 0; i <= 36; i++) {
       final double lat = (i * 5).toDouble() - 90;
-      final Offset? p =
+      final ({Offset offset, double rotY}) pp =
           _project(centre, r, rotLon, rotLat, lat, lonDeg);
+      final Offset? p = pp.rotY < 0 ? null : pp.offset;
       if (p != null && prev != null) {
         canvas.drawLine(prev, p, paint);
       }
@@ -676,31 +769,124 @@ class _GlobePainter extends CustomPainter {
   }
 
   /// `ring` is GeoJSON `[lon, lat]` pairs (note the order).
+  /// Project a polygon ring onto the visible hemisphere. When an
+  /// edge **crosses the horizon** (one endpoint visible, the other
+  /// back-facing), we linearly interpolate the screen offset at
+  /// the crossing point so the path follows the limb of the sphere
+  /// cleanly instead of closing with a straight chord — which is
+  /// what produced the triangle artifacts reported in the field.
+  ///
+  /// The interpolation is in screen space (LERP of the two
+  /// projected offsets weighted by `rotY`), not on the great-circle,
+  /// because we render each edge as a straight segment between
+  /// consecutive ring vertices anyway. The result hugs the sphere
+  /// edge closely enough at typical zoom levels that the chunky-
+  /// chord artifact disappears.
   void _drawPolygon(Canvas canvas, Offset centre, double r,
       double rotLon, double rotLat, List<List<double>> ring,
       Paint fill, {Paint? stroke}) {
+    if (ring.isEmpty) return;
     final Path path = Path();
+    // Project every vertex once up-front so we can look at adjacent
+    // pairs for horizon crossings without re-projecting.
+    final List<({Offset offset, double rotY})> proj =
+        <({Offset offset, double rotY})>[
+      for (final List<double> pt in ring)
+        _project(centre, r, rotLon, rotLat, pt[1], pt[0]),
+    ];
     bool started = false;
-    for (final List<double> pt in ring) {
-      final Offset? p =
-          _project(centre, r, rotLon, rotLat, pt[1], pt[0]);
-      if (p == null) {
-        if (started) {
-          path.close();
-          started = false;
+    for (int i = 0; i < proj.length; i++) {
+      final ({Offset offset, double rotY}) cur = proj[i];
+      final bool curVisible = cur.rotY >= 0;
+      if (curVisible) {
+        if (!started) {
+          // Was on the back face on previous step; check the
+          // previous vertex (treating wrap-around) for a crossing
+          // into us, so the path enters along the limb.
+          final ({Offset offset, double rotY}) prev =
+              proj[(i - 1 + proj.length) % proj.length];
+          if (prev.rotY < 0) {
+            final Offset entry = _lerpHorizon(prev, cur);
+            path.moveTo(entry.dx, entry.dy);
+            path.lineTo(cur.offset.dx, cur.offset.dy);
+          } else {
+            path.moveTo(cur.offset.dx, cur.offset.dy);
+          }
+          started = true;
+        } else {
+          path.lineTo(cur.offset.dx, cur.offset.dy);
         }
-        continue;
-      }
-      if (!started) {
-        path.moveTo(p.dx, p.dy);
-        started = true;
-      } else {
-        path.lineTo(p.dx, p.dy);
+      } else if (started) {
+        // Transition visible → invisible. Draw to the horizon
+        // crossing of the **incoming** edge, then close so the
+        // chord runs along the limb.
+        final ({Offset offset, double rotY}) prev = proj[i - 1];
+        if (prev.rotY >= 0) {
+          final Offset exit = _lerpHorizon(prev, cur);
+          path.lineTo(exit.dx, exit.dy);
+        }
+        path.close();
+        started = false;
       }
     }
     if (started) path.close();
     canvas.drawPath(path, fill);
     if (stroke != null) canvas.drawPath(path, stroke);
+  }
+
+  /// Linear interpolation between two projected points along the
+  /// `rotY = 0` crossing. Both endpoints have known `rotY` (one
+  /// positive, one negative) so the crossing parameter is
+  /// `t = rotY_a / (rotY_a - rotY_b)`.
+  Offset _lerpHorizon(({Offset offset, double rotY}) a,
+      ({Offset offset, double rotY}) b) {
+    final double denom = a.rotY - b.rotY;
+    if (denom.abs() < 1e-9) return a.offset;
+    final double t = a.rotY / denom;
+    return Offset(
+      a.offset.dx + (b.offset.dx - a.offset.dx) * t,
+      a.offset.dy + (b.offset.dy - a.offset.dy) * t,
+    );
+  }
+
+  /// Per-node-type shape glyph. type 1 = chat/companion (circle),
+  /// type 2 = repeater/router (triangle), type 3 = room (square),
+  /// type 4 = sensor (diamond), other = circle.
+  void _drawPeerShape(Canvas canvas, Offset p, int type,
+      Color fill, Color outline) {
+    final Paint fillPaint = Paint()..color = fill;
+    final Paint outlinePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..color = outline;
+    const double s = 5;
+    switch (type) {
+      case 2: // Router — triangle pointing up.
+        final Path tri = Path()
+          ..moveTo(p.dx, p.dy - s)
+          ..lineTo(p.dx + s, p.dy + s * 0.85)
+          ..lineTo(p.dx - s, p.dy + s * 0.85)
+          ..close();
+        canvas.drawPath(tri, fillPaint);
+        canvas.drawPath(tri, outlinePaint);
+      case 3: // Room — square.
+        final Rect sq = Rect.fromCenter(
+            center: p, width: s * 1.8, height: s * 1.8);
+        canvas.drawRect(sq, fillPaint);
+        canvas.drawRect(sq, outlinePaint);
+      case 4: // Sensor — diamond.
+        final Path dia = Path()
+          ..moveTo(p.dx, p.dy - s)
+          ..lineTo(p.dx + s, p.dy)
+          ..lineTo(p.dx, p.dy + s)
+          ..lineTo(p.dx - s, p.dy)
+          ..close();
+        canvas.drawPath(dia, fillPaint);
+        canvas.drawPath(dia, outlinePaint);
+      default: // 1 (Chat / companion) or unknown — circle.
+        canvas.drawCircle(p, 4, fillPaint);
+        canvas.drawCircle(p, 4, outlinePaint);
+    }
   }
 
   @override
