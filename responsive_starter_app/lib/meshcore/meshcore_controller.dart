@@ -1,6 +1,7 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -513,8 +514,14 @@ class MeshcoreController extends ChangeNotifier {
           kind: MeshEventKind.deviceInfo,
           args: <String, String>{'version': f.info.firmwareVersion});
     } else if (f is SelfInfoFrame) {
+      final SelfInfo si = f.selfInfo;
+      developer.log(
+        'SelfInfoFrame in: ${si.latitude},${si.longitude} '
+        'pol=${si.advertLocPolicy} name=${si.name}',
+        name: 'meshcore.loc',
+      );
       ev = MeshEvent(kind: MeshEventKind.selfInfo, args: <String, String>{
-        'name': f.selfInfo.name,
+        'name': si.name,
       });
     }
     if (ev == null) return;
@@ -990,6 +997,13 @@ class MeshcoreController extends ChangeNotifier {
   /// listener. Safe to call repeatedly; errors are swallowed.
   Future<void> refreshSelfInfo() async {
     if (!isReady) return;
+    final SelfInfo? before = selfInfo;
+    developer.log(
+      'refreshSelfInfo fired '
+      '(before: ${before == null ? 'null' : '${before.latitude},${before.longitude} '
+          'pol=${before.advertLocPolicy}'})',
+      name: 'meshcore.loc',
+    );
     // 1) Zero-hop advert triggers firmware GPS read + state update.
     await sendSelfAdvert(flood: false).catchError((_) {});
     // 2) appStart re-fetches the updated SelfInfo. Some firmware

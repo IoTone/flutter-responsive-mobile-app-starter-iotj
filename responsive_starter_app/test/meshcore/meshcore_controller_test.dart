@@ -1,5 +1,7 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:meshmore_sns_app/meshcore/background_prefs.dart';
@@ -185,6 +187,61 @@ void main() {
     expect(
         fake.sent.firstWhere((f) => f.isNotEmpty && f[0] == 0x26),
         <int>[0x26, 0x00, 0x00, 0x00, 0x02]);
+    ctrl.dispose();
+  });
+
+  test('refreshSelfInfo emits sendSelfAdvert (0x07, flood=0) + appStart (0x01) '
+      'and a follow-up SelfInfoFrame propagates to ownLocation',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    await ctrl.connect();
+    fake.emit(selfInfoFrameAt(lat: 35.681, lon: 139.767)); // Tokyo
+    await Future<void>.delayed(Duration.zero);
+
+    // Initial state — Tokyo.
+    expect(ctrl.ownLocation, isNotNull);
+    expect(ctrl.ownLocation!.latitude, closeTo(35.681, 1e-3));
+    expect(ctrl.ownLocation!.longitude, closeTo(139.767, 1e-3));
+
+    fake.sent.clear();
+    await ctrl.refreshSelfInfo();
+    await Future<void>.delayed(Duration.zero);
+
+    // Two frames: 0x07 (CMD_SEND_SELF_ADVERT) with flood=0, then
+    // 0x01 (CMD_APP_START) with the appName payload.
+    final List<int> advert = fake.sent
+        .firstWhere((List<int> f) => f.isNotEmpty && f[0] == 0x07,
+            orElse: () => Uint8List(0))
+        .toList();
+    final List<int> appStart = fake.sent
+        .firstWhere((List<int> f) => f.isNotEmpty && f[0] == 0x01,
+            orElse: () => Uint8List(0))
+        .toList();
+    expect(advert, isNotEmpty,
+        reason: 'refreshSelfInfo should emit sendSelfAdvert (0x07)');
+    expect(advert.length, 2,
+        reason: 'sendSelfAdvert payload = [opcode, flood-flag]');
+    expect(advert[1], 0,
+        reason: 'flood=false means flood-flag byte = 0');
+    expect(appStart, isNotEmpty,
+        reason: 'refreshSelfInfo should also emit appStart (0x01)');
+    expect(appStart[0], 0x01);
+
+    // Simulate the firmware's response — fresh GPS into selfInfo —
+    // and verify the controller surfaces the new value via
+    // ownLocation. Confirms the app-side data path; if the field
+    // shows frozen lat/lon after this test passes, the bug is
+    // firmware-side (not honouring Device GPS on advert build).
+    fake.emit(selfInfoFrameAt(lat: 35.700, lon: 139.800));
+    await Future<void>.delayed(Duration.zero);
+    expect(ctrl.ownLocation!.latitude, closeTo(35.700, 1e-3));
+    expect(ctrl.ownLocation!.longitude, closeTo(139.800, 1e-3));
     ctrl.dispose();
   });
 
