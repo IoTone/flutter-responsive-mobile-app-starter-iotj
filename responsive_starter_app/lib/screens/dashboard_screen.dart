@@ -294,7 +294,10 @@ class _LocationTile extends StatelessWidget {
         if (loc != null) ...<Widget>[
           Text(
             '${loc.latitude.toStringAsFixed(5)}, '
-            '${loc.longitude.toStringAsFixed(5)}\n'
+            '${loc.longitude.toStringAsFixed(5)}'
+            '${loc.altitudeMeters == null ? '' : '  '
+                '· ${l.dashboardLocationAltitude(loc.altitudeMeters!.round())}'}'
+            '\n'
             '${l.dashboardLocationSourceLabel(loc.sourceLabel)}',
             style: TextStyle(
                 color: cs.onSurface,
@@ -368,6 +371,8 @@ class _LocationDebugLine extends StatelessWidget {
       if (phone != null)
         'phone: ${phone.latitude.toStringAsFixed(5)}, '
             '${phone.longitude.toStringAsFixed(5)}'
+            '${phone.altitudeMeters == null ? '' : ' '
+                'alt:${phone.altitudeMeters!.round()}m'}'
       else
         'phone: —',
     ];

@@ -23,11 +23,19 @@ class OwnLocation {
     required this.latitude,
     required this.longitude,
     required this.source,
+    this.altitudeMeters,
   });
 
   final double latitude;
   final double longitude;
   final OwnLocationSource source;
+
+  /// Altitude in meters above the WGS-84 reference ellipsoid, when
+  /// the source provides one. Phone GPS supplies altitude (subject
+  /// to platform support); the MeshCore companion protocol does
+  /// **not** carry an altitude field in `SelfInfo`, so device-
+  /// reported locations always have this null.
+  final double? altitudeMeters;
 
   /// A short human-readable source label for status chips/tiles.
   String get sourceLabel => switch (source) {

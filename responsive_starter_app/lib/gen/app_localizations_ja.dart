@@ -505,6 +505,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dashboardLocationRefresh => 'デバイスから位置を更新';
 
   @override
+  String dashboardLocationAltitude(int meters) {
+    return '高度 $meters m';
+  }
+
+  @override
   String get deviceLocReportsAwaiting => 'デバイス報告値: (待機中)';
 
   @override

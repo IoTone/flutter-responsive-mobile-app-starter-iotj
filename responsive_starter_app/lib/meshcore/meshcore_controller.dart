@@ -350,6 +350,7 @@ class MeshcoreController extends ChangeNotifier {
     _phoneFix = OwnLocation(
       latitude: fix.latitude,
       longitude: fix.longitude,
+      altitudeMeters: fix.altitudeMeters,
       source: OwnLocationSource.phoneFix,
     );
     notifyListeners();

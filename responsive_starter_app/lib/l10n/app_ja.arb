@@ -199,6 +199,10 @@
   "globeZoom": "ズーム",
   "voiceOfflineBadge": "オフライン",
   "dashboardLocationRefresh": "デバイスから位置を更新",
+  "dashboardLocationAltitude": "高度 {meters} m",
+  "@dashboardLocationAltitude": {
+    "placeholders": {"meters": {"type": "int"}}
+  },
   "deviceLocReportsAwaiting": "デバイス報告値: (待機中)",
   "deviceLocReportsNone": "デバイス報告値: GPS 未取得 (0, 0)",
   "deviceLocReportsValue": "デバイス報告値: {lat}, {lon}",

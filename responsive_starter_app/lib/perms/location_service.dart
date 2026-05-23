@@ -10,9 +10,18 @@ import 'package:geolocator/geolocator.dart';
 /// Concrete impls: [GeolocatorLocationService] (real); [NoopLocationService]
 /// (test fake — returns whatever was injected).
 class PhoneFix {
-  const PhoneFix({required this.latitude, required this.longitude});
+  const PhoneFix({
+    required this.latitude,
+    required this.longitude,
+    this.altitudeMeters,
+  });
   final double latitude;
   final double longitude;
+
+  /// Altitude above the WGS-84 reference ellipsoid, in meters.
+  /// Null when the platform didn't report a usable altitude (no
+  /// barometric / GPS-derived altitude available).
+  final double? altitudeMeters;
 }
 
 abstract class LocationService {
@@ -42,7 +51,16 @@ class GeolocatorLocationService implements LocationService {
           timeLimit: timeLimit,
         ),
       );
-      return PhoneFix(latitude: p.latitude, longitude: p.longitude);
+      // Only treat altitude as meaningful when the platform reports
+      // a non-zero altitudeAccuracy — otherwise we'd surface 0 m
+      // for users whose GPS chips don't supply altitude data.
+      final double? alt =
+          p.altitudeAccuracy > 0 ? p.altitude : null;
+      return PhoneFix(
+        latitude: p.latitude,
+        longitude: p.longitude,
+        altitudeMeters: alt,
+      );
     } catch (_) {
       return null;
     }

@@ -1022,6 +1022,12 @@ abstract class AppLocalizations {
   /// **'Refresh location from device'**
   String get dashboardLocationRefresh;
 
+  /// No description provided for @dashboardLocationAltitude.
+  ///
+  /// In en, this message translates to:
+  /// **'alt {meters} m'**
+  String dashboardLocationAltitude(int meters);
+
   /// No description provided for @deviceLocReportsAwaiting.
   ///
   /// In en, this message translates to:

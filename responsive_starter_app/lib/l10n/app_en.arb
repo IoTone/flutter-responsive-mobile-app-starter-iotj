@@ -199,6 +199,10 @@
   "globeZoom": "ZOOM",
   "voiceOfflineBadge": "OFFLINE",
   "dashboardLocationRefresh": "Refresh location from device",
+  "dashboardLocationAltitude": "alt {meters} m",
+  "@dashboardLocationAltitude": {
+    "placeholders": {"meters": {"type": "int"}}
+  },
   "deviceLocReportsAwaiting": "Device reports: (awaiting)",
   "deviceLocReportsNone": "Device reports: no GPS fix (0, 0)",
   "deviceLocReportsValue": "Device reports: {lat}, {lon}",

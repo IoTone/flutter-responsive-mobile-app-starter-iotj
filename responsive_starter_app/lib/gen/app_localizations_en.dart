@@ -539,6 +539,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardLocationRefresh => 'Refresh location from device';
 
   @override
+  String dashboardLocationAltitude(int meters) {
+    return 'alt $meters m';
+  }
+
+  @override
   String get deviceLocReportsAwaiting => 'Device reports: (awaiting)';
 
   @override
