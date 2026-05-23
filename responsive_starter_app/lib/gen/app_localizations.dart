@@ -1016,6 +1016,12 @@ abstract class AppLocalizations {
   /// **'OFFLINE'**
   String get voiceOfflineBadge;
 
+  /// No description provided for @dashboardLocationRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh location from device'**
+  String get dashboardLocationRefresh;
+
   /// No description provided for @gridEmpty.
   ///
   /// In en, this message translates to:

@@ -61,6 +61,7 @@ class MeshcoreController extends ChangeNotifier {
         _requestDeviceTime();
         _requestDeviceInfo();
         _startBatteryPolling();
+        _startSelfInfoPolling();
         _probeChannels();
         // Drain anything the device queued before/while we connected
         // (heard contacts/adverts + received messages).
@@ -958,6 +959,34 @@ class MeshcoreController extends ChangeNotifier {
     });
   }
 
+  /// SelfInfo refresh timer. The MeshCore companion protocol doesn't
+  /// auto-push fresh SelfInfo when the device's onboard GPS updates,
+  /// so a long-running session with `advertLocPolicy = Device GPS`
+  /// would show a frozen location on the dashboard. Re-sending
+  /// `appStart` triggers the device to push a fresh SelfInfoFrame
+  /// (the same response it sent at first handshake). 30 s cadence
+  /// trades freshness for OTA-friendliness — fast enough to feel
+  /// alive on foot, light enough to not flood the link.
+  Timer? _selfInfoTimer;
+
+  void _startSelfInfoPolling() {
+    _selfInfoTimer?.cancel();
+    _selfInfoTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (isReady) unawaited(refreshSelfInfo());
+    });
+  }
+
+  /// Public API for forcing a SelfInfo refresh from the device.
+  /// Used by the periodic poll above + the dashboard's "refresh
+  /// location" button. Safe to call repeatedly; the response just
+  /// flows through `_handleSelfInfo` like any other.
+  Future<void> refreshSelfInfo() async {
+    if (!isReady) return;
+    await send(MeshcoreFrameCodec.appStart(
+      appName: _connection.appName,
+    )).catchError((_) {});
+  }
+
   // --- Device info + identity/advert (R7) ---
 
   DeviceInfo? _deviceInfo;
@@ -1295,6 +1324,7 @@ class MeshcoreController extends ChangeNotifier {
     _manualDisconnect = true;
     _reconnectGen++; // cancel any pending scheduled retry
     _battTimer?.cancel();
+    _selfInfoTimer?.cancel();
     unawaited(_keepalive.stop());
     await _transport?.close();
     _transport = null;
@@ -1331,6 +1361,7 @@ class MeshcoreController extends ChangeNotifier {
     _reconnectGen++; // invalidate any pending scheduled retry
     _scanTimer?.cancel();
     _battTimer?.cancel();
+    _selfInfoTimer?.cancel();
     _statesSub?.cancel();
     _inboundSub?.cancel();
     _rawSub?.cancel();

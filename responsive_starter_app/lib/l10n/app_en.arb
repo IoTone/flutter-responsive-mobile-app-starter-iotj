@@ -198,6 +198,7 @@
   "globeOverlayLabels": "labels",
   "globeZoom": "ZOOM",
   "voiceOfflineBadge": "OFFLINE",
+  "dashboardLocationRefresh": "Refresh location from device",
   "@globeFooter": {
     "placeholders": {"n": {"type": "int"}}
   },

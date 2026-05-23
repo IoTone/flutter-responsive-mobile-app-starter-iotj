@@ -266,11 +266,30 @@ class _LocationTile extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(l.dashboardLocation,
-            style: TextStyle(
-                color: cs.onSurfaceVariant,
-                fontSize: 12,
-                letterSpacing: 4)),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(l.dashboardLocation,
+                  style: TextStyle(
+                      color: cs.onSurfaceVariant,
+                      fontSize: 12,
+                      letterSpacing: 4)),
+            ),
+            // Manual refresh — the periodic 30 s SelfInfo poll
+            // handles most cases, but if the user just moved
+            // significantly and doesn't want to wait, this button
+            // forces an immediate re-query.
+            IconButton(
+              icon: const Icon(Icons.refresh, size: 18),
+              tooltip: l.dashboardLocationRefresh,
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(
+                  minWidth: 32, minHeight: 32),
+              onPressed: mc.isReady ? () => mc.refreshSelfInfo() : null,
+            ),
+          ],
+        ),
         const SizedBox(height: 4),
         if (loc != null)
           Text(

@@ -536,6 +536,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voiceOfflineBadge => 'OFFLINE';
 
   @override
+  String get dashboardLocationRefresh => 'Refresh location from device';
+
+  @override
   String get gridEmpty =>
       'No fabric in range yet.\n\nNodes appear here as their adverts are heard. Star a node in Nodes to mark it as a contact (rapid blink). Nodes we DM with become known (pulse).';
 

@@ -502,6 +502,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get voiceOfflineBadge => 'オフライン';
 
   @override
+  String get dashboardLocationRefresh => 'デバイスから位置を更新';
+
+  @override
   String get gridEmpty =>
       'まだ範囲内にファブリックがありません。\n\nアドバートを受信するとここに表示されます。Nodes 画面でスターをタップしてコンタクト登録 (速い点滅)。DM 交換したノードは既知になります (パルス)。';
 

@@ -198,6 +198,7 @@
   "globeOverlayLabels": "ラベル",
   "globeZoom": "ズーム",
   "voiceOfflineBadge": "オフライン",
+  "dashboardLocationRefresh": "デバイスから位置を更新",
   "@globeFooter": {
     "placeholders": {"n": {"type": "int"}}
   },
