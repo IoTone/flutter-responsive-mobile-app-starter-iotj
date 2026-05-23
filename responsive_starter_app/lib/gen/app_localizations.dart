@@ -1052,6 +1052,108 @@ abstract class AppLocalizations {
   /// **'✱ unsaved'**
   String get deviceLocUnsaved;
 
+  /// No description provided for @locTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-publish location'**
+  String get locTitle;
+
+  /// No description provided for @locTileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Periodic + on-movement phone-GPS push to the device'**
+  String get locTileSubtitle;
+
+  /// No description provided for @locHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone-side workaround for stale device GPS. When enabled, the app periodically (and/or on movement) reads phone GPS and writes it to the device via SET_ADVERT_LATLON + a zero-hop self-advert.'**
+  String get locHelp;
+
+  /// No description provided for @locMaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-publish'**
+  String get locMaster;
+
+  /// No description provided for @locMasterOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On — using phone GPS'**
+  String get locMasterOn;
+
+  /// No description provided for @locMasterOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get locMasterOff;
+
+  /// No description provided for @locInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Periodic interval'**
+  String get locInterval;
+
+  /// No description provided for @locMovement.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart broadcast (on movement)'**
+  String get locMovement;
+
+  /// No description provided for @locOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get locOff;
+
+  /// No description provided for @locIntervalMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {n} min'**
+  String locIntervalMin(int n);
+
+  /// No description provided for @locIntervalHour.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {n} h'**
+  String locIntervalHour(int n);
+
+  /// No description provided for @locMovementM.
+  ///
+  /// In en, this message translates to:
+  /// **'{m} m'**
+  String locMovementM(int m);
+
+  /// No description provided for @locMovementKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km'**
+  String locMovementKm(int km);
+
+  /// No description provided for @locPublishNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish now'**
+  String get locPublishNow;
+
+  /// No description provided for @locPublishNowSub.
+  ///
+  /// In en, this message translates to:
+  /// **'One-shot manual push to verify the loop.'**
+  String get locPublishNowSub;
+
+  /// No description provided for @locLastPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Last: {lat}, {lon}  ·  {time}  ·  {trigger}'**
+  String locLastPublished(String lat, String lon, String time, String trigger);
+
+  /// No description provided for @locBatteryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart-broadcast streams GPS (~10 mA continuous). Periodic-only is cheaper. Combine both for responsiveness; pick smart-broadcast alone if battery matters.'**
+  String get locBatteryHint;
+
   /// No description provided for @gridEmpty.
   ///
   /// In en, this message translates to:

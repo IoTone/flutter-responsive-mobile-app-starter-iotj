@@ -524,6 +524,69 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deviceLocUnsaved => '✱ 未保存';
 
   @override
+  String get locTitle => '位置の自動公開';
+
+  @override
+  String get locTileSubtitle => '定期 + 移動検知でスマートフォン GPS をデバイスに反映';
+
+  @override
+  String get locHelp =>
+      'デバイス GPS が古いままの場合のスマートフォン側ワークアラウンド。有効時、定期・移動検知のいずれかで取得した GPS を SET_ADVERT_LATLON + ゼロホップ アドバートでデバイスに書き込みます。';
+
+  @override
+  String get locMaster => '自動公開';
+
+  @override
+  String get locMasterOn => 'オン — スマートフォン GPS 使用中';
+
+  @override
+  String get locMasterOff => 'オフ';
+
+  @override
+  String get locInterval => '定期間隔';
+
+  @override
+  String get locMovement => 'スマートブロードキャスト (移動検知)';
+
+  @override
+  String get locOff => 'オフ';
+
+  @override
+  String locIntervalMin(int n) {
+    return '$n 分ごと';
+  }
+
+  @override
+  String locIntervalHour(int n) {
+    return '$n 時間ごと';
+  }
+
+  @override
+  String locMovementM(int m) {
+    return '$m m';
+  }
+
+  @override
+  String locMovementKm(int km) {
+    return '$km km';
+  }
+
+  @override
+  String get locPublishNow => '今すぐ公開';
+
+  @override
+  String get locPublishNowSub => 'ループ動作の確認用に手動で 1 回送信。';
+
+  @override
+  String locLastPublished(String lat, String lon, String time, String trigger) {
+    return '最終: $lat, $lon  ·  $time  ·  $trigger';
+  }
+
+  @override
+  String get locBatteryHint =>
+      'スマートブロードキャストは GPS を継続使用 (約 10 mA)。定期のみは省電力。両方有効で応答性最大、バッテリー優先ならスマートブロードキャストのみ推奨。';
+
+  @override
   String get gridEmpty =>
       'まだ範囲内にファブリックがありません。\n\nアドバートを受信するとここに表示されます。Nodes 画面でスターをタップしてコンタクト登録 (速い点滅)。DM 交換したノードは既知になります (パルス)。';
 

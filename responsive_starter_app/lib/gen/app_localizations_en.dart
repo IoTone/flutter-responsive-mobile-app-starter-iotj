@@ -558,6 +558,70 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceLocUnsaved => '✱ unsaved';
 
   @override
+  String get locTitle => 'Auto-publish location';
+
+  @override
+  String get locTileSubtitle =>
+      'Periodic + on-movement phone-GPS push to the device';
+
+  @override
+  String get locHelp =>
+      'Phone-side workaround for stale device GPS. When enabled, the app periodically (and/or on movement) reads phone GPS and writes it to the device via SET_ADVERT_LATLON + a zero-hop self-advert.';
+
+  @override
+  String get locMaster => 'Auto-publish';
+
+  @override
+  String get locMasterOn => 'On — using phone GPS';
+
+  @override
+  String get locMasterOff => 'Off';
+
+  @override
+  String get locInterval => 'Periodic interval';
+
+  @override
+  String get locMovement => 'Smart broadcast (on movement)';
+
+  @override
+  String get locOff => 'Off';
+
+  @override
+  String locIntervalMin(int n) {
+    return 'Every $n min';
+  }
+
+  @override
+  String locIntervalHour(int n) {
+    return 'Every $n h';
+  }
+
+  @override
+  String locMovementM(int m) {
+    return '$m m';
+  }
+
+  @override
+  String locMovementKm(int km) {
+    return '$km km';
+  }
+
+  @override
+  String get locPublishNow => 'Publish now';
+
+  @override
+  String get locPublishNowSub => 'One-shot manual push to verify the loop.';
+
+  @override
+  String locLastPublished(String lat, String lon, String time, String trigger) {
+    return 'Last: $lat, $lon  ·  $time  ·  $trigger';
+  }
+
+  @override
+  String get locBatteryHint =>
+      'Smart-broadcast streams GPS (~10 mA continuous). Periodic-only is cheaper. Combine both for responsiveness; pick smart-broadcast alone if battery matters.';
+
+  @override
   String get gridEmpty =>
       'No fabric in range yet.\n\nNodes appear here as their adverts are heard. Star a node in Nodes to mark it as a contact (rapid blink). Nodes we DM with become known (pulse).';
 

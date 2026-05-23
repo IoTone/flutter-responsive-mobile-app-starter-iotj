@@ -213,6 +213,44 @@
     }
   },
   "deviceLocUnsaved": "✱ unsaved",
+
+  "locTitle": "Auto-publish location",
+  "locTileSubtitle": "Periodic + on-movement phone-GPS push to the device",
+  "locHelp": "Phone-side workaround for stale device GPS. When enabled, the app periodically (and/or on movement) reads phone GPS and writes it to the device via SET_ADVERT_LATLON + a zero-hop self-advert.",
+  "locMaster": "Auto-publish",
+  "locMasterOn": "On — using phone GPS",
+  "locMasterOff": "Off",
+  "locInterval": "Periodic interval",
+  "locMovement": "Smart broadcast (on movement)",
+  "locOff": "Off",
+  "locIntervalMin": "Every {n} min",
+  "@locIntervalMin": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "locIntervalHour": "Every {n} h",
+  "@locIntervalHour": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "locMovementM": "{m} m",
+  "@locMovementM": {
+    "placeholders": {"m": {"type": "int"}}
+  },
+  "locMovementKm": "{km} km",
+  "@locMovementKm": {
+    "placeholders": {"km": {"type": "int"}}
+  },
+  "locPublishNow": "Publish now",
+  "locPublishNowSub": "One-shot manual push to verify the loop.",
+  "locLastPublished": "Last: {lat}, {lon}  ·  {time}  ·  {trigger}",
+  "@locLastPublished": {
+    "placeholders": {
+      "lat": {"type": "String"},
+      "lon": {"type": "String"},
+      "time": {"type": "String"},
+      "trigger": {"type": "String"}
+    }
+  },
+  "locBatteryHint": "Smart-broadcast streams GPS (~10 mA continuous). Periodic-only is cheaper. Combine both for responsiveness; pick smart-broadcast alone if battery matters.",
   "@globeFooter": {
     "placeholders": {"n": {"type": "int"}}
   },

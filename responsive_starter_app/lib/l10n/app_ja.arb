@@ -213,6 +213,44 @@
     }
   },
   "deviceLocUnsaved": "✱ 未保存",
+
+  "locTitle": "位置の自動公開",
+  "locTileSubtitle": "定期 + 移動検知でスマートフォン GPS をデバイスに反映",
+  "locHelp": "デバイス GPS が古いままの場合のスマートフォン側ワークアラウンド。有効時、定期・移動検知のいずれかで取得した GPS を SET_ADVERT_LATLON + ゼロホップ アドバートでデバイスに書き込みます。",
+  "locMaster": "自動公開",
+  "locMasterOn": "オン — スマートフォン GPS 使用中",
+  "locMasterOff": "オフ",
+  "locInterval": "定期間隔",
+  "locMovement": "スマートブロードキャスト (移動検知)",
+  "locOff": "オフ",
+  "locIntervalMin": "{n} 分ごと",
+  "@locIntervalMin": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "locIntervalHour": "{n} 時間ごと",
+  "@locIntervalHour": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "locMovementM": "{m} m",
+  "@locMovementM": {
+    "placeholders": {"m": {"type": "int"}}
+  },
+  "locMovementKm": "{km} km",
+  "@locMovementKm": {
+    "placeholders": {"km": {"type": "int"}}
+  },
+  "locPublishNow": "今すぐ公開",
+  "locPublishNowSub": "ループ動作の確認用に手動で 1 回送信。",
+  "locLastPublished": "最終: {lat}, {lon}  ·  {time}  ·  {trigger}",
+  "@locLastPublished": {
+    "placeholders": {
+      "lat": {"type": "String"},
+      "lon": {"type": "String"},
+      "time": {"type": "String"},
+      "trigger": {"type": "String"}
+    }
+  },
+  "locBatteryHint": "スマートブロードキャストは GPS を継続使用 (約 10 mA)。定期のみは省電力。両方有効で応答性最大、バッテリー優先ならスマートブロードキャストのみ推奨。",
   "@globeFooter": {
     "placeholders": {"n": {"type": "int"}}
   },

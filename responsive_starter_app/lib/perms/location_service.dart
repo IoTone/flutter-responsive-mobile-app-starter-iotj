@@ -1,5 +1,7 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
+import 'dart:async';
+
 import 'package:geolocator/geolocator.dart';
 
 /// R22 / U13 — small interface for the **one-shot phone-GPS fix**
@@ -30,6 +32,14 @@ abstract class LocationService {
   /// must catch their own platform exceptions — callers never see
   /// raw plugin errors.
   Future<PhoneFix?> currentFix({Duration timeLimit});
+
+  /// A long-running stream of fixes that emits only when the user
+  /// has moved more than [distanceFilterMeters] from the last
+  /// emitted point. Returns an empty stream on platforms or test
+  /// fakes that can't deliver it. Used by R36 auto-publish's
+  /// "smart broadcast" mode. Callers must cancel the subscription
+  /// when done.
+  Stream<PhoneFix> positionStream({required int distanceFilterMeters});
 }
 
 /// Real implementation backed by `geolocator`. Uses high accuracy
@@ -65,18 +75,53 @@ class GeolocatorLocationService implements LocationService {
       return null;
     }
   }
+
+  @override
+  Stream<PhoneFix> positionStream({required int distanceFilterMeters}) {
+    return Geolocator.getPositionStream(
+      locationSettings: LocationSettings(
+        // `medium` accuracy is plenty for distance-filter
+        // triggering and dramatically cheaper than `high`.
+        accuracy: LocationAccuracy.medium,
+        distanceFilter: distanceFilterMeters,
+      ),
+    ).map((Position p) {
+      final double? alt =
+          p.altitudeAccuracy > 0 ? p.altitude : null;
+      return PhoneFix(
+        latitude: p.latitude,
+        longitude: p.longitude,
+        altitudeMeters: alt,
+      );
+    });
+  }
 }
 
 /// Test/default fake — never touches the platform layer. Set
-/// [next] to control what the next call returns.
+/// [next] to control what the next call returns. Tests can also
+/// emit synthetic stream events via [emit].
 class NoopLocationService implements LocationService {
   NoopLocationService({this.next});
   PhoneFix? next;
   int callCount = 0;
+  int? lastDistanceFilter;
+
+  final StreamController<PhoneFix> _streamCtrl =
+      StreamController<PhoneFix>.broadcast();
 
   @override
   Future<PhoneFix?> currentFix({Duration? timeLimit}) async {
     callCount++;
     return next;
   }
+
+  @override
+  Stream<PhoneFix> positionStream({required int distanceFilterMeters}) {
+    lastDistanceFilter = distanceFilterMeters;
+    return _streamCtrl.stream;
+  }
+
+  /// Push a synthetic fix through the stream — tests use this to
+  /// simulate the user moving past the distance filter.
+  void emit(PhoneFix fix) => _streamCtrl.add(fix);
 }

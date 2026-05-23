@@ -12,6 +12,7 @@ import 'package:meshmore_sns_app/cue/asset_audio_pack.dart';
 import 'package:meshmore_sns_app/cue/cue_service.dart';
 import 'package:meshmore_sns_app/gen/app_localizations.dart';
 import 'package:meshmore_sns_app/l10n/locale_controller.dart';
+import 'package:meshmore_sns_app/meshcore/auto_publish_controller.dart';
 import 'package:meshmore_sns_app/meshcore/background_keepalive.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/perms/first_run_controller.dart';
@@ -66,6 +67,18 @@ void main() {
           ),
           ChangeNotifierProvider<LocaleController>(
             create: (_) => LocaleController()..load(),
+          ),
+          // R36 — auto-publish location. Owns its own
+          // shared_preferences-backed settings + the periodic
+          // timer / position stream. Constructed lazily to read
+          // the already-built MeshcoreController; loads persisted
+          // state immediately so a previously-enabled loop
+          // resumes after a cold launch.
+          ChangeNotifierProvider<AutoPublishController>(
+            create: (BuildContext ctx) => AutoPublishController(
+              mc: ctx.read<MeshcoreController>(),
+              location: const GeolocatorLocationService(),
+            )..load(),
           ),
         ],
         child: const MyApp(),

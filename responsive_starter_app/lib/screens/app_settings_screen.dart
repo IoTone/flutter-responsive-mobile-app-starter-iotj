@@ -189,6 +189,17 @@ class AppSettingsScreen extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/settings/voice'),
           ),
+          // R36 — Auto-publish location. Lives here so users find
+          // it under "App settings" rather than buried in Device
+          // config; the device-side advert policy is separate.
+          ListTile(
+            leading: const Icon(Icons.satellite_alt),
+            title: Text(l.locTitle),
+            subtitle: Text(l.locTileSubtitle,
+                style: TextStyle(color: cs.onSurface.withValues(alpha: .6))),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/location'),
+          ),
           ListTile(
             title: Text(l.settingsNotifications),
             subtitle: Text(l.settingsNotificationsSubtitle,

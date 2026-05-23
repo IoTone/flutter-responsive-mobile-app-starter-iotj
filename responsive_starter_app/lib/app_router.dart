@@ -8,6 +8,7 @@ import 'screens/device_config_screen.dart';
 import 'screens/dm_screen.dart';
 import 'screens/grid_screen.dart';
 import 'screens/diagnostics_screen.dart';
+import 'screens/location_settings_screen.dart';
 import 'screens/personalization_screen.dart';
 import 'screens/voice_settings_screen.dart';
 import 'shell/home_shell.dart';
@@ -48,6 +49,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/settings/voice',
       builder: (_, __) => const VoiceSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/settings/location',
+      builder: (_, __) => const LocationSettingsScreen(),
     ),
   ],
 );
