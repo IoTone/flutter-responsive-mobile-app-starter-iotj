@@ -824,6 +824,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodeDetailShowOnMapSnack => 'リバースジオコード地図 (R25) は今後対応予定です。';
 
   @override
+  String get nodeDetailShowOnMapFailed => 'マップアプリを開けませんでした。';
+
+  @override
   String get nodeDetailCopyPubkey => '公開鍵をコピー';
 
   @override

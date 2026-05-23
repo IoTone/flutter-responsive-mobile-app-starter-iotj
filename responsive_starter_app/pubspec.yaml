@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.44+44
+version: 1.0.45+45
 
 environment:
   sdk: ^3.5.0
@@ -92,6 +92,10 @@ dependencies:
   #     fusion (Android ROTATION_VECTOR, iOS CLLocationManager
   #     heading). Subscribed only while the radial view is mounted.
   flutter_compass: ^0.8.1
+
+  # --- External-URL launcher for "Show on map" (NodeDetailSheet
+  #     → Apple Maps / Google Maps), QR-share text fallback, etc.
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

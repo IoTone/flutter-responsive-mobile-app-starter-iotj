@@ -1562,6 +1562,12 @@ abstract class AppLocalizations {
   /// **'Reverse-geocoded map (R25) is on the roadmap.'**
   String get nodeDetailShowOnMapSnack;
 
+  /// No description provided for @nodeDetailShowOnMapFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the maps app.'**
+  String get nodeDetailShowOnMapFailed;
+
   /// No description provided for @nodeDetailCopyPubkey.
   ///
   /// In en, this message translates to:

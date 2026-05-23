@@ -383,6 +383,7 @@
   "nodeDetailContact": "Contact",
   "nodeDetailShowOnMap": "Show on geocoded map",
   "nodeDetailShowOnMapSnack": "Reverse-geocoded map (R25) is on the roadmap.",
+  "nodeDetailShowOnMapFailed": "Couldn't open the maps app.",
   "nodeDetailCopyPubkey": "Copy full pubkey",
   "nodeDetailPubkeyCopied": "Pubkey copied",
   "nodeDetailInRange": "IN RANGE",

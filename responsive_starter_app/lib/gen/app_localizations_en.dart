@@ -871,6 +871,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Reverse-geocoded map (R25) is on the roadmap.';
 
   @override
+  String get nodeDetailShowOnMapFailed => 'Couldn\'t open the maps app.';
+
+  @override
   String get nodeDetailCopyPubkey => 'Copy full pubkey';
 
   @override

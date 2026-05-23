@@ -383,6 +383,7 @@
   "nodeDetailContact": "コンタクト",
   "nodeDetailShowOnMap": "地図上に表示",
   "nodeDetailShowOnMapSnack": "リバースジオコード地図 (R25) は今後対応予定です。",
+  "nodeDetailShowOnMapFailed": "マップアプリを開けませんでした。",
   "nodeDetailCopyPubkey": "公開鍵をコピー",
   "nodeDetailPubkeyCopied": "公開鍵をコピーしました",
   "nodeDetailInRange": "範囲内",

@@ -1,8 +1,12 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../gen/app_localizations.dart';
 import '../meshcore/chat_message.dart';
@@ -247,18 +251,17 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
                 ),
               ],
             ),
+            // "Show on map" — opens the platform's mapping app
+            // (Apple Maps on iOS, Google Maps web URL elsewhere)
+            // pinned at the node's lat/lon. Disabled if the node
+            // doesn't have a known location yet.
             const SizedBox(height: 6),
             OutlinedButton.icon(
               icon: const Icon(Icons.map_outlined),
               label: Text(l.nodeDetailShowOnMap),
-              onPressed: () {
-                ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                  SnackBar(
-                    content: Text(l.nodeDetailShowOnMapSnack),
-                    duration: const Duration(seconds: 3),
-                  ),
-                );
-              },
+              onPressed: n.hasLocation
+                  ? () => _openInMaps(context, n, l)
+                  : null,
             ),
             const SizedBox(height: 6),
             TextButton.icon(
@@ -280,5 +283,33 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
         ),
       ),
     );
+  }
+
+  /// Open the platform's mapping app at the node's pin. iOS goes
+  /// to Apple Maps natively (`maps.apple.com/?ll=LAT,LON&q=NAME`),
+  /// everything else gets Google Maps via web URL (works whether
+  /// or not the Google Maps app is installed — the OS resolves
+  /// it).
+  Future<void> _openInMaps(
+      BuildContext context, DiscoveredNode n, AppLocalizations l) async {
+    final String lat = n.latitude!.toStringAsFixed(6);
+    final String lon = n.longitude!.toStringAsFixed(6);
+    final String label = Uri.encodeQueryComponent(
+        n.name.isEmpty ? n.shortId : n.name);
+    final bool isApple =
+        !kIsWeb && (Platform.isIOS || Platform.isMacOS);
+    final Uri uri = isApple
+        ? Uri.parse('https://maps.apple.com/?ll=$lat,$lon&q=$label')
+        : Uri.parse('https://www.google.com/maps?q=$lat,$lon');
+    final bool ok =
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: Text(l.nodeDetailShowOnMapFailed),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 }
