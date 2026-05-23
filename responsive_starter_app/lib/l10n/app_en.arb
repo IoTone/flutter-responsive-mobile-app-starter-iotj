@@ -233,6 +233,14 @@
     "placeholders": {"interval": {"type": "String"}}
   },
   "gridFooter": "Outer ring ≈ {label} ({value}) · tap a node for details · info icon for the legend",
+  "gridHeading": "HDG {deg}° {cardinal}",
+  "@gridHeading": {
+    "placeholders": {
+      "deg": {"type": "int"},
+      "cardinal": {"type": "String"}
+    }
+  },
+  "gridHeadingCalibrate": "Compass needs calibration — wave the phone in a figure 8.",
   "@gridFooter": {
     "placeholders": {
       "label": {"type": "String"},

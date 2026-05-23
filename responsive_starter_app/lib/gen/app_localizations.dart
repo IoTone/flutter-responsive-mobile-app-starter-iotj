@@ -1088,6 +1088,18 @@ abstract class AppLocalizations {
   /// **'Outer ring ≈ {label} ({value}) · tap a node for details · info icon for the legend'**
   String gridFooter(String label, String value);
 
+  /// No description provided for @gridHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'HDG {deg}° {cardinal}'**
+  String gridHeading(int deg, String cardinal);
+
+  /// No description provided for @gridHeadingCalibrate.
+  ///
+  /// In en, this message translates to:
+  /// **'Compass needs calibration — wave the phone in a figure 8.'**
+  String get gridHeadingCalibrate;
+
   /// No description provided for @voiceSettingsTitle.
   ///
   /// In en, this message translates to:

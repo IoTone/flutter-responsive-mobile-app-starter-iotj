@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.43+43
+version: 1.0.44+44
 
 environment:
   sdk: ^3.5.0
@@ -86,6 +86,12 @@ dependencies:
   # --- R6 follow-on: QR-share for channel PSK handoff. Generation
   #     only in this pass; scanning side is captured separately.
   qr_flutter: ^4.1.0
+
+  # --- Magnetometer-derived compass heading for the radial /grid
+  #     "facing arrow" overlay. Wraps the platform's native sensor
+  #     fusion (Android ROTATION_VECTOR, iOS CLLocationManager
+  #     heading). Subscribed only while the radial view is mounted.
+  flutter_compass: ^0.8.1
 
 dev_dependencies:
   flutter_test:

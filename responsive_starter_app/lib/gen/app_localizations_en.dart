@@ -591,6 +591,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String gridHeading(int deg, String cardinal) {
+    return 'HDG $deg° $cardinal';
+  }
+
+  @override
+  String get gridHeadingCalibrate =>
+      'Compass needs calibration — wave the phone in a figure 8.';
+
+  @override
   String get voiceSettingsTitle => 'Voice (TTS quality)';
 
   @override

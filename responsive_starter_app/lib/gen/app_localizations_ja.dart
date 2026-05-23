@@ -549,6 +549,14 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String gridHeading(int deg, String cardinal) {
+    return '方位 $deg° $cardinal';
+  }
+
+  @override
+  String get gridHeadingCalibrate => 'コンパス要校正 — スマートフォンを 8 の字に振ってください。';
+
+  @override
   String get voiceSettingsTitle => '音声 (TTS 品質)';
 
   @override

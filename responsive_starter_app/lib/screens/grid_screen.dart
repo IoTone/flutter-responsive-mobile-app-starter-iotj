@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_compass/flutter_compass.dart';
 import 'package:provider/provider.dart';
 
 import '../gen/app_localizations.dart';
@@ -115,6 +116,17 @@ class _GridScreenState extends State<GridScreen>
   /// Index into [GridScreen.rangeStops] for the outer-ring scale.
   int _scaleIndex = GridScreen.rangeStops.length - 1; // Wide (5 km)
 
+  /// Live phone compass heading in degrees from magnetic north
+  /// (0=N, 90=E, 180=S, 270=W). Null when no sensor data has
+  /// arrived yet. Drives the radar's "facing wedge" overlay.
+  double? _headingDeg;
+
+  /// Reported accuracy (degrees, lower = better). When > 25 we
+  /// surface a small "calibrate phone (figure-8 wave)" hint.
+  double? _headingAccuracyDeg;
+
+  StreamSubscription<CompassEvent>? _compassSub;
+
   @override
   void initState() {
     super.initState();
@@ -128,12 +140,27 @@ class _GridScreenState extends State<GridScreen>
         mc.incomingChannelMessages.listen((_) {
       if (mounted) _rippleAt = DateTime.now();
     });
+    // Compass subscription — platform-fused heading. Stream may be
+    // null on devices without a magnetometer; in that case the
+    // overlay is just skipped. We subscribe at screen-mount time
+    // (cheap ~5-10 mA while open) and cancel on dispose.
+    final Stream<CompassEvent>? src = FlutterCompass.events;
+    if (src != null) {
+      _compassSub = src.listen((CompassEvent e) {
+        if (!mounted) return;
+        setState(() {
+          _headingDeg = e.heading;
+          _headingAccuracyDeg = e.accuracy;
+        });
+      }, onError: (_) {});
+    }
   }
 
   @override
   void dispose() {
     _refreshTimer?.cancel();
     _msgSub?.cancel();
+    _compassSub?.cancel();
     _tick.dispose();
     super.dispose();
   }
@@ -480,6 +507,7 @@ class _GridScreenState extends State<GridScreen>
                               base: cs.onSurfaceVariant,
                               rippleAt: _rippleAt,
                               rippleDuration: _rippleDuration,
+                              headingDeg: _headingDeg,
                               scaleKm: scaleKm,
                             ),
                           ),
@@ -490,14 +518,63 @@ class _GridScreenState extends State<GridScreen>
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
-            child: Text(
-              l.gridFooter(scaleLabel.toLowerCase(), scaleValue),
-              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 11),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    l.gridFooter(scaleLabel.toLowerCase(), scaleValue),
+                    style: TextStyle(
+                        color: cs.onSurfaceVariant, fontSize: 11),
+                  ),
+                ),
+                if (_headingDeg != null)
+                  Text(
+                    l.gridHeading(_headingDeg!.round(),
+                        _cardinal(_headingDeg!)),
+                    style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontSize: 11,
+                        fontFamily: 'monospace'),
+                  ),
+              ],
             ),
           ),
+          if (_headingAccuracyDeg != null &&
+              _headingAccuracyDeg! > 25)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Row(
+                children: <Widget>[
+                  Icon(Icons.explore_off,
+                      size: 12, color: cs.tertiary),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      l.gridHeadingCalibrate,
+                      style: TextStyle(
+                          color: cs.tertiary, fontSize: 11),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  /// Map a compass heading (degrees, 0 = N) to a one- or two-letter
+  /// cardinal direction. 16-wind compass.
+  String _cardinal(double headingDeg) {
+    final double n = ((headingDeg % 360) + 360) % 360;
+    const List<String> winds = <String>[
+      'N', 'NNE', 'NE', 'ENE',
+      'E', 'ESE', 'SE', 'SSE',
+      'S', 'SSW', 'SW', 'WSW',
+      'W', 'WNW', 'NW', 'NNW',
+    ];
+    final int idx = ((n + 11.25) ~/ 22.5) % 16;
+    return winds[idx];
   }
 }
 
@@ -582,6 +659,7 @@ class _GridPainter extends CustomPainter {
     required this.rippleAt,
     required this.rippleDuration,
     required this.scaleKm,
+    this.headingDeg,
   });
 
   final List<DiscoveredNode> nodes;
@@ -600,6 +678,12 @@ class _GridPainter extends CustomPainter {
   final DateTime? rippleAt;
   final Duration rippleDuration;
   final double scaleKm;
+
+  /// Live phone compass heading (degrees from magnetic north,
+  /// 0=N / 90=E / 180=S / 270=W). When non-null, the painter
+  /// draws a small facing wedge from the centre pin so the user
+  /// can see which way they're pointed relative to the radar.
+  final double? headingDeg;
 
   static bool _selfHasGpsStatic(double? lat, double? lon) =>
       lat != null && lon != null && !(lat == 0 && lon == 0);
@@ -711,6 +795,47 @@ class _GridPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.5
           ..color = accent.withValues(alpha: .6));
+
+    // Heading "facing wedge" — a small translucent triangle
+    // pointing in the user's compass-derived heading. North-up
+    // grid stays the stable frame; this only shows which way
+    // the user is **looking**, not where the radar is rotated.
+    final double? hd = headingDeg;
+    if (hd != null) {
+      // Convert compass heading (0=N, 90=E) to math angle (0=+X,
+      // 90=+Y down on screen). +X is right (east); -Y is up
+      // (north). So north = -90° in math angle.
+      final double rad = (hd - 90) * math.pi / 180;
+      // Wedge geometry — narrow base at the centre's edge, point
+      // 28 px out at the heading direction.
+      const double base = 8; // half-width at the base
+      const double len = 28;
+      final double cosA = math.cos(rad);
+      final double sinA = math.sin(rad);
+      final double perpCos = math.cos(rad + math.pi / 2);
+      final double perpSin = math.sin(rad + math.pi / 2);
+      final Offset tip = center +
+          Offset(cosA * (9 + len), sinA * (9 + len));
+      final Offset baseCentre =
+          center + Offset(cosA * 11, sinA * 11);
+      final Offset bL =
+          baseCentre + Offset(perpCos * base, perpSin * base);
+      final Offset bR =
+          baseCentre + Offset(-perpCos * base, -perpSin * base);
+      final Path wedge = Path()
+        ..moveTo(tip.dx, tip.dy)
+        ..lineTo(bL.dx, bL.dy)
+        ..lineTo(bR.dx, bR.dy)
+        ..close();
+      canvas.drawPath(
+          wedge, Paint()..color = accent.withValues(alpha: .55));
+      canvas.drawPath(
+          wedge,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1
+            ..color = accent);
+    }
 
     // R18 anonymous-channel ripple: an incoming channel message is
     // not attributable to a node, so draw a transient centre-out

@@ -233,6 +233,14 @@
     "placeholders": {"interval": {"type": "String"}}
   },
   "gridFooter": "外側リング ≈ {label} ({value}) · ノードをタップで詳細 · ⓘ で凡例",
+  "gridHeading": "方位 {deg}° {cardinal}",
+  "@gridHeading": {
+    "placeholders": {
+      "deg": {"type": "int"},
+      "cardinal": {"type": "String"}
+    }
+  },
+  "gridHeadingCalibrate": "コンパス要校正 — スマートフォンを 8 の字に振ってください。",
   "@gridFooter": {
     "placeholders": {
       "label": {"type": "String"},
