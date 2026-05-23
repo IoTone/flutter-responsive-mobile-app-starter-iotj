@@ -291,7 +291,7 @@ class _LocationTile extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        if (loc != null)
+        if (loc != null) ...<Widget>[
           Text(
             '${loc.latitude.toStringAsFixed(5)}, '
             '${loc.longitude.toStringAsFixed(5)}\n'
@@ -300,7 +300,15 @@ class _LocationTile extends StatelessWidget {
                 color: cs.onSurface,
                 fontFamily: 'monospace',
                 height: 1.5),
-          )
+          ),
+          // Diagnostic readout — shows the raw selfInfo lat/lon,
+          // the device's advertLocPolicy, and the phoneFix value
+          // (if any). Lets us tell at a glance whether the device
+          // is reporting fresh GPS or whether ownLocation is
+          // falling through to a cached phone fix.
+          const SizedBox(height: 4),
+          _LocationDebugLine(mc: mc, cs: cs),
+        ]
         else if (awaitingSelf)
           Text(l.dashboardAwaitingDeviceLocation,
               style: TextStyle(color: cs.onSurfaceVariant))
@@ -323,6 +331,54 @@ class _LocationTile extends StatelessWidget {
             ],
           ),
       ],
+    );
+  }
+}
+
+/// Small dev-style readout under the formatted Location value.
+/// Shows the **raw** values our controller currently sees:
+/// - `dev: lat, lon` — `mc.selfInfo.latitude/longitude` straight
+///   off the wire. Frozen at (0, 0) → the firmware reports "no
+///   GPS." Frozen at a non-zero pair across multiple refreshes →
+///   the firmware is caching and not re-reading GPS.
+/// - `pol: N` — `mc.selfInfo.advertLocPolicy` (0=None, 1=Pinned,
+///   2=Device GPS). If the user thinks they set "Device GPS" but
+///   this isn't 2, the policy didn't actually stick on the
+///   device.
+/// - `phone: lat, lon` — the one-shot phone fix `mc.phoneLocationFix`.
+///   Only present if the user has tapped "Use phone location" or
+///   the dashboard requested a fix. `ownLocation` falls back to
+///   this when the device reports (0, 0).
+class _LocationDebugLine extends StatelessWidget {
+  const _LocationDebugLine({required this.mc, required this.cs});
+  final MeshcoreController mc;
+  final ColorScheme cs;
+
+  @override
+  Widget build(BuildContext context) {
+    final SelfInfo? si = mc.selfInfo;
+    final OwnLocation? phone = mc.phoneLocationFix;
+    final List<String> parts = <String>[
+      if (si != null)
+        'dev: ${si.latitude.toStringAsFixed(5)}, '
+            '${si.longitude.toStringAsFixed(5)} '
+            'pol:${si.advertLocPolicy}'
+      else
+        'dev: —',
+      if (phone != null)
+        'phone: ${phone.latitude.toStringAsFixed(5)}, '
+            '${phone.longitude.toStringAsFixed(5)}'
+      else
+        'phone: —',
+    ];
+    return Text(
+      parts.join('\n'),
+      style: TextStyle(
+        color: cs.onSurfaceVariant.withValues(alpha: .7),
+        fontFamily: 'monospace',
+        fontSize: 10,
+        height: 1.35,
+      ),
     );
   }
 }

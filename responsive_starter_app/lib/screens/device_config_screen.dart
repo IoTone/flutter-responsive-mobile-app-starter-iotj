@@ -100,6 +100,13 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     super.dispose();
   }
 
+  // Snapshot of what `_loadFrom` last wrote. Lets us detect
+  // "user hasn't touched these fields" so the auto-reload doesn't
+  // clobber in-progress edits.
+  String _lastLoadedLat = '';
+  String _lastLoadedLon = '';
+  String _lastLoadedName = '';
+
   void _loadFrom(SelfInfo s) {
     _freq.text = s.frequencyMhz.toString();
     _bw.text = s.bandwidthKhz.toString();
@@ -109,7 +116,36 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     _name.text = s.name;
     _lat.text = s.latitude == 0 ? '' : s.latitude.toString();
     _lon.text = s.longitude == 0 ? '' : s.longitude.toString();
+    _lastLoadedLat = _lat.text;
+    _lastLoadedLon = _lon.text;
+    _lastLoadedName = _name.text;
     setState(() => _loaded = true);
+  }
+
+  /// Re-sync text fields when the device's `selfInfo` has changed
+  /// AND the user hasn't typed over the previously-loaded values.
+  /// This is what makes the periodic location-refresh actually
+  /// appear in the lat/lon fields instead of freezing at the
+  /// initial-handshake snapshot.
+  void _maybeReloadFromSelfInfo(SelfInfo s) {
+    final String latNext = s.latitude == 0 ? '' : s.latitude.toString();
+    final String lonNext = s.longitude == 0 ? '' : s.longitude.toString();
+    final String nameNext = s.name;
+    final bool latUntouched = _lat.text == _lastLoadedLat;
+    final bool lonUntouched = _lon.text == _lastLoadedLon;
+    final bool nameUntouched = _name.text == _lastLoadedName;
+    if (latUntouched && _lat.text != latNext) {
+      _lat.text = latNext;
+      _lastLoadedLat = latNext;
+    }
+    if (lonUntouched && _lon.text != lonNext) {
+      _lon.text = lonNext;
+      _lastLoadedLon = lonNext;
+    }
+    if (nameUntouched && _name.text != nameNext) {
+      _name.text = nameNext;
+      _lastLoadedName = nameNext;
+    }
   }
 
   Future<void> _applyName(MeshcoreController mc) async {
@@ -269,6 +305,13 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     if (!_loaded && si != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && !_loaded) _loadFrom(si);
+      });
+    } else if (_loaded && si != null) {
+      // Subsequent SelfInfo arrivals (e.g. the dashboard's 60 s
+      // refresh trigger) — sync the lat/lon/name fields into the
+      // form unless the user has edited them since the last load.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _maybeReloadFromSelfInfo(si);
       });
     }
 
