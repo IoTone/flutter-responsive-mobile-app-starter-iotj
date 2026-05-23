@@ -962,26 +962,39 @@ class MeshcoreController extends ChangeNotifier {
   /// SelfInfo refresh timer. The MeshCore companion protocol doesn't
   /// auto-push fresh SelfInfo when the device's onboard GPS updates,
   /// so a long-running session with `advertLocPolicy = Device GPS`
-  /// would show a frozen location on the dashboard. Re-sending
-  /// `appStart` triggers the device to push a fresh SelfInfoFrame
-  /// (the same response it sent at first handshake). 30 s cadence
-  /// trades freshness for OTA-friendliness — fast enough to feel
-  /// alive on foot, light enough to not flood the link.
+  /// would show a frozen location on the dashboard. Earlier we
+  /// re-sent `appStart` here, but field testing showed the firmware
+  /// returns a **cached** SelfInfo to appStart — the lat/lon only
+  /// refreshes when the device actually **builds an outbound
+  /// advert** (which is when it reads GPS into the advert payload).
+  ///
+  /// The refresh sequence is now: zero-hop `sendSelfAdvert`
+  /// (forces firmware to read GPS into the just-built advert) +
+  /// `appStart` (pulls the freshly-updated SelfInfo back). Cadence
+  /// is 60 s — bigger than the old 30 s because the advert is
+  /// actual OTA traffic (single zero-hop frame, no flood, low
+  /// impact but real).
   Timer? _selfInfoTimer;
 
   void _startSelfInfoPolling() {
     _selfInfoTimer?.cancel();
-    _selfInfoTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    _selfInfoTimer = Timer.periodic(const Duration(seconds: 60), (_) {
       if (isReady) unawaited(refreshSelfInfo());
     });
   }
 
   /// Public API for forcing a SelfInfo refresh from the device.
-  /// Used by the periodic poll above + the dashboard's "refresh
-  /// location" button. Safe to call repeatedly; the response just
-  /// flows through `_handleSelfInfo` like any other.
+  /// Sends a **zero-hop self-advert** to force the firmware to
+  /// re-read its GPS into the advert payload, then `appStart` to
+  /// pull the refreshed SelfInfoFrame back through the inbound
+  /// listener. Safe to call repeatedly; errors are swallowed.
   Future<void> refreshSelfInfo() async {
     if (!isReady) return;
+    // 1) Zero-hop advert triggers firmware GPS read + state update.
+    await sendSelfAdvert(flood: false).catchError((_) {});
+    // 2) appStart re-fetches the updated SelfInfo. Some firmware
+    //    variants update selfInfo on the advert TX itself; either
+    //    way the appStart response carries the freshest snapshot.
     await send(MeshcoreFrameCodec.appStart(
       appName: _connection.appName,
     )).catchError((_) {});
