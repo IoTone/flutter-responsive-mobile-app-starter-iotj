@@ -211,8 +211,9 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       _cr.text = p.codingRate.toString();
       _tx.text = p.txPowerDbm.toString();
     });
+    final String localized = localizedPresetLabel(l, p.id);
     if (!mc.isReady) {
-      _toast(p.label);
+      _toast(localized);
       return;
     }
     try {
@@ -223,7 +224,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
         codingRate: p.codingRate,
       )));
       await mc.send(MeshcoreFrameCodec.setRadioTxPower(p.txPowerDbm));
-      _toast(l.deviceRegionAppliedToast(p.label));
+      _toast(l.deviceRegionAppliedToast(localized));
     } catch (e) {
       _toast(l.deviceToastSendFailed('$e'));
     }
@@ -253,7 +254,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
       builder: (BuildContext ctx) => AlertDialog(
         title: Text(l.deviceRegionSuggestTitle),
         content: Text(l.deviceRegionSuggestBody(
-            p.label,
+            localizedPresetLabel(l, p.id),
             fix.latitude.toStringAsFixed(3),
             fix.longitude.toStringAsFixed(3))),
         actions: <Widget>[
@@ -352,7 +353,8 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
             children: <Widget>[
               for (final RegionPreset p in kRegionPresets)
                 _RegionChip(
-                  preset: p,
+                  label: localizedPresetLabel(l, p.id),
+                  note: p.note,
                   selected: si != null &&
                       matchPresetByRadioParams(
                             frequencyMhz: si.frequencyMhz,
@@ -917,7 +919,9 @@ class _CurrentRegionBanner extends StatelessWidget {
           );
     final String label = si == null
         ? l.deviceRegionUnknown
-        : match?.label ?? l.deviceRegionCustom;
+        : match != null
+            ? localizedPresetLabel(l, match.id)
+            : l.deviceRegionCustom;
     final bool isCustom = si != null && match == null;
     final Color border = isCustom ? cs.tertiary : cs.primary;
     final Color fg = isCustom ? cs.tertiary : cs.primary;
@@ -973,11 +977,13 @@ class _CurrentRegionBanner extends StatelessWidget {
 /// preset's tuple matches the device's live radio params.
 class _RegionChip extends StatelessWidget {
   const _RegionChip({
-    required this.preset,
+    required this.label,
+    required this.note,
     required this.selected,
     required this.onTap,
   });
-  final RegionPreset preset;
+  final String label;
+  final String? note;
   final bool selected;
   final VoidCallback onTap;
 
@@ -990,8 +996,8 @@ class _RegionChip extends StatelessWidget {
       avatar: selected
           ? Icon(Icons.check, size: 16, color: cs.onPrimary)
           : null,
-      label: Text(preset.label),
-      tooltip: preset.note,
+      label: Text(label),
+      tooltip: note,
       selectedColor: cs.primary,
       labelStyle: TextStyle(
         color: selected ? cs.onPrimary : cs.onSurface,

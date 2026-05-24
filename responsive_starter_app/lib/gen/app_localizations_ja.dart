@@ -1241,7 +1241,49 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get deviceRegionDisclaimer =>
-      'プリセット値はコミュニティで合意された運用例であり、法令適合を保証するものではありません。利用地で合法なプリセットを選び、メッシュ内の全ノードで同じ値を使用してください。日本（ARIB STD-T108）はキャリアセンス（LBT）の遵守が必須であり、これはデバイスファームウェアが処理します（本アプリでは制御しません）。';
+      'プリセット値はコミュニティで合意された運用例であり、法令適合を保証するものではありません。利用地で合法なプリセットを選び、メッシュ内の全ノードで同じ値を使用してください。日本（ARIB STD-T108）のプリセットはコミュニティ提案で、広範な実機検証は完了していません。実運用前に、法令適合性と動作をご自身のハードウェアで必ず確認してください。';
+
+  @override
+  String get presetUsCanada => '米国 / カナダ';
+
+  @override
+  String get presetUsArizona => '米国 — アリゾナ';
+
+  @override
+  String get presetJpAribT108 => '日本（ARIB STD-T108）';
+
+  @override
+  String get presetEuUkLong => 'EU / UK（長距離）';
+
+  @override
+  String get presetEuUkMedium => 'EU / UK（中距離）';
+
+  @override
+  String get presetEuUkNarrow => 'EU / UK（狭帯域）';
+
+  @override
+  String get presetCh => 'スイス';
+
+  @override
+  String get presetCz => 'チェコ';
+
+  @override
+  String get presetPt869 => 'ポルトガル（869 MHz）';
+
+  @override
+  String get presetAu => 'オーストラリア';
+
+  @override
+  String get presetAuNarrow => 'オーストラリア（狭帯域）';
+
+  @override
+  String get presetAuSaWaQld => 'オーストラリア（SA / WA / QLD）';
+
+  @override
+  String get presetNz => 'ニュージーランド';
+
+  @override
+  String get presetVn => 'ベトナム';
 
   @override
   String get cancel => 'キャンセル';

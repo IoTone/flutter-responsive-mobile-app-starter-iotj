@@ -590,7 +590,23 @@
   "@deviceRegionAppliedToast": {
     "placeholders": {"label": {"type": "String"}}
   },
-  "deviceRegionDisclaimer": "Operating points are community-curated, not regulatory guarantees. Pick the preset legal where you are and use the SAME tuple on every node. JP (ARIB STD-T108) mandates listen-before-talk; that is enforced by the device firmware, not by this app.",
+  "deviceRegionDisclaimer": "Operating points are community-curated, not regulatory guarantees. Pick the preset legal where you are and use the SAME tuple on every node. The Japan (ARIB STD-T108) preset is a community proposal that hasn't been broadly field-validated — please confirm it is legal and works on your hardware before relying on it.",
+
+  "presetUsCanada": "USA / Canada",
+  "presetUsArizona": "USA — Arizona",
+  "presetJpAribT108": "Japan (ARIB STD-T108)",
+  "presetEuUkLong": "EU / UK (Long Range)",
+  "presetEuUkMedium": "EU / UK (Medium Range)",
+  "presetEuUkNarrow": "EU / UK (Narrow)",
+  "presetCh": "Switzerland",
+  "presetCz": "Czech Republic",
+  "presetPt869": "Portugal (869 MHz)",
+  "presetAu": "Australia",
+  "presetAuNarrow": "Australia (Narrow)",
+  "presetAuSaWaQld": "Australia (SA / WA / QLD)",
+  "presetNz": "New Zealand",
+  "presetVn": "Vietnam",
+
   "cancel": "Cancel",
   "deviceRadioParams": "RADIO PARAMS",
   "deviceIdentityAdvert": "IDENTITY / ADVERT",

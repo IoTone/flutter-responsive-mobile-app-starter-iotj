@@ -2273,8 +2273,92 @@ abstract class AppLocalizations {
   /// No description provided for @deviceRegionDisclaimer.
   ///
   /// In en, this message translates to:
-  /// **'Operating points are community-curated, not regulatory guarantees. Pick the preset legal where you are and use the SAME tuple on every node. JP (ARIB STD-T108) mandates listen-before-talk; that is enforced by the device firmware, not by this app.'**
+  /// **'Operating points are community-curated, not regulatory guarantees. Pick the preset legal where you are and use the SAME tuple on every node. The Japan (ARIB STD-T108) preset is a community proposal that hasn\'t been broadly field-validated — please confirm it is legal and works on your hardware before relying on it.'**
   String get deviceRegionDisclaimer;
+
+  /// No description provided for @presetUsCanada.
+  ///
+  /// In en, this message translates to:
+  /// **'USA / Canada'**
+  String get presetUsCanada;
+
+  /// No description provided for @presetUsArizona.
+  ///
+  /// In en, this message translates to:
+  /// **'USA — Arizona'**
+  String get presetUsArizona;
+
+  /// No description provided for @presetJpAribT108.
+  ///
+  /// In en, this message translates to:
+  /// **'Japan (ARIB STD-T108)'**
+  String get presetJpAribT108;
+
+  /// No description provided for @presetEuUkLong.
+  ///
+  /// In en, this message translates to:
+  /// **'EU / UK (Long Range)'**
+  String get presetEuUkLong;
+
+  /// No description provided for @presetEuUkMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'EU / UK (Medium Range)'**
+  String get presetEuUkMedium;
+
+  /// No description provided for @presetEuUkNarrow.
+  ///
+  /// In en, this message translates to:
+  /// **'EU / UK (Narrow)'**
+  String get presetEuUkNarrow;
+
+  /// No description provided for @presetCh.
+  ///
+  /// In en, this message translates to:
+  /// **'Switzerland'**
+  String get presetCh;
+
+  /// No description provided for @presetCz.
+  ///
+  /// In en, this message translates to:
+  /// **'Czech Republic'**
+  String get presetCz;
+
+  /// No description provided for @presetPt869.
+  ///
+  /// In en, this message translates to:
+  /// **'Portugal (869 MHz)'**
+  String get presetPt869;
+
+  /// No description provided for @presetAu.
+  ///
+  /// In en, this message translates to:
+  /// **'Australia'**
+  String get presetAu;
+
+  /// No description provided for @presetAuNarrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Australia (Narrow)'**
+  String get presetAuNarrow;
+
+  /// No description provided for @presetAuSaWaQld.
+  ///
+  /// In en, this message translates to:
+  /// **'Australia (SA / WA / QLD)'**
+  String get presetAuSaWaQld;
+
+  /// No description provided for @presetNz.
+  ///
+  /// In en, this message translates to:
+  /// **'New Zealand'**
+  String get presetNz;
+
+  /// No description provided for @presetVn.
+  ///
+  /// In en, this message translates to:
+  /// **'Vietnam'**
+  String get presetVn;
 
   /// No description provided for @cancel.
   ///

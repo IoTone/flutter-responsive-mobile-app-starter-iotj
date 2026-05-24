@@ -1,5 +1,6 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
+import '../gen/app_localizations.dart';
 
 /// R39 — LoRa region presets + geofence resolver.
 ///
@@ -78,10 +79,12 @@ const List<RegionPreset> kRegionPresets = <RegionPreset>[
     note: 'AZ regional variant',
   ),
   // --- Japan ---
-  // ARIB STD-T108 ch.32 (923.2 MHz centre), 125 kHz, SF10. LBT
-  // (listen-before-talk) is mandated and is enforced by the
-  // device firmware — NOT by this app. The 13 dBm TX is the
-  // ceiling for ARIB 920 MHz 1 mW EIRP-class operation.
+  // ARIB STD-T108 ch.32 (923.2 MHz centre), 125 kHz, SF10. Source:
+  // MeshCore community proposal (issue #460, @jirogit); the issue
+  // was later closed for inactivity, so the canonical preset table
+  // doesn't ship a JP entry. We carry it here so JP users have a
+  // legal starting point. LBT (listen-before-talk) is mandated and
+  // is enforced by the device firmware — NOT by this app.
   RegionPreset(
     id: 'jp_arib_t108',
     label: 'Japan (ARIB STD-T108)',
@@ -216,6 +219,47 @@ RegionPreset? matchPresetByRadioParams({
     return p;
   }
   return null;
+}
+
+/// Translate a preset id to a locale-appropriate label. Place names
+/// don't strictly translate, but the Japanese locale (for example)
+/// expects 米国/カナダ rather than "USA / Canada" in the chip text.
+/// Falls back to the English [RegionPreset.label] when l10n has no
+/// key for the id.
+String localizedPresetLabel(AppLocalizations l, String presetId) {
+  switch (presetId) {
+    case 'us_canada':
+      return l.presetUsCanada;
+    case 'us_arizona':
+      return l.presetUsArizona;
+    case 'jp_arib_t108':
+      return l.presetJpAribT108;
+    case 'eu_uk_long':
+      return l.presetEuUkLong;
+    case 'eu_uk_medium':
+      return l.presetEuUkMedium;
+    case 'eu_uk_narrow':
+      return l.presetEuUkNarrow;
+    case 'ch':
+      return l.presetCh;
+    case 'cz':
+      return l.presetCz;
+    case 'pt_869':
+      return l.presetPt869;
+    case 'au_default':
+      return l.presetAu;
+    case 'au_narrow':
+      return l.presetAuNarrow;
+    case 'au_sa_wa_qld':
+      return l.presetAuSaWaQld;
+    case 'nz_default':
+      return l.presetNz;
+    case 'vn':
+      return l.presetVn;
+  }
+  // Unknown id: return the English label so a freshly-added
+  // preset doesn't render as empty.
+  return presetById(presetId)?.label ?? presetId;
 }
 
 /// Lookup by id, or null if [id] is `'custom'` / unknown.

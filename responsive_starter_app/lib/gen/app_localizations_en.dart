@@ -1293,7 +1293,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deviceRegionDisclaimer =>
-      'Operating points are community-curated, not regulatory guarantees. Pick the preset legal where you are and use the SAME tuple on every node. JP (ARIB STD-T108) mandates listen-before-talk; that is enforced by the device firmware, not by this app.';
+      'Operating points are community-curated, not regulatory guarantees. Pick the preset legal where you are and use the SAME tuple on every node. The Japan (ARIB STD-T108) preset is a community proposal that hasn\'t been broadly field-validated — please confirm it is legal and works on your hardware before relying on it.';
+
+  @override
+  String get presetUsCanada => 'USA / Canada';
+
+  @override
+  String get presetUsArizona => 'USA — Arizona';
+
+  @override
+  String get presetJpAribT108 => 'Japan (ARIB STD-T108)';
+
+  @override
+  String get presetEuUkLong => 'EU / UK (Long Range)';
+
+  @override
+  String get presetEuUkMedium => 'EU / UK (Medium Range)';
+
+  @override
+  String get presetEuUkNarrow => 'EU / UK (Narrow)';
+
+  @override
+  String get presetCh => 'Switzerland';
+
+  @override
+  String get presetCz => 'Czech Republic';
+
+  @override
+  String get presetPt869 => 'Portugal (869 MHz)';
+
+  @override
+  String get presetAu => 'Australia';
+
+  @override
+  String get presetAuNarrow => 'Australia (Narrow)';
+
+  @override
+  String get presetAuSaWaQld => 'Australia (SA / WA / QLD)';
+
+  @override
+  String get presetNz => 'New Zealand';
+
+  @override
+  String get presetVn => 'Vietnam';
 
   @override
   String get cancel => 'Cancel';

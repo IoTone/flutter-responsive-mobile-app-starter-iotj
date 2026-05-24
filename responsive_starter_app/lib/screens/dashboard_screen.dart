@@ -174,7 +174,10 @@ class DashboardScreen extends StatelessWidget {
                         size: 14,
                         color: isCustom ? cs.tertiary : cs.primary),
                     const SizedBox(width: 6),
-                    Text(p?.label ?? l.deviceRegionCustom,
+                    Text(
+                        p == null
+                            ? l.deviceRegionCustom
+                            : localizedPresetLabel(l, p.id),
                         style: TextStyle(
                             color: isCustom ? cs.tertiary : cs.primary,
                             fontSize: 12,

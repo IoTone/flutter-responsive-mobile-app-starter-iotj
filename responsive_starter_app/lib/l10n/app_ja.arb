@@ -590,7 +590,23 @@
   "@deviceRegionAppliedToast": {
     "placeholders": {"label": {"type": "String"}}
   },
-  "deviceRegionDisclaimer": "プリセット値はコミュニティで合意された運用例であり、法令適合を保証するものではありません。利用地で合法なプリセットを選び、メッシュ内の全ノードで同じ値を使用してください。日本（ARIB STD-T108）はキャリアセンス（LBT）の遵守が必須であり、これはデバイスファームウェアが処理します（本アプリでは制御しません）。",
+  "deviceRegionDisclaimer": "プリセット値はコミュニティで合意された運用例であり、法令適合を保証するものではありません。利用地で合法なプリセットを選び、メッシュ内の全ノードで同じ値を使用してください。日本（ARIB STD-T108）のプリセットはコミュニティ提案で、広範な実機検証は完了していません。実運用前に、法令適合性と動作をご自身のハードウェアで必ず確認してください。",
+
+  "presetUsCanada": "米国 / カナダ",
+  "presetUsArizona": "米国 — アリゾナ",
+  "presetJpAribT108": "日本（ARIB STD-T108）",
+  "presetEuUkLong": "EU / UK（長距離）",
+  "presetEuUkMedium": "EU / UK（中距離）",
+  "presetEuUkNarrow": "EU / UK（狭帯域）",
+  "presetCh": "スイス",
+  "presetCz": "チェコ",
+  "presetPt869": "ポルトガル（869 MHz）",
+  "presetAu": "オーストラリア",
+  "presetAuNarrow": "オーストラリア（狭帯域）",
+  "presetAuSaWaQld": "オーストラリア（SA / WA / QLD）",
+  "presetNz": "ニュージーランド",
+  "presetVn": "ベトナム",
+
   "cancel": "キャンセル",
   "deviceRadioParams": "ラジオパラメータ",
   "deviceIdentityAdvert": "アイデンティティ / アドバート",
