@@ -693,6 +693,148 @@ void main() {
     });
   });
 
+  group('R38 custom vars (gps / gps_interval)', () {
+    test('ready → CMD_GET_CUSTOM_VARS (0x28) is sent', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x28), isTrue,
+          reason: 'on ready, app must query the device custom vars');
+      ctrl.dispose();
+    });
+
+    test('CustomVarsFrame populates getters', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.deviceGpsEnabled, isNull,
+          reason: 'before the device replies, state is unknown');
+
+      fake.emit(customVarsFrame(<String, String>{
+        'gps': '1',
+        'gps_interval': '30',
+      }));
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.deviceGpsEnabled, isTrue);
+      expect(ctrl.deviceGpsIntervalSec, 30);
+      expect(ctrl.customVars['gps'], '1');
+      ctrl.dispose();
+    });
+
+    test('setCustomVar emits 0x29 + name:value (UTF-8) and re-queries',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      // Initial GET fired on ready.
+      final int initialGets =
+          fake.sent.where((f) => f.isNotEmpty && f[0] == 0x28).length;
+
+      await ctrl.setCustomVar(name: 'gps_interval', value: '60');
+
+      // Find the SET frame.
+      final Iterable<List<int>> setFrames =
+          fake.sent.where((f) => f.isNotEmpty && f[0] == 0x29);
+      expect(setFrames, isNotEmpty);
+      final String body =
+          String.fromCharCodes(setFrames.last.skip(1).toList());
+      expect(body, 'gps_interval:60');
+
+      // setCustomVar must trigger a re-query so the cached value
+      // reflects whatever the firmware actually accepted.
+      final int afterGets =
+          fake.sent.where((f) => f.isNotEmpty && f[0] == 0x28).length;
+      expect(afterGets, greaterThan(initialGets));
+      ctrl.dispose();
+    });
+
+    test('advertLocPolicy=2 + gps=0 → auto-enable gps + gps_interval=30',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      // SelfInfo carrying advertLocPolicy=2 (GPS).
+      final Uint8List si = Uint8List(58)..[0] = 0x05;
+      si[45] = 2; // advertLocPolicy byte
+      fake.emit(si);
+      await Future<void>.delayed(Duration.zero);
+      // Device reports GPS disabled.
+      fake.emit(customVarsFrame(<String, String>{
+        'gps': '0',
+        'gps_interval': '0',
+      }));
+      // Settle the microtask that triggers the auto-heal.
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      // Expect SET frames for both vars.
+      final List<List<int>> sets =
+          fake.sent.where((f) => f.isNotEmpty && f[0] == 0x29).toList();
+      final List<String> bodies = sets
+          .map((List<int> f) => String.fromCharCodes(f.skip(1).toList()))
+          .toList();
+      expect(bodies.contains('gps:1'), isTrue,
+          reason: 'auto-heal should turn the GPS module on');
+      expect(bodies.contains('gps_interval:30'), isTrue,
+          reason: 'auto-heal should pick a sensible default interval');
+      ctrl.dispose();
+    });
+
+    test('advertLocPolicy=2 + gps=1 → no auto-heal (already on)',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      final Uint8List si = Uint8List(58)..[0] = 0x05;
+      si[45] = 2;
+      fake.emit(si);
+      await Future<void>.delayed(Duration.zero);
+      fake.emit(customVarsFrame(<String, String>{
+        'gps': '1',
+        'gps_interval': '30',
+      }));
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      final List<List<int>> sets =
+          fake.sent.where((f) => f.isNotEmpty && f[0] == 0x29).toList();
+      expect(sets, isEmpty,
+          reason: 'device already configured; app must not interfere');
+      ctrl.dispose();
+    });
+  });
+
   group('battery (R16)', () {
     test('reaching ready polls battery (GET_BATTERY 0x14)', () async {
       final FakeMeshcoreTransport fake =

@@ -60,6 +60,13 @@ class MeshcoreController extends ChangeNotifier {
         // judge "in range" against the device's own clock.
         _requestDeviceTime();
         _requestDeviceInfo();
+        // R38 — read the device's custom-var map (gps, gps_interval,
+        // …). Also: if the user already has advertLocPolicy=GPS but
+        // the firmware's GPS module is disabled, auto-enable it so
+        // `sensors.node_lat/lon` actually start tracking. This is
+        // the silent on-boarding step the official companion app
+        // performs.
+        _requestCustomVars();
         _startBatteryPolling();
         _startSelfInfoPolling();
         _probeChannels();
@@ -90,6 +97,7 @@ class MeshcoreController extends ChangeNotifier {
       _trackDeviceClock(f);
       _trackBattery(f);
       _trackDeviceInfo(f);
+      _trackCustomVars(f);
       _ingestKnown(f);
       _ingestDm(f);
       _maybeDrain(f);
@@ -1041,6 +1049,97 @@ class MeshcoreController extends ChangeNotifier {
 
   void _trackDeviceInfo(MeshcoreInbound f) {
     if (f is DeviceInfoFrame) _deviceInfo = f.info;
+  }
+
+  // --- R38: device custom variables (gps, gps_interval, …) ---
+  //
+  // The companion-radio firmware stores a handful of string-keyed
+  // settings outside the SelfInfo bundle, queried via
+  // `CMD_GET_CUSTOM_VARS` (0x28) and written one at a time with
+  // `CMD_SET_CUSTOM_VAR` (0x29). The two we care about today are
+  // `gps` (0/1, powers the on-board GPS module) and `gps_interval`
+  // (seconds 0..86400, how often the module is polled into
+  // `sensors.node_lat/lon`). Other names are surfaced verbatim so
+  // future firmware additions show up in the diagnostics panel
+  // without code changes.
+
+  Map<String, String> _customVars = const <String, String>{};
+
+  /// Latest device-reported custom vars (e.g. `{gps: "1",
+  /// gps_interval: "30"}`). Empty until the first
+  /// `CMD_GET_CUSTOM_VARS` reply.
+  Map<String, String> get customVars =>
+      Map<String, String>.unmodifiable(_customVars);
+
+  /// True iff the device reports `gps=1`. Null when the device hasn't
+  /// answered the custom-var query yet (or doesn't have the key).
+  bool? get deviceGpsEnabled {
+    final String? v = _customVars['gps'];
+    if (v == null) return null;
+    return v.trim() == '1';
+  }
+
+  /// Device GPS polling interval (seconds), or null if unknown.
+  int? get deviceGpsIntervalSec {
+    final String? v = _customVars['gps_interval'];
+    if (v == null) return null;
+    return int.tryParse(v.trim());
+  }
+
+  void _requestCustomVars() {
+    unawaited(
+        send(MeshcoreFrameCodec.getCustomVars()).catchError((Object _) {}));
+  }
+
+  /// Write a single custom var. No-op if not ready. Refreshes the
+  /// local cache afterwards so getters reflect the new state.
+  Future<void> setCustomVar({
+    required String name,
+    required String value,
+  }) async {
+    if (!isReady) return;
+    await send(MeshcoreFrameCodec.setCustomVar(name: name, value: value));
+    // The device just acknowledges with OK; re-query to pick up the
+    // canonical value (firmware constrains gps_interval to 0..86400
+    // etc.).
+    _requestCustomVars();
+  }
+
+  bool _autoEnabledGpsOnce = false;
+
+  /// One-shot auto-heal: if the user has `advertLocPolicy=2` (GPS)
+  /// but the firmware reports `gps=0`, push `gps=1` + a sane
+  /// `gps_interval=30` so the GPS module actually starts updating
+  /// `sensors.node_lat/lon`. Without this, picking "Device GPS" in
+  /// our Device Config screen has no effect — the firmware just
+  /// keeps broadcasting whatever cached lat/lon it last had.
+  Future<void> _maybeAutoEnableGps() async {
+    if (_autoEnabledGpsOnce) return;
+    final SelfInfo? si = selfInfo;
+    if (si == null) return;
+    if (si.advertLocPolicy != 2) return; // user hasn't asked for GPS
+    final bool? on = deviceGpsEnabled;
+    if (on != false) return; // already on, or unknown — leave alone
+    _autoEnabledGpsOnce = true;
+    // ignore: avoid_print
+    print('[meshcore.loc] auto-enabling on-board GPS '
+        '(advertLocPolicy=2 but gps=0)');
+    await setCustomVar(name: 'gps', value: '1');
+    final int? cur = deviceGpsIntervalSec;
+    if (cur == null || cur == 0) {
+      await setCustomVar(name: 'gps_interval', value: '30');
+    }
+  }
+
+  void _trackCustomVars(MeshcoreInbound f) {
+    if (f is! CustomVarsFrame) return;
+    _customVars = Map<String, String>.from(f.values);
+    // ignore: avoid_print
+    print('[meshcore.loc] CustomVarsFrame in: $_customVars');
+    // Defer auto-enable to the microtask queue so SelfInfo (which
+    // tells us the policy) has likely landed already on a fresh
+    // connect.
+    unawaited(Future<void>.microtask(_maybeAutoEnableGps));
   }
 
   /// Set this node's advertised name (`SET_ADVERT_NAME`). The change

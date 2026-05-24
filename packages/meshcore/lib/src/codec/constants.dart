@@ -217,6 +217,17 @@ extension type const MeshcoreCommand(int code) {
   /// `CMD_SET_OTHER_PARAMS` — manual-add / telemetry / loc policy.
   static const MeshcoreCommand setOtherParams = MeshcoreCommand(0x26);
 
+  /// `CMD_GET_CUSTOM_VARS` — request the device's custom string-keyed
+  /// settings map. Reply is `RESP_CODE_CUSTOM_VARS` (0x15) carrying a
+  /// comma-separated `name:value,name:value,...` payload. Used to read
+  /// `gps`, `gps_interval`, etc.
+  static const MeshcoreCommand getCustomVars = MeshcoreCommand(0x28);
+
+  /// `CMD_SET_CUSTOM_VAR` — write a single string-keyed setting.
+  /// Body: `[name]:[value]` (ASCII, no NUL — frame length defines end).
+  /// Reply: OK on success, ERR on bad arg.
+  static const MeshcoreCommand setCustomVar = MeshcoreCommand(0x29);
+
   static const MeshcoreCommand sendChannelDatagram = MeshcoreCommand(0x3E);
 }
 
@@ -241,6 +252,10 @@ extension type const MeshcoreResponse(int code) {
   static const MeshcoreResponse contactMsgRecvV3 = MeshcoreResponse(0x10);
   static const MeshcoreResponse channelMsgRecvV3 = MeshcoreResponse(0x11);
   static const MeshcoreResponse channelInfo = MeshcoreResponse(0x12);
+
+  /// `RESP_CODE_CUSTOM_VARS` (21 = 0x15) — reply to CMD_GET_CUSTOM_VARS.
+  /// Payload: comma-separated `name:value` pairs (ASCII, no NUL).
+  static const MeshcoreResponse customVars = MeshcoreResponse(0x15);
 
   /// --- Asynchronous push codes (>= 0x80) ---
   static const MeshcoreResponse advertisement = MeshcoreResponse(0x80);

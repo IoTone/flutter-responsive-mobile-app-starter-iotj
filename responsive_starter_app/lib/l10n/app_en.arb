@@ -190,6 +190,8 @@
   "gridLegendFavourite": "Rapid blink in alt-colour = a favourited contact.",
   "gridLegendRipple": "Centre-out ripple = an anonymous channel message (the protocol doesn't attribute channel msgs to a sender).",
   "gridLegendTap": "Tap a node to see details + Message / Favourite.",
+  "gridLegendHeading": "Heading wedge / HDG line = the direction the phone's top edge is pointing relative to MAGNETIC north (not true north, not GPS travel direction). Comes from the phone's compass sensor.",
+  "gridLegendCalibration": "Calibration: if the arrow seems wrong, hold the phone level and wave it in a figure-8 motion several times. The OS handles compass calibration; the app only displays sensor accuracy (a 'Calibrate' hint appears when accuracy is poor).",
   "gridViewRadial": "Radial",
   "gridViewGlobe": "Globe",
   "globeFooter": "Showing {n} peers with known location",
@@ -213,6 +215,26 @@
     }
   },
   "deviceLocUnsaved": "✱ unsaved",
+
+  "deviceGpsModule": "ON-BOARD GPS MODULE",
+  "deviceGpsEnable": "Enable on-board GPS",
+  "deviceGpsEnabledHint": "Device firmware polls its GPS chip and updates location automatically.",
+  "deviceGpsDisabledHint": "Off — the device never reads its GPS chip; advertised location stays whatever was last written.",
+  "deviceGpsUnknown": "Waiting for device…",
+  "deviceGpsInterval": "GPS update interval",
+  "deviceGpsIntervalOff": "Off",
+  "deviceGpsIntervalSec": "Every {n} s",
+  "@deviceGpsIntervalSec": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "deviceGpsIntervalMin": "Every {n} min",
+  "@deviceGpsIntervalMin": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "deviceGpsIntervalHour": "Every {n} h",
+  "@deviceGpsIntervalHour": {
+    "placeholders": {"n": {"type": "int"}}
+  },
 
   "locTitle": "Auto-publish location",
   "locTileSubtitle": "Periodic + on-movement phone-GPS push to the device",

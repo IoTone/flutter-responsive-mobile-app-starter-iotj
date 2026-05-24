@@ -476,6 +476,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridLegendTap => 'ノードをタップで詳細 + メッセージ / お気に入り。';
 
   @override
+  String get gridLegendHeading =>
+      '方位ウェッジ・HDG 表示 = スマートフォン上端が**磁北**を基準に向いている方向（真北でも GPS 進行方向でもなく、スマートフォンの方位センサーが示す方位）。';
+
+  @override
+  String get gridLegendCalibration =>
+      'キャリブレーション: 矢印がずれている場合、スマートフォンを水平に持って数回 8 の字に動かしてください。コンパスのキャリブレーションは OS が行い、アプリは精度のみ表示します（精度が悪いと「Calibrate」ヒントが出ます）。';
+
+  @override
   String get gridViewRadial => 'ラジアル';
 
   @override
@@ -522,6 +530,44 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get deviceLocUnsaved => '✱ 未保存';
+
+  @override
+  String get deviceGpsModule => 'オンボード GPS モジュール';
+
+  @override
+  String get deviceGpsEnable => 'オンボード GPS を有効化';
+
+  @override
+  String get deviceGpsEnabledHint =>
+      'デバイスファームウェアが GPS チップを定期的に読み取り、位置を自動更新します。';
+
+  @override
+  String get deviceGpsDisabledHint =>
+      'オフ — デバイスは GPS を一切読み取らず、配信される位置は最後に書き込まれた値のままです。';
+
+  @override
+  String get deviceGpsUnknown => 'デバイス応答待ち…';
+
+  @override
+  String get deviceGpsInterval => 'GPS 更新間隔';
+
+  @override
+  String get deviceGpsIntervalOff => 'オフ';
+
+  @override
+  String deviceGpsIntervalSec(int n) {
+    return '$n 秒ごと';
+  }
+
+  @override
+  String deviceGpsIntervalMin(int n) {
+    return '$n 分ごと';
+  }
+
+  @override
+  String deviceGpsIntervalHour(int n) {
+    return '$n 時間ごと';
+  }
 
   @override
   String get locTitle => '位置の自動公開';

@@ -203,6 +203,29 @@ abstract final class MeshcoreFrameCodec {
     return b.build();
   }
 
+  /// `CMD_GET_CUSTOM_VARS` (0x28): request the device's custom
+  /// string-keyed settings (`gps`, `gps_interval`, etc.). Reply is
+  /// `RESP_CODE_CUSTOM_VARS` (0x15) decoded into [CustomVarsFrame].
+  static Uint8List getCustomVars() =>
+      (FrameBuilder()..u8(MeshcoreCommand.getCustomVars.code)).build();
+
+  /// `CMD_SET_CUSTOM_VAR` (0x29): write a single string-keyed setting.
+  /// Body: `[opcode][name]:[value]` (ASCII, no NUL — frame length
+  /// defines end). The firmware splits on the first `:` so values
+  /// containing `:` would be truncated; values containing `,` are
+  /// fine since they aren't a separator on the request path.
+  static Uint8List setCustomVar({
+    required String name,
+    required String value,
+  }) {
+    assert(!name.contains(':'),
+        'custom var name must not contain ":" (frame separator)');
+    return (FrameBuilder()
+          ..u8(MeshcoreCommand.setCustomVar.code)
+          ..utf8String('$name:$value'))
+        .build();
+  }
+
   /// `CMD_SET_TUNING_PARAMS` (0x15):
   /// `15 [rx_delay_base u32 LE ×1000] [airtime_factor u32 LE ×1000]`.
   static Uint8List setTuningParams({
@@ -331,6 +354,9 @@ abstract final class MeshcoreFrameCodec {
         case 0x0A: // RESP_CODE_NO_MORE_MESSAGES
           return const NoMoreMessagesFrame();
 
+        case 0x15: // RESP_CODE_CUSTOM_VARS
+          return CustomVarsFrame(_decodeCustomVars(c));
+
         case 0x10: // RESP_CODE_CONTACT_MSG_RECV_V3
           return ContactMessageFrame(_decodeContactMsg(c, v3: true));
 
@@ -367,6 +393,22 @@ abstract final class MeshcoreFrameCodec {
             opcode: op),
       );
     }
+  }
+
+  /// `RESP_CODE_CUSTOM_VARS` payload: comma-separated `name:value`
+  /// pairs (ASCII, no NUL — frame length is the terminator). Empty
+  /// payload → empty map. Malformed entries (no `:` separator) are
+  /// silently dropped to match the firmware's permissive parser.
+  static Map<String, String> _decodeCustomVars(ByteCursor c) {
+    if (c.atEnd) return const <String, String>{};
+    final String payload = c.utf8ToEnd('customVars.payload');
+    final Map<String, String> out = <String, String>{};
+    for (final String entry in payload.split(',')) {
+      final int sep = entry.indexOf(':');
+      if (sep <= 0) continue;
+      out[entry.substring(0, sep)] = entry.substring(sep + 1);
+    }
+    return out;
   }
 
   static SelfInfo _decodeSelfInfo(ByteCursor c) {

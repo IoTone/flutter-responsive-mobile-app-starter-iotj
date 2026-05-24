@@ -635,6 +635,11 @@ class _GridLegend extends StatelessWidget {
           row(Icons.star, l.gridLegendFavourite),
           row(Icons.waves, l.gridLegendRipple),
           row(Icons.touch_app, l.gridLegendTap),
+          const SizedBox(height: 6),
+          // Heading semantics — what the wedge actually means + how
+          // to fix it when it points the wrong way.
+          row(Icons.explore, l.gridLegendHeading),
+          row(Icons.threesixty, l.gridLegendCalibration),
         ],
       ),
     );

@@ -87,6 +87,16 @@ Uint8List selfInfoFrameAt({required double lat, required double lon}) {
   return f;
 }
 
+/// `RESP_CODE_CUSTOM_VARS` (0x15) frame with the given map encoded
+/// as comma-separated `name:value` pairs (UTF-8).
+Uint8List customVarsFrame(Map<String, String> values) {
+  final String payload = values.entries
+      .map((MapEntry<String, String> e) => '${e.key}:${e.value}')
+      .join(',');
+  final List<int> body = <int>[0x15, ...utf8.encode(payload)];
+  return Uint8List.fromList(body);
+}
+
 /// CURR_TIME (0x09) frame for unix = 1700000000 (0x6553F100 LE).
 Uint8List currentTimeFrame() =>
     Uint8List.fromList(<int>[0x09, 0x00, 0xF1, 0x53, 0x65]);

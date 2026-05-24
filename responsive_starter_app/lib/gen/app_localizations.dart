@@ -968,6 +968,18 @@ abstract class AppLocalizations {
   /// **'Tap a node to see details + Message / Favourite.'**
   String get gridLegendTap;
 
+  /// No description provided for @gridLegendHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading wedge / HDG line = the direction the phone\'s top edge is pointing relative to MAGNETIC north (not true north, not GPS travel direction). Comes from the phone\'s compass sensor.'**
+  String get gridLegendHeading;
+
+  /// No description provided for @gridLegendCalibration.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration: if the arrow seems wrong, hold the phone level and wave it in a figure-8 motion several times. The OS handles compass calibration; the app only displays sensor accuracy (a \'Calibrate\' hint appears when accuracy is poor).'**
+  String get gridLegendCalibration;
+
   /// No description provided for @gridViewRadial.
   ///
   /// In en, this message translates to:
@@ -1051,6 +1063,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'✱ unsaved'**
   String get deviceLocUnsaved;
+
+  /// No description provided for @deviceGpsModule.
+  ///
+  /// In en, this message translates to:
+  /// **'ON-BOARD GPS MODULE'**
+  String get deviceGpsModule;
+
+  /// No description provided for @deviceGpsEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable on-board GPS'**
+  String get deviceGpsEnable;
+
+  /// No description provided for @deviceGpsEnabledHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Device firmware polls its GPS chip and updates location automatically.'**
+  String get deviceGpsEnabledHint;
+
+  /// No description provided for @deviceGpsDisabledHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Off — the device never reads its GPS chip; advertised location stays whatever was last written.'**
+  String get deviceGpsDisabledHint;
+
+  /// No description provided for @deviceGpsUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for device…'**
+  String get deviceGpsUnknown;
+
+  /// No description provided for @deviceGpsInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS update interval'**
+  String get deviceGpsInterval;
+
+  /// No description provided for @deviceGpsIntervalOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get deviceGpsIntervalOff;
+
+  /// No description provided for @deviceGpsIntervalSec.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {n} s'**
+  String deviceGpsIntervalSec(int n);
+
+  /// No description provided for @deviceGpsIntervalMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {n} min'**
+  String deviceGpsIntervalMin(int n);
+
+  /// No description provided for @deviceGpsIntervalHour.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {n} h'**
+  String deviceGpsIntervalHour(int n);
 
   /// No description provided for @locTitle.
   ///

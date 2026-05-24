@@ -476,6 +476,13 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                   : null,
             );
           }),
+          // R38 — on-board GPS module (separate from advert policy
+          // above). Without this, picking "Device GPS" above only
+          // controls whether GPS coords get *included in adverts* —
+          // the firmware never reads its GPS chip into
+          // sensors.node_lat/lon. Defaults gps=0, gps_interval=0;
+          // we surface the live values + a switch + interval picker.
+          _GpsModuleControls(mc: mc, ready: ready, cs: cs, l: l),
           const SizedBox(height: 8),
           // What the device currently reports — read-only "ground
           // truth" line. The editable text fields below are
@@ -862,5 +869,131 @@ class _LatLonFieldState extends State<_LatLonField> {
         ),
       ),
     );
+  }
+}
+
+/// R38 — on-board GPS module controls.
+///
+/// Two firmware custom-vars: `gps` (0/1, powers the module) and
+/// `gps_interval` (seconds, 0-86400, polling cadence into
+/// `sensors.node_lat/lon`). Both default to 0 on fresh firmware.
+/// Without these, picking "Device GPS" in the advert-source
+/// segmented button above is a no-op — that policy only governs
+/// whether GPS coords get *into adverts*, not whether the device
+/// reads its chip at all.
+class _GpsModuleControls extends StatelessWidget {
+  const _GpsModuleControls({
+    required this.mc,
+    required this.ready,
+    required this.cs,
+    required this.l,
+  });
+
+  final MeshcoreController mc;
+  final bool ready;
+  final ColorScheme cs;
+  final AppLocalizations l;
+
+  static const List<int> _intervalOptions = <int>[0, 10, 30, 60, 300];
+
+  static String _intervalLabel(AppLocalizations l, int sec) {
+    if (sec <= 0) return l.deviceGpsIntervalOff;
+    if (sec < 60) return l.deviceGpsIntervalSec(sec);
+    if (sec < 3600) return l.deviceGpsIntervalMin(sec ~/ 60);
+    return l.deviceGpsIntervalHour(sec ~/ 3600);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool? enabled = mc.deviceGpsEnabled;
+    final int? interval = mc.deviceGpsIntervalSec;
+    final bool unknown = enabled == null;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(l.deviceGpsModule,
+              style: TextStyle(
+                  color: cs.onSurfaceVariant,
+                  fontSize: 12,
+                  letterSpacing: 1)),
+          const SizedBox(height: 4),
+          // gps switch
+          SwitchListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            title: Text(l.deviceGpsEnable),
+            subtitle: Text(
+              unknown
+                  ? l.deviceGpsUnknown
+                  : enabled
+                      ? l.deviceGpsEnabledHint
+                      : l.deviceGpsDisabledHint,
+              style:
+                  TextStyle(color: cs.onSurface.withValues(alpha: .6)),
+            ),
+            value: enabled ?? false,
+            onChanged: !ready || unknown
+                ? null
+                : (bool v) async {
+                    try {
+                      await mc.setCustomVar(
+                          name: 'gps', value: v ? '1' : '0');
+                    } catch (_) {/* silent — toast is overkill */}
+                  },
+          ),
+          // gps_interval picker
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.timer_outlined),
+            title: Text(l.deviceGpsInterval),
+            subtitle: Text(
+              interval == null
+                  ? l.deviceGpsUnknown
+                  : _intervalLabel(l, interval),
+              style:
+                  TextStyle(color: cs.onSurface.withValues(alpha: .6)),
+            ),
+            enabled: ready && enabled == true,
+            trailing: const Icon(Icons.chevron_right),
+            onTap: !(ready && enabled == true)
+                ? null
+                : () => _pickInterval(context, interval ?? 0),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickInterval(BuildContext ctx, int current) async {
+    final int? picked = await showModalBottomSheet<int>(
+      context: ctx,
+      builder: (BuildContext _) => SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            for (final int s in _intervalOptions)
+              ListTile(
+                dense: true,
+                leading: Icon(
+                  current == s
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                ),
+                title: Text(_intervalLabel(l, s)),
+                onTap: () => Navigator.pop(ctx, s),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked != null && picked != current) {
+      try {
+        await mc.setCustomVar(name: 'gps_interval', value: '$picked');
+      } catch (_) {/* silent */}
+    }
   }
 }

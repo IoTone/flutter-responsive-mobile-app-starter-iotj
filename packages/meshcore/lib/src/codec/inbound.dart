@@ -148,6 +148,18 @@ class NoMoreMessagesFrame extends MeshcoreInbound {
   String toString() => 'NoMoreMessagesFrame()';
 }
 
+/// `RESP_CODE_CUSTOM_VARS` (0x15) — reply to CMD_GET_CUSTOM_VARS.
+/// Carries the device's string-keyed settings (e.g. `gps`,
+/// `gps_interval`). Known keys are documented in the firmware
+/// `examples/companion_radio/MyMesh.cpp` — the codec is permissive
+/// and surfaces everything the device reports.
+class CustomVarsFrame extends MeshcoreInbound {
+  const CustomVarsFrame(this.values);
+  final Map<String, String> values;
+  @override
+  String toString() => 'CustomVarsFrame($values)';
+}
+
 /// `PUSH_CODE_MSGS_WAITING` (0x83) — the device has queued inbound
 /// item(s) (received messages and/or newly heard contacts/adverts).
 /// The app must drain them with `CMD_SYNC_NEXT_MESSAGE` until it gets

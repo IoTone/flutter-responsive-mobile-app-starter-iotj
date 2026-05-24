@@ -138,6 +138,58 @@ void main() {
     });
   });
 
+  group('CUSTOM_VARS — encode + decode', () {
+    test('CMD_GET_CUSTOM_VARS encodes as bare opcode 0x28', () {
+      expect(_toHex(MeshcoreFrameCodec.getCustomVars()), '28');
+    });
+
+    test('CMD_SET_CUSTOM_VAR encodes [opcode][name]:[value] (UTF-8)', () {
+      final Uint8List frame = MeshcoreFrameCodec.setCustomVar(
+        name: 'gps',
+        value: '1',
+      );
+      // 0x29 + ASCII "gps:1"
+      expect(_toHex(frame), '29${_toHex(Uint8List.fromList(utf8.encode("gps:1")))}');
+    });
+
+    test('CMD_SET_CUSTOM_VAR with gps_interval', () {
+      final Uint8List frame = MeshcoreFrameCodec.setCustomVar(
+        name: 'gps_interval',
+        value: '30',
+      );
+      expect(_toHex(frame),
+          '29${_toHex(Uint8List.fromList(utf8.encode("gps_interval:30")))}');
+    });
+
+    test('RESP_CODE_CUSTOM_VARS (0x15) decodes comma-separated payload', () {
+      final BytesBuilder b = BytesBuilder()
+        ..addByte(0x15)
+        ..add(utf8.encode('gps:1,gps_interval:30'));
+      final MeshcoreInbound got = MeshcoreFrameCodec.decode(b.toBytes());
+      expect(got, isA<CustomVarsFrame>());
+      final Map<String, String> m = (got as CustomVarsFrame).values;
+      expect(m['gps'], '1');
+      expect(m['gps_interval'], '30');
+      expect(m.length, 2);
+    });
+
+    test('empty CUSTOM_VARS payload → empty map', () {
+      final MeshcoreInbound got =
+          MeshcoreFrameCodec.decode(Uint8List.fromList(<int>[0x15]));
+      expect(got, isA<CustomVarsFrame>());
+      expect((got as CustomVarsFrame).values, isEmpty);
+    });
+
+    test('malformed CUSTOM_VARS entries are silently dropped', () {
+      final BytesBuilder b = BytesBuilder()
+        ..addByte(0x15)
+        ..add(utf8.encode('gps:1,no_colon_here,gps_interval:30'));
+      final MeshcoreInbound got = MeshcoreFrameCodec.decode(b.toBytes());
+      final Map<String, String> m = (got as CustomVarsFrame).values;
+      expect(m, <String, String>{'gps': '1', 'gps_interval': '30'});
+    });
+  });
+
   group('CONTACT (0x03) decode — programmatic golden', () {
     test('148-byte frame, fields, active path slice', () {
       final BytesBuilder b = BytesBuilder();

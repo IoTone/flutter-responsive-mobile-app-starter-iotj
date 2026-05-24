@@ -510,6 +510,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tap a node to see details + Message / Favourite.';
 
   @override
+  String get gridLegendHeading =>
+      'Heading wedge / HDG line = the direction the phone\'s top edge is pointing relative to MAGNETIC north (not true north, not GPS travel direction). Comes from the phone\'s compass sensor.';
+
+  @override
+  String get gridLegendCalibration =>
+      'Calibration: if the arrow seems wrong, hold the phone level and wave it in a figure-8 motion several times. The OS handles compass calibration; the app only displays sensor accuracy (a \'Calibrate\' hint appears when accuracy is poor).';
+
+  @override
   String get gridViewRadial => 'Radial';
 
   @override
@@ -556,6 +564,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deviceLocUnsaved => '✱ unsaved';
+
+  @override
+  String get deviceGpsModule => 'ON-BOARD GPS MODULE';
+
+  @override
+  String get deviceGpsEnable => 'Enable on-board GPS';
+
+  @override
+  String get deviceGpsEnabledHint =>
+      'Device firmware polls its GPS chip and updates location automatically.';
+
+  @override
+  String get deviceGpsDisabledHint =>
+      'Off — the device never reads its GPS chip; advertised location stays whatever was last written.';
+
+  @override
+  String get deviceGpsUnknown => 'Waiting for device…';
+
+  @override
+  String get deviceGpsInterval => 'GPS update interval';
+
+  @override
+  String get deviceGpsIntervalOff => 'Off';
+
+  @override
+  String deviceGpsIntervalSec(int n) {
+    return 'Every $n s';
+  }
+
+  @override
+  String deviceGpsIntervalMin(int n) {
+    return 'Every $n min';
+  }
+
+  @override
+  String deviceGpsIntervalHour(int n) {
+    return 'Every $n h';
+  }
 
   @override
   String get locTitle => 'Auto-publish location';

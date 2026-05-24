@@ -190,6 +190,8 @@
   "gridLegendFavourite": "別色での速い点滅 = お気に入りのコンタクト。",
   "gridLegendRipple": "中央からの波紋 = 匿名のチャネルメッセージ (プロトコル上、送信者を特定できません)。",
   "gridLegendTap": "ノードをタップで詳細 + メッセージ / お気に入り。",
+  "gridLegendHeading": "方位ウェッジ・HDG 表示 = スマートフォン上端が**磁北**を基準に向いている方向（真北でも GPS 進行方向でもなく、スマートフォンの方位センサーが示す方位）。",
+  "gridLegendCalibration": "キャリブレーション: 矢印がずれている場合、スマートフォンを水平に持って数回 8 の字に動かしてください。コンパスのキャリブレーションは OS が行い、アプリは精度のみ表示します（精度が悪いと「Calibrate」ヒントが出ます）。",
   "gridViewRadial": "ラジアル",
   "gridViewGlobe": "グローブ",
   "globeFooter": "位置情報のある {n} 件のピアを表示",
@@ -213,6 +215,26 @@
     }
   },
   "deviceLocUnsaved": "✱ 未保存",
+
+  "deviceGpsModule": "オンボード GPS モジュール",
+  "deviceGpsEnable": "オンボード GPS を有効化",
+  "deviceGpsEnabledHint": "デバイスファームウェアが GPS チップを定期的に読み取り、位置を自動更新します。",
+  "deviceGpsDisabledHint": "オフ — デバイスは GPS を一切読み取らず、配信される位置は最後に書き込まれた値のままです。",
+  "deviceGpsUnknown": "デバイス応答待ち…",
+  "deviceGpsInterval": "GPS 更新間隔",
+  "deviceGpsIntervalOff": "オフ",
+  "deviceGpsIntervalSec": "{n} 秒ごと",
+  "@deviceGpsIntervalSec": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "deviceGpsIntervalMin": "{n} 分ごと",
+  "@deviceGpsIntervalMin": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "deviceGpsIntervalHour": "{n} 時間ごと",
+  "@deviceGpsIntervalHour": {
+    "placeholders": {"n": {"type": "int"}}
+  },
 
   "locTitle": "位置の自動公開",
   "locTileSubtitle": "定期 + 移動検知でスマートフォン GPS をデバイスに反映",
