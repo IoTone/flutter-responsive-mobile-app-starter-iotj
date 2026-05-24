@@ -22,7 +22,8 @@ const List<LocalizationsDelegate<Object>> _kLocaleDelegates =
 ];
 
 void main() {
-  testWidgets('radio config: preset fills freq, Apply sends 0x0B',
+  testWidgets('R39: tapping USA/Canada chip applies the canonical '
+      'tuple (910.525 / 62.5 / SF7 / CR5 / 22 dBm) — emits 0x0B + 0x0C',
       (WidgetTester t) async {
     await t.binding.setSurfaceSize(const Size(900, 2600));
     addTearDown(() => t.binding.setSurfaceSize(null));
@@ -45,36 +46,43 @@ void main() {
       ),
     );
 
-    // Not connected initially (Apply is gated on `ready`).
-    expect(ctrl.state, MeshcoreConnectionState.disconnected);
-
     await ctrl.connect();
     fake.emit(selfInfoFrame());
     await t.pumpAndSettle();
 
-    // US band preset (top of the list) fills the frequency field.
-    await t.tap(find.text('US (902–928 MHz)'));
-    await t.pumpAndSettle();
-    expect(
-      t
-          .widget<TextField>(
-              find.widgetWithText(TextField, 'Frequency (MHz)'))
-          .controller!
-          .text,
-      '915.0',
-    );
+    final int before0B =
+        fake.sent.where((f) => f.isNotEmpty && f[0] == 0x0B).length;
+    final int before0C =
+        fake.sent.where((f) => f.isNotEmpty && f[0] == 0x0C).length;
 
-    final int before = fake.sent.length;
-    await t.tap(find.text('Apply radio params'));
+    await t.tap(find.text('USA / Canada'));
     await t.pumpAndSettle();
-    expect(fake.sent.length, greaterThan(before));
-    // CMD_SET_RADIO_PARAMS opcode is 0x0B.
-    expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x0B), isTrue);
+
+    // Form fields were filled.
+    String fieldText(String label) => t
+        .widget<TextField>(find.widgetWithText(TextField, label))
+        .controller!
+        .text;
+    expect(fieldText('Frequency (MHz)'), '910.525');
+    expect(fieldText('Bandwidth (kHz)'), '62.5');
+    expect(fieldText('Spreading factor (5–12)'), '7');
+    expect(fieldText('Coding rate (5–8)'), '5');
+    expect(fieldText('TX power (dBm)'), '22');
+
+    // And the wire frames went out immediately.
+    final int after0B =
+        fake.sent.where((f) => f.isNotEmpty && f[0] == 0x0B).length;
+    final int after0C =
+        fake.sent.where((f) => f.isNotEmpty && f[0] == 0x0C).length;
+    expect(after0B, before0B + 1,
+        reason: 'preset tap should emit CMD_SET_RADIO_PARAMS (0x0B)');
+    expect(after0C, before0C + 1,
+        reason: 'preset tap should emit CMD_SET_RADIO_TX_POWER (0x0C)');
     ctrl.dispose();
   });
 
-  testWidgets('Japan (ARIB T108) preset fills freq+BW+SF+CR+TX (R15)',
-      (WidgetTester t) async {
+  testWidgets('R39: tapping Japan (ARIB STD-T108) chip applies '
+      '923.2 / 125 / SF10 / CR5 / 13 dBm', (WidgetTester t) async {
     await t.binding.setSurfaceSize(const Size(900, 2600));
     addTearDown(() => t.binding.setSurfaceSize(null));
     final FakeMeshcoreTransport fake =
@@ -99,25 +107,18 @@ void main() {
     fake.emit(selfInfoFrame());
     await t.pumpAndSettle();
 
-    await t.tap(find.text('JP (920.5–923.5 · ARIB T108)'));
+    await t.tap(find.text('Japan (ARIB STD-T108)'));
     await t.pumpAndSettle();
 
     String fieldText(String label) => t
         .widget<TextField>(find.widgetWithText(TextField, label))
         .controller!
         .text;
-
-    // Source: MeshCore issue #460, comment 4080531481 (@jirogit).
-    expect(fieldText('Frequency (MHz)'), '920.8');
+    expect(fieldText('Frequency (MHz)'), '923.2');
     expect(fieldText('Bandwidth (kHz)'), '125.0');
-    expect(fieldText('Spreading factor (5–12)'), '12');
-    expect(fieldText('Coding rate (5–8)'), '8'); // CR 4/8 → denominator 8
+    expect(fieldText('Spreading factor (5–12)'), '10');
+    expect(fieldText('Coding rate (5–8)'), '5');
     expect(fieldText('TX power (dBm)'), '13');
-
-    final int before = fake.sent.length;
-    await t.tap(find.text('Apply radio params'));
-    await t.pumpAndSettle();
-    expect(fake.sent.length, greaterThan(before));
     expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x0B), isTrue);
     ctrl.dispose();
   });

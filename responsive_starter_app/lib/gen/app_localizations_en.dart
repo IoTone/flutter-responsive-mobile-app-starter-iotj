@@ -1256,6 +1256,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceRegionBand => 'REGION / BAND';
 
   @override
+  String get deviceRegionCurrent => 'CURRENTLY APPLIED';
+
+  @override
+  String get deviceRegionUnknown => 'Waiting for device…';
+
+  @override
+  String get deviceRegionCustom => 'Custom (no preset match)';
+
+  @override
+  String get deviceRegionSuggestFromLocation => 'Suggest from my location';
+
+  @override
+  String get deviceRegionSuggestTitle => 'Apply suggested region?';
+
+  @override
+  String deviceRegionSuggestBody(String lat, String lon, String label) {
+    return 'Based on your phone GPS ($lat, $lon), the matching preset is $label. Verify this is legal where you are before applying — particularly outside the country you set up in.';
+  }
+
+  @override
+  String get deviceRegionSuggestApply => 'Apply';
+
+  @override
+  String get deviceRegionSuggestNoFix =>
+      'Couldn\'t get a GPS fix — try outdoors with location permission granted.';
+
+  @override
+  String get deviceRegionSuggestNoMatch =>
+      'Your location doesn\'t match any shipped country preset — pick one manually.';
+
+  @override
+  String deviceRegionAppliedToast(String label) {
+    return '$label applied — make sure every node in your mesh uses the same preset.';
+  }
+
+  @override
+  String get deviceRegionDisclaimer =>
+      'Operating points are community-curated, not regulatory guarantees. Pick the preset legal where you are and use the SAME tuple on every node. JP (ARIB STD-T108) mandates listen-before-talk; that is enforced by the device firmware, not by this app.';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
   String get deviceRadioParams => 'RADIO PARAMS';
 
   @override

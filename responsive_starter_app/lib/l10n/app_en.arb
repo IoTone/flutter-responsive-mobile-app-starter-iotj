@@ -570,6 +570,28 @@
 
   "deviceConfigTitle": "Device configuration",
   "deviceRegionBand": "REGION / BAND",
+  "deviceRegionCurrent": "CURRENTLY APPLIED",
+  "deviceRegionUnknown": "Waiting for device…",
+  "deviceRegionCustom": "Custom (no preset match)",
+  "deviceRegionSuggestFromLocation": "Suggest from my location",
+  "deviceRegionSuggestTitle": "Apply suggested region?",
+  "deviceRegionSuggestBody": "Based on your phone GPS ({lat}, {lon}), the matching preset is {label}. Verify this is legal where you are before applying — particularly outside the country you set up in.",
+  "@deviceRegionSuggestBody": {
+    "placeholders": {
+      "lat": {"type": "String"},
+      "lon": {"type": "String"},
+      "label": {"type": "String"}
+    }
+  },
+  "deviceRegionSuggestApply": "Apply",
+  "deviceRegionSuggestNoFix": "Couldn't get a GPS fix — try outdoors with location permission granted.",
+  "deviceRegionSuggestNoMatch": "Your location doesn't match any shipped country preset — pick one manually.",
+  "deviceRegionAppliedToast": "{label} applied — make sure every node in your mesh uses the same preset.",
+  "@deviceRegionAppliedToast": {
+    "placeholders": {"label": {"type": "String"}}
+  },
+  "deviceRegionDisclaimer": "Operating points are community-curated, not regulatory guarantees. Pick the preset legal where you are and use the SAME tuple on every node. JP (ARIB STD-T108) mandates listen-before-talk; that is enforced by the device firmware, not by this app.",
+  "cancel": "Cancel",
   "deviceRadioParams": "RADIO PARAMS",
   "deviceIdentityAdvert": "IDENTITY / ADVERT",
   "deviceChannelsSection": "CHANNELS",

@@ -11,6 +11,7 @@ import '../meshcore/mesh_event.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../meshcore/own_location.dart';
+import '../meshcore/region_presets.dart';
 
 /// R8 home — "SEELE Monolith" dashboard: one dominant numeral
 /// (peers in range), a full-width status slab that colour-inverts on
@@ -149,6 +150,41 @@ class DashboardScreen extends StatelessWidget {
               fontFamily: 'monospace',
               height: 1.5),
         ),
+        // R39 — region preset readout. The answer to "what region am
+        // I on?" should be visible from the dashboard, not buried in
+        // Device Config. Matched against the device's live tuple;
+        // shows "Custom" when no shipped preset matches.
+        if (selfInfo != null) ...<Widget>[
+          const SizedBox(height: 4),
+          Builder(builder: (BuildContext _) {
+            final RegionPreset? p = matchPresetByRadioParams(
+              frequencyMhz: selfInfo.frequencyMhz,
+              bandwidthKhz: selfInfo.bandwidthKhz,
+              spreadingFactor: selfInfo.spreadingFactor,
+              codingRate: selfInfo.codingRate,
+            );
+            final bool isCustom = p == null;
+            return InkWell(
+              onTap: () => context.push('/settings/device'),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  children: <Widget>[
+                    Icon(isCustom ? Icons.tune : Icons.public,
+                        size: 14,
+                        color: isCustom ? cs.tertiary : cs.primary),
+                    const SizedBox(width: 6),
+                    Text(p?.label ?? l.deviceRegionCustom,
+                        style: TextStyle(
+                            color: isCustom ? cs.tertiary : cs.primary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
         if (mc.pairedName != null) ...<Widget>[
           const SizedBox(height: 6),
           Text(l.dashboardPaired(mc.pairedName!),

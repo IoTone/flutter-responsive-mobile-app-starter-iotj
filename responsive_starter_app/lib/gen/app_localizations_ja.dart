@@ -1205,6 +1205,48 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deviceRegionBand => 'リージョン / バンド';
 
   @override
+  String get deviceRegionCurrent => '現在の設定';
+
+  @override
+  String get deviceRegionUnknown => 'デバイス応答待ち…';
+
+  @override
+  String get deviceRegionCustom => 'カスタム（プリセット非該当）';
+
+  @override
+  String get deviceRegionSuggestFromLocation => '現在地から自動選択';
+
+  @override
+  String get deviceRegionSuggestTitle => '推奨リージョンを適用しますか？';
+
+  @override
+  String deviceRegionSuggestBody(String lat, String lon, String label) {
+    return 'スマートフォンの GPS（$lat, $lon）に基づくと、該当するプリセットは「$label」です。国境付近では誤判定する可能性があるため、適用前に現地の法令に適合するか必ず確認してください。';
+  }
+
+  @override
+  String get deviceRegionSuggestApply => '適用';
+
+  @override
+  String get deviceRegionSuggestNoFix =>
+      'GPS の取得に失敗しました — 屋外で位置情報の許可を確認してから再試行してください。';
+
+  @override
+  String get deviceRegionSuggestNoMatch => '現在地が出荷時プリセットの対象外です — 手動で選択してください。';
+
+  @override
+  String deviceRegionAppliedToast(String label) {
+    return '$label を適用しました。メッシュ内の全ノードで同じプリセットを使用してください。';
+  }
+
+  @override
+  String get deviceRegionDisclaimer =>
+      'プリセット値はコミュニティで合意された運用例であり、法令適合を保証するものではありません。利用地で合法なプリセットを選び、メッシュ内の全ノードで同じ値を使用してください。日本（ARIB STD-T108）はキャリアセンス（LBT）の遵守が必須であり、これはデバイスファームウェアが処理します（本アプリでは制御しません）。';
+
+  @override
+  String get cancel => 'キャンセル';
+
+  @override
   String get deviceRadioParams => 'ラジオパラメータ';
 
   @override

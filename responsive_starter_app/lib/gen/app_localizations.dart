@@ -2210,6 +2210,78 @@ abstract class AppLocalizations {
   /// **'REGION / BAND'**
   String get deviceRegionBand;
 
+  /// No description provided for @deviceRegionCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'CURRENTLY APPLIED'**
+  String get deviceRegionCurrent;
+
+  /// No description provided for @deviceRegionUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for device…'**
+  String get deviceRegionUnknown;
+
+  /// No description provided for @deviceRegionCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom (no preset match)'**
+  String get deviceRegionCustom;
+
+  /// No description provided for @deviceRegionSuggestFromLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest from my location'**
+  String get deviceRegionSuggestFromLocation;
+
+  /// No description provided for @deviceRegionSuggestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply suggested region?'**
+  String get deviceRegionSuggestTitle;
+
+  /// No description provided for @deviceRegionSuggestBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on your phone GPS ({lat}, {lon}), the matching preset is {label}. Verify this is legal where you are before applying — particularly outside the country you set up in.'**
+  String deviceRegionSuggestBody(String lat, String lon, String label);
+
+  /// No description provided for @deviceRegionSuggestApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get deviceRegionSuggestApply;
+
+  /// No description provided for @deviceRegionSuggestNoFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t get a GPS fix — try outdoors with location permission granted.'**
+  String get deviceRegionSuggestNoFix;
+
+  /// No description provided for @deviceRegionSuggestNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Your location doesn\'t match any shipped country preset — pick one manually.'**
+  String get deviceRegionSuggestNoMatch;
+
+  /// No description provided for @deviceRegionAppliedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} applied — make sure every node in your mesh uses the same preset.'**
+  String deviceRegionAppliedToast(String label);
+
+  /// No description provided for @deviceRegionDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Operating points are community-curated, not regulatory guarantees. Pick the preset legal where you are and use the SAME tuple on every node. JP (ARIB STD-T108) mandates listen-before-talk; that is enforced by the device firmware, not by this app.'**
+  String get deviceRegionDisclaimer;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
   /// No description provided for @deviceRadioParams.
   ///
   /// In en, this message translates to:

@@ -570,6 +570,28 @@
 
   "deviceConfigTitle": "デバイス設定",
   "deviceRegionBand": "リージョン / バンド",
+  "deviceRegionCurrent": "現在の設定",
+  "deviceRegionUnknown": "デバイス応答待ち…",
+  "deviceRegionCustom": "カスタム（プリセット非該当）",
+  "deviceRegionSuggestFromLocation": "現在地から自動選択",
+  "deviceRegionSuggestTitle": "推奨リージョンを適用しますか？",
+  "deviceRegionSuggestBody": "スマートフォンの GPS（{lat}, {lon}）に基づくと、該当するプリセットは「{label}」です。国境付近では誤判定する可能性があるため、適用前に現地の法令に適合するか必ず確認してください。",
+  "@deviceRegionSuggestBody": {
+    "placeholders": {
+      "lat": {"type": "String"},
+      "lon": {"type": "String"},
+      "label": {"type": "String"}
+    }
+  },
+  "deviceRegionSuggestApply": "適用",
+  "deviceRegionSuggestNoFix": "GPS の取得に失敗しました — 屋外で位置情報の許可を確認してから再試行してください。",
+  "deviceRegionSuggestNoMatch": "現在地が出荷時プリセットの対象外です — 手動で選択してください。",
+  "deviceRegionAppliedToast": "{label} を適用しました。メッシュ内の全ノードで同じプリセットを使用してください。",
+  "@deviceRegionAppliedToast": {
+    "placeholders": {"label": {"type": "String"}}
+  },
+  "deviceRegionDisclaimer": "プリセット値はコミュニティで合意された運用例であり、法令適合を保証するものではありません。利用地で合法なプリセットを選び、メッシュ内の全ノードで同じ値を使用してください。日本（ARIB STD-T108）はキャリアセンス（LBT）の遵守が必須であり、これはデバイスファームウェアが処理します（本アプリでは制御しません）。",
+  "cancel": "キャンセル",
   "deviceRadioParams": "ラジオパラメータ",
   "deviceIdentityAdvert": "アイデンティティ / アドバート",
   "deviceChannelsSection": "チャンネル",

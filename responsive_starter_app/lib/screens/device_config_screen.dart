@@ -10,6 +10,8 @@ import '../gen/app_localizations.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../meshcore/own_location.dart';
+import '../meshcore/region_presets.dart';
+import '../perms/location_service.dart';
 import '../perms/permissions_service.dart';
 
 /// Device configuration (R7) + LoRa region selection (R15). The
@@ -31,53 +33,6 @@ class DeviceConfigScreen extends StatefulWidget {
   @override
   State<DeviceConfigScreen> createState() => _DeviceConfigScreenState();
 }
-
-/// A LoRa **region** preset (R15). Band edges / duty / power are
-/// regulatory (not MeshCore-proprietary); we only ship values we can
-/// cite. `bwKhz`/`sf`/`cr` are filled when a region has a known
-/// community/regulatory setting (e.g. Japan); when null only the
-/// frequency is pre-filled and SF/BW/CR are left to match your mesh.
-/// `freqMhz == 0` marks the manual "Custom" entry (no-op).
-class _Band {
-  const _Band(
-    this.label,
-    this.freqMhz,
-    this.note, {
-    this.bwKhz,
-    this.sf,
-    this.cr,
-    this.txDbm,
-    this.cite,
-  });
-  final String label;
-  final double freqMhz;
-  final String note;
-  final double? bwKhz;
-  final int? sf;
-  final int? cr;
-  final int? txDbm;
-  final String? cite;
-}
-
-const List<_Band> _bands = <_Band>[
-  _Band('US (902–928 MHz)', 915.0, '100% duty · ≤30 dBm'),
-  _Band('EU 868 (869.4–869.65)', 869.525, '10% duty · ≤27 dBm'),
-  // Japan, ARIB STD-T108. Full preset (freq+BW+SF+CR) is field-
-  // validated for urban JP RF noise — see MeshCore issue #460
-  // (@jirogit, 2026-03-18). 920.8 MHz is in the 920.6–922.2 zone:
-  // LBT ≥5 ms, 4 s max TX, no hourly duty cap. CR 4/8 → codingRate 8.
-  _Band(
-    'JP (920.5–923.5 · ARIB T108)',
-    920.8,
-    'LBT ≥5 ms · 4 s max TX · ≤13 dBm',
-    bwKhz: 125,
-    sf: 12,
-    cr: 8,
-    txDbm: 13,
-    cite: 'MeshCore #460',
-  ),
-  _Band('Custom', 0, 'enter exact values below'),
-];
 
 class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
   final TextEditingController _freq = TextEditingController();
@@ -244,24 +199,74 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     }
   }
 
-  /// Fill the radio fields from a region preset. Frequency is always
-  /// set; BW/SF/CR/TX are set only when the region ships a cited
-  /// setting (e.g. Japan), otherwise left for you to match your mesh.
-  void _applyBand(_Band band) {
-    _freq.text = band.freqMhz.toString();
-    if (band.bwKhz != null) _bw.text = band.bwKhz.toString();
-    if (band.sf != null) _sf.text = band.sf.toString();
-    if (band.cr != null) _cr.text = band.cr.toString();
-    if (band.txDbm != null) _tx.text = band.txDbm.toString();
-    final bool full = band.sf != null;
-    _toast(
-      full
-          ? '${band.label}: preset loaded${band.cite == null ? '' : ' '
-              '(${band.cite})'} — verify it is legal where you are & '
-              'matches every node, then Apply'
-          : '${band.label}: frequency set — confirm it is legal in your '
-              'country & set SF/BW/CR to match your other nodes',
+  /// Fill the radio fields from a region preset and apply
+  /// immediately. The preset's tuple is the canonical operating
+  /// point — there's no "frequency only" partial-fill anymore.
+  Future<void> _applyPreset(MeshcoreController mc, RegionPreset p) async {
+    final AppLocalizations l = AppLocalizations.of(context);
+    setState(() {
+      _freq.text = p.frequencyMhz.toString();
+      _bw.text = p.bandwidthKhz.toString();
+      _sf.text = p.spreadingFactor.toString();
+      _cr.text = p.codingRate.toString();
+      _tx.text = p.txPowerDbm.toString();
+    });
+    if (!mc.isReady) {
+      _toast(p.label);
+      return;
+    }
+    try {
+      await mc.send(MeshcoreFrameCodec.setRadioParams(RadioParams(
+        frequencyMhz: p.frequencyMhz,
+        bandwidthKhz: p.bandwidthKhz,
+        spreadingFactor: p.spreadingFactor,
+        codingRate: p.codingRate,
+      )));
+      await mc.send(MeshcoreFrameCodec.setRadioTxPower(p.txPowerDbm));
+      _toast(l.deviceRegionAppliedToast(p.label));
+    } catch (e) {
+      _toast(l.deviceToastSendFailed('$e'));
+    }
+  }
+
+  /// Suggest a preset from the phone's GPS fix. No-op if location is
+  /// unavailable or the fix falls outside every shipped country box.
+  /// Shows a confirmation dialog before applying so a user near a
+  /// national border can override.
+  Future<void> _suggestFromMyLocation(MeshcoreController mc) async {
+    final AppLocalizations l = AppLocalizations.of(context);
+    final PhoneFix? fix = await const GeolocatorLocationService()
+        .currentFix(timeLimit: const Duration(seconds: 15));
+    if (fix == null) {
+      _toast(l.deviceRegionSuggestNoFix);
+      return;
+    }
+    final RegionPreset? p =
+        suggestPresetForLatLon(fix.latitude, fix.longitude);
+    if (p == null) {
+      _toast(l.deviceRegionSuggestNoMatch);
+      return;
+    }
+    if (!mounted) return;
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext ctx) => AlertDialog(
+        title: Text(l.deviceRegionSuggestTitle),
+        content: Text(l.deviceRegionSuggestBody(
+            p.label,
+            fix.latitude.toStringAsFixed(3),
+            fix.longitude.toStringAsFixed(3))),
+        actions: <Widget>[
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.cancel)),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l.deviceRegionSuggestApply)),
+        ],
+      ),
     );
+    if (ok == true) await _applyPreset(mc, p);
   }
 
   void _toast(String m) => ScaffoldMessenger.of(context)
@@ -339,25 +344,40 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
               style: TextStyle(
                   color: cs.primary, fontSize: 12, letterSpacing: 3)),
           const SizedBox(height: 8),
+          _CurrentRegionBanner(si: si, cs: cs, l: l),
+          const SizedBox(height: 8),
           Wrap(
             spacing: 8,
+            runSpacing: 8,
             children: <Widget>[
-              for (final _Band band in _bands)
-                OutlinedButton(
-                  onPressed: band.freqMhz == 0 ? null : () => _applyBand(band),
-                  child: Text(band.label),
+              for (final RegionPreset p in kRegionPresets)
+                _RegionChip(
+                  preset: p,
+                  selected: si != null &&
+                      matchPresetByRadioParams(
+                            frequencyMhz: si.frequencyMhz,
+                            bandwidthKhz: si.bandwidthKhz,
+                            spreadingFactor: si.spreadingFactor,
+                            codingRate: si.codingRate,
+                          )?.id ==
+                          p.id,
+                  onTap: () => _applyPreset(mc, p),
                 ),
             ],
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.my_location, size: 16),
+              label: Text(l.deviceRegionSuggestFromLocation),
+              onPressed: () => _suggestFromMyLocation(mc),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(
-              'Band edges/duty/power are regulatory. MeshCore sends '
-              'raw frequency — pick the region legal where you are and '
-              'use the SAME values on every node. JP (ARIB STD-T108) '
-              'also mandates listen-before-talk (carrier sense); the '
-              'app preset alone is not full regulatory compliance — '
-              'JP needs a non-zero carrier-sense threshold in firmware.',
+              l.deviceRegionDisclaimer,
               style:
                   TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
             ),
@@ -867,6 +887,115 @@ class _LatLonFieldState extends State<_LatLonField> {
                 )
               : null,
         ),
+      ),
+    );
+  }
+}
+
+/// R39 — banner at the top of the region section that names the
+/// currently-applied preset (matched against the device's live
+/// radio params). Removes the "what am I on?" guesswork.
+class _CurrentRegionBanner extends StatelessWidget {
+  const _CurrentRegionBanner({
+    required this.si,
+    required this.cs,
+    required this.l,
+  });
+  final SelfInfo? si;
+  final ColorScheme cs;
+  final AppLocalizations l;
+
+  @override
+  Widget build(BuildContext context) {
+    final RegionPreset? match = si == null
+        ? null
+        : matchPresetByRadioParams(
+            frequencyMhz: si!.frequencyMhz,
+            bandwidthKhz: si!.bandwidthKhz,
+            spreadingFactor: si!.spreadingFactor,
+            codingRate: si!.codingRate,
+          );
+    final String label = si == null
+        ? l.deviceRegionUnknown
+        : match?.label ?? l.deviceRegionCustom;
+    final bool isCustom = si != null && match == null;
+    final Color border = isCustom ? cs.tertiary : cs.primary;
+    final Color fg = isCustom ? cs.tertiary : cs.primary;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: border.withValues(alpha: .5)),
+      ),
+      child: Row(
+        children: <Widget>[
+          Icon(
+              isCustom ? Icons.tune : Icons.public,
+              size: 18,
+              color: fg),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(l.deviceRegionCurrent,
+                    style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontSize: 10,
+                        letterSpacing: 2)),
+                const SizedBox(height: 2),
+                Text(label,
+                    style: TextStyle(
+                        color: fg,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600)),
+                if (si != null)
+                  Text(
+                    '${si!.frequencyMhz} MHz · ${si!.bandwidthKhz} kHz · '
+                    'SF${si!.spreadingFactor} · CR${si!.codingRate} · '
+                    '${si!.txPowerDbm} dBm',
+                    style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontFamily: 'monospace',
+                        fontSize: 11),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// R39 — selectable region preset chip. Highlights when the
+/// preset's tuple matches the device's live radio params.
+class _RegionChip extends StatelessWidget {
+  const _RegionChip({
+    required this.preset,
+    required this.selected,
+    required this.onTap,
+  });
+  final RegionPreset preset;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return InputChip(
+      selected: selected,
+      onPressed: onTap,
+      avatar: selected
+          ? Icon(Icons.check, size: 16, color: cs.onPrimary)
+          : null,
+      label: Text(preset.label),
+      tooltip: preset.note,
+      selectedColor: cs.primary,
+      labelStyle: TextStyle(
+        color: selected ? cs.onPrimary : cs.onSurface,
+        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
       ),
     );
   }
