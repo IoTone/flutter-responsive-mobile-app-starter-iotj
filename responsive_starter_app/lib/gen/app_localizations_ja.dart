@@ -853,6 +853,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatEmpty => '— このチャンネルにメッセージはありません —';
 
   @override
+  String chatJumpToNewest(int count) {
+    return '新着 $count 件';
+  }
+
+  @override
   String chatComposerHint(String channel) {
     return '$channel へメッセージ';
   }
@@ -950,6 +955,24 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get nodeDetailPubkeyCopied => '公開鍵をコピーしました';
+
+  @override
+  String get nodeDetailTags => 'タグ';
+
+  @override
+  String get nodeDetailAddTag => 'タグ';
+
+  @override
+  String get nodeDetailAddTagTitle => 'タグを追加';
+
+  @override
+  String get nodeDetailAddTagHint => '例: リピーター、職場、アマチュア無線クラブ';
+
+  @override
+  String get nodeDetailAddTagSuggestions => '最近使ったタグ';
+
+  @override
+  String get nodeDetailAddTagApply => '追加';
 
   @override
   String get nodeDetailInRange => '範囲内';

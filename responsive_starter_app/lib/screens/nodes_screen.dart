@@ -112,6 +112,10 @@ class _NodesScreenState extends State<NodesScreen> {
         isKnown: mc.known.contains(n.pubKeyHex),
         onToggleFavourite: () => mc.toggleFavorite(n.pubKeyHex),
         recentDms: mc.dmHistoryFor(n.pubKeyHex),
+        tags: mc.tagsFor(n.pubKeyHex),
+        tagSuggestions: mc.allTags,
+        onAddTag: (String t) => mc.addTagTo(n.pubKeyHex, t),
+        onRemoveTag: (String t) => mc.removeTagFrom(n.pubKeyHex, t),
       ),
     );
   }
@@ -458,17 +462,52 @@ class _NodesScreenState extends State<NodesScreen> {
                               mc.distanceMetersTo(
                                   n.latitude!, n.longitude!));
                         }
-                        return Text(<String>[
-                          n.typeLabel,
-                          if (n.signalLabel.isNotEmpty) n.signalLabel,
-                          if (distance != null) distance,
-                          if (n.hasLocation)
-                            '${n.latitude!.toStringAsFixed(4)},'
-                                '${n.longitude!.toStringAsFixed(4)}',
-                          n.shortId,
-                        ].join(' · '),
-                            style:
-                                TextStyle(color: cs.onSurfaceVariant));
+                        // R28 — tag chips inline below the regular
+                        // metadata line. Hidden when no tags so the
+                        // row stays compact for untagged nodes.
+                        final List<String> tags =
+                            mc.tagsFor(n.pubKeyHex);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(<String>[
+                              n.typeLabel,
+                              if (n.signalLabel.isNotEmpty) n.signalLabel,
+                              if (distance != null) distance,
+                              if (n.hasLocation)
+                                '${n.latitude!.toStringAsFixed(4)},'
+                                    '${n.longitude!.toStringAsFixed(4)}',
+                              n.shortId,
+                            ].join(' · '),
+                                style: TextStyle(
+                                    color: cs.onSurfaceVariant)),
+                            if (tags.isNotEmpty) ...<Widget>[
+                              const SizedBox(height: 4),
+                              Wrap(
+                                spacing: 4,
+                                runSpacing: 2,
+                                children: <Widget>[
+                                  for (final String t in tags)
+                                    Container(
+                                      padding: const EdgeInsets
+                                          .symmetric(
+                                          horizontal: 6, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: cs.secondaryContainer,
+                                        borderRadius:
+                                            BorderRadius.circular(8),
+                                      ),
+                                      child: Text(t,
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              color: cs
+                                                  .onSecondaryContainer)),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        );
                       }),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,

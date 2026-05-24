@@ -40,6 +40,23 @@ class _ChatScreenState extends State<ChatScreen>
   bool _stripCollapsed = false;
   int _lastCount = 0;
 
+  /// R29 — number of new messages that have arrived while the user
+  /// has scrolled away from the bottom. Drives the "↓ N new" pill.
+  /// Resets whenever the user returns to the bottom (manually or via
+  /// the pill).
+  int _unreadSinceScrollAway = 0;
+
+  /// Cached "is the scroll near the bottom?" so the build can decide
+  /// pill visibility + auto-scroll behaviour without re-querying
+  /// `position` (which throws when there are no clients).
+  bool _atBottom = true;
+
+  /// Vertical slack in pixels — within this we treat the user as
+  /// "at the bottom" and keep auto-following. Generous enough to
+  /// survive a single new-message row appending below them without
+  /// flipping state.
+  static const double _bottomSlackPx = 64.0;
+
   @override
   void initState() {
     super.initState();
@@ -50,11 +67,46 @@ class _ChatScreenState extends State<ChatScreen>
     _incomingSub = mc.incomingChannelMessages.listen((ChatMessage m) {
       unawaited(tts.speakForChannel(m.channelIdx, m.text));
     });
+    // R29 — track scroll position so we know whether to follow the
+    // newest message automatically or surface a jump-to-newest pill.
+    _scroll.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_scroll.hasClients) return;
+    final double maxExtent = _scroll.position.maxScrollExtent;
+    final double pixels = _scroll.position.pixels;
+    // "At bottom" with slack — survives a single new-row append
+    // without flipping state. Empty / short lists report
+    // maxScrollExtent==0 and pixels==0, also "at bottom".
+    final bool nowAtBottom = (maxExtent - pixels) <= _bottomSlackPx;
+    if (nowAtBottom == _atBottom) return;
+    setState(() {
+      _atBottom = nowAtBottom;
+      if (nowAtBottom) _unreadSinceScrollAway = 0;
+    });
+  }
+
+  void _jumpToNewest() {
+    if (!_scroll.hasClients) return;
+    _scroll.animateTo(
+      _scroll.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+    );
+    // _onScroll will null out the counter once we settle at bottom,
+    // but flip the state synchronously so the pill disappears on tap
+    // instead of after the animation.
+    setState(() {
+      _unreadSinceScrollAway = 0;
+      _atBottom = true;
+    });
   }
 
   @override
   void dispose() {
     _incomingSub?.cancel();
+    _scroll.removeListener(_onScroll);
     _input.dispose();
     _scroll.dispose();
     super.dispose();
@@ -87,14 +139,28 @@ class _ChatScreenState extends State<ChatScreen>
     }
   }
 
+  /// R29 — only auto-follow new messages while the user IS at the
+  /// bottom. If they've scrolled up to read history, count the new
+  /// arrival(s) into [_unreadSinceScrollAway] instead so the
+  /// jump-to-newest pill can offer them an explicit re-sync. The
+  /// pre-R29 behaviour of yanking the viewport on every new row was
+  /// hostile to anyone trying to scroll back.
   void _autoScroll(int count) {
     if (count == _lastCount) return;
+    final int delta = count - _lastCount;
     _lastCount = count;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scroll.hasClients) {
-        _scroll.jumpTo(_scroll.position.maxScrollExtent);
-      }
-    });
+    if (_atBottom) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scroll.hasClients) {
+          _scroll.jumpTo(_scroll.position.maxScrollExtent);
+        }
+      });
+    } else if (delta > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() => _unreadSinceScrollAway += delta);
+      });
+    }
   }
 
   @override
@@ -181,9 +247,13 @@ class _ChatScreenState extends State<ChatScreen>
                     : l.chatHideChannels,
                 onPressed: () => setState(
                     () => _stripCollapsed = !_stripCollapsed),
+                // R29 — Icons.unfold_more/less reads as
+                // "expand/collapse a list" generically; on a chip
+                // strip it was confusing. Up/down arrows directly
+                // depict "this horizontal row is hidden/showing".
                 icon: Icon(_stripCollapsed
-                    ? Icons.unfold_more
-                    : Icons.unfold_less),
+                    ? Icons.keyboard_arrow_down
+                    : Icons.keyboard_arrow_up),
               ),
             ],
           ),
@@ -211,23 +281,46 @@ class _ChatScreenState extends State<ChatScreen>
           ),
         const Divider(height: 1),
 
-        // Message list (active channel).
+        // Message list (active channel) + R29 jump-to-newest pill.
         Expanded(
-          child: msgs.isEmpty
-              ? Center(
-                  child: Text(l.chatEmpty,
-                      style: TextStyle(color: cs.onSurfaceVariant)),
-                )
-              : ListView.builder(
-                  controller: _scroll,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 8),
-                  itemCount: msgs.length,
-                  itemBuilder: (BuildContext _, int i) => _MessageRow(
-                    msgs[i],
-                    onAction: () => _onAction(mc, msgs[i]),
+          child: Stack(
+            children: <Widget>[
+              Positioned.fill(
+                child: msgs.isEmpty
+                    ? Center(
+                        child: Text(l.chatEmpty,
+                            style: TextStyle(
+                                color: cs.onSurfaceVariant)),
+                      )
+                    : ListView.builder(
+                        controller: _scroll,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        itemCount: msgs.length,
+                        itemBuilder: (BuildContext _, int i) =>
+                            _MessageRow(
+                          msgs[i],
+                          onAction: () => _onAction(mc, msgs[i]),
+                        ),
+                      ),
+              ),
+              // The pill only appears when the user is NOT at the
+              // bottom (so they wouldn't otherwise see the newest
+              // row) AND new messages have actually arrived since
+              // they scrolled away. If the user scrolls up but no
+              // new messages come in, no pill — silence is correct.
+              if (!_atBottom && _unreadSinceScrollAway > 0)
+                Positioned(
+                  right: 12,
+                  bottom: 12,
+                  child: _JumpToNewestPill(
+                    count: _unreadSinceScrollAway,
+                    onTap: _jumpToNewest,
+                    label: l.chatJumpToNewest(_unreadSinceScrollAway),
                   ),
                 ),
+            ],
+          ),
         ),
 
         // Composer.
@@ -321,6 +414,50 @@ class _MessageRow extends StatelessWidget {
                   color: cs.onSurfaceVariant),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// R29 — overlay pill nudging the user back to the newest message.
+/// Renders only when the scroll position is away from the bottom
+/// AND new messages have arrived since the user scrolled away.
+class _JumpToNewestPill extends StatelessWidget {
+  const _JumpToNewestPill({
+    required this.count,
+    required this.label,
+    required this.onTap,
+  });
+  final int count;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Material(
+      color: cs.primary,
+      elevation: 4,
+      shape: const StadiumBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 14, 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(Icons.arrow_downward,
+                  size: 16, color: cs.onPrimary),
+              const SizedBox(width: 6),
+              Text(label,
+                  style: TextStyle(
+                      color: cs.onPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13)),
+            ],
+          ),
         ),
       ),
     );

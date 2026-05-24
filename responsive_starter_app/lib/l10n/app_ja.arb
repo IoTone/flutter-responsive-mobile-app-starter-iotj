@@ -404,6 +404,10 @@
   "chatHideChannels": "チャンネルを隠す",
   "chatShowChannels": "チャンネルを表示",
   "chatEmpty": "— このチャンネルにメッセージはありません —",
+  "chatJumpToNewest": "新着 {count} 件",
+  "@chatJumpToNewest": {
+    "placeholders": {"count": {"type": "int"}}
+  },
   "chatComposerHint": "{channel} へメッセージ",
   "@chatComposerHint": {
     "placeholders": {"channel": {"type": "String"}}
@@ -449,6 +453,12 @@
   "nodeDetailShowOnMapFailed": "マップアプリを開けませんでした。",
   "nodeDetailCopyPubkey": "公開鍵をコピー",
   "nodeDetailPubkeyCopied": "公開鍵をコピーしました",
+  "nodeDetailTags": "タグ",
+  "nodeDetailAddTag": "タグ",
+  "nodeDetailAddTagTitle": "タグを追加",
+  "nodeDetailAddTagHint": "例: リピーター、職場、アマチュア無線クラブ",
+  "nodeDetailAddTagSuggestions": "最近使ったタグ",
+  "nodeDetailAddTagApply": "追加",
   "nodeDetailInRange": "範囲内",
   "nodeDetailKnown": "既知",
   "nodeDetailContactBadge": "コンタクト",

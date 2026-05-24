@@ -898,6 +898,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatEmpty => '— no messages on this channel —';
 
   @override
+  String chatJumpToNewest(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new',
+      one: '1 new',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String chatComposerHint(String channel) {
     return 'Message $channel';
   }
@@ -998,6 +1009,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nodeDetailPubkeyCopied => 'Pubkey copied';
+
+  @override
+  String get nodeDetailTags => 'TAGS';
+
+  @override
+  String get nodeDetailAddTag => 'tag';
+
+  @override
+  String get nodeDetailAddTagTitle => 'Add tag';
+
+  @override
+  String get nodeDetailAddTagHint => 'e.g. repeater, work, ham-club';
+
+  @override
+  String get nodeDetailAddTagSuggestions => 'RECENTLY USED';
+
+  @override
+  String get nodeDetailAddTagApply => 'Add';
 
   @override
   String get nodeDetailInRange => 'IN RANGE';

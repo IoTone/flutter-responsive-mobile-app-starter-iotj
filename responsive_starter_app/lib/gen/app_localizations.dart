@@ -1592,6 +1592,12 @@ abstract class AppLocalizations {
   /// **'— no messages on this channel —'**
   String get chatEmpty;
 
+  /// No description provided for @chatJumpToNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 new} other{{count} new}}'**
+  String chatJumpToNewest(int count);
+
   /// No description provided for @chatComposerHint.
   ///
   /// In en, this message translates to:
@@ -1771,6 +1777,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pubkey copied'**
   String get nodeDetailPubkeyCopied;
+
+  /// No description provided for @nodeDetailTags.
+  ///
+  /// In en, this message translates to:
+  /// **'TAGS'**
+  String get nodeDetailTags;
+
+  /// No description provided for @nodeDetailAddTag.
+  ///
+  /// In en, this message translates to:
+  /// **'tag'**
+  String get nodeDetailAddTag;
+
+  /// No description provided for @nodeDetailAddTagTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag'**
+  String get nodeDetailAddTagTitle;
+
+  /// No description provided for @nodeDetailAddTagHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. repeater, work, ham-club'**
+  String get nodeDetailAddTagHint;
+
+  /// No description provided for @nodeDetailAddTagSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'RECENTLY USED'**
+  String get nodeDetailAddTagSuggestions;
+
+  /// No description provided for @nodeDetailAddTagApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get nodeDetailAddTagApply;
 
   /// No description provided for @nodeDetailInRange.
   ///

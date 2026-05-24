@@ -16,6 +16,7 @@ import 'discovered_node.dart';
 import 'dm_read_store.dart';
 import 'favorite_store.dart';
 import 'known_store.dart';
+import 'node_tags_store.dart';
 import 'mesh_event.dart';
 import 'meshcore_connection.dart';
 import 'own_location.dart';
@@ -118,6 +119,7 @@ class MeshcoreController extends ChangeNotifier {
     _loadDefaultChannel();
     _loadFavorites();
     _loadKnown();
+    _loadTags();
     unawaited(_dmReadStore.load().then((_) {
       // Notify so any UI watching unread counts (Nodes badge, etc.)
       // re-renders once the persisted last-read timestamps are in.
@@ -176,6 +178,80 @@ class MeshcoreController extends ChangeNotifier {
     final Set<String> v = await FavoriteStore.load();
     if (v.isEmpty) return;
     _favorites
+      ..clear()
+      ..addAll(v);
+    notifyListeners();
+  }
+
+  // --- R28 — free-text tags per node ---
+  //
+  // Tags live alongside favourites but are orthogonal: a node can be
+  // tagged "Mt. Hood Repeater" without being a favourite, and vice
+  // versa. Multiple tags per node. Persisted as a single JSON blob.
+
+  final Map<String, List<String>> _tags = <String, List<String>>{};
+
+  /// Read-only view of every node's tag list. Empty list when the
+  /// node has no tags (mirrors how `[]` is the natural "no tags"
+  /// rendering).
+  List<String> tagsFor(String pubKeyHex) =>
+      List<String>.unmodifiable(_tags[pubKeyHex] ?? const <String>[]);
+
+  /// Union of every tag ever attached anywhere, sorted for stable
+  /// surface in autocomplete / "filter by tag" UI. Lowercased for
+  /// dedup but original case preserved by picking the first variant.
+  List<String> get allTags {
+    final Map<String, String> seen = <String, String>{};
+    for (final List<String> list in _tags.values) {
+      for (final String t in list) {
+        seen.putIfAbsent(t.toLowerCase(), () => t);
+      }
+    }
+    final List<String> out = seen.values.toList()
+      ..sort(
+          (String a, String b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return out;
+  }
+
+  /// Add [tag] to [pubKeyHex]. Trimmed; case-insensitive dedup
+  /// within the node (so "HAM" and "ham" can't coexist on the same
+  /// node — the existing variant wins). No-op for empty input.
+  Future<void> addTagTo(String pubKeyHex, String tag) async {
+    final String t = tag.trim();
+    if (t.isEmpty) return;
+    final List<String> cur =
+        List<String>.from(_tags[pubKeyHex] ?? const <String>[]);
+    final String lower = t.toLowerCase();
+    if (cur.any((String e) => e.toLowerCase() == lower)) return;
+    cur.add(t);
+    _tags[pubKeyHex] = cur;
+    notifyListeners();
+    await NodeTagsStore.save(_tags);
+  }
+
+  /// Remove [tag] from [pubKeyHex] (case-insensitive). No-op if not
+  /// present. Drops the node from the map when its last tag goes so
+  /// the persisted blob stays clean.
+  Future<void> removeTagFrom(String pubKeyHex, String tag) async {
+    final List<String>? cur = _tags[pubKeyHex];
+    if (cur == null) return;
+    final String lower = tag.trim().toLowerCase();
+    final int before = cur.length;
+    cur.removeWhere((String e) => e.toLowerCase() == lower);
+    if (cur.length == before) return;
+    if (cur.isEmpty) {
+      _tags.remove(pubKeyHex);
+    } else {
+      _tags[pubKeyHex] = cur;
+    }
+    notifyListeners();
+    await NodeTagsStore.save(_tags);
+  }
+
+  Future<void> _loadTags() async {
+    final Map<String, List<String>> v = await NodeTagsStore.load();
+    if (v.isEmpty) return;
+    _tags
       ..clear()
       ..addAll(v);
     notifyListeners();

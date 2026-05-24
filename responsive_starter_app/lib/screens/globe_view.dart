@@ -235,6 +235,10 @@ class _GlobeViewState extends State<GlobeView> {
         isKnown: mc.known.contains(n.pubKeyHex),
         onToggleFavourite: () => mc.toggleFavorite(n.pubKeyHex),
         recentDms: mc.dmHistoryFor(n.pubKeyHex),
+        tags: mc.tagsFor(n.pubKeyHex),
+        tagSuggestions: mc.allTags,
+        onAddTag: (String t) => mc.addTagTo(n.pubKeyHex, t),
+        onRemoveTag: (String t) => mc.removeTagFrom(n.pubKeyHex, t),
       ),
     );
   }
