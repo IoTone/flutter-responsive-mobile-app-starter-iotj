@@ -943,25 +943,36 @@ class _GpsModuleControls extends StatelessWidget {
                     } catch (_) {/* silent — toast is overkill */}
                   },
           ),
-          // gps_interval picker
-          ListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.timer_outlined),
-            title: Text(l.deviceGpsInterval),
-            subtitle: Text(
-              interval == null
-                  ? l.deviceGpsUnknown
-                  : _intervalLabel(l, interval),
-              style:
-                  TextStyle(color: cs.onSurface.withValues(alpha: .6)),
+          // gps_interval picker — only when the firmware actually
+          // advertises the key. On hardware where it isn't exposed
+          // (e.g. T1000-E v1.15.0) writes ERR with ILLEGAL_ARG, so
+          // hide the control and show a one-line note instead.
+          if (mc.supportsGpsInterval == true)
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.timer_outlined),
+              title: Text(l.deviceGpsInterval),
+              subtitle: Text(
+                interval == null
+                    ? l.deviceGpsUnknown
+                    : _intervalLabel(l, interval),
+                style:
+                    TextStyle(color: cs.onSurface.withValues(alpha: .6)),
+              ),
+              enabled: ready && enabled == true,
+              trailing: const Icon(Icons.chevron_right),
+              onTap: !(ready && enabled == true)
+                  ? null
+                  : () => _pickInterval(context, interval ?? 0),
+            )
+          else if (mc.supportsGpsInterval == false && enabled == true)
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 4),
+              child: Text(l.deviceGpsIntervalFixedByFirmware,
+                  style: TextStyle(
+                      color: cs.onSurfaceVariant, fontSize: 11)),
             ),
-            enabled: ready && enabled == true,
-            trailing: const Icon(Icons.chevron_right),
-            onTap: !(ready && enabled == true)
-                ? null
-                : () => _pickInterval(context, interval ?? 0),
-          ),
         ],
       ),
     );
@@ -992,7 +1003,14 @@ class _GpsModuleControls extends StatelessWidget {
     );
     if (picked != null && picked != current) {
       try {
-        await mc.setCustomVar(name: 'gps_interval', value: '$picked');
+        await mc.setCustomVar(
+          name: 'gps_interval',
+          value: '$picked',
+          // Some firmware builds don't expose gps_interval as a
+          // settable sensors key — they reply ILLEGAL_ARG. Don't
+          // surface that in the recent-activity feed.
+          absorbErrorFromUserFeed: true,
+        );
       } catch (_) {/* silent */}
     }
   }

@@ -501,6 +501,19 @@ class MeshcoreController extends ChangeNotifier {
         'volts': f.battery.batteryVolts.toStringAsFixed(2),
       });
     } else if (f is ErrorFrame) {
+      // Squelch the recent-activity surface for ERRs we know we
+      // caused with a probing setCustomVar (e.g. writing
+      // `gps_interval` on firmware where the sensors module
+      // doesn't accept it returns ILLEGAL_ARG). Logging-only
+      // — the codec error is still observable to anyone watching
+      // the raw inbound stream.
+      if (_squelchNextDeviceError > 0) {
+        _squelchNextDeviceError--;
+        // ignore: avoid_print
+        print(
+            '[meshcore] squelching expected device ERR code=${f.code}');
+        return;
+      }
       ev = MeshEvent(
           kind: MeshEventKind.deviceError,
           args: <String, String>{'code': '${f.code ?? '?'}'});
@@ -1065,6 +1078,12 @@ class MeshcoreController extends ChangeNotifier {
 
   Map<String, String> _customVars = const <String, String>{};
 
+  /// Counter: when > 0, the next inbound ErrorFrame is dropped from
+  /// the recent-activity feed (still surfaced in raw inbound + logs).
+  /// Used to absorb known-rejectable probes like setting
+  /// `gps_interval` on firmware that doesn't expose the key.
+  int _squelchNextDeviceError = 0;
+
   /// Latest device-reported custom vars (e.g. `{gps: "1",
   /// gps_interval: "30"}`). Empty until the first
   /// `CMD_GET_CUSTOM_VARS` reply.
@@ -1086,6 +1105,17 @@ class MeshcoreController extends ChangeNotifier {
     return int.tryParse(v.trim());
   }
 
+  /// True if the firmware build advertises `gps_interval` as a
+  /// settable custom var. Some hardware (notably the T1000-E
+  /// v1.15.0 sensors implementation) only exposes `gps` and rejects
+  /// writes to `gps_interval` with ERR_CODE_ILLEGAL_ARG; the
+  /// polling cadence on those builds is fixed by the firmware.
+  /// Null when the device hasn't replied to the initial query yet.
+  bool? get supportsGpsInterval {
+    if (_customVars.isEmpty) return null;
+    return _customVars.containsKey('gps_interval');
+  }
+
   void _requestCustomVars() {
     unawaited(
         send(MeshcoreFrameCodec.getCustomVars()).catchError((Object _) {}));
@@ -1093,15 +1123,22 @@ class MeshcoreController extends ChangeNotifier {
 
   /// Write a single custom var. No-op if not ready. Refreshes the
   /// local cache afterwards so getters reflect the new state.
+  ///
+  /// If the firmware build doesn't expose [name] as a settable
+  /// sensors-module key, the device replies with `ERR_CODE_ILLEGAL_ARG`
+  /// (6). Set [absorbErrorFromUserFeed] to keep that ERR out of the
+  /// dashboard's recent-activity feed (probing path).
   Future<void> setCustomVar({
     required String name,
     required String value,
+    bool absorbErrorFromUserFeed = false,
   }) async {
     if (!isReady) return;
+    if (absorbErrorFromUserFeed) _squelchNextDeviceError++;
     await send(MeshcoreFrameCodec.setCustomVar(name: name, value: value));
-    // The device just acknowledges with OK; re-query to pick up the
-    // canonical value (firmware constrains gps_interval to 0..86400
-    // etc.).
+    // The device acknowledges with OK on accept, ERR on reject;
+    // either way re-query so getters reflect the canonical state
+    // (firmware constrains gps_interval to 0..86400, etc.).
     _requestCustomVars();
   }
 
@@ -1125,10 +1162,15 @@ class MeshcoreController extends ChangeNotifier {
     print('[meshcore.loc] auto-enabling on-board GPS '
         '(advertLocPolicy=2 but gps=0)');
     await setCustomVar(name: 'gps', value: '1');
-    final int? cur = deviceGpsIntervalSec;
-    if (cur == null || cur == 0) {
-      await setCustomVar(name: 'gps_interval', value: '30');
-    }
+    // We intentionally don't write `gps_interval` here. On at least
+    // the T1000-E v1.15.0 build the sensors module only exposes
+    // `gps` and rejects `gps_interval` with ERR_CODE_ILLEGAL_ARG —
+    // the firmware then surfaces a confusing "device error 6" to
+    // the user. Polling cadence on hardware that doesn't accept
+    // `gps_interval` is fixed by the firmware build; on hardware
+    // that does accept it, the user can pick a value from the
+    // Device Config screen's interval picker (only shown when the
+    // device advertises the key).
   }
 
   void _trackCustomVars(MeshcoreInbound f) {

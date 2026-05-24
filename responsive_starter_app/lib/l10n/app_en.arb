@@ -235,6 +235,7 @@
   "@deviceGpsIntervalHour": {
     "placeholders": {"n": {"type": "int"}}
   },
+  "deviceGpsIntervalFixedByFirmware": "Polling cadence is fixed by this firmware build (the sensors module doesn't expose `gps_interval`).",
 
   "locTitle": "Auto-publish location",
   "locTileSubtitle": "Periodic + on-movement phone-GPS push to the device",

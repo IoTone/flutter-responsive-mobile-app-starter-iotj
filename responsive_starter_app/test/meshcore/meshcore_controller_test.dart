@@ -769,8 +769,9 @@ void main() {
       ctrl.dispose();
     });
 
-    test('advertLocPolicy=2 + gps=0 → auto-enable gps + gps_interval=30',
-        () async {
+    test('advertLocPolicy=2 + gps=0 → auto-enable gps only (no '
+        'gps_interval write — that errs on hardware that does not '
+        'expose it)', () async {
       final FakeMeshcoreTransport fake =
           FakeMeshcoreTransport(connected: true);
       final MeshcoreController ctrl = MeshcoreController(
@@ -784,16 +785,13 @@ void main() {
       si[45] = 2; // advertLocPolicy byte
       fake.emit(si);
       await Future<void>.delayed(Duration.zero);
-      // Device reports GPS disabled.
-      fake.emit(customVarsFrame(<String, String>{
-        'gps': '0',
-        'gps_interval': '0',
-      }));
+      // Device reports GPS disabled — and only exposes `gps`, not
+      // `gps_interval`, matching the T1000-E v1.15.0 sensors impl.
+      fake.emit(customVarsFrame(<String, String>{'gps': '0'}));
       // Settle the microtask that triggers the auto-heal.
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);
 
-      // Expect SET frames for both vars.
       final List<List<int>> sets =
           fake.sent.where((f) => f.isNotEmpty && f[0] == 0x29).toList();
       final List<String> bodies = sets
@@ -801,8 +799,71 @@ void main() {
           .toList();
       expect(bodies.contains('gps:1'), isTrue,
           reason: 'auto-heal should turn the GPS module on');
-      expect(bodies.contains('gps_interval:30'), isTrue,
-          reason: 'auto-heal should pick a sensible default interval');
+      expect(bodies.any((String s) => s.startsWith('gps_interval:')),
+          isFalse,
+          reason: 'auto-heal must NOT write gps_interval — hardware '
+              "that doesn't expose it returns ILLEGAL_ARG");
+      ctrl.dispose();
+    });
+
+    test('supportsGpsInterval reflects whether the firmware exposes it',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.supportsGpsInterval, isNull,
+          reason: 'unknown until the device replies');
+
+      fake.emit(customVarsFrame(<String, String>{'gps': '1'}));
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.supportsGpsInterval, isFalse,
+          reason: 'T1000-E v1.15.0: sensors only exposes `gps`');
+
+      fake.emit(customVarsFrame(
+          <String, String>{'gps': '1', 'gps_interval': '30'}));
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.supportsGpsInterval, isTrue,
+          reason: 'hardware that exposes both keys');
+      ctrl.dispose();
+    });
+
+    test('setCustomVar(absorbErrorFromUserFeed: true) drops the next '
+        'ErrorFrame from the recent-activity feed', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      final int before = ctrl.recentEvents
+          .where((MeshEvent e) => e.kind == MeshEventKind.deviceError)
+          .length;
+
+      await ctrl.setCustomVar(
+        name: 'gps_interval',
+        value: '30',
+        absorbErrorFromUserFeed: true,
+      );
+      // Device rejects.
+      fake.emit(Uint8List.fromList(<int>[0x01, 0x06]));
+      await Future<void>.delayed(Duration.zero);
+
+      final int after = ctrl.recentEvents
+          .where((MeshEvent e) => e.kind == MeshEventKind.deviceError)
+          .length;
+      expect(after, before,
+          reason: 'absorbed ERRs must not surface to the user feed');
       ctrl.dispose();
     });
 

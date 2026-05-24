@@ -1124,6 +1124,12 @@ abstract class AppLocalizations {
   /// **'Every {n} h'**
   String deviceGpsIntervalHour(int n);
 
+  /// No description provided for @deviceGpsIntervalFixedByFirmware.
+  ///
+  /// In en, this message translates to:
+  /// **'Polling cadence is fixed by this firmware build (the sensors module doesn\'t expose `gps_interval`).'**
+  String get deviceGpsIntervalFixedByFirmware;
+
   /// No description provided for @locTitle.
   ///
   /// In en, this message translates to:

@@ -570,6 +570,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get deviceGpsIntervalFixedByFirmware =>
+      'このファームウェアビルドでは GPS 更新間隔がハードコードされており、変更できません（sensors モジュールが `gps_interval` を公開していないため）。';
+
+  @override
   String get locTitle => '位置の自動公開';
 
   @override

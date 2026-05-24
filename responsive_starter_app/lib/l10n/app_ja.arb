@@ -235,6 +235,7 @@
   "@deviceGpsIntervalHour": {
     "placeholders": {"n": {"type": "int"}}
   },
+  "deviceGpsIntervalFixedByFirmware": "このファームウェアビルドでは GPS 更新間隔がハードコードされており、変更できません（sensors モジュールが `gps_interval` を公開していないため）。",
 
   "locTitle": "位置の自動公開",
   "locTileSubtitle": "定期 + 移動検知でスマートフォン GPS をデバイスに反映",

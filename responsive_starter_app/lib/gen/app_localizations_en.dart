@@ -604,6 +604,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get deviceGpsIntervalFixedByFirmware =>
+      'Polling cadence is fixed by this firmware build (the sensors module doesn\'t expose `gps_interval`).';
+
+  @override
   String get locTitle => 'Auto-publish location';
 
   @override
