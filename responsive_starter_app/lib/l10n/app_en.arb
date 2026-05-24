@@ -195,6 +195,12 @@
   "gridLegendCalibration": "Calibration: if the arrow seems wrong, hold the phone level and wave it in a figure-8 motion several times. The OS handles compass calibration; the app only displays sensor accuracy (a 'Calibrate' hint appears when accuracy is poor).",
   "gridViewRadial": "Radial",
   "gridViewGlobe": "Globe",
+  "gridViewEqualGrid": "Equal grid",
+  "equalGridAwaitingFix": "Equal-grid view needs your own location — waiting for a GPS fix (phone or device).",
+  "equalGridCellSize": "CELL {size}",
+  "@equalGridCellSize": {
+    "placeholders": {"size": {"type": "String"}}
+  },
   "globeFooter": "Showing {n} peers with known location",
   "globeOverlayArcs": "arcs",
   "globeOverlayRegion": "region",

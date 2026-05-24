@@ -527,6 +527,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gridViewGlobe => 'Globe';
 
   @override
+  String get gridViewEqualGrid => 'Equal grid';
+
+  @override
+  String get equalGridAwaitingFix =>
+      'Equal-grid view needs your own location — waiting for a GPS fix (phone or device).';
+
+  @override
+  String equalGridCellSize(String size) {
+    return 'CELL $size';
+  }
+
+  @override
   String globeFooter(int n) {
     return 'Showing $n peers with known location';
   }

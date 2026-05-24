@@ -998,6 +998,24 @@ abstract class AppLocalizations {
   /// **'Globe'**
   String get gridViewGlobe;
 
+  /// No description provided for @gridViewEqualGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Equal grid'**
+  String get gridViewEqualGrid;
+
+  /// No description provided for @equalGridAwaitingFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Equal-grid view needs your own location — waiting for a GPS fix (phone or device).'**
+  String get equalGridAwaitingFix;
+
+  /// No description provided for @equalGridCellSize.
+  ///
+  /// In en, this message translates to:
+  /// **'CELL {size}'**
+  String equalGridCellSize(String size);
+
   /// No description provided for @globeFooter.
   ///
   /// In en, this message translates to:

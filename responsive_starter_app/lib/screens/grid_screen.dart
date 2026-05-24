@@ -15,13 +15,14 @@ import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../theme/theme_controller.dart';
 import '../util/geo.dart' as geo;
+import 'equal_grid_view.dart';
 import 'globe_view.dart';
 import 'node_detail_sheet.dart';
 
 /// R27 — three map views in the /grid picker:
-/// `radial` (R18, default) + `globe` (this commit). R25's
-/// reverse-geocoded equal-grid will slot in here as a third entry.
-enum _GridViewMode { radial, globe }
+/// `radial` (R18, default) + `globe` (R27) + `equalGrid` (R25).
+/// Cycled by the view-mode button in the AppBar.
+enum _GridViewMode { radial, globe, equalGrid }
 
 /// R18 / U9 — the hyperlocal grid: a radial range-ring view of the
 /// mesh **fabric** relative to us. Brightness = recency (100 % at
@@ -339,19 +340,27 @@ class _GridScreenState extends State<GridScreen>
       appBar: AppBar(
         title: Text(l.gridTitle),
         actions: <Widget>[
-          // R27 — view-mode toggle. Tap to cycle radial ↔ globe.
-          // (Future: a third stop for R25 equal-grid will slot in.)
+          // R27 + R25 — view-mode toggle. Tap cycles
+          // radial → globe → equal-grid → radial. The tooltip and
+          // icon match the *next* mode so the user can read
+          // "tap to switch to X" off the button.
           IconButton(
-            tooltip: _viewMode == _GridViewMode.radial
-                ? l.gridViewGlobe
-                : l.gridViewRadial,
-            icon: Icon(_viewMode == _GridViewMode.radial
-                ? Icons.public
-                : Icons.radar),
+            tooltip: switch (_viewMode) {
+              _GridViewMode.radial => l.gridViewGlobe,
+              _GridViewMode.globe => l.gridViewEqualGrid,
+              _GridViewMode.equalGrid => l.gridViewRadial,
+            },
+            icon: Icon(switch (_viewMode) {
+              _GridViewMode.radial => Icons.public,
+              _GridViewMode.globe => Icons.grid_on,
+              _GridViewMode.equalGrid => Icons.radar,
+            }),
             onPressed: () => setState(() {
-              _viewMode = _viewMode == _GridViewMode.radial
-                  ? _GridViewMode.globe
-                  : _GridViewMode.radial;
+              _viewMode = switch (_viewMode) {
+                _GridViewMode.radial => _GridViewMode.globe,
+                _GridViewMode.globe => _GridViewMode.equalGrid,
+                _GridViewMode.equalGrid => _GridViewMode.radial,
+              };
             }),
           ),
           IconButton(
@@ -408,7 +417,14 @@ class _GridScreenState extends State<GridScreen>
               filteredNodes: visible,
               frozen: !_live && _userInteracted,
             )
-          : Column(
+          : _viewMode == _GridViewMode.equalGrid
+              ? EqualGridView(
+                  cellSizeMeters: EqualGridView.cellSizeForRangeKm(
+                      GridScreen.rangeStops[_scaleIndex].km),
+                  filteredNodes: visible,
+                  frozen: !_live && _userInteracted,
+                )
+              : Column(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),

@@ -195,6 +195,12 @@
   "gridLegendCalibration": "キャリブレーション: 矢印がずれている場合、スマートフォンを水平に持って数回 8 の字に動かしてください。コンパスのキャリブレーションは OS が行い、アプリは精度のみ表示します（精度が悪いと「Calibrate」ヒントが出ます）。",
   "gridViewRadial": "ラジアル",
   "gridViewGlobe": "グローブ",
+  "gridViewEqualGrid": "等分グリッド",
+  "equalGridAwaitingFix": "等分グリッド表示には自分の位置が必要です — GPS 取得待ち（スマートフォンまたはデバイス）。",
+  "equalGridCellSize": "セル {size}",
+  "@equalGridCellSize": {
+    "placeholders": {"size": {"type": "String"}}
+  },
   "globeFooter": "位置情報のある {n} 件のピアを表示",
   "globeOverlayArcs": "アーク",
   "globeOverlayRegion": "地域",
