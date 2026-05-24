@@ -199,6 +199,8 @@
   "globeOverlayRegion": "region",
   "globeOverlayLabels": "labels",
   "globeZoom": "ZOOM",
+  "globeAltitude": "ALT",
+  "globePaused": "PAUSED",
   "voiceOfflineBadge": "OFFLINE",
   "dashboardLocationRefresh": "Refresh location from device",
   "dashboardLocationAltitude": "alt {meters} m",

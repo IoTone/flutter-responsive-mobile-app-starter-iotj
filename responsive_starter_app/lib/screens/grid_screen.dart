@@ -394,7 +394,15 @@ class _GridScreenState extends State<GridScreen>
         ],
       ),
       body: _viewMode == _GridViewMode.globe
-          ? const GlobeView()
+          // R40 — pass the grid's already-filtered visible list and
+          // pause-state through so the globe inherits both the
+          // recency-window filter and the play/pause snapshot. The
+          // globe stays a "view onto the same data" rather than an
+          // independent source.
+          ? GlobeView(
+              filteredNodes: visible,
+              frozen: !_live && _userInteracted,
+            )
           : Column(
         children: <Widget>[
           Padding(

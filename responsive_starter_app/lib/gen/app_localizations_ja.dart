@@ -507,6 +507,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get globeZoom => 'ズーム';
 
   @override
+  String get globeAltitude => '高度';
+
+  @override
+  String get globePaused => '一時停止';
+
+  @override
   String get voiceOfflineBadge => 'オフライン';
 
   @override

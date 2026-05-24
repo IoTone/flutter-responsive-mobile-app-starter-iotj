@@ -1022,6 +1022,18 @@ abstract class AppLocalizations {
   /// **'ZOOM'**
   String get globeZoom;
 
+  /// No description provided for @globeAltitude.
+  ///
+  /// In en, this message translates to:
+  /// **'ALT'**
+  String get globeAltitude;
+
+  /// No description provided for @globePaused.
+  ///
+  /// In en, this message translates to:
+  /// **'PAUSED'**
+  String get globePaused;
+
   /// No description provided for @voiceOfflineBadge.
   ///
   /// In en, this message translates to:

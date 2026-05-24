@@ -541,6 +541,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get globeZoom => 'ZOOM';
 
   @override
+  String get globeAltitude => 'ALT';
+
+  @override
+  String get globePaused => 'PAUSED';
+
+  @override
   String get voiceOfflineBadge => 'OFFLINE';
 
   @override

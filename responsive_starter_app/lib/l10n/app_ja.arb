@@ -199,6 +199,8 @@
   "globeOverlayRegion": "地域",
   "globeOverlayLabels": "ラベル",
   "globeZoom": "ズーム",
+  "globeAltitude": "高度",
+  "globePaused": "一時停止",
   "voiceOfflineBadge": "オフライン",
   "dashboardLocationRefresh": "デバイスから位置を更新",
   "dashboardLocationAltitude": "高度 {meters} m",

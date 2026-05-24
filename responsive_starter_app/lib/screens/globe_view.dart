@@ -30,7 +30,21 @@ import 'node_detail_sheet.dart';
 /// user can't flip past. Auto-centres on the user's lat/lon at
 /// first opportunity.
 class GlobeView extends StatefulWidget {
-  const GlobeView({super.key});
+  const GlobeView({
+    super.key,
+    this.filteredNodes,
+    this.frozen = false,
+  });
+
+  /// R40 — when non-null, the globe renders this list verbatim
+  /// instead of pulling `mc.nodes` itself. This is how the radial
+  /// grid pipes its **pause / play / recency-window** state through
+  /// without duplicating filter logic.
+  final List<DiscoveredNode>? filteredNodes;
+
+  /// R40 — when true, the globe shows a small "PAUSED" indicator
+  /// (the grid is on a frozen snapshot, so the globe is too).
+  final bool frozen;
 
   @override
   State<GlobeView> createState() => _GlobeViewState();
@@ -46,17 +60,64 @@ class _GlobeViewState extends State<GlobeView> {
   double _centreLatDeg = 0;
   bool _centeredOnSelf = false;
 
-  /// Pinch-zoom scale. 1.0 = base (whole hemisphere fits in the
-  /// canvas); higher = closer view. Default opens at **regional**
-  /// scale (3.5×) so the user lands on a country / nearby-country
-  /// view centred on their own pin rather than a tiny dot on the
-  /// world. Max is 50× so the user can pull into a metro-region
-  /// view (~150–200 km visible radius) when they want; past ~10×
-  /// the 110m continent polygons are visibly coarse — true street
-  /// / block-level fidelity stays the R25 equal-grid map's domain.
-  static const double _scaleDefault = 3.5;
-  static const double _scaleMin = 1.0;
-  static const double _scaleMax = 100.0;
+  /// R40 — zoom expressed as **camera altitude**. The slider speaks
+  /// miles/feet (the user metaphor); the painter speaks `_scale`
+  /// (radius multiplier). Conversion below assumes a 60° FOV and a
+  /// 3959 mi earth radius — at scale s the visible half-radius on
+  /// the ground is ~4399/s mi, which back-solves to altitude ≈
+  /// 7625/s mi (since visibleR ≈ alt × tan(30°)).
+  ///
+  /// Range:
+  ///   - **Min altitude = 100 ft** (most zoomed-in; ~70 m visible)
+  ///   - **Default = 1 mi** (hyperlocal entry point — see immediate
+  ///     neighbourhood and any peers in your block)
+  ///   - **Max altitude = ~7625 mi** (whole hemisphere — like
+  ///     today's 1.0× default)
+  ///
+  /// Past about ~50× scale (~150 mi altitude) the Natural Earth
+  /// 110m polygons become visibly coarse — at hyperlocal zoom they
+  /// disappear off-screen and the canvas is dominated by ocean
+  /// colour with your pin + nearby peers, which is the desired
+  /// "you are here" feel.
+  static const double _altDefaultMi = 1.0;
+  static const double _altMinMi = 100.0 / 5280.0; // 100 ft
+  static const double _altMaxMi = 7625.0; // ≈ hemisphere
+  static double _scaleFromAltMi(double altMi) => 7625.0 / altMi;
+  static double _altMiFromScale(double s) => 7625.0 / s;
+
+  /// Map a `_scale` value to a 0..1 slider position, **inverted**
+  /// so the slider's left edge is "zoomed out" (high altitude) and
+  /// the right edge is "zoomed in" (low altitude). Log-spaced over
+  /// `_scaleMin..._scaleMax` because the range spans ~5 decades.
+  static double _scaleToSliderPos(double scale) {
+    final double logS = math.log(scale.clamp(_scaleMin, _scaleMax));
+    final double logMin = math.log(_scaleMin);
+    final double logMax = math.log(_scaleMax);
+    return (logS - logMin) / (logMax - logMin);
+  }
+
+  static double _sliderPosToScale(double pos) {
+    final double logMin = math.log(_scaleMin);
+    final double logMax = math.log(_scaleMax);
+    return math.exp(logMin + (logMax - logMin) * pos.clamp(0.0, 1.0));
+  }
+
+  /// Pretty altitude readout. Below 1 mile → ft; otherwise mi.
+  /// Mixed unit so a hyperlocal zoom doesn't read "0.02 mi".
+  static String _formatAltitude(double altMi) {
+    if (altMi < 1.0) {
+      final int ft = (altMi * 5280.0).round();
+      return '$ft ft';
+    }
+    if (altMi < 10.0) return '${altMi.toStringAsFixed(1)} mi';
+    return '${altMi.round()} mi';
+  }
+
+  static final double _scaleMin = _scaleFromAltMi(_altMaxMi); // 1.0
+  static final double _scaleMax = _scaleFromAltMi(_altMinMi); // ~402_640
+  static final double _scaleDefault =
+      _scaleFromAltMi(_altDefaultMi); // 7625
+
   double _scale = _scaleDefault;
   double _scaleAtGestureStart = _scaleDefault;
 
@@ -194,8 +255,14 @@ class _GlobeViewState extends State<GlobeView> {
             : mc.selfInfo!.longitude);
     _ensureCenteredOn(selfLat, selfLon);
 
+    // R40 — when the grid hands us a pre-filtered list (its own
+    // pause-snapshot + recency window already applied), use it.
+    // Otherwise fall back to the controller's live nodes so the
+    // globe is still useful when constructed standalone.
+    final List<DiscoveredNode> source =
+        widget.filteredNodes ?? mc.nodes;
     final List<DiscoveredNode> withLoc = <DiscoveredNode>[
-      for (final DiscoveredNode n in mc.nodes)
+      for (final DiscoveredNode n in source)
         if (n.hasLocation) n
     ];
 
@@ -358,14 +425,16 @@ class _GlobeViewState extends State<GlobeView> {
               ),
             ),
           ),
-          // Zoom slider — bottom-right. Mirrors the pinch gesture
-          // so users without two-finger touch (or who just prefer
-          // a discrete control) can still scale the view.
+          // R40 — altitude slider. Log-mapped so the range from
+          // hemisphere (~7600 mi) down to 100 ft fits a single
+          // 0..1 slider track without the entire useful range
+          // collapsing into the last 1% (it would on a linear
+          // slider given the 400 000× zoom factor).
           Positioned(
             right: 12,
             bottom: 12,
             child: Container(
-              width: 180,
+              width: 220,
               padding: const EdgeInsets.symmetric(
                   horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
@@ -376,24 +445,27 @@ class _GlobeViewState extends State<GlobeView> {
               ),
               child: Row(
                 children: <Widget>[
-                  Text(l.globeZoom,
+                  Text(l.globeAltitude,
                       style: TextStyle(
                           color: cs.onSurfaceVariant,
                           fontSize: 10,
                           letterSpacing: 1.2)),
                   Expanded(
                     child: Slider(
-                      min: _scaleMin,
-                      max: _scaleMax,
-                      value: _scale,
-                      onChanged: (double v) =>
-                          setState(() => _scale = v),
+                      min: 0.0,
+                      max: 1.0,
+                      // Slider is reversed in meaning: 0.0 = max
+                      // altitude (zoomed out), 1.0 = min altitude
+                      // (zoomed in). Reads more naturally on screen.
+                      value: _scaleToSliderPos(_scale),
+                      onChanged: (double v) => setState(
+                          () => _scale = _sliderPosToScale(v)),
                     ),
                   ),
                   SizedBox(
-                    width: 32,
+                    width: 56,
                     child: Text(
-                      '${_scale.toStringAsFixed(1)}×',
+                      _formatAltitude(_altMiFromScale(_scale)),
                       textAlign: TextAlign.end,
                       style: TextStyle(
                           color: cs.onSurface,
@@ -405,6 +477,34 @@ class _GlobeViewState extends State<GlobeView> {
               ),
             ),
           ),
+          // R40 — PAUSED indicator when the grid handed us a frozen
+          // snapshot; otherwise hidden.
+          if (widget.frozen)
+            Positioned(
+              left: 12,
+              top: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: cs.tertiaryContainer.withValues(alpha: .85),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Icon(Icons.pause,
+                        size: 12, color: cs.onTertiaryContainer),
+                    const SizedBox(width: 4),
+                    Text(l.globePaused,
+                        style: TextStyle(
+                            color: cs.onTertiaryContainer,
+                            fontSize: 10,
+                            letterSpacing: 1)),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
