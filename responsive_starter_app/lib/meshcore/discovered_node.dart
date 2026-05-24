@@ -1,5 +1,35 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
+
+/// Spatial-aware proximity classification for the IN RANGE / FAR
+/// badges. Resolved by `MeshcoreController.proximityFor(node)`,
+/// which has access to our own GPS fix.
+///
+/// Thresholds are deliberately wide (10 / 50 km) to absorb practical
+/// LoRa multi-hop reach without yelling "FAR" at someone two cities
+/// over who's still actually reachable.
+enum NodeProximity {
+  /// Both ends have GPS and distance < 10 km. UX: green "IN RANGE".
+  near,
+
+  /// Both ends have GPS and 10 km ≤ distance ≤ 50 km. UX: no badge
+  /// — known location, ambiguously reachable. Distance text already
+  /// communicates this.
+  mid,
+
+  /// Both ends have GPS and distance > 50 km. UX: "FAR" badge in a
+  /// muted colour so the user can spot accidental long-haul entries.
+  far,
+
+  /// Distance unavailable (we or the peer has no GPS) AND the node
+  /// has been heard within the last 5 minutes. UX: "IN RANGE" badge,
+  /// because over the air we can apparently still talk to them.
+  recent,
+
+  /// Distance unavailable, no recent traffic. UX: no badge.
+  unknown,
+}
+
 /// A Meshcore node discovered "in the area" — from a contact list
 /// entry (`RESP_CODE_CONTACT`) or an over-the-air advertisement
 /// (`PUSH_CODE_ADVERTISEMENT`). Keyed by full public key.
@@ -35,9 +65,21 @@ class DiscoveredNode {
   /// True if last updated from an OTA advert (vs. a synced contact).
   bool viaAdvert;
 
-  /// Heard within the last 5 minutes ⇒ currently "in my area".
-  bool get inRange =>
+  /// True if we've heard from this node in the last 5 minutes.
+  /// Purely temporal — does NOT imply spatial proximity (a node 300
+  /// km away heard 30 s ago is still "recent"). For the UX-facing
+  /// "in range" badge, use `MeshcoreController.proximityFor(node)`,
+  /// which factors in actual distance when we have GPS on both ends.
+  bool get recentlyHeard =>
       DateTime.now().millisecondsSinceEpoch ~/ 1000 - lastHeardUnix < 300;
+
+  /// Deprecated alias kept temporarily for any external callers; same
+  /// semantics as [recentlyHeard]. Internal call sites must use
+  /// `MeshcoreController.proximityFor` so the badge reflects actual
+  /// distance, not just recency.
+  @Deprecated('Use MeshcoreController.proximityFor for spatial-aware '
+      'badge logic; this getter is recency-only.')
+  bool get inRange => recentlyHeard;
 
   String get signalLabel {
     final List<String> p = <String>[

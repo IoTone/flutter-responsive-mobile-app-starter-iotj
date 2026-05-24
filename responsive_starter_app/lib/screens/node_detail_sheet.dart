@@ -26,6 +26,7 @@ class NodeDetailSheet extends StatefulWidget {
     required this.isFavourite,
     required this.isKnown,
     required this.onToggleFavourite,
+    this.proximity = NodeProximity.unknown,
     this.tags = const <String>[],
     this.tagSuggestions = const <String>[],
     this.onAddTag,
@@ -36,6 +37,11 @@ class NodeDetailSheet extends StatefulWidget {
 
   final DiscoveredNode node;
   final double? distanceMeters;
+
+  /// Spatial-aware proximity classification for the IN RANGE / FAR
+  /// header badge. Default `unknown` shows no badge — caller should
+  /// pass `mc.proximityFor(node)` so the sheet matches the list view.
+  final NodeProximity proximity;
   final bool isFavourite;
   final bool isKnown;
   final VoidCallback onToggleFavourite;
@@ -191,8 +197,17 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (n.inRange)
+                // R28+ spatial-aware: only show IN RANGE when we
+                // actually believe they're close. Caller passes the
+                // resolved enum via `proximity`. We fall back to
+                // recently-heard (recent) for unknown-distance nodes
+                // so the badge still appears for OTA-recent peers.
+                if (widget.proximity == NodeProximity.near ||
+                    widget.proximity == NodeProximity.recent)
                   chip(Icons.sensors, l.nodeDetailInRange, cs.primary),
+                if (widget.proximity == NodeProximity.far)
+                  chip(Icons.travel_explore, l.nodesFarBadge,
+                      cs.onSurfaceVariant),
               ],
             ),
             const SizedBox(height: 4),

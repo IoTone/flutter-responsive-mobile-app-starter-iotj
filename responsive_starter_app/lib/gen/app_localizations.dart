@@ -812,6 +812,12 @@ abstract class AppLocalizations {
   /// **'IN RANGE'**
   String get nodesInRangeBadge;
 
+  /// No description provided for @nodesFarBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'FAR'**
+  String get nodesFarBadge;
+
   /// No description provided for @nodesEmptyFiltered.
   ///
   /// In en, this message translates to:

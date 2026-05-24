@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:meshmore_sns_app/meshcore/background_prefs.dart';
+import 'package:meshmore_sns_app/meshcore/discovered_node.dart';
 import 'package:meshmore_sns_app/meshcore/favorite_store.dart';
 import 'package:meshmore_sns_app/meshcore/known_store.dart';
 import 'package:meshmore_sns_app/meshcore/mesh_event.dart';
@@ -75,6 +76,80 @@ void main() {
         ctrl.distanceMetersTo(37.421 + 0.009, -122.084);
     expect(d1, isNotNull);
     expect(d1!, inInclusiveRange(900, 1100));
+    ctrl.dispose();
+  });
+
+  test('proximityFor — spatial-aware: <10 km = near, >50 km = far, '
+      'no GPS but recent = recent, otherwise unknown', () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection: MeshcoreConnection(
+          handshakeTimeout: const Duration(seconds: 5)),
+    );
+    await ctrl.connect();
+    // Anchor our own location at Portland.
+    fake.emit(selfInfoFrameAt(lat: 45.5152, lon: -122.6784));
+    await Future<void>.delayed(Duration.zero);
+
+    final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+    // Near: ~3 km north of self.
+    final DiscoveredNode near = DiscoveredNode(
+      pubKeyHex: 'a' * 64,
+      name: 'near',
+      type: 1,
+      lastHeardUnix: now,
+      latitude: 45.5152 + 0.027, // ~3 km
+      longitude: -122.6784,
+      viaAdvert: true,
+    );
+    expect(ctrl.proximityFor(near), NodeProximity.near);
+
+    // Mid: ~30 km north of self (between 10 and 50 km).
+    final DiscoveredNode mid = DiscoveredNode(
+      pubKeyHex: 'b' * 64,
+      name: 'mid',
+      type: 1,
+      lastHeardUnix: now,
+      latitude: 45.5152 + 0.27, // ~30 km
+      longitude: -122.6784,
+      viaAdvert: true,
+    );
+    expect(ctrl.proximityFor(mid), NodeProximity.mid);
+
+    // Far: ~110 km north of self.
+    final DiscoveredNode far = DiscoveredNode(
+      pubKeyHex: 'c' * 64,
+      name: 'far',
+      type: 1,
+      lastHeardUnix: now,
+      latitude: 45.5152 + 1.0, // ~111 km
+      longitude: -122.6784,
+      viaAdvert: true,
+    );
+    expect(ctrl.proximityFor(far), NodeProximity.far);
+
+    // No GPS, recently heard → recent.
+    final DiscoveredNode recent = DiscoveredNode(
+      pubKeyHex: 'd' * 64,
+      name: 'recent',
+      type: 1,
+      lastHeardUnix: now,
+      viaAdvert: true,
+    );
+    expect(ctrl.proximityFor(recent), NodeProximity.recent);
+
+    // No GPS, not recently heard → unknown.
+    final DiscoveredNode quiet = DiscoveredNode(
+      pubKeyHex: 'e' * 64,
+      name: 'quiet',
+      type: 1,
+      lastHeardUnix: now - 3600, // 1 h old
+      viaAdvert: true,
+    );
+    expect(ctrl.proximityFor(quiet), NodeProximity.unknown);
     ctrl.dispose();
   });
 
@@ -495,7 +570,7 @@ void main() {
     final n = ctrl.nodes.single;
     expect(n.name, 'AdvNode');
     expect(n.viaAdvert, isTrue);
-    expect(n.inRange, isTrue); // heard now, regardless of sender clock
+    expect(n.recentlyHeard, isTrue); // heard now, regardless of sender clock
     ctrl.dispose();
   });
 
@@ -581,8 +656,8 @@ void main() {
 
       final fresh = ctrl.nodes.firstWhere((n) => n.name == 'FreshPeer');
       final old = ctrl.nodes.firstWhere((n) => n.name == 'OldPeer');
-      expect(fresh.inRange, isTrue); // adv+offset ≈ phone now
-      expect(old.inRange, isFalse); // 10000s stale in device time
+      expect(fresh.recentlyHeard, isTrue); // adv+offset ≈ phone now
+      expect(old.recentlyHeard, isFalse); // 10000s stale in device time
       ctrl.dispose();
     });
 
@@ -600,11 +675,11 @@ void main() {
       fake.emit(contactFrame(
           name: 'P', firstPubByte: 70, lastAdvertTs: deviceNow));
       await Future<void>.delayed(Duration.zero);
-      expect(ctrl.nodes.single.inRange, isFalse); // looks ancient
+      expect(ctrl.nodes.single.recentlyHeard, isFalse); // looks ancient
 
       fake.emit(currentTimeFrameAt(deviceNow)); // learn offset
       await Future<void>.delayed(Duration.zero);
-      expect(ctrl.nodes.single.inRange, isTrue); // re-derived
+      expect(ctrl.nodes.single.recentlyHeard, isTrue); // re-derived
       ctrl.dispose();
     });
   });

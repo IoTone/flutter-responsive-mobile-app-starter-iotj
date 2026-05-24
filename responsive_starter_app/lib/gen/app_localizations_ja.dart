@@ -393,6 +393,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodesInRangeBadge => '範囲内';
 
   @override
+  String get nodesFarBadge => '遠距離';
+
+  @override
   String get nodesEmptyFiltered =>
       '条件に一致するノードがありません。\n\n上の「クリア」で絞り込みを解除するか、各チップで条件を変更してください。';
 

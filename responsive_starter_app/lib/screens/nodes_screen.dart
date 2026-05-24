@@ -65,7 +65,16 @@ class _NodesScreenState extends State<NodesScreen> {
       if (!nameHit && !idHit && !pkHit) return false;
     }
     if (_starredOnly && !favs.contains(n.pubKeyHex)) return false;
-    if (_inRangeOnly && !n.inRange) return false;
+    if (_inRangeOnly) {
+      // "In-range only" now means spatially near OR (when GPS is
+      // unknown) recently heard. FAR / MID / unknown are hidden so a
+      // user a thousand km from a repeater they once heard a few
+      // minutes ago doesn't see it after toggling the filter on.
+      final NodeProximity p = mc.proximityFor(n);
+      if (p != NodeProximity.near && p != NodeProximity.recent) {
+        return false;
+      }
+    }
     if (_maxAge != null) {
       final int s =
           DateTime.now().millisecondsSinceEpoch ~/ 1000 - n.lastHeardUnix;
@@ -112,6 +121,7 @@ class _NodesScreenState extends State<NodesScreen> {
         isKnown: mc.known.contains(n.pubKeyHex),
         onToggleFavourite: () => mc.toggleFavorite(n.pubKeyHex),
         recentDms: mc.dmHistoryFor(n.pubKeyHex),
+        proximity: mc.proximityFor(n),
         tags: mc.tagsFor(n.pubKeyHex),
         tagSuggestions: mc.allTags,
         onAddTag: (String t) => mc.addTagTo(n.pubKeyHex, t),
@@ -151,7 +161,12 @@ class _NodesScreenState extends State<NodesScreen> {
         return 0;
       });
 
-    final int inRange = nodes.where((DiscoveredNode n) => n.inRange).length;
+    // Spatial-aware: counts nodes the user would actually see as
+    // "IN RANGE" (near or — when location is unknown — recent).
+    final int inRange = nodes.where((DiscoveredNode n) {
+      final NodeProximity p = mc.proximityFor(n);
+      return p == NodeProximity.near || p == NodeProximity.recent;
+    }).length;
     final int totalFabric = mc.nodes
         .where((DiscoveredNode n) => n.pubKeyHex != selfPk)
         .length;
@@ -395,14 +410,20 @@ class _NodesScreenState extends State<NodesScreen> {
                     final DiscoveredNode n = nodes[i];
                     return ListTile(
                       onTap: () => _showDetail(mc, n),
-                      leading: Icon(
-                        n.inRange
-                            ? Icons.sensors
-                            : (n.viaAdvert
-                                ? Icons.podcasts
-                                : Icons.contacts),
-                        color: n.inRange ? cs.primary : cs.onSurfaceVariant,
-                      ),
+                      leading: Builder(builder: (BuildContext _) {
+                        final NodeProximity p = mc.proximityFor(n);
+                        final bool near = p == NodeProximity.near ||
+                            p == NodeProximity.recent;
+                        return Icon(
+                          near
+                              ? Icons.sensors
+                              : (n.viaAdvert
+                                  ? Icons.podcasts
+                                  : Icons.contacts),
+                          color:
+                              near ? cs.primary : cs.onSurfaceVariant,
+                        );
+                      }),
                       title: Builder(builder: (BuildContext _) {
                         final int dmN = mc.dmCountFor(n.pubKeyHex);
                         final int unread = dmN == 0
@@ -418,15 +439,39 @@ class _NodesScreenState extends State<NodesScreen> {
                             Flexible(
                                 child: Text(
                                     n.name.isEmpty ? n.shortId : n.name)),
-                            if (n.inRange)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 8),
-                                child: Text(l.nodesInRangeBadge,
-                                    style: TextStyle(
-                                        fontSize: 10,
-                                        letterSpacing: 1,
-                                        color: cs.primary)),
-                              ),
+                            Builder(builder: (BuildContext _) {
+                              // Spatial-aware badge: IN RANGE for
+                              // <10 km / recently heard; FAR for
+                              // >50 km. Middle ground (10-50 km) has
+                              // no badge — distance text already
+                              // communicates it.
+                              final NodeProximity p =
+                                  mc.proximityFor(n);
+                              if (p == NodeProximity.near ||
+                                  p == NodeProximity.recent) {
+                                return Padding(
+                                  padding:
+                                      const EdgeInsets.only(left: 8),
+                                  child: Text(l.nodesInRangeBadge,
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          letterSpacing: 1,
+                                          color: cs.primary)),
+                                );
+                              }
+                              if (p == NodeProximity.far) {
+                                return Padding(
+                                  padding:
+                                      const EdgeInsets.only(left: 8),
+                                  child: Text(l.nodesFarBadge,
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          letterSpacing: 1,
+                                          color: cs.onSurfaceVariant)),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            }),
                             if (dmN > 0)
                               Padding(
                                 padding: const EdgeInsets.only(left: 8),

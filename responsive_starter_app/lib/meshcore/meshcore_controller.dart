@@ -459,6 +459,34 @@ class MeshcoreController extends ChangeNotifier {
     return geo.haversineMeters(
         own.latitude, own.longitude, targetLat, targetLon);
   }
+
+  /// Spatial-aware "is this node nearby?" classification used by the
+  /// IN RANGE / FAR badges. See [NodeProximity] for the band
+  /// definitions. The temporal-only `recentlyHeard` fallback only
+  /// fires when neither side has GPS — once we have both, distance
+  /// alone decides.
+  ///
+  /// Thresholds picked from LoRa practical-reach experience: 10 km
+  /// is comfortably "in your area" even on narrow-band tuples; 50 km
+  /// is well beyond a typical direct link, so labelling those as
+  /// FAR is informative.
+  static const double _nearThresholdMeters = 10000;
+  static const double _farThresholdMeters = 50000;
+
+  NodeProximity proximityFor(DiscoveredNode n) {
+    if (n.hasLocation) {
+      final double? d = distanceMetersTo(n.latitude!, n.longitude!);
+      if (d != null) {
+        if (d < _nearThresholdMeters) return NodeProximity.near;
+        if (d > _farThresholdMeters) return NodeProximity.far;
+        return NodeProximity.mid;
+      }
+    }
+    // No spatial info — fall back to recency. Calling
+    // n.recentlyHeard avoids the deprecated alias warning.
+    if (n.recentlyHeard) return NodeProximity.recent;
+    return NodeProximity.unknown;
+  }
   String? get error => _error;
   bool get isConnecting => _connecting;
   bool get isReady => _state == MeshcoreConnectionState.ready;

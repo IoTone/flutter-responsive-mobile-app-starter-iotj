@@ -45,8 +45,10 @@ class DashboardScreen extends StatelessWidget {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final TextTheme tt = Theme.of(context).textTheme;
     final AppLocalizations l = AppLocalizations.of(context);
-    final int inRange =
-        mc.nodes.where((DiscoveredNode n) => n.inRange).length;
+    final int inRange = mc.nodes.where((DiscoveredNode n) {
+      final NodeProximity p = mc.proximityFor(n);
+      return p == NodeProximity.near || p == NodeProximity.recent;
+    }).length;
     final ({String label, bool alert, bool busy}) st = _status(mc, l);
     final SelfInfo? selfInfo = mc.selfInfo;
 

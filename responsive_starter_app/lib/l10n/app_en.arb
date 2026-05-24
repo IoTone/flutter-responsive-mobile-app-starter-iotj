@@ -160,6 +160,7 @@
   },
   "nodesStatusOffline": "Not connected — Settings → Diagnostics & connect",
   "nodesInRangeBadge": "IN RANGE",
+  "nodesFarBadge": "FAR",
   "nodesEmptyFiltered": "No nodes match this filter.\n\nTap Clear to widen, or change the chip cutoffs above.",
   "nodesEmptyReady": "No nodes yet.\n\nDiscovery is advert-driven: a node shows up only when its advert is heard. Chatting on Public does NOT make a node appear.\n\nAsk the other node to Advertise / Share (or tap \"Advertise\" here so it can find you), then \"Scan area\".\n\nThis view shows the mesh \"fabric\" (what you've seen). Star a node to mark it as a contact.",
   "nodesEmptyOffline": "Connect a radio to discover nearby nodes.",

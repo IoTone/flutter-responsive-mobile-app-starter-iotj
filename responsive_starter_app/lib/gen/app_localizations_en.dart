@@ -422,6 +422,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nodesInRangeBadge => 'IN RANGE';
 
   @override
+  String get nodesFarBadge => 'FAR';
+
+  @override
   String get nodesEmptyFiltered =>
       'No nodes match this filter.\n\nTap Clear to widen, or change the chip cutoffs above.';
 

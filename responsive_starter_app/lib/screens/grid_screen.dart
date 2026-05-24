@@ -285,6 +285,7 @@ class _GridScreenState extends State<GridScreen>
         isKnown: mc.known.contains(n.pubKeyHex),
         onToggleFavourite: () => mc.toggleFavorite(n.pubKeyHex),
         recentDms: mc.dmHistoryFor(n.pubKeyHex),
+        proximity: mc.proximityFor(n),
         tags: mc.tagsFor(n.pubKeyHex),
         tagSuggestions: mc.allTags,
         onAddTag: (String t) => mc.addTagTo(n.pubKeyHex, t),
