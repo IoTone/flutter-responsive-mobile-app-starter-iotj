@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../gen/app_localizations.dart';
+import '../meshcore/city_lookup.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_controller.dart';
 import 'node_detail_sheet.dart';
@@ -69,6 +70,20 @@ class _EqualGridViewState extends State<EqualGridView> {
   /// Cached size of the last paint pass so the tap hit-test can run
   /// in the same coordinate space the painter used.
   Size? _lastPaintSize;
+
+  @override
+  void initState() {
+    super.initState();
+    // R25 Stage 2 — kick the city DB warm-up if main.dart hasn't
+    // already (e.g. on hot-reload). Repaint once it lands so the
+    // city labels fill in without waiting for an unrelated
+    // controller notification.
+    if (CityLookup.cachedOrNull == null) {
+      CityLookup.load().then((_) {
+        if (mounted) setState(() {});
+      }).catchError((Object _) {/* degrade to grid coords */});
+    }
+  }
 
   Future<void> _showDetail(
       BuildContext ctx, MeshcoreController mc, DiscoveredNode n) {
@@ -373,6 +388,11 @@ class _EqualGridPainter extends CustomPainter {
         (size.width / cellPx / 2.0).ceil() + 1;
     final int rowsHalf =
         (size.height / cellPx / 2.0).ceil() + 1;
+    // Pre-resolve metres-per-degree at our latitude so per-cell
+    // centre-coord math doesn't repeat the cos() in the hot loop.
+    const double mPerDegLat = 6371000.0 * math.pi / 180.0;
+    final double mPerDegLon =
+        mPerDegLat * math.cos(selfLat * math.pi / 180.0);
     for (int cx = -colsHalf; cx <= colsHalf; cx++) {
       for (int cy = -rowsHalf; cy <= rowsHalf; cy++) {
         final Rect cellRect = Rect.fromLTWH(
@@ -382,20 +402,37 @@ class _EqualGridPainter extends CustomPainter {
           cellPx,
         );
         canvas.drawRect(cellRect, cellStroke);
-        // Label in the top-left corner of the cell.
+        // R25 Stage 2 — try the offline city DB first. If the
+        // lookup hasn't loaded yet (first frame after launch) OR
+        // there's no nearby city, fall back to the grid coord so
+        // the label is never empty.
+        final double cellCentreLat =
+            selfLat + (cy.toDouble() * -1.0) * cellSizeMeters / mPerDegLat;
+        final double cellCentreLon =
+            selfLon + cx.toDouble() * cellSizeMeters / mPerDegLon;
+        final String? city = labelForCell(
+            centreLat: cellCentreLat,
+            centreLon: cellCentreLon,
+            cellSizeMeters: cellSizeMeters);
+        final String label = city ?? _coord(cx, cy);
         final TextPainter tp = TextPainter(
           text: TextSpan(
-            text: _coord(cx, cy),
+            text: label,
             style: TextStyle(
                 color: cellLabel,
-                fontSize: 9,
-                letterSpacing: 1,
+                fontSize: city != null ? 10 : 9,
+                fontWeight: city != null
+                    ? FontWeight.w500
+                    : FontWeight.normal,
+                letterSpacing: city != null ? 0.5 : 1,
                 fontFeatures: const <FontFeature>[
                   FontFeature.tabularFigures(),
                 ]),
           ),
           textDirection: TextDirection.ltr,
-        )..layout();
+          ellipsis: '…',
+          maxLines: 1,
+        )..layout(maxWidth: cellPx - 8);
         tp.paint(canvas,
             cellRect.topLeft + const Offset(4, 3));
       }

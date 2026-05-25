@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 
 import 'package:meshmore_sns_app/gen/app_localizations.dart';
 import 'package:meshmore_sns_app/l10n/locale_controller.dart';
-import 'package:meshmore_sns_app/meshcore/discovered_node.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/screens/equal_grid_view.dart';
@@ -21,19 +20,6 @@ const List<LocalizationsDelegate<Object>> _kLocaleDelegates =
   GlobalWidgetsLocalizations.delegate,
   GlobalCupertinoLocalizations.delegate,
 ];
-
-DiscoveredNode _peer(String suffix, double lat, double lon, {int type = 1}) {
-  return DiscoveredNode(
-    pubKeyHex:
-        '0000000000000000000000000000000000000000000000000000000000000$suffix',
-    name: 'peer$suffix',
-    type: type,
-    latitude: lat,
-    longitude: lon,
-    lastHeardUnix: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-    viaAdvert: true,
-  );
-}
 
 void main() {
   group('R25 Stage 1 — EqualGridView', () {
