@@ -574,6 +574,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridViewStreetMap => 'ストリートマップ';
 
   @override
+  String get gridViewPicker => 'マップ表示を切替';
+
+  @override
+  String get gridViewRadialShort => 'レーダー';
+
+  @override
+  String get gridViewGlobeShort => 'グローブ';
+
+  @override
+  String get gridViewEqualGridShort => 'セル';
+
+  @override
+  String get gridViewStreetMapShort => 'ロード';
+
+  @override
   String get streetMapRecenter => '現在地に戻す';
 
   @override

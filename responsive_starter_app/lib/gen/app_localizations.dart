@@ -1142,6 +1142,36 @@ abstract class AppLocalizations {
   /// **'Street map'**
   String get gridViewStreetMap;
 
+  /// No description provided for @gridViewPicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch map view'**
+  String get gridViewPicker;
+
+  /// No description provided for @gridViewRadialShort.
+  ///
+  /// In en, this message translates to:
+  /// **'RADAR'**
+  String get gridViewRadialShort;
+
+  /// No description provided for @gridViewGlobeShort.
+  ///
+  /// In en, this message translates to:
+  /// **'GLOBE'**
+  String get gridViewGlobeShort;
+
+  /// No description provided for @gridViewEqualGridShort.
+  ///
+  /// In en, this message translates to:
+  /// **'CELLS'**
+  String get gridViewEqualGridShort;
+
+  /// No description provided for @gridViewStreetMapShort.
+  ///
+  /// In en, this message translates to:
+  /// **'ROADS'**
+  String get gridViewStreetMapShort;
+
   /// No description provided for @streetMapRecenter.
   ///
   /// In en, this message translates to:

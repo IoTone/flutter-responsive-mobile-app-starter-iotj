@@ -22,15 +22,11 @@ import 'street_map_view.dart';
 
 /// R27 — three map views in the /grid picker:
 /// `radial` (R18, default) + `globe` (R27) + `equalGrid` (R25) +
-/// `streetMap` (R25+2). The user moves between them by **left/right
-/// swiping** on the body (PageView). The AppBar icon also cycles
-/// modes for one-handed / discoverability use.
-///
-/// Mode order is the swipe order: each mode's left-edge swipe lands
-/// on the previous mode in this list, right-edge on the next. At
-/// the boundary the gesture bubbles up to HomeShell's outer
-/// PageView (so you can still swipe back to the previous app tab
-/// even from the leftmost grid sub-mode).
+/// `streetMap` (R25+2). Selected via a [PopupMenuButton] in the
+/// AppBar — swipe nav was tried in R25+2 but conflicted with the
+/// outer HomeShell PageView (left-swipe-from-radial would leave the
+/// grid tab instead of staying inside it). The dropdown is
+/// unambiguous and matches Material conventions.
 enum _GridViewMode { radial, globe, equalGrid, streetMap }
 
 /// R18 / U9 — the hyperlocal grid: a radial range-ring view of the
@@ -102,15 +98,8 @@ class _GridScreenState extends State<GridScreen>
   /// Whether the inline legend overlay is shown (info button in app bar).
   bool _legendVisible = false;
 
-  /// R27 — which of the available map views is showing. Kept in
-  /// sync with [_pageCtrl] via [_onPageChanged]; the cycle-button
-  /// in the AppBar updates this and animates the page, while a swipe
-  /// updates this from the page listener.
+  /// R27 — which of the available map views is showing.
   _GridViewMode _viewMode = _GridViewMode.radial;
-
-  /// R25+2 — drives swipe nav across grid sub-modes.
-  late final PageController _pageCtrl =
-      PageController(initialPage: _GridViewMode.radial.index);
 
   /// Maximum hit-test radius (logical px) for tap-to-select on the grid.
   static const double _tapRadius = 28.0;
@@ -178,7 +167,6 @@ class _GridScreenState extends State<GridScreen>
     _refreshTimer?.cancel();
     _msgSub?.cancel();
     _compassSub?.cancel();
-    _pageCtrl.dispose();
     _tick.dispose();
     super.dispose();
   }
@@ -189,16 +177,35 @@ class _GridScreenState extends State<GridScreen>
         context.read<MeshcoreController>().nodes));
   }
 
-  /// R25+2 — keep [_viewMode] in lockstep with the PageView's page
-  /// after a swipe (or programmatic animateToPage from the cycle
-  /// button). The mode order is the enum's declaration order:
-  /// radial=0, globe=1, equalGrid=2, streetMap=3.
-  void _onPageChanged(int idx) {
-    if (idx < 0 || idx >= _GridViewMode.values.length) return;
-    final _GridViewMode m = _GridViewMode.values[idx];
-    if (m == _viewMode) return;
-    setState(() => _viewMode = m);
-  }
+  /// Icon for the AppBar picker entry / button. Each mode has a
+  /// distinctive Material symbol so the dropdown reads as glanceable
+  /// regardless of language.
+  static IconData _iconForMode(_GridViewMode m) => switch (m) {
+        _GridViewMode.radial => Icons.radar,
+        _GridViewMode.globe => Icons.public,
+        _GridViewMode.equalGrid => Icons.grid_on,
+        _GridViewMode.streetMap => Icons.map_outlined,
+      };
+
+  /// 4–5 character all-caps label for the picker button + menu. Keep
+  /// short so the AppBar isn't dominated. Long names live in the
+  /// row's trailing subtitle.
+  static String _shortLabel(_GridViewMode m, AppLocalizations l) =>
+      switch (m) {
+        _GridViewMode.radial => l.gridViewRadialShort,
+        _GridViewMode.globe => l.gridViewGlobeShort,
+        _GridViewMode.equalGrid => l.gridViewEqualGridShort,
+        _GridViewMode.streetMap => l.gridViewStreetMapShort,
+      };
+
+  static String _longLabel(_GridViewMode m, AppLocalizations l) =>
+      switch (m) {
+        _GridViewMode.radial => l.gridViewRadial,
+        _GridViewMode.globe => l.gridViewGlobe,
+        _GridViewMode.equalGrid => l.gridViewEqualGrid,
+        _GridViewMode.streetMap => l.gridViewStreetMap,
+      };
+
 
   void _togglePlay() {
     setState(() {
@@ -368,32 +375,56 @@ class _GridScreenState extends State<GridScreen>
       appBar: AppBar(
         title: Text(l.gridTitle),
         actions: <Widget>[
-          // R27 + R25 + R25+2 — view-mode cycle. Now four modes;
-          // tap cycles radial → globe → equal-grid → street-map →
-          // radial. The body is also a PageView so left/right swipe
-          // does the same thing.
-          IconButton(
-            tooltip: switch (_viewMode) {
-              _GridViewMode.radial => l.gridViewGlobe,
-              _GridViewMode.globe => l.gridViewEqualGrid,
-              _GridViewMode.equalGrid => l.gridViewStreetMap,
-              _GridViewMode.streetMap => l.gridViewRadial,
-            },
-            icon: Icon(switch (_viewMode) {
-              _GridViewMode.radial => Icons.public,
-              _GridViewMode.globe => Icons.grid_on,
-              _GridViewMode.equalGrid => Icons.map_outlined,
-              _GridViewMode.streetMap => Icons.radar,
-            }),
-            onPressed: () {
-              final int nextIdx =
-                  (_viewMode.index + 1) % _GridViewMode.values.length;
-              _pageCtrl.animateToPage(nextIdx,
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeInOut);
-              // _onPageChanged will update _viewMode when the page
-              // settles; no setState here.
-            },
+          // R27 + R25 + R25+4 — view-mode picker. PopupMenuButton
+          // shows icon + short label per mode. Swipe nav was tried
+          // in R25+2 but conflicted with the outer HomeShell
+          // PageView at the boundary (left-swipe-from-radial would
+          // leave the grid tab instead of staying inside it). The
+          // dropdown is unambiguous and one tap shorter than a
+          // cycle for mid-list modes.
+          PopupMenuButton<_GridViewMode>(
+            tooltip: l.gridViewPicker,
+            initialValue: _viewMode,
+            onSelected: (_GridViewMode m) =>
+                setState(() => _viewMode = m),
+            icon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(_iconForMode(_viewMode)),
+                const SizedBox(width: 4),
+                Text(_shortLabel(_viewMode, l),
+                    style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1)),
+                const Icon(Icons.arrow_drop_down, size: 18),
+              ],
+            ),
+            itemBuilder: (BuildContext _) =>
+                <PopupMenuEntry<_GridViewMode>>[
+              for (final _GridViewMode m in _GridViewMode.values)
+                CheckedPopupMenuItem<_GridViewMode>(
+                  value: m,
+                  checked: _viewMode == m,
+                  child: Row(
+                    children: <Widget>[
+                      Icon(_iconForMode(m),
+                          size: 18, color: cs.onSurfaceVariant),
+                      const SizedBox(width: 10),
+                      Text(_shortLabel(m, l),
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1)),
+                      const SizedBox(width: 8),
+                      Text(_longLabel(m, l),
+                          style: TextStyle(
+                              color: cs.onSurfaceVariant,
+                              fontSize: 11)),
+                    ],
+                  ),
+                ),
+            ],
           ),
           IconButton(
             tooltip: _live ? l.gridPauseTooltip : l.gridPlayTooltip,
@@ -439,16 +470,25 @@ class _GridScreenState extends State<GridScreen>
           ),
         ],
       ),
-      // R25+2 — PageView so left/right swipe pages between
-      // sub-modes. The cycle button in the AppBar drives the same
-      // controller via animateToPage. Order matches _GridViewMode
-      // enum order: radial=0, globe=1, equalGrid=2, streetMap=3.
-      body: PageView(
-        controller: _pageCtrl,
-        onPageChanged: _onPageChanged,
-        children: <Widget>[
-          // [0] Radial — the original column-based view.
-          Column(
+      // R25+4 — dropdown picker drives mode (was PageView in R25+2;
+      // swiping conflicted with the outer HomeShell tab swipe). The
+      // body just renders the chosen mode's widget.
+      body: switch (_viewMode) {
+        _GridViewMode.globe => GlobeView(
+            filteredNodes: visible,
+            frozen: !_live && _userInteracted,
+          ),
+        _GridViewMode.equalGrid => EqualGridView(
+            cellSizeMeters: EqualGridView.cellSizeForRangeKm(
+                GridScreen.rangeStops[_scaleIndex].km),
+            filteredNodes: visible,
+            frozen: !_live && _userInteracted,
+          ),
+        _GridViewMode.streetMap => StreetMapView(
+            filteredNodes: visible,
+            frozen: !_live && _userInteracted,
+          ),
+        _GridViewMode.radial => Column(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
@@ -613,25 +653,7 @@ class _GridScreenState extends State<GridScreen>
             ),
         ],
       ),
-          // [1] Globe.
-          GlobeView(
-            filteredNodes: visible,
-            frozen: !_live && _userInteracted,
-          ),
-          // [2] Equal-grid (R25 cells + tiles + city labels).
-          EqualGridView(
-            cellSizeMeters: EqualGridView.cellSizeForRangeKm(
-                GridScreen.rangeStops[_scaleIndex].km),
-            filteredNodes: visible,
-            frozen: !_live && _userInteracted,
-          ),
-          // [3] Street map (R25+2 — interactive OSM, no cells).
-          StreetMapView(
-            filteredNodes: visible,
-            frozen: !_live && _userInteracted,
-          ),
-        ],
-      ),
+      },
     );
   }
 

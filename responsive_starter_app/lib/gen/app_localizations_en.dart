@@ -608,6 +608,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gridViewStreetMap => 'Street map';
 
   @override
+  String get gridViewPicker => 'Switch map view';
+
+  @override
+  String get gridViewRadialShort => 'RADAR';
+
+  @override
+  String get gridViewGlobeShort => 'GLOBE';
+
+  @override
+  String get gridViewEqualGridShort => 'CELLS';
+
+  @override
+  String get gridViewStreetMapShort => 'ROADS';
+
+  @override
   String get streetMapRecenter => 'Re-centre on me';
 
   @override
