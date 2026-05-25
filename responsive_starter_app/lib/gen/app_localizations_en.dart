@@ -637,6 +637,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equalGridZoomOut => 'Zoom out (wider cells)';
 
   @override
+  String get equalGridShowStats => 'Show targeting panel';
+
+  @override
+  String get equalGridHideStats => 'Hide targeting panel';
+
+  @override
   String globeFooter(int n) {
     return 'Showing $n peers with known location';
   }

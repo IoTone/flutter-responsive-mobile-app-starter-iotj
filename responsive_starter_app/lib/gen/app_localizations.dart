@@ -1190,6 +1190,18 @@ abstract class AppLocalizations {
   /// **'Zoom out (wider cells)'**
   String get equalGridZoomOut;
 
+  /// No description provided for @equalGridShowStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Show targeting panel'**
+  String get equalGridShowStats;
+
+  /// No description provided for @equalGridHideStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide targeting panel'**
+  String get equalGridHideStats;
+
   /// No description provided for @globeFooter.
   ///
   /// In en, this message translates to:

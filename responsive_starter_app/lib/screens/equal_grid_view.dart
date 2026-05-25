@@ -108,6 +108,13 @@ class _EqualGridViewState extends State<EqualGridView> {
   double get _effectiveCellSizeMeters =>
       widget.cellSizeMeters * math.pow(2.0, -_zoomSteps);
 
+  /// R25+3.1 — show / hide the NERV-style stats panel. The user
+  /// asked for a way to declutter back to the clean R25+1 look on
+  /// demand; cell highlight stays either way. In-memory only —
+  /// reopening the view resets to "show". Persisting would be
+  /// overkill for a one-tap toggle.
+  bool _showStats = true;
+
   /// R25+1 — magnetic-compass heading (degrees from N, clockwise).
   /// Null until the first event arrives. Drives the heading arrow
   /// on the self pin; matches the radial-grid view's semantics.
@@ -342,6 +349,8 @@ class _EqualGridViewState extends State<EqualGridView> {
           // R25+3 — NERV-style stats panel pinned to the top of the
           // view. Floats above the basemap + cell overlay; never
           // intercepts pointer events so taps still hit peers.
+          // R25+3.1 — collapsible via the toolbar toggle below.
+          if (_showStats)
           Positioned(
             left: 12,
             right: 12,
@@ -423,6 +432,31 @@ class _EqualGridViewState extends State<EqualGridView> {
                       onPressed: _zoomSteps < _zoomStepMax
                           ? _zoomIn
                           : null,
+                    ),
+                    // R25+3.1 — show/hide the NERV stats panel.
+                    // Decluttering the view back to the original
+                    // R25+1 "circles + futuristic" look is one tap;
+                    // bringing the panel back is the same tap again.
+                    Container(
+                      width: 1,
+                      height: 18,
+                      margin:
+                          const EdgeInsets.symmetric(horizontal: 2),
+                      color: cs.outline.withValues(alpha: .4),
+                    ),
+                    IconButton(
+                      tooltip: _showStats
+                          ? l.equalGridHideStats
+                          : l.equalGridShowStats,
+                      iconSize: 18,
+                      visualDensity: VisualDensity.compact,
+                      constraints: const BoxConstraints(
+                          minWidth: 32, minHeight: 32),
+                      icon: Icon(_showStats
+                          ? Icons.dashboard
+                          : Icons.dashboard_outlined),
+                      onPressed: () =>
+                          setState(() => _showStats = !_showStats),
                     ),
                   ],
                 ),

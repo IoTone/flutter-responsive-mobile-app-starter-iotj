@@ -245,6 +245,8 @@
   },
   "equalGridZoomIn": "Zoom in (tighter cells)",
   "equalGridZoomOut": "Zoom out (wider cells)",
+  "equalGridShowStats": "Show targeting panel",
+  "equalGridHideStats": "Hide targeting panel",
   "globeFooter": "Showing {n} peers with known location",
   "globeOverlayArcs": "arcs",
   "globeOverlayRegion": "region",

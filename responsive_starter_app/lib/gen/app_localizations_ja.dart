@@ -603,6 +603,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equalGridZoomOut => 'ズームアウト（セルを広く）';
 
   @override
+  String get equalGridShowStats => 'ターゲティングパネルを表示';
+
+  @override
+  String get equalGridHideStats => 'ターゲティングパネルを非表示';
+
+  @override
   String globeFooter(int n) {
     return '位置情報のある $n 件のピアを表示';
   }
