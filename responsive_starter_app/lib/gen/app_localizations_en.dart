@@ -623,6 +623,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gridViewStreetMapShort => 'ROADS';
 
   @override
+  String get gridViewFabric => 'Fabric survey';
+
+  @override
+  String get gridViewFabricShort => 'MESH';
+
+  @override
+  String fabricCoverageCount(int n) {
+    return 'MESH SURVEY · $n CELLS';
+  }
+
+  @override
+  String get fabricResetTooltip => 'Reset coverage';
+
+  @override
+  String get fabricResetTitle => 'Reset mesh-coverage survey?';
+
+  @override
+  String get fabricResetBody =>
+      'Drops every recorded cell. New observations will start filling the map again as you move and the mesh reports nearby nodes.';
+
+  @override
+  String get fabricResetApply => 'Reset';
+
+  @override
   String get streetMapRecenter => 'Re-centre on me';
 
   @override
@@ -1091,6 +1115,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dmEmpty => '— no messages yet —';
+
+  @override
+  String get dmOpenPeerDetail => 'Peer details';
+
+  @override
+  String get dmPeerNotInFabric =>
+      'This peer hasn\'t shown up on the mesh yet (no advert heard).';
 
   @override
   String dmComposerHint(String peer) {

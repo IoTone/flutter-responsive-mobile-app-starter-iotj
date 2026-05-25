@@ -20,6 +20,7 @@ import 'node_tags_store.dart';
 import 'mesh_event.dart';
 import 'meshcore_connection.dart';
 import 'own_location.dart';
+import 'coverage_store.dart';
 import 'paired_device_history.dart';
 import 'paired_device_store.dart';
 import 'reconnect_policy.dart';
@@ -135,6 +136,7 @@ class MeshcoreController extends ChangeNotifier {
     _loadFavorites();
     _loadKnown();
     _loadTags();
+    _loadCoverage();
     unawaited(_dmReadStore.load().then((_) {
       // Notify so any UI watching unread counts (Nodes badge, etc.)
       // re-renders once the persisted last-read timestamps are in.
@@ -527,6 +529,86 @@ class MeshcoreController extends ChangeNotifier {
     while (_ownTrail.length > _trailCap) {
       _ownTrail.removeAt(0);
     }
+    // F8 — every sampled own-location is a "the mesh reaches here"
+    // observation, since the trail only updates while we have a
+    // working link to the device.
+    _recordCoverage(own.latitude, own.longitude);
+  }
+
+  // --- F8 coverage map -------------------------------------------
+  //
+  // Persistent record of cells where we've observed mesh activity.
+  // Each inbound frame contributes a cell (we know the mesh exists
+  // somewhere reachable while we're online) and each known peer's
+  // lat/lon contributes a cell (the mesh extends to where they are).
+  // Stored as `Map<cellKey, lastObservedUnix>` so the FabricSurveyView
+  // can fade older cells.
+
+  final Map<String, int> _coverage = <String, int>{};
+  bool _coverageDirty = false;
+  Timer? _coverageSaveTimer;
+
+  /// Read-only snapshot of observed coverage cells, keyed by
+  /// `latBucket,lonBucket` strings (see [CoverageStore.cellKey]).
+  /// Each value is the most-recent UNIX-second timestamp the cell
+  /// was observed.
+  Map<String, int> get coverageCells =>
+      Map<String, int>.unmodifiable(_coverage);
+
+  Future<void> _loadCoverage() async {
+    final Map<String, int> v = await CoverageStore.load();
+    if (v.isEmpty) return;
+    _coverage
+      ..clear()
+      ..addAll(v);
+    notifyListeners();
+  }
+
+  /// Wipe the coverage record. Used by tests + a "reset coverage"
+  /// affordance in the FabricSurveyView's overflow menu.
+  Future<void> resetCoverage() async {
+    _coverage.clear();
+    _coverageDirty = false;
+    _coverageSaveTimer?.cancel();
+    await CoverageStore.clear();
+    notifyListeners();
+  }
+
+  /// Record a single observation. Bucketed by [CoverageStore.cellDeg];
+  /// repeated calls on the same cell within a second are a no-op
+  /// (timestamp resolution). Persistence is batched on a 5-second
+  /// timer so a long drive doesn't pound shared_preferences.
+  void _recordCoverage(double lat, double lon) {
+    final ({int latBucket, int lonBucket}) b =
+        CoverageStore.bucketFor(lat, lon);
+    final String key = CoverageStore.cellKey(b.latBucket, b.lonBucket);
+    final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    if (_coverage[key] == now) return;
+    _coverage[key] = now;
+    while (_coverage.length > CoverageStore.maxCells) {
+      // Drop the oldest entry by min-timestamp scan. O(N) per
+      // eviction but only happens when we overflow the cap.
+      String? oldestKey;
+      int oldestTs = 1 << 62;
+      _coverage.forEach((String k, int t) {
+        if (t < oldestTs) {
+          oldestTs = t;
+          oldestKey = k;
+        }
+      });
+      if (oldestKey == null) break;
+      _coverage.remove(oldestKey);
+    }
+    _coverageDirty = true;
+    _coverageSaveTimer ??= Timer(
+        const Duration(seconds: 5), _flushCoveragePersist);
+  }
+
+  Future<void> _flushCoveragePersist() async {
+    _coverageSaveTimer = null;
+    if (!_coverageDirty) return;
+    _coverageDirty = false;
+    await CoverageStore.save(_coverage);
   }
 
   /// Spatial-aware "is this node nearby?" classification used by the
@@ -1614,6 +1696,12 @@ class MeshcoreController extends ChangeNotifier {
       rssi: rssi ?? prev?.rssi,
       viaAdvert: true,
     );
+    // F8 — peer's advertised position is a "the mesh extends to
+    // here" observation. Same coverage bucket as own-location
+    // samples; the FabricSurveyView shades both.
+    if (a.latitude != null && a.longitude != null) {
+      _recordCoverage(a.latitude!, a.longitude!);
+    }
   }
 
   /// Ask the radio for its synced contact list (`CMD_GET_CONTACTS`).

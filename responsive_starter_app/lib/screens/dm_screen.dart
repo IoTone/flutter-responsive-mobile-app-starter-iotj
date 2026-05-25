@@ -11,6 +11,7 @@ import '../meshcore/chat_message.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
+import 'node_detail_sheet.dart';
 
 /// 1:1 direct-message thread with a peer (P2P). The MeshCore
 /// companion protocol carries DMs over `CMD_SEND_TXT_MSG` (0x02)
@@ -74,6 +75,62 @@ class _DmScreenState extends State<DmScreen> {
         : widget.peerPubKeyHex;
   }
 
+  /// Find the matching [DiscoveredNode] in the fabric, by full pubkey
+  /// or prefix. Null if the peer hasn't been heard from yet —
+  /// shouldn't happen in practice (we got their pubkey from a DM)
+  /// but we degrade gracefully.
+  DiscoveredNode? _peerNode(MeshcoreController mc) {
+    for (final DiscoveredNode n in mc.nodes) {
+      if (n.pubKeyHex == widget.peerPubKeyHex ||
+          n.pubKeyHex.startsWith(widget.peerPubKeyHex)) {
+        return n;
+      }
+    }
+    return null;
+  }
+
+  /// Open the peer's [NodeDetailSheet] — the same sheet you get
+  /// from tapping a pin on /grid or /globe, scoped to this DM's
+  /// peer. Gives DM users a path to favourite, tag, see distance,
+  /// open-in-maps, etc. without leaving the thread.
+  Future<void> _openPeerDetail(MeshcoreController mc) async {
+    final DiscoveredNode? n = _peerNode(mc);
+    if (n == null) {
+      // The peer hasn't shown up on the fabric yet (e.g. we got a
+      // DM but never heard their advert). Nothing to show; toast
+      // explicitly so the user isn't left wondering why the button
+      // did nothing.
+      final AppLocalizations l = AppLocalizations.of(context);
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: Text(l.dmPeerNotInFabric),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (BuildContext _) => NodeDetailSheet(
+        node: n,
+        distanceMeters: n.hasLocation
+            ? mc.distanceMetersTo(n.latitude!, n.longitude!)
+            : null,
+        isFavourite: mc.favorites.contains(n.pubKeyHex),
+        isKnown: mc.known.contains(n.pubKeyHex),
+        onToggleFavourite: () => mc.toggleFavorite(n.pubKeyHex),
+        proximity: mc.proximityFor(n),
+        recentDms: mc.dmHistoryFor(n.pubKeyHex),
+        tags: mc.tagsFor(n.pubKeyHex),
+        tagSuggestions: mc.allTags,
+        onAddTag: (String t) => mc.addTagTo(n.pubKeyHex, t),
+        onRemoveTag: (String t) => mc.removeTagFrom(n.pubKeyHex, t),
+      ),
+    );
+  }
+
   void _send(MeshcoreController mc) {
     final String t = _input.text;
     if (t.trim().isEmpty) return;
@@ -127,6 +184,13 @@ class _DmScreenState extends State<DmScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l.dmTitle(_peerName(mc))),
+        actions: <Widget>[
+          IconButton(
+            tooltip: l.dmOpenPeerDetail,
+            icon: const Icon(Icons.info_outline),
+            onPressed: () => _openPeerDetail(mc),
+          ),
+        ],
       ),
       body: Column(
         children: <Widget>[

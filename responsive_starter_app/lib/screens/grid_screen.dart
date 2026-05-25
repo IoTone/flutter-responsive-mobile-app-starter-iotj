@@ -16,6 +16,7 @@ import '../meshcore/meshcore_controller.dart';
 import '../theme/theme_controller.dart';
 import '../util/geo.dart' as geo;
 import 'equal_grid_view.dart';
+import 'fabric_survey_view.dart';
 import 'globe_view.dart';
 import 'node_detail_sheet.dart';
 import 'street_map_view.dart';
@@ -27,7 +28,7 @@ import 'street_map_view.dart';
 /// outer HomeShell PageView (left-swipe-from-radial would leave the
 /// grid tab instead of staying inside it). The dropdown is
 /// unambiguous and matches Material conventions.
-enum _GridViewMode { radial, globe, equalGrid, streetMap }
+enum _GridViewMode { radial, globe, equalGrid, streetMap, fabric }
 
 /// R18 / U9 — the hyperlocal grid: a radial range-ring view of the
 /// mesh **fabric** relative to us. Brightness = recency (100 % at
@@ -185,6 +186,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.globe => Icons.public,
         _GridViewMode.equalGrid => Icons.grid_on,
         _GridViewMode.streetMap => Icons.map_outlined,
+        _GridViewMode.fabric => Icons.view_quilt,
       };
 
   /// 4–5 character all-caps label for the picker button + menu. Keep
@@ -196,6 +198,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.globe => l.gridViewGlobeShort,
         _GridViewMode.equalGrid => l.gridViewEqualGridShort,
         _GridViewMode.streetMap => l.gridViewStreetMapShort,
+        _GridViewMode.fabric => l.gridViewFabricShort,
       };
 
   static String _longLabel(_GridViewMode m, AppLocalizations l) =>
@@ -204,6 +207,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.globe => l.gridViewGlobe,
         _GridViewMode.equalGrid => l.gridViewEqualGrid,
         _GridViewMode.streetMap => l.gridViewStreetMap,
+        _GridViewMode.fabric => l.gridViewFabric,
       };
 
 
@@ -485,6 +489,10 @@ class _GridScreenState extends State<GridScreen>
             frozen: !_live && _userInteracted,
           ),
         _GridViewMode.streetMap => StreetMapView(
+            filteredNodes: visible,
+            frozen: !_live && _userInteracted,
+          ),
+        _GridViewMode.fabric => FabricSurveyView(
             filteredNodes: visible,
             frozen: !_live && _userInteracted,
           ),

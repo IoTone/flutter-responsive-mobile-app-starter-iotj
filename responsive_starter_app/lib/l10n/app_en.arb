@@ -236,6 +236,16 @@
   "gridViewGlobeShort": "GLOBE",
   "gridViewEqualGridShort": "CELLS",
   "gridViewStreetMapShort": "ROADS",
+  "gridViewFabric": "Fabric survey",
+  "gridViewFabricShort": "MESH",
+  "fabricCoverageCount": "MESH SURVEY · {n} CELLS",
+  "@fabricCoverageCount": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "fabricResetTooltip": "Reset coverage",
+  "fabricResetTitle": "Reset mesh-coverage survey?",
+  "fabricResetBody": "Drops every recorded cell. New observations will start filling the map again as you move and the mesh reports nearby nodes.",
+  "fabricResetApply": "Reset",
   "streetMapRecenter": "Re-centre on me",
   "streetMapTopoLayer": "Switch to topographical map",
   "streetMapStandardLayer": "Switch to street map",
@@ -503,6 +513,8 @@
     "placeholders": {"hex": {"type": "String"}}
   },
   "dmEmpty": "— no messages yet —",
+  "dmOpenPeerDetail": "Peer details",
+  "dmPeerNotInFabric": "This peer hasn't shown up on the mesh yet (no advert heard).",
   "dmComposerHint": "Message {peer}",
   "@dmComposerHint": {
     "placeholders": {"peer": {"type": "String"}}

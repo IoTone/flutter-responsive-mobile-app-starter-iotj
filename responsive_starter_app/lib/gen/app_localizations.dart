@@ -1172,6 +1172,48 @@ abstract class AppLocalizations {
   /// **'ROADS'**
   String get gridViewStreetMapShort;
 
+  /// No description provided for @gridViewFabric.
+  ///
+  /// In en, this message translates to:
+  /// **'Fabric survey'**
+  String get gridViewFabric;
+
+  /// No description provided for @gridViewFabricShort.
+  ///
+  /// In en, this message translates to:
+  /// **'MESH'**
+  String get gridViewFabricShort;
+
+  /// No description provided for @fabricCoverageCount.
+  ///
+  /// In en, this message translates to:
+  /// **'MESH SURVEY · {n} CELLS'**
+  String fabricCoverageCount(int n);
+
+  /// No description provided for @fabricResetTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset coverage'**
+  String get fabricResetTooltip;
+
+  /// No description provided for @fabricResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset mesh-coverage survey?'**
+  String get fabricResetTitle;
+
+  /// No description provided for @fabricResetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Drops every recorded cell. New observations will start filling the map again as you move and the mesh reports nearby nodes.'**
+  String get fabricResetBody;
+
+  /// No description provided for @fabricResetApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get fabricResetApply;
+
   /// No description provided for @streetMapRecenter.
   ///
   /// In en, this message translates to:
@@ -1909,6 +1951,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'— no messages yet —'**
   String get dmEmpty;
+
+  /// No description provided for @dmOpenPeerDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Peer details'**
+  String get dmOpenPeerDetail;
+
+  /// No description provided for @dmPeerNotInFabric.
+  ///
+  /// In en, this message translates to:
+  /// **'This peer hasn\'t shown up on the mesh yet (no advert heard).'**
+  String get dmPeerNotInFabric;
 
   /// No description provided for @dmComposerHint.
   ///

@@ -589,6 +589,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridViewStreetMapShort => 'ロード';
 
   @override
+  String get gridViewFabric => 'ファブリック調査';
+
+  @override
+  String get gridViewFabricShort => 'メッシュ';
+
+  @override
+  String fabricCoverageCount(int n) {
+    return 'メッシュ調査 · $n セル';
+  }
+
+  @override
+  String get fabricResetTooltip => '調査結果をリセット';
+
+  @override
+  String get fabricResetTitle => 'メッシュ調査結果をリセットしますか？';
+
+  @override
+  String get fabricResetBody =>
+      '記録済みのセルをすべて削除します。移動と近隣ノードの観測に応じて新しい記録が再び埋まっていきます。';
+
+  @override
+  String get fabricResetApply => 'リセット';
+
+  @override
   String get streetMapRecenter => '現在地に戻す';
 
   @override
@@ -1040,6 +1064,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get dmEmpty => '— メッセージはまだありません —';
+
+  @override
+  String get dmOpenPeerDetail => '相手の詳細';
+
+  @override
+  String get dmPeerNotInFabric => 'この相手はまだメッシュ上で確認されていません（アドバート未受信）。';
 
   @override
   String dmComposerHint(String peer) {
