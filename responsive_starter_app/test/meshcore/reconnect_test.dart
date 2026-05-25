@@ -126,6 +126,35 @@ void main() {
       ctrl.dispose();
     });
 
+    test('disconnect from ready flips state to disconnected + '
+        'notifies (bug fix: dashboard stayed "READY" otherwise)',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      int notifyCount = 0;
+      ctrl.addListener(() => notifyCount++);
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.state, MeshcoreConnectionState.ready);
+
+      final int before = notifyCount;
+      await ctrl.disconnect();
+
+      expect(ctrl.state, MeshcoreConnectionState.disconnected,
+          reason: 'disconnect must flip state inline; the connection '
+              'stream does not reliably emit disconnected for a '
+              'locally-initiated close');
+      expect(notifyCount, greaterThan(before),
+          reason: 'must notifyListeners so the dashboard rebuilds');
+      ctrl.dispose();
+    });
+
     test('link drop after ready auto-recovers', () async {
       final List<FakeMeshcoreTransport> made = <FakeMeshcoreTransport>[];
       final MeshcoreController ctrl = MeshcoreController(

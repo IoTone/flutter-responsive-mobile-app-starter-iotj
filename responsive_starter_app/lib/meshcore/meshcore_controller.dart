@@ -52,6 +52,16 @@ class MeshcoreController extends ChangeNotifier {
       notifyListeners();
       if (s == MeshcoreConnectionState.ready) {
         _reconnectAttempt = 0;
+        // Post R41 bug fix: hydrate paired-name / -remote-id from
+        // prefs every time we reach ready. BleConnector._finish has
+        // already persisted the pairing by this point, but the
+        // controller's cached fields are only set by
+        // autoConnectIfPaired() / connectToPickedDevice() — neither
+        // of which fires for a "Connect" tap on the dashboard slab
+        // that goes through a fresh scan. Without this rehydrate
+        // the Device sheet read "No device paired" right after a
+        // successful manual connect.
+        unawaited(_hydratePairedFromPrefs());
         // These radios have no persistent RTC; without this every
         // device-sourced timestamp (contact last-heard, message
         // times) is in an unset clock, so "in range" and ordering
@@ -1663,6 +1673,14 @@ class MeshcoreController extends ChangeNotifier {
 
   /// User-initiated disconnect. Latches off auto-reconnect until the
   /// next explicit [connect].
+  ///
+  /// Bug fix (post R41): explicitly flip [_state] → disconnected and
+  /// notify listeners. The underlying [MeshcoreConnection] state
+  /// stream may not emit a state change reliably when the transport
+  /// is closed from above (it's designed to react to a remote drop,
+  /// not a local one), so the dashboard would otherwise still read
+  /// "READY" until something else triggered a rebuild. Setting
+  /// state inline is idempotent with any later stream-driven update.
   Future<void> disconnect() async {
     _manualDisconnect = true;
     _reconnectGen++; // cancel any pending scheduled retry
@@ -1671,6 +1689,8 @@ class MeshcoreController extends ChangeNotifier {
     unawaited(_keepalive.stop());
     await _transport?.close();
     _transport = null;
+    _state = MeshcoreConnectionState.disconnected;
+    notifyListeners();
   }
 
   /// Label of the saved paired device (loaded lazily for the UI).
@@ -1697,6 +1717,21 @@ class MeshcoreController extends ChangeNotifier {
   Future<void> _refreshHistory() async {
     _pairedHistory = await PairedDeviceHistoryStore.load();
     notifyListeners();
+  }
+
+  /// Post R41 bug fix — re-read the persisted pairing into the
+  /// cached `_pairedName` / `_pairedRemoteId` fields. Fired from the
+  /// ready-state listener so a fresh scan-and-connect (which writes
+  /// the pairing low in the BLE stack) also surfaces the device's
+  /// name in the Device sheet. Also refreshes history so the new
+  /// pairing appears at the top of "Recently paired".
+  Future<void> _hydratePairedFromPrefs() async {
+    final PairedDevice? p = await PairedDeviceStore.read();
+    if (p == null) return;
+    if (_pairedName == p.name && _pairedRemoteId == p.remoteId) return;
+    _pairedName = p.name;
+    _pairedRemoteId = p.remoteId;
+    await _refreshHistory(); // also notifies
   }
 
   /// Call once at startup: if a device was previously paired,
