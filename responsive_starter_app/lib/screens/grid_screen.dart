@@ -18,11 +18,20 @@ import '../util/geo.dart' as geo;
 import 'equal_grid_view.dart';
 import 'globe_view.dart';
 import 'node_detail_sheet.dart';
+import 'street_map_view.dart';
 
 /// R27 — three map views in the /grid picker:
-/// `radial` (R18, default) + `globe` (R27) + `equalGrid` (R25).
-/// Cycled by the view-mode button in the AppBar.
-enum _GridViewMode { radial, globe, equalGrid }
+/// `radial` (R18, default) + `globe` (R27) + `equalGrid` (R25) +
+/// `streetMap` (R25+2). The user moves between them by **left/right
+/// swiping** on the body (PageView). The AppBar icon also cycles
+/// modes for one-handed / discoverability use.
+///
+/// Mode order is the swipe order: each mode's left-edge swipe lands
+/// on the previous mode in this list, right-edge on the next. At
+/// the boundary the gesture bubbles up to HomeShell's outer
+/// PageView (so you can still swipe back to the previous app tab
+/// even from the leftmost grid sub-mode).
+enum _GridViewMode { radial, globe, equalGrid, streetMap }
 
 /// R18 / U9 — the hyperlocal grid: a radial range-ring view of the
 /// mesh **fabric** relative to us. Brightness = recency (100 % at
@@ -93,8 +102,15 @@ class _GridScreenState extends State<GridScreen>
   /// Whether the inline legend overlay is shown (info button in app bar).
   bool _legendVisible = false;
 
-  /// R27 — which of the available map views is showing.
+  /// R27 — which of the available map views is showing. Kept in
+  /// sync with [_pageCtrl] via [_onPageChanged]; the cycle-button
+  /// in the AppBar updates this and animates the page, while a swipe
+  /// updates this from the page listener.
   _GridViewMode _viewMode = _GridViewMode.radial;
+
+  /// R25+2 — drives swipe nav across grid sub-modes.
+  late final PageController _pageCtrl =
+      PageController(initialPage: _GridViewMode.radial.index);
 
   /// Maximum hit-test radius (logical px) for tap-to-select on the grid.
   static const double _tapRadius = 28.0;
@@ -162,6 +178,7 @@ class _GridScreenState extends State<GridScreen>
     _refreshTimer?.cancel();
     _msgSub?.cancel();
     _compassSub?.cancel();
+    _pageCtrl.dispose();
     _tick.dispose();
     super.dispose();
   }
@@ -170,6 +187,17 @@ class _GridScreenState extends State<GridScreen>
     if (!mounted) return;
     setState(() => _snapshot = List<DiscoveredNode>.of(
         context.read<MeshcoreController>().nodes));
+  }
+
+  /// R25+2 — keep [_viewMode] in lockstep with the PageView's page
+  /// after a swipe (or programmatic animateToPage from the cycle
+  /// button). The mode order is the enum's declaration order:
+  /// radial=0, globe=1, equalGrid=2, streetMap=3.
+  void _onPageChanged(int idx) {
+    if (idx < 0 || idx >= _GridViewMode.values.length) return;
+    final _GridViewMode m = _GridViewMode.values[idx];
+    if (m == _viewMode) return;
+    setState(() => _viewMode = m);
   }
 
   void _togglePlay() {
@@ -340,28 +368,32 @@ class _GridScreenState extends State<GridScreen>
       appBar: AppBar(
         title: Text(l.gridTitle),
         actions: <Widget>[
-          // R27 + R25 — view-mode toggle. Tap cycles
-          // radial → globe → equal-grid → radial. The tooltip and
-          // icon match the *next* mode so the user can read
-          // "tap to switch to X" off the button.
+          // R27 + R25 + R25+2 — view-mode cycle. Now four modes;
+          // tap cycles radial → globe → equal-grid → street-map →
+          // radial. The body is also a PageView so left/right swipe
+          // does the same thing.
           IconButton(
             tooltip: switch (_viewMode) {
               _GridViewMode.radial => l.gridViewGlobe,
               _GridViewMode.globe => l.gridViewEqualGrid,
-              _GridViewMode.equalGrid => l.gridViewRadial,
+              _GridViewMode.equalGrid => l.gridViewStreetMap,
+              _GridViewMode.streetMap => l.gridViewRadial,
             },
             icon: Icon(switch (_viewMode) {
               _GridViewMode.radial => Icons.public,
               _GridViewMode.globe => Icons.grid_on,
-              _GridViewMode.equalGrid => Icons.radar,
+              _GridViewMode.equalGrid => Icons.map_outlined,
+              _GridViewMode.streetMap => Icons.radar,
             }),
-            onPressed: () => setState(() {
-              _viewMode = switch (_viewMode) {
-                _GridViewMode.radial => _GridViewMode.globe,
-                _GridViewMode.globe => _GridViewMode.equalGrid,
-                _GridViewMode.equalGrid => _GridViewMode.radial,
-              };
-            }),
+            onPressed: () {
+              final int nextIdx =
+                  (_viewMode.index + 1) % _GridViewMode.values.length;
+              _pageCtrl.animateToPage(nextIdx,
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeInOut);
+              // _onPageChanged will update _viewMode when the page
+              // settles; no setState here.
+            },
           ),
           IconButton(
             tooltip: _live ? l.gridPauseTooltip : l.gridPlayTooltip,
@@ -407,24 +439,16 @@ class _GridScreenState extends State<GridScreen>
           ),
         ],
       ),
-      body: _viewMode == _GridViewMode.globe
-          // R40 — pass the grid's already-filtered visible list and
-          // pause-state through so the globe inherits both the
-          // recency-window filter and the play/pause snapshot. The
-          // globe stays a "view onto the same data" rather than an
-          // independent source.
-          ? GlobeView(
-              filteredNodes: visible,
-              frozen: !_live && _userInteracted,
-            )
-          : _viewMode == _GridViewMode.equalGrid
-              ? EqualGridView(
-                  cellSizeMeters: EqualGridView.cellSizeForRangeKm(
-                      GridScreen.rangeStops[_scaleIndex].km),
-                  filteredNodes: visible,
-                  frozen: !_live && _userInteracted,
-                )
-              : Column(
+      // R25+2 — PageView so left/right swipe pages between
+      // sub-modes. The cycle button in the AppBar drives the same
+      // controller via animateToPage. Order matches _GridViewMode
+      // enum order: radial=0, globe=1, equalGrid=2, streetMap=3.
+      body: PageView(
+        controller: _pageCtrl,
+        onPageChanged: _onPageChanged,
+        children: <Widget>[
+          // [0] Radial — the original column-based view.
+          Column(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
@@ -587,6 +611,25 @@ class _GridScreenState extends State<GridScreen>
                 ],
               ),
             ),
+        ],
+      ),
+          // [1] Globe.
+          GlobeView(
+            filteredNodes: visible,
+            frozen: !_live && _userInteracted,
+          ),
+          // [2] Equal-grid (R25 cells + tiles + city labels).
+          EqualGridView(
+            cellSizeMeters: EqualGridView.cellSizeForRangeKm(
+                GridScreen.rangeStops[_scaleIndex].km),
+            filteredNodes: visible,
+            frozen: !_live && _userInteracted,
+          ),
+          // [3] Street map (R25+2 — interactive OSM, no cells).
+          StreetMapView(
+            filteredNodes: visible,
+            frozen: !_live && _userInteracted,
+          ),
         ],
       ),
     );

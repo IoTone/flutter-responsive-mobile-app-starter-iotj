@@ -1136,6 +1136,18 @@ abstract class AppLocalizations {
   /// **'Equal grid'**
   String get gridViewEqualGrid;
 
+  /// No description provided for @gridViewStreetMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Street map'**
+  String get gridViewStreetMap;
+
+  /// No description provided for @streetMapRecenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-centre on me'**
+  String get streetMapRecenter;
+
   /// No description provided for @equalGridAwaitingFix.
   ///
   /// In en, this message translates to:

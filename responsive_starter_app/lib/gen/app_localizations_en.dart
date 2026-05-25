@@ -605,6 +605,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gridViewEqualGrid => 'Equal grid';
 
   @override
+  String get gridViewStreetMap => 'Street map';
+
+  @override
+  String get streetMapRecenter => 'Re-centre on me';
+
+  @override
   String get equalGridAwaitingFix =>
       'Equal-grid view needs your own location — waiting for a GPS fix (phone or device).';
 

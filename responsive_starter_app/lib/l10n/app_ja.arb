@@ -230,6 +230,8 @@
   "gridViewRadial": "ラジアル",
   "gridViewGlobe": "グローブ",
   "gridViewEqualGrid": "等分グリッド",
+  "gridViewStreetMap": "ストリートマップ",
+  "streetMapRecenter": "現在地に戻す",
   "equalGridAwaitingFix": "等分グリッド表示には自分の位置が必要です — GPS 取得待ち（スマートフォンまたはデバイス）。",
   "equalGridCellSize": "セル {size}",
   "@equalGridCellSize": {

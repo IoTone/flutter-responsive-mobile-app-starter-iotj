@@ -571,6 +571,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridViewEqualGrid => '等分グリッド';
 
   @override
+  String get gridViewStreetMap => 'ストリートマップ';
+
+  @override
+  String get streetMapRecenter => '現在地に戻す';
+
+  @override
   String get equalGridAwaitingFix =>
       '等分グリッド表示には自分の位置が必要です — GPS 取得待ち（スマートフォンまたはデバイス）。';
 

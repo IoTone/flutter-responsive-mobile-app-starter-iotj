@@ -230,6 +230,8 @@
   "gridViewRadial": "Radial",
   "gridViewGlobe": "Globe",
   "gridViewEqualGrid": "Equal grid",
+  "gridViewStreetMap": "Street map",
+  "streetMapRecenter": "Re-centre on me",
   "equalGridAwaitingFix": "Equal-grid view needs your own location — waiting for a GPS fix (phone or device).",
   "equalGridCellSize": "CELL {size}",
   "@equalGridCellSize": {
