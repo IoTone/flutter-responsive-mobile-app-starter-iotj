@@ -595,6 +595,47 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridViewFabricShort => 'メッシュ';
 
   @override
+  String get gridViewElevation => '高度プロファイル';
+
+  @override
+  String get gridViewElevationShort => '高度';
+
+  @override
+  String get elevationProfileTitle => 'MESHMORE :: 高度測量';
+
+  @override
+  String get elevationProfileAltLabel => '高度';
+
+  @override
+  String get elevationProfileMeLabel => '現在地';
+
+  @override
+  String get elevationProfileUnknownLabel => '高度不明';
+
+  @override
+  String elevationProfilePeers(int n) {
+    return '$n 個のノード';
+  }
+
+  @override
+  String get elevationRefPerson => '人間';
+
+  @override
+  String get elevationRefHouse => '家';
+
+  @override
+  String get elevationRefRedwood => 'セコイア';
+
+  @override
+  String get elevationRefEmpireState => 'エンパイア';
+
+  @override
+  String get elevationRefBurj => 'ブルジュ';
+
+  @override
+  String get elevationRefMtFuji => '富士山';
+
+  @override
   String fabricCoverageCount(int n) {
     return 'メッシュ調査 · $n セル';
   }

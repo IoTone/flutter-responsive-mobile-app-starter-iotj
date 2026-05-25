@@ -1184,6 +1184,84 @@ abstract class AppLocalizations {
   /// **'MESH'**
   String get gridViewFabricShort;
 
+  /// No description provided for @gridViewElevation.
+  ///
+  /// In en, this message translates to:
+  /// **'Elevation profile'**
+  String get gridViewElevation;
+
+  /// No description provided for @gridViewElevationShort.
+  ///
+  /// In en, this message translates to:
+  /// **'ALT'**
+  String get gridViewElevationShort;
+
+  /// No description provided for @elevationProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MESHMORE :: ELEVATION SURVEY'**
+  String get elevationProfileTitle;
+
+  /// No description provided for @elevationProfileAltLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get elevationProfileAltLabel;
+
+  /// No description provided for @elevationProfileMeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get elevationProfileMeLabel;
+
+  /// No description provided for @elevationProfileUnknownLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'altitude unknown'**
+  String get elevationProfileUnknownLabel;
+
+  /// No description provided for @elevationProfilePeers.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} peers tracked'**
+  String elevationProfilePeers(int n);
+
+  /// No description provided for @elevationRefPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Human'**
+  String get elevationRefPerson;
+
+  /// No description provided for @elevationRefHouse.
+  ///
+  /// In en, this message translates to:
+  /// **'House'**
+  String get elevationRefHouse;
+
+  /// No description provided for @elevationRefRedwood.
+  ///
+  /// In en, this message translates to:
+  /// **'Redwood'**
+  String get elevationRefRedwood;
+
+  /// No description provided for @elevationRefEmpireState.
+  ///
+  /// In en, this message translates to:
+  /// **'Empire State'**
+  String get elevationRefEmpireState;
+
+  /// No description provided for @elevationRefBurj.
+  ///
+  /// In en, this message translates to:
+  /// **'Burj Khalifa'**
+  String get elevationRefBurj;
+
+  /// No description provided for @elevationRefMtFuji.
+  ///
+  /// In en, this message translates to:
+  /// **'Mt Fuji'**
+  String get elevationRefMtFuji;
+
   /// No description provided for @fabricCoverageCount.
   ///
   /// In en, this message translates to:

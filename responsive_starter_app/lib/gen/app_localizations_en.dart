@@ -629,6 +629,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gridViewFabricShort => 'MESH';
 
   @override
+  String get gridViewElevation => 'Elevation profile';
+
+  @override
+  String get gridViewElevationShort => 'ALT';
+
+  @override
+  String get elevationProfileTitle => 'MESHMORE :: ELEVATION SURVEY';
+
+  @override
+  String get elevationProfileAltLabel => 'Altitude';
+
+  @override
+  String get elevationProfileMeLabel => 'Me';
+
+  @override
+  String get elevationProfileUnknownLabel => 'altitude unknown';
+
+  @override
+  String elevationProfilePeers(int n) {
+    return '$n peers tracked';
+  }
+
+  @override
+  String get elevationRefPerson => 'Human';
+
+  @override
+  String get elevationRefHouse => 'House';
+
+  @override
+  String get elevationRefRedwood => 'Redwood';
+
+  @override
+  String get elevationRefEmpireState => 'Empire State';
+
+  @override
+  String get elevationRefBurj => 'Burj Khalifa';
+
+  @override
+  String get elevationRefMtFuji => 'Mt Fuji';
+
+  @override
   String fabricCoverageCount(int n) {
     return 'MESH SURVEY · $n CELLS';
   }

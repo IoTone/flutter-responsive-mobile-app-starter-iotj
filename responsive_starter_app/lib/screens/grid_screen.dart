@@ -15,6 +15,7 @@ import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../theme/theme_controller.dart';
 import '../util/geo.dart' as geo;
+import 'elevation_profile_view.dart';
 import 'equal_grid_view.dart';
 import 'fabric_survey_view.dart';
 import 'globe_view.dart';
@@ -28,7 +29,14 @@ import 'street_map_view.dart';
 /// outer HomeShell PageView (left-swipe-from-radial would leave the
 /// grid tab instead of staying inside it). The dropdown is
 /// unambiguous and matches Material conventions.
-enum _GridViewMode { radial, globe, equalGrid, streetMap, fabric }
+enum _GridViewMode {
+  radial,
+  globe,
+  equalGrid,
+  streetMap,
+  fabric,
+  elevation,
+}
 
 /// R18 / U9 — the hyperlocal grid: a radial range-ring view of the
 /// mesh **fabric** relative to us. Brightness = recency (100 % at
@@ -187,6 +195,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.equalGrid => Icons.grid_on,
         _GridViewMode.streetMap => Icons.map_outlined,
         _GridViewMode.fabric => Icons.view_quilt,
+        _GridViewMode.elevation => Icons.terrain,
       };
 
   /// 4–5 character all-caps label for the picker button + menu. Keep
@@ -199,6 +208,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.equalGrid => l.gridViewEqualGridShort,
         _GridViewMode.streetMap => l.gridViewStreetMapShort,
         _GridViewMode.fabric => l.gridViewFabricShort,
+        _GridViewMode.elevation => l.gridViewElevationShort,
       };
 
   static String _longLabel(_GridViewMode m, AppLocalizations l) =>
@@ -208,6 +218,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.equalGrid => l.gridViewEqualGrid,
         _GridViewMode.streetMap => l.gridViewStreetMap,
         _GridViewMode.fabric => l.gridViewFabric,
+        _GridViewMode.elevation => l.gridViewElevation,
       };
 
 
@@ -494,6 +505,8 @@ class _GridScreenState extends State<GridScreen>
             filteredNodes: visible,
             frozen: !_live && _userInteracted,
           ),
+        _GridViewMode.elevation =>
+          ElevationProfileView(filteredNodes: visible),
         _GridViewMode.radial => Column(
         children: <Widget>[
           Padding(

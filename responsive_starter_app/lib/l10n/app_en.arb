@@ -238,6 +238,22 @@
   "gridViewStreetMapShort": "ROADS",
   "gridViewFabric": "Fabric survey",
   "gridViewFabricShort": "MESH",
+  "gridViewElevation": "Elevation profile",
+  "gridViewElevationShort": "ALT",
+  "elevationProfileTitle": "MESHMORE :: ELEVATION SURVEY",
+  "elevationProfileAltLabel": "Altitude",
+  "elevationProfileMeLabel": "Me",
+  "elevationProfileUnknownLabel": "altitude unknown",
+  "elevationProfilePeers": "{n} peers tracked",
+  "@elevationProfilePeers": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "elevationRefPerson": "Human",
+  "elevationRefHouse": "House",
+  "elevationRefRedwood": "Redwood",
+  "elevationRefEmpireState": "Empire State",
+  "elevationRefBurj": "Burj Khalifa",
+  "elevationRefMtFuji": "Mt Fuji",
   "fabricCoverageCount": "MESH SURVEY · {n} CELLS",
   "@fabricCoverageCount": {
     "placeholders": {"n": {"type": "int"}}

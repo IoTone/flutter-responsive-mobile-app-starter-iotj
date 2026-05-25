@@ -238,6 +238,22 @@
   "gridViewStreetMapShort": "ロード",
   "gridViewFabric": "ファブリック調査",
   "gridViewFabricShort": "メッシュ",
+  "gridViewElevation": "高度プロファイル",
+  "gridViewElevationShort": "高度",
+  "elevationProfileTitle": "MESHMORE :: 高度測量",
+  "elevationProfileAltLabel": "高度",
+  "elevationProfileMeLabel": "現在地",
+  "elevationProfileUnknownLabel": "高度不明",
+  "elevationProfilePeers": "{n} 個のノード",
+  "@elevationProfilePeers": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "elevationRefPerson": "人間",
+  "elevationRefHouse": "家",
+  "elevationRefRedwood": "セコイア",
+  "elevationRefEmpireState": "エンパイア",
+  "elevationRefBurj": "ブルジュ",
+  "elevationRefMtFuji": "富士山",
   "fabricCoverageCount": "メッシュ調査 · {n} セル",
   "@fabricCoverageCount": {
     "placeholders": {"n": {"type": "int"}}
