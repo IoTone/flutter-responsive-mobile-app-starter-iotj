@@ -235,6 +235,8 @@
   "@equalGridCellSize": {
     "placeholders": {"size": {"type": "String"}}
   },
+  "equalGridZoomIn": "Zoom in (tighter cells)",
+  "equalGridZoomOut": "Zoom out (wider cells)",
   "globeFooter": "Showing {n} peers with known location",
   "globeOverlayArcs": "arcs",
   "globeOverlayRegion": "region",

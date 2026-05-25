@@ -1148,6 +1148,18 @@ abstract class AppLocalizations {
   /// **'CELL {size}'**
   String equalGridCellSize(String size);
 
+  /// No description provided for @equalGridZoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in (tighter cells)'**
+  String get equalGridZoomIn;
+
+  /// No description provided for @equalGridZoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out (wider cells)'**
+  String get equalGridZoomOut;
+
   /// No description provided for @globeFooter.
   ///
   /// In en, this message translates to:

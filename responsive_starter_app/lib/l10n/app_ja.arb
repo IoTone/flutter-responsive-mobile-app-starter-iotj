@@ -235,6 +235,8 @@
   "@equalGridCellSize": {
     "placeholders": {"size": {"type": "String"}}
   },
+  "equalGridZoomIn": "ズームイン（セルを狭く）",
+  "equalGridZoomOut": "ズームアウト（セルを広く）",
   "globeFooter": "位置情報のある {n} 件のピアを表示",
   "globeOverlayArcs": "アーク",
   "globeOverlayRegion": "地域",

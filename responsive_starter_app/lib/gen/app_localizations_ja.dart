@@ -580,6 +580,12 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get equalGridZoomIn => 'ズームイン（セルを狭く）';
+
+  @override
+  String get equalGridZoomOut => 'ズームアウト（セルを広く）';
+
+  @override
   String globeFooter(int n) {
     return '位置情報のある $n 件のピアを表示';
   }

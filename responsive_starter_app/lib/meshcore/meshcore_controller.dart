@@ -100,6 +100,10 @@ class MeshcoreController extends ChangeNotifier {
       _trackBattery(f);
       _trackDeviceInfo(f);
       _trackCustomVars(f);
+      // R25+1 — own movement trail. Every inbound frame might have
+      // bumped ownLocation (SelfInfoFrame's lat/lon), so sample
+      // here. Deduped internally by movement threshold.
+      _trackOwnLocationForTrail();
       _ingestKnown(f);
       _ingestDm(f);
       _maybeDrain(f);
@@ -438,6 +442,9 @@ class MeshcoreController extends ChangeNotifier {
       altitudeMeters: fix.altitudeMeters,
       source: OwnLocationSource.phoneFix,
     );
+    // R25+1 — record into the trail. Phone fixes are a primary
+    // source of ownLocation when the device GPS is off or stale.
+    _trackOwnLocationForTrail();
     notifyListeners();
     return true;
   }
@@ -459,6 +466,57 @@ class MeshcoreController extends ChangeNotifier {
     if (own == null) return null;
     return geo.haversineMeters(
         own.latitude, own.longitude, targetLat, targetLon);
+  }
+
+  // --- R25+1 movement trail ---------------------------------------
+  //
+  // Rolling in-memory record of our own GPS fixes, used by the
+  // equal-grid view to draw a "where I've been" polyline. Trail
+  // grows passively as new ownLocation samples arrive (called from
+  // _trackOwnLocationForTrail in the inbound listener); deduped by
+  // movement so a stationary device doesn't fill the buffer with
+  // identical points.
+  //
+  // Buffer is capped to keep the polyline render cheap and the
+  // memory footprint trivial — at the default cap of 60 points and
+  // 25 m dedup threshold that's roughly 1.5 km of recent path.
+
+  static const int _trailCap = 60;
+  static const double _trailMinMoveMeters = 25.0;
+  final List<({double latitude, double longitude, int unixSec})>
+      _ownTrail =
+      <({double latitude, double longitude, int unixSec})>[];
+
+  /// Read-only view of the most-recent own-location samples, oldest
+  /// first. Empty until at least one ownLocation has been resolved.
+  List<({double latitude, double longitude, int unixSec})>
+      get ownTrail => List<
+              ({
+                double latitude,
+                double longitude,
+                int unixSec
+              })>.unmodifiable(_ownTrail);
+
+  /// Append the current ownLocation to [_ownTrail] if it has moved
+  /// > [_trailMinMoveMeters] from the last sample. Safe to call on
+  /// every inbound frame; cheap when no movement happened.
+  void _trackOwnLocationForTrail() {
+    final OwnLocation? own = ownLocation;
+    if (own == null) return;
+    if (_ownTrail.isNotEmpty) {
+      final last = _ownTrail.last;
+      final double d = geo.haversineMeters(
+          last.latitude, last.longitude, own.latitude, own.longitude);
+      if (d < _trailMinMoveMeters) return;
+    }
+    _ownTrail.add((
+      latitude: own.latitude,
+      longitude: own.longitude,
+      unixSec: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    ));
+    while (_ownTrail.length > _trailCap) {
+      _ownTrail.removeAt(0);
+    }
   }
 
   /// Spatial-aware "is this node nearby?" classification used by the
