@@ -46,6 +46,7 @@ class _FabricSurveyViewState extends State<FabricSurveyView> {
   late final MapController _map = MapController();
   double _zoom = 12.0; // metro-area default; quilt reads best here
   bool _centered = false;
+  bool _showTiles = true;
 
   Future<void> _confirmReset(MeshcoreController mc) async {
     final AppLocalizations l = AppLocalizations.of(context);
@@ -184,12 +185,13 @@ class _FabricSurveyViewState extends State<FabricSurveyView> {
               backgroundColor: cs.surfaceContainerHighest,
             ),
             children: <Widget>[
-              TileLayer(
-                urlTemplate:
-                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName:
-                    'com.iotone.meshmore_sns_app',
-              ),
+              if (_showTiles)
+                TileLayer(
+                  urlTemplate:
+                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName:
+                      'com.iotone.meshmore_sns_app',
+                ),
               // Theme-tinted overlay so cells stay readable on busy
               // street tiles.
               if (cells.isNotEmpty)
@@ -340,6 +342,20 @@ class _FabricSurveyViewState extends State<FabricSurveyView> {
                   icon: const Icon(Icons.my_location),
                   onPressed: () =>
                       _map.move(LatLng(selfLat, selfLon), _zoom),
+                ),
+                IconButton(
+                  tooltip: _showTiles
+                      ? l.mapHideTiles
+                      : l.mapShowTiles,
+                  iconSize: 18,
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(
+                      minWidth: 36, minHeight: 36),
+                  icon: Icon(_showTiles
+                      ? Icons.layers
+                      : Icons.layers_clear),
+                  onPressed: () =>
+                      setState(() => _showTiles = !_showTiles),
                 ),
                 IconButton(
                   tooltip: l.fabricResetTooltip,

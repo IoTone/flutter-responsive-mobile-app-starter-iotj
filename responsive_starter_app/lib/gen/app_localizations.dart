@@ -1232,6 +1232,18 @@ abstract class AppLocalizations {
   /// **'Switch to street map'**
   String get streetMapStandardLayer;
 
+  /// No description provided for @mapHideTiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide map tiles'**
+  String get mapHideTiles;
+
+  /// No description provided for @mapShowTiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Show map tiles'**
+  String get mapShowTiles;
+
   /// No description provided for @deviceRegionLoadedOffline.
   ///
   /// In en, this message translates to:

@@ -114,6 +114,7 @@ class _EqualGridViewState extends State<EqualGridView> {
   /// reopening the view resets to "show". Persisting would be
   /// overkill for a one-tap toggle.
   bool _showStats = true;
+  bool _showTiles = true;
 
   /// R25+1 — magnetic-compass heading (degrees from N, clockwise).
   /// Null until the first event arrives. Drives the heading arrow
@@ -290,14 +291,15 @@ class _EqualGridViewState extends State<EqualGridView> {
                   backgroundColor: cs.surfaceContainerHighest,
                 ),
                 children: <Widget>[
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    // OSM tile policy requires a non-default
-                    // User-Agent that identifies the app.
-                    userAgentPackageName:
-                        'com.iotone.meshmore_sns_app',
-                  ),
+                  if (_showTiles)
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      // OSM tile policy requires a non-default
+                      // User-Agent that identifies the app.
+                      userAgentPackageName:
+                          'com.iotone.meshmore_sns_app',
+                    ),
                 ],
               ),
             ),
@@ -457,6 +459,21 @@ class _EqualGridViewState extends State<EqualGridView> {
                           : Icons.dashboard_outlined),
                       onPressed: () =>
                           setState(() => _showStats = !_showStats),
+                    ),
+                    // R25+5 — hide / show basemap tiles.
+                    IconButton(
+                      tooltip: _showTiles
+                          ? l.mapHideTiles
+                          : l.mapShowTiles,
+                      iconSize: 18,
+                      visualDensity: VisualDensity.compact,
+                      constraints: const BoxConstraints(
+                          minWidth: 32, minHeight: 32),
+                      icon: Icon(_showTiles
+                          ? Icons.layers
+                          : Icons.layers_clear),
+                      onPressed: () =>
+                          setState(() => _showTiles = !_showTiles),
                     ),
                   ],
                 ),

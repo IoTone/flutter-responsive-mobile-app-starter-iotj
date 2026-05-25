@@ -752,6 +752,17 @@ class _GlobePainter extends CustomPainter {
       acc.latSum += n.latitude!;
       acc.lonSum += n.longitude!;
     }
+    // R25+5 — region bubbles render as a **lens shape** (an ellipse
+    // squashed along the radial direction from the visible-
+    // hemisphere centre to the cluster point) rather than a flat
+    // circle. Two effects:
+    //   1. The radius scales with the projected sphere radius `r`,
+    //      so zooming out shrinks every bubble proportionally
+    //      instead of letting one bubble cover the planet.
+    //   2. Near the limb (rotY → 0) the bubble visibly squashes,
+    //      matching the perspective of a spherical cap viewed
+    //      edge-on. At the centre of the visible hemisphere
+    //      (rotY ≈ 1) it stays a full circle.
     for (final _RegionAcc acc in buckets.values) {
       final double lat = acc.latSum / acc.count;
       final double lon = acc.lonSum / acc.count;
@@ -759,21 +770,50 @@ class _GlobePainter extends CustomPainter {
           _project(centre, r, rotLon, rotLat, lat, lon);
       if (pp.rotY < 0) continue;
       final Offset p = pp.offset;
-      final double radius = 8 + acc.count * 2.0;
-      canvas.drawCircle(p, radius, Paint()..color = regionFill);
-      canvas.drawCircle(
-          p,
-          radius,
+      // Sphere-relative scale: r=250 is the "1.0" reference. Floor
+      // at 0.15 so single-peer clusters stay visible even at extreme
+      // zoom-out; ceiling at 2.0 so they don't dominate at zoom-in.
+      final double sphereScale = (r / 250.0).clamp(0.15, 2.0);
+      final double radius =
+          (8.0 + math.sqrt(acc.count.toDouble()) * 4.0) * sphereScale;
+      // Squash direction: from canvas centre toward the cluster
+      // point. The minor axis lies along this direction (because
+      // that's the projected line-of-sight foreshortening on a
+      // sphere); major axis is perpendicular (tangent to the local
+      // horizon).
+      final double dx = p.dx - centre.dx;
+      final double dy = p.dy - centre.dy;
+      final double angle = math.atan2(dy, dx);
+      // Smooth the squash slightly so clusters near rotY ≈ 0 don't
+      // collapse to invisible lines — `pow(rotY, 0.65)` keeps the
+      // lens recognisable down to the very limb.
+      final double squash = math.pow(pp.rotY, 0.65).toDouble();
+
+      canvas.save();
+      canvas.translate(p.dx, p.dy);
+      canvas.rotate(angle);
+      final Rect oval = Rect.fromCenter(
+        center: Offset.zero,
+        width: radius * 2 * squash, // along radial → squashed
+        height: radius * 2, // perpendicular → full
+      );
+      canvas.drawOval(oval, Paint()..color = regionFill);
+      canvas.drawOval(
+          oval,
           Paint()
             ..style = PaintingStyle.stroke
             ..strokeWidth = 1.4
             ..color = regionStroke);
+      canvas.restore();
+
+      // Count label stays upright — drawn in screen coords, not the
+      // rotated frame.
       final TextPainter tp = TextPainter(
         text: TextSpan(
           text: '${acc.count}',
           style: TextStyle(
               color: regionLabel,
-              fontSize: 11,
+              fontSize: (10.0 * sphereScale).clamp(8.0, 14.0),
               fontFamily: 'monospace',
               fontWeight: FontWeight.w600),
         ),

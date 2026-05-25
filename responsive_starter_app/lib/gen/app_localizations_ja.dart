@@ -622,6 +622,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get streetMapStandardLayer => '標準地図に切り替え';
 
   @override
+  String get mapHideTiles => '地図タイルを非表示';
+
+  @override
+  String get mapShowTiles => '地図タイルを表示';
+
+  @override
   String deviceRegionLoadedOffline(String label) {
     return '$label を読み込みました — デバイス接続時に「適用」してください。';
   }

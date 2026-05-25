@@ -656,6 +656,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get streetMapStandardLayer => 'Switch to street map';
 
   @override
+  String get mapHideTiles => 'Hide map tiles';
+
+  @override
+  String get mapShowTiles => 'Show map tiles';
+
+  @override
   String deviceRegionLoadedOffline(String label) {
     return '$label loaded — Apply when a device is connected.';
   }

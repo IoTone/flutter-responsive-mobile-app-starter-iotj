@@ -63,6 +63,12 @@ class _StreetMapViewState extends State<StreetMapView> {
   /// street layer adds noise (off-grid use, hiking).
   _TileSource _tileSource = _TileSource.standard;
 
+  /// R25+5 — show / hide the basemap tiles entirely. Default on;
+  /// flipping off renders peers, trail, and range circles on a
+  /// plain themed background, which can read better against accent
+  /// colours on dark themes where street colours clash.
+  bool _showTiles = true;
+
   @override
   void initState() {
     super.initState();
@@ -190,16 +196,17 @@ class _StreetMapViewState extends State<StreetMapView> {
               backgroundColor: cs.surfaceContainerHighest,
             ),
             children: <Widget>[
-              TileLayer(
-                // R25+3 — swappable basemap. Topo subdomain set
-                // (a/b/c) is required by OpenTopoMap's policy to
-                // spread load; standard OSM doesn't use one.
-                urlTemplate: _tileSource.urlTemplate,
-                subdomains: _tileSource.subdomains,
-                maxNativeZoom: _tileSource.maxNativeZoom,
-                userAgentPackageName:
-                    'com.iotone.meshmore_sns_app',
-              ),
+              if (_showTiles)
+                TileLayer(
+                  // R25+3 — swappable basemap. Topo subdomain set
+                  // (a/b/c) is required by OpenTopoMap's policy to
+                  // spread load; standard OSM doesn't use one.
+                  urlTemplate: _tileSource.urlTemplate,
+                  subdomains: _tileSource.subdomains,
+                  maxNativeZoom: _tileSource.maxNativeZoom,
+                  userAgentPackageName:
+                      'com.iotone.meshmore_sns_app',
+                ),
               // R25+1 — range circle for self + each peer. Drawn
               // before markers so the marker icons sit on top.
               CircleLayer(
@@ -367,6 +374,24 @@ class _StreetMapViewState extends State<StreetMapView> {
                             ? _TileSource.topo
                             : _TileSource.standard;
                   }),
+                ),
+                // R25+5 — hide the basemap entirely. Useful when
+                // street colours clash with the theme accent or
+                // when the user just wants to focus on the pin
+                // pattern without distraction.
+                IconButton(
+                  tooltip: _showTiles
+                      ? l.mapHideTiles
+                      : l.mapShowTiles,
+                  iconSize: 18,
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(
+                      minWidth: 36, minHeight: 36),
+                  icon: Icon(_showTiles
+                      ? Icons.layers
+                      : Icons.layers_clear),
+                  onPressed: () =>
+                      setState(() => _showTiles = !_showTiles),
                 ),
               ],
             ),

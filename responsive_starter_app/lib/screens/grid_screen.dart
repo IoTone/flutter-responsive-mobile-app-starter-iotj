@@ -391,16 +391,14 @@ class _GridScreenState extends State<GridScreen>
             initialValue: _viewMode,
             onSelected: (_GridViewMode m) =>
                 setState(() => _viewMode = m),
+            // Icon + dropdown arrow only — the inline 5-char label
+            // was pushing the AppBar title ("Hyperlocal grid") into
+            // ellipsis. Long label still shows on each row inside
+            // the menu, so users still see what they're picking.
             icon: Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Icon(_iconForMode(_viewMode)),
-                const SizedBox(width: 4),
-                Text(_shortLabel(_viewMode, l),
-                    style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1)),
                 const Icon(Icons.arrow_drop_down, size: 18),
               ],
             ),
