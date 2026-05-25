@@ -272,6 +272,102 @@ abstract class AppLocalizations {
   /// **'RETRY'**
   String get actionRetry;
 
+  /// No description provided for @dashboardDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get dashboardDevice;
+
+  /// No description provided for @deviceMgrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'DEVICE'**
+  String get deviceMgrTitle;
+
+  /// No description provided for @deviceMgrNoPair.
+  ///
+  /// In en, this message translates to:
+  /// **'No device paired'**
+  String get deviceMgrNoPair;
+
+  /// No description provided for @deviceMgrStateConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'CONNECTED'**
+  String get deviceMgrStateConnected;
+
+  /// No description provided for @deviceMgrStateConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'CONNECTING…'**
+  String get deviceMgrStateConnecting;
+
+  /// No description provided for @deviceMgrStateReconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'RECONNECTING…'**
+  String get deviceMgrStateReconnecting;
+
+  /// No description provided for @deviceMgrStateDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'DISCONNECTED'**
+  String get deviceMgrStateDisconnected;
+
+  /// No description provided for @deviceMgrStateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'FAILED'**
+  String get deviceMgrStateFailed;
+
+  /// No description provided for @deviceMgrDisconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get deviceMgrDisconnect;
+
+  /// No description provided for @deviceMgrReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get deviceMgrReconnect;
+
+  /// No description provided for @deviceMgrForget.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget'**
+  String get deviceMgrForget;
+
+  /// No description provided for @deviceMgrPick.
+  ///
+  /// In en, this message translates to:
+  /// **'PICK A DEVICE'**
+  String get deviceMgrPick;
+
+  /// No description provided for @deviceMgrScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get deviceMgrScan;
+
+  /// No description provided for @deviceMgrStopScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get deviceMgrStopScan;
+
+  /// No description provided for @deviceMgrScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Scan to look for nearby MeshCore devices. When two are in range, pick the one you want.'**
+  String get deviceMgrScanHint;
+
+  /// No description provided for @deviceMgrScanFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan failed: {message}'**
+  String deviceMgrScanFailed(String message);
+
   /// No description provided for @settingsHeading.
   ///
   /// In en, this message translates to:

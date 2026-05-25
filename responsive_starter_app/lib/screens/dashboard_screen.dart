@@ -12,6 +12,7 @@ import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../meshcore/own_location.dart';
 import '../meshcore/region_presets.dart';
+import 'device_manager_sheet.dart';
 
 /// R8 home — "SEELE Monolith" dashboard: one dominant numeral
 /// (peers in range), a full-width status slab that colour-inverts on
@@ -129,6 +130,17 @@ class DashboardScreen extends StatelessWidget {
                   onPressed: () => mc.connect(),
                   child: Text(l.actionRetry),
                 ),
+              // R41 — Device chip. Single tap target for disconnect /
+              // reconnect / forget / pick-a-different-radio. The
+              // existing inline Connect/Retry stays for one-tap
+              // recovery; this sits next to it for everything else.
+              IconButton(
+                tooltip: l.dashboardDevice,
+                icon: Icon(Icons.bluetooth,
+                    color: st.alert ? cs.onError : cs.primary,
+                    size: 20),
+                onPressed: () => DeviceManagerSheet.show(context),
+              ),
             ],
           ),
         ),

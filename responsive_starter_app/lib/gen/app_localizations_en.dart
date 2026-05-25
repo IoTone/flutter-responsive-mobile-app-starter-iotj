@@ -108,6 +108,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionRetry => 'RETRY';
 
   @override
+  String get dashboardDevice => 'Device';
+
+  @override
+  String get deviceMgrTitle => 'DEVICE';
+
+  @override
+  String get deviceMgrNoPair => 'No device paired';
+
+  @override
+  String get deviceMgrStateConnected => 'CONNECTED';
+
+  @override
+  String get deviceMgrStateConnecting => 'CONNECTING…';
+
+  @override
+  String get deviceMgrStateReconnecting => 'RECONNECTING…';
+
+  @override
+  String get deviceMgrStateDisconnected => 'DISCONNECTED';
+
+  @override
+  String get deviceMgrStateFailed => 'FAILED';
+
+  @override
+  String get deviceMgrDisconnect => 'Disconnect';
+
+  @override
+  String get deviceMgrReconnect => 'Reconnect';
+
+  @override
+  String get deviceMgrForget => 'Forget';
+
+  @override
+  String get deviceMgrPick => 'PICK A DEVICE';
+
+  @override
+  String get deviceMgrScan => 'Scan';
+
+  @override
+  String get deviceMgrStopScan => 'Stop';
+
+  @override
+  String get deviceMgrScanHint =>
+      'Tap Scan to look for nearby MeshCore devices. When two are in range, pick the one you want.';
+
+  @override
+  String deviceMgrScanFailed(String message) {
+    return 'Scan failed: $message';
+  }
+
+  @override
   String get settingsHeading => 'App settings';
 
   @override

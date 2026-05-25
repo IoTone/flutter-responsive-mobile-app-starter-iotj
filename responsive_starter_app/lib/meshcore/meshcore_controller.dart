@@ -1639,6 +1639,26 @@ class MeshcoreController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// R41 — pair to (and connect to) a specific BLE device the user
+  /// picked from the scan results. Tears down any existing link,
+  /// writes the new pairing to [PairedDeviceStore] so auto-reconnect
+  /// uses it from now on, clears the manual-disconnect latch, and
+  /// kicks a fresh [connect]. The transport factory was set at
+  /// construction time and reads the paired remote ID on each
+  /// [BleConnector.autoConnect] call — so saving + reconnecting is
+  /// all that's needed; we don't have to swap the factory.
+  Future<void> connectToPickedDevice({
+    required String remoteId,
+    required String name,
+  }) async {
+    await disconnect();
+    await PairedDeviceStore.save(remoteId, name);
+    _pairedName = name;
+    _manualDisconnect = false;
+    notifyListeners();
+    await connect();
+  }
+
   @override
   void dispose() {
     _manualDisconnect = true;

@@ -100,6 +100,57 @@ class AppLocalizationsJa extends AppLocalizations {
   String get actionRetry => '再試行';
 
   @override
+  String get dashboardDevice => 'デバイス';
+
+  @override
+  String get deviceMgrTitle => 'デバイス';
+
+  @override
+  String get deviceMgrNoPair => 'デバイス未ペアリング';
+
+  @override
+  String get deviceMgrStateConnected => '接続中';
+
+  @override
+  String get deviceMgrStateConnecting => '接続中…';
+
+  @override
+  String get deviceMgrStateReconnecting => '再接続中…';
+
+  @override
+  String get deviceMgrStateDisconnected => '切断';
+
+  @override
+  String get deviceMgrStateFailed => '失敗';
+
+  @override
+  String get deviceMgrDisconnect => '切断';
+
+  @override
+  String get deviceMgrReconnect => '再接続';
+
+  @override
+  String get deviceMgrForget => 'ペアリング解除';
+
+  @override
+  String get deviceMgrPick => 'デバイスを選択';
+
+  @override
+  String get deviceMgrScan => 'スキャン';
+
+  @override
+  String get deviceMgrStopScan => '停止';
+
+  @override
+  String get deviceMgrScanHint =>
+      '「スキャン」をタップして近くの MeshCore デバイスを探します。2 台以上ある場合はリストから選んでください。';
+
+  @override
+  String deviceMgrScanFailed(String message) {
+    return 'スキャン失敗: $message';
+  }
+
+  @override
   String get settingsHeading => 'アプリ設定';
 
   @override

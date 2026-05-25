@@ -97,6 +97,47 @@ abstract final class BleConnector {
     return _finish(device, writeWithoutResponse);
   }
 
+  /// R41 — start a BLE scan and stream the full list of MeshCore
+  /// devices currently visible. The UI uses this to populate a
+  /// "Choose device" picker; rather than [scanAndConnect]'s
+  /// `hits.first` shortcut, the user explicitly taps the device they
+  /// want. Caller is responsible for calling [stopScan] when the
+  /// picker closes (or letting the [timeout] elapse).
+  ///
+  /// Each event from the stream is the **complete current set** of
+  /// hits seen so far in this scan; new devices appearing later
+  /// produce an updated list including the prior entries. RSSI in
+  /// each [ScanResult] updates between snapshots.
+  static Stream<List<ScanResult>> scanForDevices({
+    Duration timeout = const Duration(seconds: 12),
+  }) async* {
+    if (!await ensurePermissions()) {
+      throw BleConnectException('BLE permissions denied');
+    }
+    final BluetoothAdapterState adapter = await FlutterBluePlus.adapterState
+        .firstWhere((BluetoothAdapterState s) =>
+            s == BluetoothAdapterState.on ||
+            s == BluetoothAdapterState.unavailable)
+        .timeout(const Duration(seconds: 5),
+            onTimeout: () => BluetoothAdapterState.unknown);
+    if (adapter != BluetoothAdapterState.on) {
+      throw BleConnectException('Bluetooth adapter not on ($adapter)');
+    }
+    await FlutterBluePlus.startScan(
+      withServices: <Guid>[_service],
+      timeout: timeout,
+    );
+    yield* FlutterBluePlus.scanResults;
+  }
+
+  /// Stop an in-flight scan, if any. Idempotent — safe to call when
+  /// no scan is running.
+  static Future<void> stopScan() async {
+    try {
+      await FlutterBluePlus.stopScan();
+    } catch (_) {/* already stopped or unsupported */}
+  }
+
   /// Startup path: reconnect to the saved paired device if there is
   /// one; otherwise fall back to a scan. Always the default transport
   /// factory so the M7 reconnect policy keeps working too.
