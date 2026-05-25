@@ -3,6 +3,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' hide Path; // collides with ui.Path
 import 'package:provider/provider.dart';
 
 import '../gen/app_localizations.dart';
@@ -60,6 +62,26 @@ class EqualGridView extends StatefulWidget {
     if (rangeKm <= 1.500) return 200.0; // Neighborhood
     if (rangeKm <= 3.000) return 500.0; // Area
     return 1000.0; // Wide
+  }
+
+  /// Stage 3 — OSM tile zoom level picked to roughly match the cell
+  /// resolution. OSM resolution at zoom z (equator) is
+  /// 156 543 / 2^z m/px; we want a tile pixel scale comparable to
+  /// the painter's metre/pixel ratio so the basemap reads as the
+  /// same kind of zoom as the overlay. Rough table:
+  ///   5 m cells   → z 18   (~0.6 m/px)
+  ///  20 m cells   → z 17   (~1.2 m/px)
+  /// 100 m cells   → z 16   (~2.4 m/px)
+  /// 200 m cells   → z 15   (~4.8 m/px)
+  /// 500 m cells   → z 14   (~10  m/px)
+  /// 1 km cells    → z 13   (~20  m/px)
+  static double _tileZoomForCellMeters(double cellM) {
+    if (cellM <= 8) return 18.0;
+    if (cellM <= 30) return 17.0;
+    if (cellM <= 150) return 16.0;
+    if (cellM <= 300) return 15.0;
+    if (cellM <= 700) return 14.0;
+    return 13.0;
   }
 
   @override
@@ -156,6 +178,55 @@ class _EqualGridViewState extends State<EqualGridView> {
       },
       child: Stack(
         children: <Widget>[
+          // R25 Stage 3 — OSM raster tile background. Locked to the
+          // self-anchor; no user pan/zoom (this is a fixed-frame
+          // hyperlocal view, not an interactive map). Tile zoom is
+          // picked to roughly match cell scale so a 200 m cell
+          // overlay sits over a ~5 m/px tile, etc.
+          Positioned.fill(
+            child: FlutterMap(
+              // ValueKey forces a fresh FlutterMap (and thus a fresh
+              // `initialCenter` / `initialZoom`) when the user
+              // changes range stops or our own location updates.
+              // Cheaper than wiring a MapController + .move() since
+              // the map is locked anyway.
+              key: ValueKey<String>(
+                  '${selfLat.toStringAsFixed(4)}_'
+                  '${selfLon.toStringAsFixed(4)}_'
+                  '${widget.cellSizeMeters}'),
+              options: MapOptions(
+                initialCenter: LatLng(selfLat, selfLon),
+                initialZoom: EqualGridView._tileZoomForCellMeters(
+                    widget.cellSizeMeters),
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
+                ),
+                backgroundColor: cs.surfaceContainerHighest,
+              ),
+              children: <Widget>[
+                TileLayer(
+                  urlTemplate:
+                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  // OSM tile policy requires a non-default
+                  // User-Agent that identifies the app.
+                  userAgentPackageName:
+                      'com.iotone.meshmore_sns_app',
+                  // Themed tint via a ColorFiltered overlay below;
+                  // tiles render full-colour here.
+                ),
+              ],
+            ),
+          ),
+          // Theme-tint overlay — dims/desaturates the tiles so they
+          // sit comfortably under the theme accent colours of the
+          // overlay layer above, in any theme preset.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Container(
+                color: cs.surface.withValues(alpha: .35),
+              ),
+            ),
+          ),
           Positioned.fill(
             child: LayoutBuilder(builder:
                 (BuildContext _, BoxConstraints c) {
@@ -174,7 +245,8 @@ class _EqualGridViewState extends State<EqualGridView> {
                   favPubKeys: mc.favorites,
                   cellSizeMeters: widget.cellSizeMeters,
                   cellLine: cs.outline.withValues(alpha: .35),
-                  cellLabel: cs.onSurfaceVariant.withValues(alpha: .6),
+                  cellLabel:
+                      cs.onSurfaceVariant.withValues(alpha: .85),
                   selfPin: cs.primary,
                   peerCompanion: cs.tertiary,
                   peerRepeater: cs.primary,
