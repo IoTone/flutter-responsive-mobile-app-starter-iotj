@@ -577,6 +577,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get streetMapRecenter => '現在地に戻す';
 
   @override
+  String get streetMapTopoLayer => '地形図に切り替え';
+
+  @override
+  String get streetMapStandardLayer => '標準地図に切り替え';
+
+  @override
+  String deviceRegionLoadedOffline(String label) {
+    return '$label を読み込みました — デバイス接続時に「適用」してください。';
+  }
+
+  @override
   String get equalGridAwaitingFix =>
       '等分グリッド表示には自分の位置が必要です — GPS 取得待ち（スマートフォンまたはデバイス）。';
 

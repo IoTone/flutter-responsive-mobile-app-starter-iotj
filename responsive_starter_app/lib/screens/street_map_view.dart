@@ -57,6 +57,12 @@ class _StreetMapViewState extends State<StreetMapView> {
   double? _headingDeg;
   StreamSubscription<CompassEvent>? _compassSub;
 
+  /// R25+3 — tile source toggle. `standard` is the colorful OSM
+  /// raster everyone recognises; `topo` is OpenTopoMap with contour
+  /// lines, shaded relief and trail/POI overlays — useful when the
+  /// street layer adds noise (off-grid use, hiking).
+  _TileSource _tileSource = _TileSource.standard;
+
   @override
   void initState() {
     super.initState();
@@ -185,8 +191,12 @@ class _StreetMapViewState extends State<StreetMapView> {
             ),
             children: <Widget>[
               TileLayer(
-                urlTemplate:
-                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                // R25+3 — swappable basemap. Topo subdomain set
+                // (a/b/c) is required by OpenTopoMap's policy to
+                // spread load; standard OSM doesn't use one.
+                urlTemplate: _tileSource.urlTemplate,
+                subdomains: _tileSource.subdomains,
+                maxNativeZoom: _tileSource.maxNativeZoom,
                 userAgentPackageName:
                     'com.iotone.meshmore_sns_app',
               ),
@@ -339,6 +349,25 @@ class _StreetMapViewState extends State<StreetMapView> {
                   onPressed: () =>
                       _recenterOnSelf(selfLat, selfLon),
                 ),
+                // R25+3 — basemap toggle: street ↔ topo.
+                IconButton(
+                  tooltip: _tileSource == _TileSource.standard
+                      ? l.streetMapTopoLayer
+                      : l.streetMapStandardLayer,
+                  iconSize: 18,
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(
+                      minWidth: 36, minHeight: 36),
+                  icon: Icon(_tileSource == _TileSource.standard
+                      ? Icons.terrain
+                      : Icons.map),
+                  onPressed: () => setState(() {
+                    _tileSource =
+                        _tileSource == _TileSource.standard
+                            ? _TileSource.topo
+                            : _TileSource.standard;
+                  }),
+                ),
               ],
             ),
           ),
@@ -346,6 +375,33 @@ class _StreetMapViewState extends State<StreetMapView> {
       ],
     );
   }
+}
+
+/// R25+3 — basemap tile-set picker. Layered behind the markers /
+/// trail / range circles. Standard is recognisable street view;
+/// topo is contour + shaded relief from OpenTopoMap (CC-BY-SA;
+/// attribution belongs in the About screen).
+enum _TileSource {
+  standard(
+    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    subdomains: <String>[],
+    maxNativeZoom: 19,
+  ),
+  topo(
+    urlTemplate: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    subdomains: <String>['a', 'b', 'c'],
+    maxNativeZoom: 17,
+  );
+
+  const _TileSource({
+    required this.urlTemplate,
+    required this.subdomains,
+    required this.maxNativeZoom,
+  });
+
+  final String urlTemplate;
+  final List<String> subdomains;
+  final int maxNativeZoom;
 }
 
 class _PeerGlyph extends StatelessWidget {

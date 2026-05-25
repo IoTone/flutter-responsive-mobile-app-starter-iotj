@@ -213,7 +213,11 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
     });
     final String localized = localizedPresetLabel(l, p.id);
     if (!mc.isReady) {
-      _toast(localized);
+      // R25+3 — clearer feedback. The fields are filled and visible;
+      // tell the user explicitly that the values won't reach the
+      // radio until they connect. Pairs with the "Connect a device
+      // first" toast on the bottom Apply button.
+      _toast(l.deviceRegionLoadedOffline(localized));
       return;
     }
     try {
@@ -276,6 +280,15 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
 
   Future<void> _applyRadio(MeshcoreController mc) async {
     final AppLocalizations l = AppLocalizations.of(context);
+    // R25+3 — the user-reported bug: "Apply radio settings" was
+    // greyed out when not connected, with no clue why. Now we keep
+    // the button enabled and surface an explicit toast — picking a
+    // preset while offline at least leaves a clear trail of what to
+    // do next, rather than looking like the app is broken.
+    if (!mc.isReady) {
+      _toast(l.deviceConnectFirst);
+      return;
+    }
     final double? f = double.tryParse(_freq.text);
     final double? b = double.tryParse(_bw.text);
     final int? sf = int.tryParse(_sf.text);
@@ -417,7 +430,12 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
               FilledButton.icon(
                 icon: const Icon(Icons.send),
                 label: Text(l.deviceApplyRadio),
-                onPressed: ready ? () => _applyRadio(mc) : null,
+                // R25+3 — always tappable. _applyRadio handles the
+                // not-ready case explicitly so a user with the form
+                // already populated (e.g. via Suggest-from-location
+                // while offline) gets actionable feedback instead
+                // of a dead button.
+                onPressed: () => _applyRadio(mc),
               ),
             ],
           ),

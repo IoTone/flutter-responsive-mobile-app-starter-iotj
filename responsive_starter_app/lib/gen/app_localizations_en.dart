@@ -611,6 +611,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get streetMapRecenter => 'Re-centre on me';
 
   @override
+  String get streetMapTopoLayer => 'Switch to topographical map';
+
+  @override
+  String get streetMapStandardLayer => 'Switch to street map';
+
+  @override
+  String deviceRegionLoadedOffline(String label) {
+    return '$label loaded — Apply when a device is connected.';
+  }
+
+  @override
   String get equalGridAwaitingFix =>
       'Equal-grid view needs your own location — waiting for a GPS fix (phone or device).';
 

@@ -339,6 +339,32 @@ class _EqualGridViewState extends State<EqualGridView> {
               );
             }),
           ),
+          // R25+3 — NERV-style stats panel pinned to the top of the
+          // view. Floats above the basemap + cell overlay; never
+          // intercepts pointer events so taps still hit peers.
+          Positioned(
+            left: 12,
+            right: 12,
+            top: 12,
+            child: IgnorePointer(
+              child: _NervStatsPanel(
+                cellLat: selfLat,
+                cellLon: selfLon,
+                cellSizeMeters: cellMeters,
+                peerCount: withLoc.length,
+                nearestPeerMeters: _nearestPeerMeters(
+                    withLoc, selfLat, selfLon),
+                nearestPeerName: _nearestPeerName(
+                    withLoc, selfLat, selfLon),
+                estimatedRangeMeters: estimatedRangeM,
+                headingDeg: _headingDeg,
+                altitudeMeters: mc.ownLocation?.altitudeMeters,
+                accent: cs.primary,
+                bg: cs.surface.withValues(alpha: .80),
+                border: cs.primary.withValues(alpha: .60),
+              ),
+            ),
+          ),
           // R25+1 — Zoom controls + cell-size readout. The +/- pair
           // shrinks/grows the cell size by 2× per tap on top of the
           // radial-range-derived base; long-press the readout to
@@ -477,6 +503,193 @@ class _EqualGridViewState extends State<EqualGridView> {
     final double km = m / 1000.0;
     return km < 10 ? '${km.toStringAsFixed(1)} km' : '${km.round()} km';
   }
+
+  /// R25+3 — distance to the geographically-closest peer with a known
+  /// lat/lon, in metres. Returns null when no peers have location.
+  static double? _nearestPeerMeters(
+      List<DiscoveredNode> peers, double selfLat, double selfLon) {
+    const double earthM = 6371000.0;
+    double? best;
+    for (final DiscoveredNode n in peers) {
+      final double dLat =
+          (n.latitude! - selfLat) * math.pi / 180.0;
+      final double dLon =
+          (n.longitude! - selfLon) * math.pi / 180.0;
+      final double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+          math.cos(selfLat * math.pi / 180.0) *
+              math.cos(n.latitude! * math.pi / 180.0) *
+              math.sin(dLon / 2) *
+              math.sin(dLon / 2);
+      final double d = 2 * earthM * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+      if (best == null || d < best) best = d;
+    }
+    return best;
+  }
+
+  static String? _nearestPeerName(
+      List<DiscoveredNode> peers, double selfLat, double selfLon) {
+    const double earthM = 6371000.0;
+    DiscoveredNode? best;
+    double bestD = double.infinity;
+    for (final DiscoveredNode n in peers) {
+      final double dLat =
+          (n.latitude! - selfLat) * math.pi / 180.0;
+      final double dLon =
+          (n.longitude! - selfLon) * math.pi / 180.0;
+      final double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+          math.cos(selfLat * math.pi / 180.0) *
+              math.cos(n.latitude! * math.pi / 180.0) *
+              math.sin(dLon / 2) *
+              math.sin(dLon / 2);
+      final double d = 2 * earthM * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+      if (d < bestD) {
+        bestD = d;
+        best = n;
+      }
+    }
+    if (best == null) return null;
+    return best.name.isEmpty ? best.shortId : best.name;
+  }
+}
+
+/// R25+3 — Evangelion / NERV style targeting panel pinned to the top
+/// of the equal-grid view. Monospace, narrow fixed-width segments
+/// separated by `//`. Reads the current cell's city / coord label
+/// from the offline GeoNames lookup (Stage 2 dependency); falls
+/// back to grid coords when no city is nearby.
+class _NervStatsPanel extends StatelessWidget {
+  const _NervStatsPanel({
+    required this.cellLat,
+    required this.cellLon,
+    required this.cellSizeMeters,
+    required this.peerCount,
+    required this.nearestPeerMeters,
+    required this.nearestPeerName,
+    required this.estimatedRangeMeters,
+    required this.headingDeg,
+    required this.altitudeMeters,
+    required this.accent,
+    required this.bg,
+    required this.border,
+  });
+
+  final double cellLat;
+  final double cellLon;
+  final double cellSizeMeters;
+  final int peerCount;
+  final double? nearestPeerMeters;
+  final String? nearestPeerName;
+  final double estimatedRangeMeters;
+  final double? headingDeg;
+  final double? altitudeMeters;
+  final Color accent;
+  final Color bg;
+  final Color border;
+
+  String _fmtMeters(double m) {
+    if (m < 1000) return '${m.round()} m';
+    final double km = m / 1000.0;
+    return km < 10
+        ? '${km.toStringAsFixed(1)} km'
+        : '${km.round()} km';
+  }
+
+  String _cardinal(double deg) {
+    const List<String> dirs = <String>[
+      'N',
+      'NE',
+      'E',
+      'SE',
+      'S',
+      'SW',
+      'W',
+      'NW'
+    ];
+    return dirs[((deg + 22.5) ~/ 45) % 8];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // City label via the offline DB; defaults to "—" when unloaded /
+    // unmapped. Cells smaller than ~the cell size are off-the-grid
+    // points so we use the same lookup-radius heuristic as the
+    // painter — half-diagonal of the current cell.
+    final String? cityLabel = labelForCell(
+      centreLat: cellLat,
+      centreLon: cellLon,
+      cellSizeMeters: cellSizeMeters,
+    );
+    final String gridLabel = cityLabel ?? '—';
+
+    String entry(String key, String val) =>
+        '$key // ${val.toUpperCase()}';
+
+    final List<String> bits = <String>[
+      entry('LOC', gridLabel),
+      entry('PEERS', '$peerCount'),
+      if (nearestPeerMeters != null)
+        entry(
+            'NEAR',
+            '${_fmtMeters(nearestPeerMeters!)} '
+                '· ${(nearestPeerName ?? '').substring(0, math.min(8, (nearestPeerName ?? '').length))}'),
+      entry('REACH', _fmtMeters(estimatedRangeMeters)),
+      if (headingDeg != null)
+        entry('HDG',
+            '${headingDeg!.toStringAsFixed(0)}° ${_cardinal(headingDeg!)}'),
+      if (altitudeMeters != null)
+        entry('ALT', '${altitudeMeters!.round()} m'),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(2),
+        border: Border.all(color: border, width: 1.0),
+      ),
+      padding:
+          const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          // Header strip — fake NERV ID and tag bracket.
+          Row(
+            children: <Widget>[
+              Container(
+                width: 6,
+                height: 6,
+                color: accent,
+              ),
+              const SizedBox(width: 4),
+              Text('[ MESHMORE :: HYPERLOCAL :: TARGETING ]',
+                  style: TextStyle(
+                      color: accent,
+                      fontFamily: 'monospace',
+                      fontSize: 9,
+                      letterSpacing: 2,
+                      fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          // Stats wrap — flows onto multiple lines on narrow screens.
+          Wrap(
+            spacing: 14,
+            runSpacing: 2,
+            children: <Widget>[
+              for (final String b in bits)
+                Text(b,
+                    style: TextStyle(
+                        color: accent,
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                        height: 1.15,
+                        letterSpacing: 1)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Painter for the equal-grid view. Owns the lat/lon → cell → screen
@@ -612,6 +825,12 @@ class _EqualGridPainter extends CustomPainter {
     const double mPerDegLat = 6371000.0 * math.pi / 180.0;
     final double mPerDegLon =
         mPerDegLat * math.cos(selfLat * math.pi / 180.0);
+    final Paint currentCellFill = Paint()
+      ..color = selfPin.withValues(alpha: .12);
+    final Paint currentCellBorder = Paint()
+      ..color = selfPin.withValues(alpha: .85)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
     for (int cx = -colsHalf; cx <= colsHalf; cx++) {
       for (int cy = -rowsHalf; cy <= rowsHalf; cy++) {
         final Rect cellRect = Rect.fromLTWH(
@@ -620,7 +839,16 @@ class _EqualGridPainter extends CustomPainter {
           cellPx,
           cellPx,
         );
-        canvas.drawRect(cellRect, cellStroke);
+        // R25+3 — highlight the cell containing self (cx==cy==0).
+        // Faint primary-tinted fill + thicker primary border so the
+        // user can always find "where am I" at a glance even with
+        // the bullseye glyph aside.
+        if (cx == 0 && cy == 0) {
+          canvas.drawRect(cellRect, currentCellFill);
+          canvas.drawRect(cellRect, currentCellBorder);
+        } else {
+          canvas.drawRect(cellRect, cellStroke);
+        }
         // R25 Stage 2 — try the offline city DB first. If the
         // lookup hasn't loaded yet (first frame after launch) OR
         // there's no nearby city, fall back to the grid coord so

@@ -1148,6 +1148,24 @@ abstract class AppLocalizations {
   /// **'Re-centre on me'**
   String get streetMapRecenter;
 
+  /// No description provided for @streetMapTopoLayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to topographical map'**
+  String get streetMapTopoLayer;
+
+  /// No description provided for @streetMapStandardLayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to street map'**
+  String get streetMapStandardLayer;
+
+  /// No description provided for @deviceRegionLoadedOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} loaded — Apply when a device is connected.'**
+  String deviceRegionLoadedOffline(String label);
+
   /// No description provided for @equalGridAwaitingFix.
   ///
   /// In en, this message translates to:
