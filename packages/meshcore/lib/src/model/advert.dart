@@ -29,6 +29,7 @@ class Advert {
     required this.flags,
     this.latitude,
     this.longitude,
+    this.altitudeMeters,
     this.feat1,
     this.feat2,
     this.name,
@@ -55,6 +56,17 @@ class Advert {
   /// Degrees (raw int32 ÷ 1e6), if ADV_LATLON was set.
   final double? latitude;
   final double? longitude;
+
+  /// R44 — altitude in metres (raw int32 ÷ 1e6). Currently always
+  /// null over the wire because the MeshCore v1.15.0 advert payload
+  /// format only carries lat/lon under `ADV_LATLON`. Reserved here
+  /// so the moment firmware appends a 3rd i32 (or adds a new
+  /// `ADV_ALT` flag bit), the parser can populate it without
+  /// touching every consumer. The phone-side
+  /// `CMD_SET_ADVERT_LATLON` already accepts an altitude, but
+  /// adverts don't broadcast it yet.
+  final double? altitudeMeters;
+
   final int? feat1;
   final int? feat2;
   final String? name;

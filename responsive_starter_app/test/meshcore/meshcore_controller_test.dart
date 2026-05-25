@@ -766,6 +766,46 @@ void main() {
       expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x0E), isTrue);
       ctrl.dispose();
     });
+
+    test('R44 — setAdvertLatLon with altitude emits a 13-byte frame '
+        '(opcode + 3×i32) instead of the 9-byte lat/lon-only form',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      // No altitude → 9 bytes: opcode (1) + lat (4) + lon (4).
+      await ctrl.setAdvertLatLon(latitude: 1.0, longitude: 2.0);
+      final Iterable<List<int>> latLonOnly =
+          fake.sent.where((f) => f.isNotEmpty && f[0] == 0x0E);
+      expect(latLonOnly, isNotEmpty);
+      expect(latLonOnly.last.length, 9);
+
+      // With altitude → 13 bytes: + alt (4).
+      await ctrl.setAdvertLatLon(
+        latitude: 45.5152,
+        longitude: -122.6784,
+        altitudeMeters: 50.5,
+      );
+      // Find the latest 0x0E with altitude length.
+      final List<int> withAlt = fake.sent
+          .where((f) => f.isNotEmpty && f[0] == 0x0E && f.length == 13)
+          .last;
+      expect(withAlt.length, 13);
+      // Decode the altitude i32 LE from bytes 9..12 → should equal
+      // round(50.5 * 1e6) = 50_500_000.
+      final ByteData bd = ByteData.sublistView(
+          Uint8List.fromList(withAlt), 9, 13);
+      expect(bd.getInt32(0, Endian.little), 50500000);
+      ctrl.dispose();
+    });
   });
 
   group('R38 custom vars (gps / gps_interval)', () {

@@ -1449,14 +1449,27 @@ class MeshcoreController extends ChangeNotifier {
 
   /// Set this node's advertised location (`SET_ADVERT_LATLON`), in
   /// degrees. No-op if not ready.
+  ///
+  /// R44 — accepts an optional [altitudeMeters]. The codec sends a
+  /// 3rd i32 (alt × 1e6) when present; firmware stores it for
+  /// future use. As of the v1.15.0 advert wire-format the device
+  /// does **not** rebroadcast altitude in adverts (the
+  /// `ADV_LATLON` block is still 2×i32), so this is forward-
+  /// compatibility plumbing: when firmware grows an altitude slot,
+  /// our nodes' adverts will populate it for free without an app
+  /// update.
   Future<void> setAdvertLatLon({
     required double latitude,
     required double longitude,
+    double? altitudeMeters,
   }) async {
     if (!isReady) return;
     await send(MeshcoreFrameCodec.setAdvertLatLon(
       latitudeMicros: (latitude * 1e6).round(),
       longitudeMicros: (longitude * 1e6).round(),
+      altitudeMicros: altitudeMeters == null
+          ? null
+          : (altitudeMeters * 1e6).round(),
     ));
   }
 
@@ -1692,6 +1705,12 @@ class MeshcoreController extends ChangeNotifier {
       lastHeardUnix: now,
       latitude: a.latitude ?? prev?.latitude,
       longitude: a.longitude ?? prev?.longitude,
+      // R44 — forward-compat: today a.altitudeMeters is always null
+      // because the advert payload doesn't carry altitude over the
+      // wire. Kept in the propagation path so UIs depending on
+      // DiscoveredNode.altitudeMeters Just Work once firmware adds
+      // an alt slot.
+      altitudeMeters: a.altitudeMeters ?? prev?.altitudeMeters,
       snrDb: snr ?? prev?.snrDb,
       rssi: rssi ?? prev?.rssi,
       viaAdvert: true,

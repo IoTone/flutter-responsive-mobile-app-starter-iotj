@@ -148,8 +148,16 @@ class AutoPublishController extends ChangeNotifier {
     final PhoneFix? fix = cached ?? await _location.currentFix();
     if (fix == null) return;
     try {
+      // R44 — forward altitude too. Phone GPS reports altitude in
+      // metres above the WGS-84 ellipsoid; when the chip didn't
+      // produce a confident reading PhoneFix.altitudeMeters is null
+      // and we just send lat/lon (codec drops the optional 3rd
+      // i32 in that case).
       await mc.setAdvertLatLon(
-          latitude: fix.latitude, longitude: fix.longitude);
+        latitude: fix.latitude,
+        longitude: fix.longitude,
+        altitudeMeters: fix.altitudeMeters,
+      );
       await mc.sendSelfAdvert(flood: false);
     } catch (_) {
       // Transport hiccup or device-not-ready race — silent. Next

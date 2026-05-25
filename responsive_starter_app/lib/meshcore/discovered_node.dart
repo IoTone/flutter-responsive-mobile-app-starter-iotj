@@ -41,6 +41,7 @@ class DiscoveredNode {
     required this.lastHeardUnix,
     this.latitude,
     this.longitude,
+    this.altitudeMeters,
     this.snrDb,
     this.rssi,
     this.deviceAdvertUnix,
@@ -53,6 +54,18 @@ class DiscoveredNode {
   int lastHeardUnix;
   double? latitude;
   double? longitude;
+
+  /// R44 — altitude in metres above the WGS-84 ellipsoid, when
+  /// known. Source-dependent:
+  /// - For our own node: populated from the phone GPS fix when
+  ///   present (PhoneFix.altitudeMeters), or from a future firmware
+  ///   field that exposes the device's stored altitude.
+  /// - For peers: always null today because the MeshCore advert
+  ///   payload doesn't carry altitude yet (see
+  ///   [Advert.altitudeMeters]). Reserved so consumers can wire UI
+  ///   ahead of the wire-format work.
+  double? altitudeMeters;
+
   double? snrDb;
   int? rssi;
 
