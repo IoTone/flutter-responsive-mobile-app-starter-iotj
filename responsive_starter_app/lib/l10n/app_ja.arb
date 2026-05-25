@@ -370,6 +370,26 @@
   "voicePitch": "ピッチ",
   "voicePicker": "音声",
   "voicePickerEmpty": "プラットフォームエンジンから利用可能な音声が報告されていません — システム既定を使用します。",
+  "voicePickerOnlyMyLanguage": "現在の言語のみ表示",
+  "voicePickerOnlyMyLanguageHint": "スマートフォンの現在の言語（{lang}）に一致する音声のみを表示します。オフにするとOSが報告する全音声を表示します。",
+  "@voicePickerOnlyMyLanguageHint": {
+    "placeholders": {"lang": {"type": "String"}}
+  },
+  "voicePickerFilteredCount": "{n} 件 · {lang}",
+  "@voicePickerFilteredCount": {
+    "placeholders": {
+      "n": {"type": "int"},
+      "lang": {"type": "String"}
+    }
+  },
+  "voicePickerAllCount": "{n} 件 · すべて",
+  "@voicePickerAllCount": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "voicePickerNoMatchForLanguage": "{lang} の音声がインストールされていません。上のフィルターをオフにして他言語を表示するか、OS の設定から {lang} の音声を追加してください。",
+  "@voicePickerNoMatchForLanguage": {
+    "placeholders": {"lang": {"type": "String"}}
+  },
   "voicePickerSystem": "システム既定",
   "voicePreview": "サンプル再生",
   "voicePreviewPhrase": "これは Meshmore SNS の音声プレビューです。",

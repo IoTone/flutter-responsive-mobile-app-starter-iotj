@@ -1538,6 +1538,36 @@ abstract class AppLocalizations {
   /// **'No voices reported by the platform engine — using the system default.'**
   String get voicePickerEmpty;
 
+  /// No description provided for @voicePickerOnlyMyLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Only show my language'**
+  String get voicePickerOnlyMyLanguage;
+
+  /// No description provided for @voicePickerOnlyMyLanguageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Limits the list to voices matching the phone\'s current language ({lang}). Turn off to see every voice the OS reports.'**
+  String voicePickerOnlyMyLanguageHint(String lang);
+
+  /// No description provided for @voicePickerFilteredCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} · {lang}'**
+  String voicePickerFilteredCount(int n, String lang);
+
+  /// No description provided for @voicePickerAllCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} · ALL'**
+  String voicePickerAllCount(int n);
+
+  /// No description provided for @voicePickerNoMatchForLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'No voices installed for {lang}. Turn off the filter above to see other languages, or install a {lang} voice in your OS settings.'**
+  String voicePickerNoMatchForLanguage(String lang);
+
   /// No description provided for @voicePickerSystem.
   ///
   /// In en, this message translates to:

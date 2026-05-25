@@ -370,6 +370,26 @@
   "voicePitch": "Pitch",
   "voicePicker": "Voice",
   "voicePickerEmpty": "No voices reported by the platform engine — using the system default.",
+  "voicePickerOnlyMyLanguage": "Only show my language",
+  "voicePickerOnlyMyLanguageHint": "Limits the list to voices matching the phone's current language ({lang}). Turn off to see every voice the OS reports.",
+  "@voicePickerOnlyMyLanguageHint": {
+    "placeholders": {"lang": {"type": "String"}}
+  },
+  "voicePickerFilteredCount": "{n} · {lang}",
+  "@voicePickerFilteredCount": {
+    "placeholders": {
+      "n": {"type": "int"},
+      "lang": {"type": "String"}
+    }
+  },
+  "voicePickerAllCount": "{n} · ALL",
+  "@voicePickerAllCount": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "voicePickerNoMatchForLanguage": "No voices installed for {lang}. Turn off the filter above to see other languages, or install a {lang} voice in your OS settings.",
+  "@voicePickerNoMatchForLanguage": {
+    "placeholders": {"lang": {"type": "String"}}
+  },
   "voicePickerSystem": "System default",
   "voicePreview": "Try a phrase",
   "voicePreviewPhrase": "This is a Meshmore SNS voice preview.",

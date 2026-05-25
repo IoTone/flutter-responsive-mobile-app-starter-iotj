@@ -23,6 +23,13 @@ class VoiceSettingsScreen extends StatefulWidget {
 
   @override
   State<VoiceSettingsScreen> createState() => _VoiceSettingsScreenState();
+
+  /// Exposed for unit tests — direct entry into the cryptic-name
+  /// parser so we can verify Android voice-ID prettification without
+  /// spinning up the whole widget tree.
+  @visibleForTesting
+  static String prettyVoiceNameDebug(String raw, String locale) =>
+      _VoiceSettingsScreenState._prettyVoiceName(raw, locale);
 }
 
 class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
@@ -35,6 +42,14 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
   /// **OFFLINE** badge once the local language pack lookup has
   /// answered.
   final Map<String, bool> _offline = <String, bool>{};
+
+  /// R5+1 — by default the picker filters to voices whose locale
+  /// language matches the phone's current language (e.g. phone =
+  /// en-US → show only en-* voices). User can flip this off to see
+  /// the full platform list when they explicitly want a non-native
+  /// voice. Default on because the unfiltered platform list is
+  /// hundreds of cryptic IDs on most Android devices.
+  bool _onlyCurrentLanguage = true;
 
   @override
   void initState() {
@@ -61,12 +76,71 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
     }
   }
 
+  /// First component of a BCP-47 locale tag, normalised to lower case.
+  /// `"en-US"` → `"en"`. Robust to underscores (`en_US`) too.
+  static String _langOf(String locale) {
+    final String s = locale.replaceAll('_', '-');
+    final int dash = s.indexOf('-');
+    return (dash < 0 ? s : s.substring(0, dash)).toLowerCase();
+  }
+
+  /// Render a platform TTS voice name in something a human can read.
+  ///
+  /// iOS / macOS already give us friendly names ("Samantha", "Alex").
+  /// Android's `getVoices()` returns IDs like
+  /// `en-us-x-sfg#female_2-local` or `en-us-x-iol-network` — strip the
+  /// locale prefix (we display it separately), the `-x-` engine
+  /// marker, and the `-local` / `-network` tail (also surfaced
+  /// separately via the OFFLINE badge), title-case what's left.
+  /// Falls back to the raw name when nothing parses out — never
+  /// returns an empty string.
+  static String _prettyVoiceName(String raw, String locale) {
+    if (!raw.contains('-') && !raw.contains('#')) return raw;
+    String name = raw;
+    final String localeLower = locale.toLowerCase().replaceAll('_', '-');
+    if (name.toLowerCase().startsWith(localeLower)) {
+      name = name.substring(localeLower.length);
+      if (name.startsWith('-')) name = name.substring(1);
+    }
+    // Drop the engine-marker `-x-` if present.
+    if (name.startsWith('x-')) name = name.substring(2);
+    name = name
+        .replaceAll('#', ' ')
+        .replaceAll('_', ' ')
+        .replaceAll(RegExp(r'-(local|network)$'), '')
+        .replaceAll('-', ' ')
+        .trim();
+    if (name.isEmpty) return raw;
+    // Tokenise + label. The Android IDs are all-lowercase, so we
+    // can't rely on existing casing to tell codenames from words.
+    // Heuristic: short pure-letter tokens (≤4 chars, no digits) are
+    // engine codenames ("sfg", "iol", "rjs") → uppercase. Longer
+    // letter-tokens and any digit-bearing tokens are title-cased
+    // so "female_2-local" becomes "Female 2".
+    final List<String> tokens = name.split(RegExp(r'\s+'));
+    return tokens.map((String t) {
+      if (t.isEmpty) return t;
+      final bool isShortLetters =
+          t.length <= 4 && RegExp(r'^[a-zA-Z]+$').hasMatch(t);
+      if (isShortLetters) return t.toUpperCase();
+      return t[0].toUpperCase() + t.substring(1).toLowerCase();
+    }).join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final TtsController tc = context.watch<TtsController>();
     final AppLocalizations l = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
-    final List<TtsVoice> voices = _voices ?? const <TtsVoice>[];
+    final List<TtsVoice> allVoices = _voices ?? const <TtsVoice>[];
+    final String phoneLang =
+        _langOf(Localizations.localeOf(context).toLanguageTag());
+    final List<TtsVoice> voices = _onlyCurrentLanguage
+        ? <TtsVoice>[
+            for (final TtsVoice v in allVoices)
+              if (_langOf(v.locale) == phoneLang) v
+          ]
+        : allVoices;
 
     return Scaffold(
       appBar: AppBar(title: Text(l.voiceSettingsTitle)),
@@ -115,11 +189,44 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
           // Voice picker.
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Text(l.voicePicker.toUpperCase(),
-                style: TextStyle(
-                    color: cs.onSurfaceVariant,
-                    fontSize: 11,
-                    letterSpacing: 2)),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(l.voicePicker.toUpperCase(),
+                      style: TextStyle(
+                          color: cs.onSurfaceVariant,
+                          fontSize: 11,
+                          letterSpacing: 2)),
+                ),
+                if (allVoices.isNotEmpty)
+                  Text(
+                    _onlyCurrentLanguage
+                        ? l.voicePickerFilteredCount(
+                            voices.length, phoneLang.toUpperCase())
+                        : l.voicePickerAllCount(allVoices.length),
+                    style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontSize: 11,
+                        fontFamily: 'monospace'),
+                  ),
+              ],
+            ),
+          ),
+          // R5+1 — language filter toggle. Default on; flipping off
+          // surfaces every voice the platform reports (some Androids
+          // have hundreds — useful only when the user wants a
+          // deliberately non-native voice).
+          SwitchListTile(
+            dense: true,
+            title: Text(l.voicePickerOnlyMyLanguage),
+            subtitle: Text(
+              l.voicePickerOnlyMyLanguageHint(phoneLang.toUpperCase()),
+              style: TextStyle(
+                  color: cs.onSurfaceVariant, fontSize: 11),
+            ),
+            value: _onlyCurrentLanguage,
+            onChanged: (bool v) =>
+                setState(() => _onlyCurrentLanguage = v),
           ),
           if (_loadingVoices)
             const Padding(
@@ -163,7 +270,9 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                 ),
                 title: Row(
                   children: <Widget>[
-                    Expanded(child: Text(v.name)),
+                    Expanded(
+                      child: Text(_prettyVoiceName(v.name, v.locale)),
+                    ),
                     if (_offline[v.locale] == true)
                       _OfflineBadge(
                         label: l.voiceOfflineBadge,
@@ -177,6 +286,16 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                       : '${v.locale} · ${v.qualityHint}',
                   style: TextStyle(
                       color: cs.onSurfaceVariant, fontSize: 11),
+                ),
+              ),
+            if (voices.isEmpty && allVoices.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                child: Text(
+                  l.voicePickerNoMatchForLanguage(
+                      phoneLang.toUpperCase()),
+                  style: TextStyle(
+                      color: cs.onSurfaceVariant, fontSize: 12),
                 ),
               ),
           ],

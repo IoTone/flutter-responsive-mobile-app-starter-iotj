@@ -859,6 +859,29 @@ class AppLocalizationsEn extends AppLocalizations {
       'No voices reported by the platform engine — using the system default.';
 
   @override
+  String get voicePickerOnlyMyLanguage => 'Only show my language';
+
+  @override
+  String voicePickerOnlyMyLanguageHint(String lang) {
+    return 'Limits the list to voices matching the phone\'s current language ($lang). Turn off to see every voice the OS reports.';
+  }
+
+  @override
+  String voicePickerFilteredCount(int n, String lang) {
+    return '$n · $lang';
+  }
+
+  @override
+  String voicePickerAllCount(int n) {
+    return '$n · ALL';
+  }
+
+  @override
+  String voicePickerNoMatchForLanguage(String lang) {
+    return 'No voices installed for $lang. Turn off the filter above to see other languages, or install a $lang voice in your OS settings.';
+  }
+
+  @override
   String get voicePickerSystem => 'System default';
 
   @override

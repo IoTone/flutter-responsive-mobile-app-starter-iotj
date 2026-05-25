@@ -815,6 +815,29 @@ class AppLocalizationsJa extends AppLocalizations {
       'プラットフォームエンジンから利用可能な音声が報告されていません — システム既定を使用します。';
 
   @override
+  String get voicePickerOnlyMyLanguage => '現在の言語のみ表示';
+
+  @override
+  String voicePickerOnlyMyLanguageHint(String lang) {
+    return 'スマートフォンの現在の言語（$lang）に一致する音声のみを表示します。オフにするとOSが報告する全音声を表示します。';
+  }
+
+  @override
+  String voicePickerFilteredCount(int n, String lang) {
+    return '$n 件 · $lang';
+  }
+
+  @override
+  String voicePickerAllCount(int n) {
+    return '$n 件 · すべて';
+  }
+
+  @override
+  String voicePickerNoMatchForLanguage(String lang) {
+    return '$lang の音声がインストールされていません。上のフィルターをオフにして他言語を表示するか、OS の設定から $lang の音声を追加してください。';
+  }
+
+  @override
   String get voicePickerSystem => 'システム既定';
 
   @override
