@@ -57,6 +57,21 @@
   "@deviceMgrScanFailed": {
     "placeholders": {"message": {"type": "String"}}
   },
+  "deviceMgrRecent": "最近のペアリング",
+  "deviceMgrAgoNever": "未使用",
+  "deviceMgrAgoNow": "たった今",
+  "deviceMgrAgoMinutes": "{n} 分前",
+  "@deviceMgrAgoMinutes": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "deviceMgrAgoHours": "{n} 時間前",
+  "@deviceMgrAgoHours": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "deviceMgrAgoDays": "{n} 日前",
+  "@deviceMgrAgoDays": {
+    "placeholders": {"n": {"type": "int"}}
+  },
 
   "settingsHeading": "アプリ設定",
   "settingsConnection": "接続",

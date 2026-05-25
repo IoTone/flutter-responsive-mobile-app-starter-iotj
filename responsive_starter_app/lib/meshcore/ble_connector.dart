@@ -7,6 +7,7 @@ import 'package:meshcore/meshcore.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'ble_meshcore_transport.dart';
+import 'paired_device_history.dart';
 import 'paired_device_store.dart';
 
 /// Thrown when scan/connect cannot complete.
@@ -182,6 +183,12 @@ abstract final class BleConnector {
               ? device.advName
               : device.remoteId.str);
       await PairedDeviceStore.save(device.remoteId.str, name);
+      // R41+1 — every successful pair also lands in the rolling
+      // history (capped at 5, most-recent-first). Same wire layer
+      // so a manual scan-pick and an auto-reconnect both promote
+      // the entry uniformly.
+      await PairedDeviceHistoryStore.touch(
+          device.remoteId.str, name);
       return BleMeshcoreTransport(
         device: device,
         rx: rx,

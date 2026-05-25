@@ -20,6 +20,7 @@ import 'node_tags_store.dart';
 import 'mesh_event.dart';
 import 'meshcore_connection.dart';
 import 'own_location.dart';
+import 'paired_device_history.dart';
 import 'paired_device_store.dart';
 import 'reconnect_policy.dart';
 import '../perms/location_service.dart';
@@ -1619,24 +1620,85 @@ class MeshcoreController extends ChangeNotifier {
   String? _pairedName;
   bool get hasPairedDevice => _pairedName != null;
 
+  /// Saved remote ID for the currently-paired device, or null when
+  /// nothing is paired. Hydrated alongside [_pairedName]; used by
+  /// the device-manager UI to highlight which history row is
+  /// "current".
+  String? get pairedRemoteId => _pairedRemoteId;
+  String? _pairedRemoteId;
+
+  /// R41+1 — rolling history of recently-paired devices (last 5).
+  /// Populated from prefs at construction; mutates whenever the
+  /// BLE layer records a successful pair or the user forgets an
+  /// entry. UI reads via [pairedHistory].
+  List<PairedDeviceHistoryEntry> _pairedHistory =
+      const <PairedDeviceHistoryEntry>[];
+  List<PairedDeviceHistoryEntry> get pairedHistory =>
+      List<PairedDeviceHistoryEntry>.unmodifiable(_pairedHistory);
+
+  Future<void> _refreshHistory() async {
+    _pairedHistory = await PairedDeviceHistoryStore.load();
+    notifyListeners();
+  }
+
   /// Call once at startup: if a device was previously paired,
   /// auto-reconnect to it (direct connect, scan fallback). Safe to
   /// call when nothing is paired (no-op).
   Future<void> autoConnectIfPaired() async {
+    // Eagerly hydrate the history alongside the active pair so the
+    // device-manager sheet has its "Recently paired" list ready on
+    // first open — no second roundtrip needed.
     final PairedDevice? p = await PairedDeviceStore.read();
-    if (p == null) return;
+    _pairedHistory = await PairedDeviceHistoryStore.load();
+    if (p == null) {
+      notifyListeners();
+      return;
+    }
     _pairedName = p.name;
+    _pairedRemoteId = p.remoteId;
     notifyListeners();
     await connect();
   }
 
   /// Forget the saved radio and disconnect — no more auto-reconnect
-  /// until the user pairs again.
+  /// until the user pairs again. R41+1: also drops the current
+  /// device's entry from the recently-paired history; the user
+  /// chose "forget", we should not leave a one-tap reconnect
+  /// breadcrumb pointing back at it.
   Future<void> forgetDevice() async {
+    final String? rid = _pairedRemoteId;
     await PairedDeviceStore.clear();
+    if (rid != null) await PairedDeviceHistoryStore.remove(rid);
     _pairedName = null;
+    _pairedRemoteId = null;
     await disconnect();
-    notifyListeners();
+    await _refreshHistory();
+  }
+
+  /// R41+1 — drop a *specific* entry from the recently-paired list.
+  /// When [remoteId] is the currently-active pair, this also
+  /// triggers a full [forgetDevice] so the UI stays consistent.
+  Future<void> forgetHistoryEntry(String remoteId) async {
+    if (remoteId == _pairedRemoteId) {
+      await forgetDevice();
+      return;
+    }
+    await PairedDeviceHistoryStore.remove(remoteId);
+    await _refreshHistory();
+  }
+
+  /// R41+1 — reconnect to a device the user previously paired with,
+  /// looked up by remote ID in the rolling history. Same code path
+  /// as [connectToPickedDevice]; the entry is also touched so it
+  /// pops to the top of the history list.
+  Future<void> connectFromHistory(String remoteId) async {
+    for (final PairedDeviceHistoryEntry e in _pairedHistory) {
+      if (e.remoteId == remoteId) {
+        await connectToPickedDevice(
+            remoteId: e.remoteId, name: e.name);
+        return;
+      }
+    }
   }
 
   /// R41 — pair to (and connect to) a specific BLE device the user
@@ -1653,9 +1715,15 @@ class MeshcoreController extends ChangeNotifier {
   }) async {
     await disconnect();
     await PairedDeviceStore.save(remoteId, name);
+    // R41+1 — touch eagerly so the manager sheet sees the chosen
+    // device promoted to the top of history even if the BLE
+    // discover/notify path that runs `BleConnector._finish` later
+    // hasn't landed yet (UX latency improvement).
+    await PairedDeviceHistoryStore.touch(remoteId, name);
     _pairedName = name;
+    _pairedRemoteId = remoteId;
     _manualDisconnect = false;
-    notifyListeners();
+    await _refreshHistory();
     await connect();
   }
 

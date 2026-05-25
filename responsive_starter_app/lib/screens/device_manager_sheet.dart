@@ -10,6 +10,7 @@ import '../gen/app_localizations.dart';
 import '../meshcore/ble_connector.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
+import '../meshcore/paired_device_history.dart';
 
 /// R41 — Device management sheet. Single place to:
 ///   - see what we're currently paired to and the live connection state,
@@ -127,6 +128,20 @@ class _DeviceManagerSheetState extends State<DeviceManagerSheet> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  /// Coarse human-readable "last used" — fine-grained timestamps are
+  /// unhelpful for a "pick a previous device" list. Buckets: now /
+  /// minutes / hours / days. Mirrors the chat / nodes screen's
+  /// ago-formatter idiom.
+  String _relativeAgo(int unix, AppLocalizations l) {
+    if (unix <= 0) return l.deviceMgrAgoNever;
+    final int s =
+        DateTime.now().millisecondsSinceEpoch ~/ 1000 - unix;
+    if (s < 90) return l.deviceMgrAgoNow;
+    if (s < 3600) return l.deviceMgrAgoMinutes(s ~/ 60);
+    if (s < 86400) return l.deviceMgrAgoHours(s ~/ 3600);
+    return l.deviceMgrAgoDays(s ~/ 86400);
+  }
+
   String _stateLabel(MeshcoreController mc, AppLocalizations l) {
     if (mc.isConnecting) return l.deviceMgrStateConnecting;
     return switch (mc.state) {
@@ -208,6 +223,53 @@ class _DeviceManagerSheetState extends State<DeviceManagerSheet> {
                   ),
               ],
             ),
+            // R41+1 — Recently paired list. Quickest path back to
+            // a device the user has used before, without scanning.
+            // Hidden when empty (first-run users see only the scan
+            // option). The currently-paired device is suppressed
+            // from the list because it already appears in the
+            // status row above.
+            if (mc.pairedHistory
+                .where((PairedDeviceHistoryEntry e) =>
+                    e.remoteId != mc.pairedRemoteId)
+                .isNotEmpty) ...<Widget>[
+              const Divider(height: 28),
+              Text(l.deviceMgrRecent,
+                  style: TextStyle(
+                      color: cs.onSurfaceVariant,
+                      fontSize: 11,
+                      letterSpacing: 2)),
+              const SizedBox(height: 4),
+              for (final PairedDeviceHistoryEntry e
+                  in mc.pairedHistory)
+                if (e.remoteId != mc.pairedRemoteId)
+                  ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.history,
+                        color: cs.onSurfaceVariant),
+                    title: Text(e.name),
+                    subtitle: Text(
+                      '${e.remoteId}  ·  '
+                      '${_relativeAgo(e.lastUsedUnix, l)}',
+                      style: TextStyle(
+                          color: cs.onSurfaceVariant,
+                          fontFamily: 'monospace',
+                          fontSize: 11),
+                    ),
+                    trailing: IconButton(
+                      tooltip: l.deviceMgrForget,
+                      icon: const Icon(Icons.close, size: 18),
+                      onPressed: () =>
+                          mc.forgetHistoryEntry(e.remoteId),
+                    ),
+                    onTap: () async {
+                      if (!mounted) return;
+                      Navigator.of(context).pop();
+                      await mc.connectFromHistory(e.remoteId);
+                    },
+                  ),
+            ],
             const Divider(height: 28),
             // Scan section.
             Row(

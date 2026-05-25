@@ -151,6 +151,30 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get deviceMgrRecent => '最近のペアリング';
+
+  @override
+  String get deviceMgrAgoNever => '未使用';
+
+  @override
+  String get deviceMgrAgoNow => 'たった今';
+
+  @override
+  String deviceMgrAgoMinutes(int n) {
+    return '$n 分前';
+  }
+
+  @override
+  String deviceMgrAgoHours(int n) {
+    return '$n 時間前';
+  }
+
+  @override
+  String deviceMgrAgoDays(int n) {
+    return '$n 日前';
+  }
+
+  @override
   String get settingsHeading => 'アプリ設定';
 
   @override

@@ -159,6 +159,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get deviceMgrRecent => 'RECENTLY PAIRED';
+
+  @override
+  String get deviceMgrAgoNever => 'never';
+
+  @override
+  String get deviceMgrAgoNow => 'just now';
+
+  @override
+  String deviceMgrAgoMinutes(int n) {
+    return '$n min ago';
+  }
+
+  @override
+  String deviceMgrAgoHours(int n) {
+    return '$n h ago';
+  }
+
+  @override
+  String deviceMgrAgoDays(int n) {
+    return '$n d ago';
+  }
+
+  @override
   String get settingsHeading => 'App settings';
 
   @override

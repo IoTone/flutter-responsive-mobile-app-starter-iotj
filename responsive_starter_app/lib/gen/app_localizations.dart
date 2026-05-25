@@ -368,6 +368,42 @@ abstract class AppLocalizations {
   /// **'Scan failed: {message}'**
   String deviceMgrScanFailed(String message);
 
+  /// No description provided for @deviceMgrRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'RECENTLY PAIRED'**
+  String get deviceMgrRecent;
+
+  /// No description provided for @deviceMgrAgoNever.
+  ///
+  /// In en, this message translates to:
+  /// **'never'**
+  String get deviceMgrAgoNever;
+
+  /// No description provided for @deviceMgrAgoNow.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get deviceMgrAgoNow;
+
+  /// No description provided for @deviceMgrAgoMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} min ago'**
+  String deviceMgrAgoMinutes(int n);
+
+  /// No description provided for @deviceMgrAgoHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} h ago'**
+  String deviceMgrAgoHours(int n);
+
+  /// No description provided for @deviceMgrAgoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} d ago'**
+  String deviceMgrAgoDays(int n);
+
   /// No description provided for @settingsHeading.
   ///
   /// In en, this message translates to:
