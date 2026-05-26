@@ -247,6 +247,166 @@ void main() {
     ctrl.dispose();
   });
 
+  group('R49 topology — outPath → repeater chain resolver', () {
+    /// Build a 148-byte ContactFrame (RESP_CODE_CONTACT 0x03) for
+    /// a peer with [outPath] / [outPathLen] and a non-zero lat/lon
+    /// so it survives hasLocation. Layout from
+    /// `packages/meshcore/lib/src/model/contact.dart`.
+    Uint8List contactFrame({
+      required int firstByte,
+      required int type,
+      required List<int> outPath,
+      double lat = 45.5,
+      double lon = -122.7,
+    }) {
+      final Uint8List f = Uint8List(148);
+      f[0] = 0x03;
+      // pubkey bytes 1..32: tag the first byte so the resolver can
+      // match it. Other 31 bytes left zero.
+      f[1] = firstByte;
+      f[33] = type;
+      f[34] = 0; // flags
+      f[35] = outPath.length; // out_path_len
+      for (int i = 0; i < outPath.length && i < 64; i++) {
+        f[36 + i] = outPath[i];
+      }
+      // name "peer<firstByte>"
+      final List<int> nameBytes = 'peer$firstByte'.codeUnits;
+      for (int i = 0; i < nameBytes.length && i < 32; i++) {
+        f[100 + i] = nameBytes[i];
+      }
+      // last_advert_ts = nowish (so the contact is "recent")
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      ByteData.view(f.buffer).setUint32(132, now, Endian.little);
+      // gps_lat / gps_lon in i32 micros
+      ByteData.view(f.buffer)
+          .setInt32(136, (lat * 1e6).round(), Endian.little);
+      ByteData.view(f.buffer)
+          .setInt32(140, (lon * 1e6).round(), Endian.little);
+      ByteData.view(f.buffer).setUint32(144, now, Endian.little);
+      return f;
+    }
+
+    test('peer with 0 hops resolves to empty chain (direct neighbour)',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      // Peer "AA…" with no repeater hops.
+      fake.emit(contactFrame(
+          firstByte: 0xAA, type: 1, outPath: <int>[]));
+      await Future<void>.delayed(Duration.zero);
+
+      final String pub =
+          ctrl.nodes.firstWhere((n) => n.name == 'peer170').pubKeyHex;
+      final List<DiscoveredNode>? chain = ctrl.topologyChainFor(pub);
+      expect(chain, isNotNull);
+      expect(chain, isEmpty);
+    });
+
+    test('peer with one hop through a known repeater resolves to that '
+        'repeater', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      // Repeater starting with byte 0xBB.
+      fake.emit(contactFrame(
+          firstByte: 0xBB, type: 2 /* repeater */,
+          outPath: <int>[]));
+      // Peer that reaches us via that repeater.
+      fake.emit(contactFrame(
+          firstByte: 0xCC, type: 1, outPath: <int>[0xBB]));
+      await Future<void>.delayed(Duration.zero);
+
+      final String peerPub = ctrl.nodes
+          .firstWhere((n) => n.name == 'peer204')
+          .pubKeyHex;
+      final List<DiscoveredNode>? chain =
+          ctrl.topologyChainFor(peerPub);
+      expect(chain, isNotNull);
+      expect(chain!, hasLength(1));
+      expect(chain.single.type, 2);
+      expect(chain.single.pubKeyHex.substring(0, 2), 'bb');
+    });
+
+    test('unresolved hop (no repeater heard with that first byte) → '
+        'null (caller draws dashed)', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      // Peer claims path through 0xDD but no repeater 0xDD known.
+      fake.emit(contactFrame(
+          firstByte: 0xEE, type: 1, outPath: <int>[0xDD]));
+      await Future<void>.delayed(Duration.zero);
+
+      final String pub = ctrl.nodes
+          .firstWhere((n) => n.name == 'peer238')
+          .pubKeyHex;
+      expect(ctrl.topologyChainFor(pub), isNull);
+    });
+
+    test('ambiguous hop (two known repeaters share the first byte) → '
+        'null (collision)', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      // Two different repeaters whose pubkey both start with 0xBB —
+      // collision. We need to use distinct full-pubkey-prefix bytes
+      // to be stored as separate nodes, but the test's first byte is
+      // the same. Use different second bytes implicitly by emitting
+      // two distinct contacts; since contactFrame zeroes everything
+      // beyond the first pubkey byte, we manually set a second byte
+      // on the second contact.
+      fake.emit(contactFrame(
+          firstByte: 0xBB, type: 2, outPath: <int>[]));
+      final Uint8List dup = contactFrame(
+          firstByte: 0xBB, type: 2, outPath: <int>[]);
+      dup[2] = 0x99; // distinct second byte → distinct pubKeyHex
+      fake.emit(dup);
+      fake.emit(contactFrame(
+          firstByte: 0xCC, type: 1, outPath: <int>[0xBB]));
+      await Future<void>.delayed(Duration.zero);
+
+      final String pub = ctrl.nodes
+          .firstWhere((n) => n.name == 'peer204')
+          .pubKeyHex;
+      expect(ctrl.topologyChainFor(pub), isNull,
+          reason: 'ambiguous first-byte hash must yield null');
+    });
+  });
+
   group('telemetry (R47) — self-telemetry via 0x27 / 0x8B', () {
     test('reaching ready sends CMD_SEND_TELEMETRY_REQ (0x27) with three '
         'zero-pad bytes (self-telemetry, len == 4)', () async {

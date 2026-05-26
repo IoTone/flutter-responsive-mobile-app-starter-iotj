@@ -271,6 +271,29 @@ class _GlobeViewState extends State<GlobeView> {
         if (n.hasLocation) n
     ];
 
+    // R49 — topology chains for each peer. Empty list = direct
+    // neighbour (solid 1-segment line). Non-empty = chain of known
+    // repeaters (solid polyline through each). Null = chain has an
+    // unresolved or ambiguous hop (dashed direct line as fallback).
+    // Only repeaters with known location can carry a chain — we drop
+    // any chain where a hop lacks lat/lon.
+    final Map<String, List<DiscoveredNode>?> chains =
+        <String, List<DiscoveredNode>?>{};
+    for (final DiscoveredNode n in withLoc) {
+      final List<DiscoveredNode>? resolved =
+          mc.topologyChainFor(n.pubKeyHex);
+      if (resolved == null) {
+        chains[n.pubKeyHex] = null;
+      } else if (resolved.every((DiscoveredNode r) => r.hasLocation)) {
+        chains[n.pubKeyHex] = resolved;
+      } else {
+        // Chain resolved but at least one hop is geographically
+        // unknown — render as dashed direct so we don't lie about
+        // the route's geometry.
+        chains[n.pubKeyHex] = null;
+      }
+    }
+
     return GestureDetector(
       onScaleStart: (_) => _scaleAtGestureStart = _scale,
       onTapUp: (TapUpDetails d) {
@@ -359,6 +382,7 @@ class _GlobeViewState extends State<GlobeView> {
                 selfLat: selfLat,
                 selfLon: selfLon,
                 peers: withLoc,
+                chains: chains,
                 showArcs: _showArcs,
                 showRegions: _showRegions,
                 showLabels: _showLabels,
@@ -584,6 +608,7 @@ class _GlobePainter extends CustomPainter {
     required this.selfLat,
     required this.selfLon,
     required this.peers,
+    required this.chains,
     required this.showArcs,
     required this.showRegions,
     required this.showLabels,
@@ -614,6 +639,12 @@ class _GlobePainter extends CustomPainter {
   final double? selfLat;
   final double? selfLon;
   final List<DiscoveredNode> peers;
+
+  /// R49 — per-peer topology chains. Lookup by `peer.pubKeyHex`:
+  /// missing key OR `null` value → unresolved (dashed direct line);
+  /// `[]` → direct neighbour (solid 1-segment); non-empty list →
+  /// repeater chain, drawn as a solid polyline through each hop.
+  final Map<String, List<DiscoveredNode>?> chains;
   final bool showArcs;
   final bool showRegions;
   final bool showLabels;
@@ -666,24 +697,35 @@ class _GlobePainter extends CustomPainter {
           stroke: landStrokePaint);
     }
 
-    // Arcs from self → each peer (great-circle).
+    // R49 — topology-aware arcs. For each peer:
+    //   - resolved chain ([] or list): draw a solid polyline along
+    //     us → repeater_0 → … → repeater_N → peer.
+    //   - unresolved chain (null): fall back to a dashed direct line
+    //     so the connection is still visible without lying about
+    //     route geometry.
     if (showArcs && selfLat != null && selfLon != null) {
-      final Paint arcPaint = Paint()
+      final Paint solid = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.2
         ..color = arc;
       for (final DiscoveredNode n in peers) {
-        _drawGreatCircle(
-            canvas,
-            centre,
-            r,
-            rotLon,
-            rotLat,
-            selfLat!,
-            selfLon!,
-            n.latitude!,
-            n.longitude!,
-            arcPaint);
+        final List<DiscoveredNode>? chain = chains[n.pubKeyHex];
+        if (chain == null) {
+          _drawDashedGreatCircle(canvas, centre, r, rotLon, rotLat,
+              selfLat!, selfLon!, n.latitude!, n.longitude!, arc);
+          continue;
+        }
+        // Walk us → hop[0] → hop[1] → … → hop[N-1] → peer.
+        double prevLat = selfLat!;
+        double prevLon = selfLon!;
+        for (final DiscoveredNode hop in chain) {
+          _drawGreatCircle(canvas, centre, r, rotLon, rotLat, prevLat,
+              prevLon, hop.latitude!, hop.longitude!, solid);
+          prevLat = hop.latitude!;
+          prevLon = hop.longitude!;
+        }
+        _drawGreatCircle(canvas, centre, r, rotLon, rotLat, prevLat,
+            prevLon, n.latitude!, n.longitude!, solid);
       }
     }
 
@@ -848,6 +890,41 @@ class _GlobePainter extends CustomPainter {
           _project(centre, r, rotLon, rotLat, latI, lonI);
       final Offset? proj = pp.rotY < 0 ? null : pp.offset;
       if (proj != null && prev != null) {
+        canvas.drawLine(prev, proj, paint);
+      }
+      prev = proj;
+    }
+  }
+
+  /// R49 — same great-circle interpolation as [_drawGreatCircle], but
+  /// only every other segment is drawn (3 lit, 3 dark, repeat). Used
+  /// for peers whose topology chain couldn't be resolved — visually
+  /// communicates "we know they connect, route unknown" without
+  /// pretending the line traces the actual path.
+  void _drawDashedGreatCircle(Canvas canvas, Offset centre, double r,
+      double rotLon, double rotLat, double lat1, double lon1,
+      double lat2, double lon2, Color colour) {
+    const int N = 48;
+    const int dash = 3;
+    const int gap = 3;
+    final Paint paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0
+      ..color = colour.withValues(alpha: 0.55);
+    Offset? prev;
+    for (int i = 0; i <= N; i++) {
+      final double t = i / N;
+      final double sinL = math.sin(lat1 * math.pi / 180) * (1 - t) +
+          math.sin(lat2 * math.pi / 180) * t;
+      final double lonI = lon1 * (1 - t) + lon2 * t;
+      final double latI =
+          math.asin(sinL.clamp(-1.0, 1.0)) * 180 / math.pi;
+      final ({Offset offset, double rotY}) pp =
+          _project(centre, r, rotLon, rotLat, latI, lonI);
+      final Offset? proj = pp.rotY < 0 ? null : pp.offset;
+      // Draw only during the "lit" portion of the dash cycle.
+      final bool inDash = (i % (dash + gap)) < dash;
+      if (proj != null && prev != null && inDash) {
         canvas.drawLine(prev, proj, paint);
       }
       prev = proj;
@@ -1042,6 +1119,7 @@ class _GlobePainter extends CustomPainter {
       old.selfLat != selfLat ||
       old.selfLon != selfLon ||
       old.peers.length != peers.length ||
+      old.chains.length != chains.length ||
       old.rings.length != rings.length ||
       old.showArcs != showArcs ||
       old.showRegions != showRegions ||

@@ -768,6 +768,55 @@ class MeshcoreController extends ChangeNotifier {
     return v;
   }
 
+  /// R49 — resolved topology chain for a peer, ordered from the
+  /// first hop *from us* to the last hop *before the peer*. Each
+  /// entry is the known repeater whose pubkey starts with the
+  /// matching first-byte hash from `outPathHashes`.
+  ///
+  /// Returns:
+  /// - **`[]` (empty)** when the peer is a direct neighbour (0 hops).
+  /// - **`List<DiscoveredNode>`** when every hash resolved to a
+  ///   single known repeater.
+  /// - **`null`** when any hop is unresolved (no advert heard from
+  ///   a repeater with that first byte) **or** ambiguous (two known
+  ///   repeaters share the same first byte). Caller decides whether
+  ///   to fall back to a direct line.
+  ///
+  /// Resolver scope: only nodes of `type == 2` (repeater) are
+  /// candidates, so a chat node that happens to share a first byte
+  /// with a repeater hash won't be falsely matched.
+  List<DiscoveredNode>? topologyChainFor(String pubKeyHex) {
+    final DiscoveredNode? peer = _nodes[pubKeyHex.toLowerCase()];
+    if (peer == null) return null;
+    if (peer.outPathHashes.isEmpty) return const <DiscoveredNode>[];
+
+    // Build a hash → repeater map. O(n) per call — n is small (tens
+    // to low hundreds in practice). Tracks duplicates to flag
+    // ambiguous hops.
+    final Map<int, DiscoveredNode> byFirstByte = <int, DiscoveredNode>{};
+    final Set<int> ambiguous = <int>{};
+    for (final DiscoveredNode n in _nodes.values) {
+      if (n.type != kAdvTypeRepeater) continue;
+      if (n.pubKeyHex.length < 2) continue;
+      final int firstByte =
+          int.parse(n.pubKeyHex.substring(0, 2), radix: 16);
+      if (byFirstByte.containsKey(firstByte)) {
+        ambiguous.add(firstByte);
+      } else {
+        byFirstByte[firstByte] = n;
+      }
+    }
+
+    final List<DiscoveredNode> chain = <DiscoveredNode>[];
+    for (final int hash in peer.outPathHashes) {
+      if (ambiguous.contains(hash)) return null; // collision
+      final DiscoveredNode? hop = byFirstByte[hash];
+      if (hop == null) return null; // unresolved
+      chain.add(hop);
+    }
+    return List<DiscoveredNode>.unmodifiable(chain);
+  }
+
   // --- Recent activity feed (Dashboard) ---
 
   final List<MeshEvent> _events = <MeshEvent>[];
@@ -1840,6 +1889,10 @@ class MeshcoreController extends ChangeNotifier {
         latitude: c.latitudeMicros == 0 ? null : c.latitudeMicros / 1e6,
         longitude: c.longitudeMicros == 0 ? null : c.longitudeMicros / 1e6,
         viaAdvert: false,
+        // R49 — preserve the outbound repeater chain for topology
+        // drawing. activePath gives the prefix of valid bytes; the
+        // tail of the 64-byte buffer is zero-padding we discard.
+        outPathHashes: List<int>.unmodifiable(c.activePath),
       );
     } else if (f is AdvertFrame) {
       _upsertAdvert(f.advert);

@@ -46,6 +46,7 @@ class DiscoveredNode {
     this.rssi,
     this.deviceAdvertUnix,
     required this.viaAdvert,
+    this.outPathHashes = const <int>[],
   });
 
   final String pubKeyHex;
@@ -77,6 +78,23 @@ class DiscoveredNode {
 
   /// True if last updated from an OTA advert (vs. a synced contact).
   bool viaAdvert;
+
+  /// First-byte hashes of the repeaters along the outbound path that
+  /// the device uses to send to this peer (R49). Empty when the peer
+  /// is a direct neighbour (0 hops) **or** when we only know this
+  /// peer via an advert (advert-heard nodes don't carry a path).
+  ///
+  /// Each byte matches the first byte of the corresponding repeater's
+  /// pubkey, so the resolver in
+  /// `MeshcoreController.topologyChainFor` maps each hash to a known
+  /// repeater node when one exists. The list is ordered **outbound**:
+  /// `outPathHashes[0]` is the first hop *from us*, `[last]` is the
+  /// last hop *before the peer*.
+  final List<int> outPathHashes;
+
+  /// Number of repeater hops to this peer (0 = direct, length of
+  /// [outPathHashes] otherwise).
+  int get hopCount => outPathHashes.length;
 
   /// True if we've heard from this node in the last 5 minutes.
   /// Purely temporal — does NOT imply spatial proximity (a node 300
