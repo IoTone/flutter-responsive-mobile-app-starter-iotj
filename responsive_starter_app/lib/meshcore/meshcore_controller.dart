@@ -429,20 +429,27 @@ class MeshcoreController extends ChangeNotifier {
   /// When the device reports unset (or hasn't responded yet), we
   /// fall back to a one-shot phone fix captured by
   /// [requestPhoneLocationFix] (Phase B / R22).
+  ///
+  /// Altitude has its own priority chain because SelfInfo doesn't
+  /// carry altitude over the wire (lat/lon only). We prefer, in
+  /// order:
+  ///   1. Self-telemetry's GPS altitude (the device's own GPS chip,
+  ///      via the CMD_SEND_TELEMETRY_REQ / 0x8B path — step 3).
+  ///   2. The cached phone-GPS altitude (R22 one-shot or R36 auto-
+  ///      publish hand-off).
+  ///   3. None, in which case the elevation-profile view falls back
+  ///      to the "?" band.
   OwnLocation? get ownLocation {
     final SelfInfo? si = selfInfo;
+    final double? altFromTelemetry = selfTelemetry?.altitudeMeters;
+    final double? altFromPhone = _phoneFix?.altitudeMeters;
+    final double? altMerged = altFromTelemetry ?? altFromPhone;
     if (si != null &&
         !(si.latitude.abs() < 1e-9 && si.longitude.abs() < 1e-9)) {
       return OwnLocation(
         latitude: si.latitude,
         longitude: si.longitude,
-        // SelfInfo doesn't carry altitude over the wire (the
-        // companion protocol has lat/lon only), so we borrow the
-        // most-recent phone-GPS altitude when one is cached.
-        // The phone is in our hand at roughly the same elevation
-        // as the paired device — close enough for the elevation-
-        // profile view and any "altitude readout" UI.
-        altitudeMeters: _phoneFix?.altitudeMeters,
+        altitudeMeters: altMerged,
         source: OwnLocationSource.deviceReported,
       );
     }

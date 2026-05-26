@@ -343,6 +343,56 @@ void main() {
       ctrl.dispose();
     });
 
+    test('self-telemetry altitude wins over phone-fix altitude in '
+        'ownLocation (the device GPS is the authoritative source)',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final NoopLocationService loc = NoopLocationService(
+          next: const PhoneFix(
+              latitude: 1.0, longitude: 2.0, altitudeMeters: 50.0));
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+        locationService: loc,
+      );
+      await ctrl.connect();
+      // Device reports a real lat/lon — phone altitude (50m) gets
+      // borrowed only because no telemetry has landed yet.
+      fake.emit(selfInfoFrameAt(lat: 45.515, lon: -122.678));
+      await Future<void>.delayed(Duration.zero);
+      await ctrl.requestPhoneLocationFix();
+      expect(ctrl.ownLocation!.altitudeMeters, 50.0);
+
+      // 0x8B telemetry arrives carrying GPS altitude = 245 m.
+      // Build LPP entry: lat=45.515 (455150 = 0x06F2EE),
+      // lon=-122.678 → -1226780. 0x1000000 - 1226780 = 15550436 =
+      //   0xED414C (FF... no wait, recompute):
+      //   1226780 / 65536 = 18 (0x12). 1226780 - 18*65536 = 47132.
+      //   47132 / 256 = 184 (0xB8). 47132 - 184*256 = 28 (0x1C).
+      //   so abs lon = 0x12B81C, neg s24 = 0x1000000 - 0x12B81C
+      //   = 0xED47E4.
+      //   alt = 245.00 * 100 = 24500 = 0x005FB4.
+      final List<int> frame = <int>[
+        0x8B, 0x00,
+        0, 0, 0, 0, 0, 0, // self pubkey6
+        0x01, 0x88,
+        0x06, 0xF2, 0xEE,
+        0xED, 0x47, 0xE4,
+        0x00, 0x5F, 0xB4,
+      ];
+      fake.emit(Uint8List.fromList(frame));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(ctrl.selfTelemetry?.altitudeMeters, closeTo(245.0, 1e-2));
+      expect(ctrl.ownLocation!.altitudeMeters, closeTo(245.0, 1e-2),
+          reason: 'telemetry altitude must take precedence over '
+              'phone fix altitude once it arrives');
+      expect(ctrl.ownLocation!.source, OwnLocationSource.deviceReported);
+      ctrl.dispose();
+    });
+
     test('peer telemetry (different pubkey-prefix) is stored under '
         'its own key, not in selfTelemetry', () async {
       final FakeMeshcoreTransport fake =
