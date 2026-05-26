@@ -217,6 +217,15 @@ extension type const MeshcoreCommand(int code) {
   /// `CMD_SET_OTHER_PARAMS` — manual-add / telemetry / loc policy.
   static const MeshcoreCommand setOtherParams = MeshcoreCommand(0x26);
 
+  /// `CMD_SEND_TELEMETRY_REQ` (39 = 0x27). Frame is either
+  /// `27 [0 0 0]` (self-telemetry, len == 4) or
+  /// `27 [0 0 0] [pub_key 32B]` (peer-telemetry, len == 36).
+  /// The 3 bytes after the opcode are reserved/padding in firmware
+  /// `companion-v1.15.0` and may carry a permission mask in newer
+  /// builds — sending zeros is safe today.
+  /// Response is async via [MeshcoreResponse.telemetryResponse] (0x8B).
+  static const MeshcoreCommand sendTelemetryReq = MeshcoreCommand(0x27);
+
   /// `CMD_GET_CUSTOM_VARS` — request the device's custom string-keyed
   /// settings map. Reply is `RESP_CODE_CUSTOM_VARS` (0x15) carrying a
   /// comma-separated `name:value,name:value,...` payload. Used to read
@@ -264,6 +273,14 @@ extension type const MeshcoreResponse(int code) {
 
   /// RF log data — safely ignorable by the codec.
   static const MeshcoreResponse logData = MeshcoreResponse(0x88);
+
+  /// `PUSH_CODE_TELEMETRY_RESPONSE` (0x8B). Async push delivering a
+  /// telemetry payload either for self (immediate after a
+  /// `CMD_SEND_TELEMETRY_REQ` with len==4) or for a peer (arrives
+  /// some seconds later after the OTA round-trip).
+  /// Wire format: `[0x8B][reserved 1B = 0][pubkey_prefix 6B][CayenneLPP payload]`.
+  static const MeshcoreResponse telemetryResponse =
+      MeshcoreResponse(0x8B);
 
   bool get isPush => code >= 0x80;
 }

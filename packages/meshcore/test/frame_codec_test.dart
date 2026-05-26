@@ -267,6 +267,59 @@ void main() {
     });
   });
 
+  group('CMD_SEND_TELEMETRY_REQ (0x27) encode', () {
+    test('self-telemetry: 4-byte frame with three zero-pad bytes', () {
+      final Uint8List got = MeshcoreFrameCodec.sendTelemetryReq();
+      expect(got.length, 4);
+      expect(got[0], 0x27);
+      expect(got[1], 0);
+      expect(got[2], 0);
+      expect(got[3], 0);
+    });
+
+    test('peer-telemetry: 36-byte frame ends with the 32B pubkey', () {
+      final Uint8List pub = Uint8List.fromList(
+          List<int>.generate(32, (int i) => i + 1));
+      final Uint8List got =
+          MeshcoreFrameCodec.sendTelemetryReq(peerPubKey: pub);
+      expect(got.length, 36);
+      expect(got.sublist(0, 4), <int>[0x27, 0, 0, 0]);
+      expect(got.sublist(4), pub);
+    });
+  });
+
+  group('PUSH_CODE_TELEMETRY_RESPONSE (0x8B) decode', () {
+    test('self-telemetry payload with GPS triplet', () {
+      // 0x8B [reserved=0] [6B pubkey-prefix] [11B LPP GPS entry]
+      final Uint8List frame = _hex(
+          '8B' // opcode
+          '00' // reserved
+          'AABBCCDDEEFF' // pubkey6
+          '0188' '06765F' 'F2960A' '0003E8'); // ch=1 GPS, 42.3519/-87.9094/10m
+      final MeshcoreInbound got = MeshcoreFrameCodec.decode(frame);
+      expect(got, isA<TelemetryResponseFrame>());
+      final TelemetryResponseFrame t = got as TelemetryResponseFrame;
+      expect(_toHex(t.pubKeyPrefix), 'aabbccddeeff');
+      expect(t.lppPayload.length, 11);
+      final List<LppEntry> entries = decodeCayenneLpp(t.lppPayload);
+      expect(entries.single.gps?.altMeters, closeTo(10.0, 1e-2));
+    });
+
+    test('empty LPP payload (no telemetry available) decodes safely', () {
+      // 0x8B [reserved] [6B pubkey6] — no payload at all
+      final Uint8List frame = _hex('8B00AABBCCDDEEFF');
+      final MeshcoreInbound got = MeshcoreFrameCodec.decode(frame);
+      expect(got, isA<TelemetryResponseFrame>());
+      expect((got as TelemetryResponseFrame).lppPayload, isEmpty);
+    });
+
+    test('truncated (missing some of the 6-byte pubkey) -> DecodeFailure', () {
+      final Uint8List frame = _hex('8B00AABB');
+      final MeshcoreInbound got = MeshcoreFrameCodec.decode(frame);
+      expect(got, isA<DecodeFailure>());
+    });
+  });
+
   group('MSGS_WAITING (0x83) decode', () {
     test('bare opcode -> MessagesWaitingFrame(count: null)', () {
       final MeshcoreInbound got = MeshcoreFrameCodec.decode(_hex('83'));

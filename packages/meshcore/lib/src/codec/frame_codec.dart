@@ -226,6 +226,28 @@ abstract final class MeshcoreFrameCodec {
         .build();
   }
 
+  /// `CMD_SEND_TELEMETRY_REQ` (0x27).
+  ///
+  /// - No [peerPubKey]: requests *self* telemetry; the device replies
+  ///   immediately (no OTA) with [MeshcoreResponse.telemetryResponse]
+  ///   (0x8B) carrying its own CayenneLPP payload.
+  /// - With [peerPubKey] (32 bytes): asks the device to query the peer
+  ///   over the air. Same 0x8B push arrives later (seconds) if the
+  ///   peer responds. Caller is responsible for batching/back-off.
+  ///
+  /// The 3 bytes between opcode and pubkey are reserved (zero in
+  /// `companion-v1.15.0`). Sending zeros is safe today; if firmware
+  /// later uses them for a permission mask, callers will set them.
+  static Uint8List sendTelemetryReq({List<int>? peerPubKey}) {
+    assert(peerPubKey == null || peerPubKey.length == kPubKeySize,
+        'peerPubKey must be exactly $kPubKeySize bytes');
+    final FrameBuilder b = FrameBuilder()
+      ..u8(MeshcoreCommand.sendTelemetryReq.code)
+      ..zeros(3);
+    if (peerPubKey != null) b.fixed(peerPubKey, kPubKeySize);
+    return b.build();
+  }
+
   /// `CMD_SET_TUNING_PARAMS` (0x15):
   /// `15 [rx_delay_base u32 LE ×1000] [airtime_factor u32 LE ×1000]`.
   static Uint8List setTuningParams({
@@ -383,6 +405,16 @@ abstract final class MeshcoreFrameCodec {
           final Uint8List raw =
               c.atEnd ? Uint8List(0) : c.bytes(c.remaining, 'rfLog.raw');
           return RfLogFrame(RfLog(snrDb: snr, rssi: rssi, raw: raw));
+
+        case 0x8B: // PUSH_CODE_TELEMETRY_RESPONSE
+          c.u8('telemetry.reserved');
+          final Uint8List pub6 =
+              c.bytes(kPubKeyPrefixSize, 'telemetry.pubKey6');
+          final Uint8List lpp = c.atEnd
+              ? Uint8List(0)
+              : c.bytes(c.remaining, 'telemetry.lpp');
+          return TelemetryResponseFrame(
+              pubKeyPrefix: pub6, lppPayload: lpp);
 
         default:
           return UnsupportedFrame(op, Uint8List.fromList(frame));

@@ -172,6 +172,28 @@ class MessagesWaitingFrame extends MeshcoreInbound {
   String toString() => 'MessagesWaitingFrame($count)';
 }
 
+/// `PUSH_CODE_TELEMETRY_RESPONSE` (0x8B) — the device delivered a
+/// CayenneLPP telemetry payload, either for itself (immediate after a
+/// self-telemetry `CMD_SEND_TELEMETRY_REQ`) or for a peer it queried
+/// over the air on our behalf.
+///
+/// Wire layout: `[0x8B][reserved 1B][6B pubkey-prefix][LPP payload]`.
+/// The pubkey-prefix identifies *which* node the payload belongs to —
+/// matches the first 6 bytes of the originator's public key. For self-
+/// telemetry the prefix is the device's own pubkey6.
+class TelemetryResponseFrame extends MeshcoreInbound {
+  const TelemetryResponseFrame({
+    required this.pubKeyPrefix,
+    required this.lppPayload,
+  });
+  final Uint8List pubKeyPrefix;
+  final Uint8List lppPayload;
+  @override
+  String toString() =>
+      'TelemetryResponseFrame(pub6=${pubKeyPrefix.length}B, '
+      'lpp=${lppPayload.length}B)';
+}
+
 /// A well-formed frame whose opcode this milestone does not decode yet.
 /// Carries the raw bytes so higher layers can log/skip without data loss.
 class UnsupportedFrame extends MeshcoreInbound {
