@@ -6,6 +6,7 @@
 /// exports are added here.
 library;
 
+export 'src/codec/cayenne_lpp.dart';
 export 'src/codec/constants.dart';
 export 'src/codec/decode_error.dart';
 export 'src/codec/frame_codec.dart';
