@@ -46,7 +46,7 @@ class DiscoveredNode {
     this.rssi,
     this.deviceAdvertUnix,
     required this.viaAdvert,
-    this.outPathHashes = const <int>[],
+    this.outPathHashes,
   });
 
   final String pubKeyHex;
@@ -80,21 +80,25 @@ class DiscoveredNode {
   bool viaAdvert;
 
   /// First-byte hashes of the repeaters along the outbound path that
-  /// the device uses to send to this peer (R49). Empty when the peer
-  /// is a direct neighbour (0 hops) **or** when we only know this
-  /// peer via an advert (advert-heard nodes don't carry a path).
+  /// the device uses to send to this peer (R49). Tri-state:
   ///
-  /// Each byte matches the first byte of the corresponding repeater's
-  /// pubkey, so the resolver in
-  /// `MeshcoreController.topologyChainFor` maps each hash to a known
-  /// repeater node when one exists. The list is ordered **outbound**:
-  /// `outPathHashes[0]` is the first hop *from us*, `[last]` is the
-  /// last hop *before the peer*.
-  final List<int> outPathHashes;
+  /// - `null` — **no path info available**. The peer was heard via
+  ///   an advert push only (adverts don't carry a route), so we
+  ///   don't know whether it's a direct neighbour or routed.
+  /// - `[]` — **known direct neighbour** (0 hops). The peer was
+  ///   contact-synced and the device reported `out_path_len == 0`.
+  /// - non-empty — **routed**. Each byte matches the first byte of
+  ///   the corresponding repeater's pubkey, in outbound order:
+  ///   `[0]` is the first hop *from us*, `[last]` is the last hop
+  ///   *before the peer*.
+  ///
+  /// The resolver in `MeshcoreController.topologyChainFor` maps each
+  /// hash to a known repeater node when one exists.
+  final List<int>? outPathHashes;
 
-  /// Number of repeater hops to this peer (0 = direct, length of
-  /// [outPathHashes] otherwise).
-  int get hopCount => outPathHashes.length;
+  /// Number of repeater hops to this peer when known (`null` when
+  /// [outPathHashes] is `null`).
+  int? get hopCount => outPathHashes?.length;
 
   /// True if we've heard from this node in the last 5 minutes.
   /// Purely temporal — does NOT imply spatial proximity (a node 300

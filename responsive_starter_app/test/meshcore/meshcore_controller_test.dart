@@ -287,8 +287,8 @@ void main() {
       return f;
     }
 
-    test('peer with 0 hops resolves to empty chain (direct neighbour)',
-        () async {
+    test('contact-synced peer with 0 hops → empty chain (direct '
+        'neighbour, solid line)', () async {
       final FakeMeshcoreTransport fake =
           FakeMeshcoreTransport(connected: true);
       final MeshcoreController ctrl = MeshcoreController(
@@ -310,6 +310,85 @@ void main() {
       final List<DiscoveredNode>? chain = ctrl.topologyChainFor(pub);
       expect(chain, isNotNull);
       expect(chain, isEmpty);
+    });
+
+    test('advert-only-heard peer → null (no path info; globe draws '
+        'dashed, never a false solid direct line)', () async {
+      // Critical regression: previously outPathHashes defaulted to
+      // []. Any node we only heard via advert (most of the fleet in
+      // practice) collapsed onto "0 hops = direct neighbour" and
+      // rendered as a solid line, hiding the real topology.
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      // Build a minimal AdvertFrame (PUSH_CODE_ADVERTISEMENT 0x80)
+      // for a peer we hear over the air. No contact sync; no path
+      // info. We only need a parseable advert envelope; the codec
+      // tolerates an empty appData (no flags set → no name/loc).
+      final Uint8List adv = Uint8List(101); // 0x80 + 32 pub + 4 ts + 64 sig + 0 appData
+      adv[0] = 0x80;
+      adv[1] = 0x77; // tag first pubkey byte
+      fake.emit(adv);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(ctrl.nodes, isNotEmpty);
+      final DiscoveredNode peer = ctrl.nodes.first;
+      expect(peer.outPathHashes, isNull,
+          reason: 'advert-only peer has no path info');
+      expect(ctrl.topologyChainFor(peer.pubKeyHex), isNull,
+          reason: 'no path info → dashed direct line, '
+              'never a falsely-claimed direct neighbour');
+    });
+
+    test('subsequent advert for a contact-synced peer preserves the '
+        'path info (advert push has no path; we must not overwrite)',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      // Step 1: contact sync gives us a peer with a 2-hop path.
+      fake.emit(contactFrame(
+          firstByte: 0x55, type: 1, outPath: <int>[0x11, 0x22]));
+      await Future<void>.delayed(Duration.zero);
+      final String pub =
+          ctrl.nodes.firstWhere((n) => n.name == 'peer85').pubKeyHex;
+      expect(ctrl.nodes
+              .firstWhere((n) => n.pubKeyHex == pub)
+              .outPathHashes,
+          <int>[0x11, 0x22]);
+
+      // Step 2: we then hear the peer live via an advert push. The
+      // advert carries no path info; the prior 2-hop path must
+      // survive.
+      final Uint8List adv = Uint8List(101);
+      adv[0] = 0x80;
+      adv[1] = 0x55; // same pubkey first byte → same node by full
+      adv[2] = 0; // remaining pubkey bytes match the (zero-padded) contact
+      fake.emit(adv);
+      await Future<void>.delayed(Duration.zero);
+
+      final DiscoveredNode updated =
+          ctrl.nodes.firstWhere((n) => n.pubKeyHex == pub);
+      expect(updated.viaAdvert, isTrue,
+          reason: 'most recent update was an advert');
+      expect(updated.outPathHashes, <int>[0x11, 0x22],
+          reason: 'advert must preserve prior contact-derived path');
     });
 
     test('peer with one hop through a known repeater resolves to that '

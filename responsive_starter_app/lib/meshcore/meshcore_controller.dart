@@ -774,13 +774,19 @@ class MeshcoreController extends ChangeNotifier {
   /// matching first-byte hash from `outPathHashes`.
   ///
   /// Returns:
-  /// - **`[]` (empty)** when the peer is a direct neighbour (0 hops).
+  /// - **`[]` (empty)** when the peer is a known direct neighbour
+  ///   (contact-synced with `out_path_len == 0`).
   /// - **`List<DiscoveredNode>`** when every hash resolved to a
   ///   single known repeater.
-  /// - **`null`** when any hop is unresolved (no advert heard from
-  ///   a repeater with that first byte) **or** ambiguous (two known
-  ///   repeaters share the same first byte). Caller decides whether
-  ///   to fall back to a direct line.
+  /// - **`null`** when **any** of:
+  ///   - the peer's `outPathHashes` is `null` (advert-only-heard,
+  ///     no path info available — the common case);
+  ///   - a hop is unresolved (no repeater heard with that first
+  ///     byte);
+  ///   - a hop is ambiguous (two known repeaters share the same
+  ///     first byte).
+  ///
+  /// Caller decides whether to fall back to a direct line.
   ///
   /// Resolver scope: only nodes of `type == 2` (repeater) are
   /// candidates, so a chat node that happens to share a first byte
@@ -788,7 +794,9 @@ class MeshcoreController extends ChangeNotifier {
   List<DiscoveredNode>? topologyChainFor(String pubKeyHex) {
     final DiscoveredNode? peer = _nodes[pubKeyHex.toLowerCase()];
     if (peer == null) return null;
-    if (peer.outPathHashes.isEmpty) return const <DiscoveredNode>[];
+    final List<int>? hashes = peer.outPathHashes;
+    if (hashes == null) return null; // advert-only — no path info
+    if (hashes.isEmpty) return const <DiscoveredNode>[];
 
     // Build a hash → repeater map. O(n) per call — n is small (tens
     // to low hundreds in practice). Tracks duplicates to flag
@@ -808,7 +816,7 @@ class MeshcoreController extends ChangeNotifier {
     }
 
     final List<DiscoveredNode> chain = <DiscoveredNode>[];
-    for (final int hash in peer.outPathHashes) {
+    for (final int hash in hashes) {
       if (ambiguous.contains(hash)) return null; // collision
       final DiscoveredNode? hop = byFirstByte[hash];
       if (hop == null) return null; // unresolved
@@ -1930,6 +1938,11 @@ class MeshcoreController extends ChangeNotifier {
       snrDb: snr ?? prev?.snrDb,
       rssi: rssi ?? prev?.rssi,
       viaAdvert: true,
+      // Advert pushes don't carry the outbound repeater path; only
+      // ContactFrame does. Preserve whatever the contact sync gave
+      // us (may be null for advert-only-heard peers, which is the
+      // signal the topology resolver uses to draw dashed).
+      outPathHashes: prev?.outPathHashes,
     );
     // F8 — peer's advertised position is a "the mesh extends to
     // here" observation. Same coverage bucket as own-location
