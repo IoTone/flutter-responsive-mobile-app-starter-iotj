@@ -393,6 +393,95 @@ void main() {
       ctrl.dispose();
     });
 
+    test('requestPeerTelemetry sends 36-byte 0x27 with full pubkey and '
+        'sets the inflight flag until the response lands', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      fake.sent.clear(); // discard the self-telemetry request
+
+      const String peer =
+          'aabbccddeeff00112233445566778899'
+          'aabbccddeeff00112233445566778899';
+      expect(ctrl.isQueryingTelemetry(peer), isFalse);
+      await ctrl.requestPeerTelemetry(peer);
+      expect(ctrl.isQueryingTelemetry(peer), isTrue);
+
+      // Find the 0x27 peer frame: 36 bytes, opcode 0x27, then 3
+      // zero pad bytes, then the 32-byte pubkey.
+      final Iterable<Uint8List> peerReqs = fake.sent.where(
+          (Uint8List b) => b.length == 36 && b[0] == 0x27);
+      expect(peerReqs, hasLength(1));
+      final Uint8List req = peerReqs.single;
+      expect(req[1], 0);
+      expect(req[2], 0);
+      expect(req[3], 0);
+      // Bytes 4..35 must match the requested pubkey.
+      final StringBuffer sentHex = StringBuffer();
+      for (int i = 4; i < 36; i++) {
+        sentHex.write(req[i].toRadixString(16).padLeft(2, '0'));
+      }
+      expect(sentHex.toString(), peer);
+
+      // Response arrives → inflight flag clears.
+      final List<int> frame = <int>[
+        0x8B, 0x00,
+        0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, // pub6 matches
+        0x01, 0x88,
+        0x06, 0x76, 0x5F,
+        0xF2, 0x96, 0x0A,
+        0x00, 0x03, 0xE8,
+      ];
+      fake.emit(Uint8List.fromList(frame));
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.isQueryingTelemetry(peer), isFalse);
+      expect(ctrl.telemetryFor(peer)!.altitudeMeters,
+          closeTo(10.0, 1e-2));
+      ctrl.dispose();
+    });
+
+    test('requestPeerTelemetry is a no-op when cache is fresh '
+        '(under cacheFor)', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      // Seed the cache via a 0x8B push (simulating an earlier query).
+      const String peer =
+          'aabbccddeeff00112233445566778899'
+          'aabbccddeeff00112233445566778899';
+      final List<int> frame = <int>[
+        0x8B, 0x00,
+        0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
+        0x01, 0x88,
+        0x06, 0x76, 0x5F,
+        0xF2, 0x96, 0x0A,
+        0x00, 0x03, 0xE8,
+      ];
+      fake.emit(Uint8List.fromList(frame));
+      await Future<void>.delayed(Duration.zero);
+      fake.sent.clear();
+
+      // Cache is fresh → no 0x27 frame should go out.
+      await ctrl.requestPeerTelemetry(peer);
+      expect(fake.sent.where((Uint8List b) => b[0] == 0x27), isEmpty);
+      ctrl.dispose();
+    });
+
     test('peer telemetry (different pubkey-prefix) is stored under '
         'its own key, not in selfTelemetry', () async {
       final FakeMeshcoreTransport fake =

@@ -576,6 +576,19 @@
   "nodeDetailLastHeardKv": "last heard",
   "nodeDetailDistanceKv": "distance",
   "nodeDetailLatLonKv": "lat / lon",
+  "nodeDetailAltitudeKv": "altitude",
+  "nodeDetailAltitudeMeters": "{m} m",
+  "@nodeDetailAltitudeMeters": {
+    "placeholders": {"m": {"type": "String"}}
+  },
+  "nodeDetailAltitudeUnknown": "unknown",
+  "nodeDetailQueryTelemetry": "Query telemetry",
+  "nodeDetailRefreshTelemetry": "Refresh telemetry",
+  "nodeDetailTelemetryQuerying": "querying peer over the air…",
+  "nodeDetailTelemetryAge": "telemetry from {age}",
+  "@nodeDetailTelemetryAge": {
+    "placeholders": {"age": {"type": "String"}}
+  },
   "nodeDetailAgoSeconds": "{n}s ago",
   "@nodeDetailAgoSeconds": {
     "placeholders": {"n": {"type": "int"}}

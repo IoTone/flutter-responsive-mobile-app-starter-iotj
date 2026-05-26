@@ -2282,6 +2282,48 @@ abstract class AppLocalizations {
   /// **'lat / lon'**
   String get nodeDetailLatLonKv;
 
+  /// No description provided for @nodeDetailAltitudeKv.
+  ///
+  /// In en, this message translates to:
+  /// **'altitude'**
+  String get nodeDetailAltitudeKv;
+
+  /// No description provided for @nodeDetailAltitudeMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'{m} m'**
+  String nodeDetailAltitudeMeters(String m);
+
+  /// No description provided for @nodeDetailAltitudeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'unknown'**
+  String get nodeDetailAltitudeUnknown;
+
+  /// No description provided for @nodeDetailQueryTelemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Query telemetry'**
+  String get nodeDetailQueryTelemetry;
+
+  /// No description provided for @nodeDetailRefreshTelemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh telemetry'**
+  String get nodeDetailRefreshTelemetry;
+
+  /// No description provided for @nodeDetailTelemetryQuerying.
+  ///
+  /// In en, this message translates to:
+  /// **'querying peer over the air…'**
+  String get nodeDetailTelemetryQuerying;
+
+  /// No description provided for @nodeDetailTelemetryAge.
+  ///
+  /// In en, this message translates to:
+  /// **'telemetry from {age}'**
+  String nodeDetailTelemetryAge(String age);
+
   /// No description provided for @nodeDetailAgoSeconds.
   ///
   /// In en, this message translates to:

@@ -1236,6 +1236,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodeDetailLatLonKv => '緯度 / 経度';
 
   @override
+  String get nodeDetailAltitudeKv => '標高';
+
+  @override
+  String nodeDetailAltitudeMeters(String m) {
+    return '$m m';
+  }
+
+  @override
+  String get nodeDetailAltitudeUnknown => '不明';
+
+  @override
+  String get nodeDetailQueryTelemetry => 'テレメトリを取得';
+
+  @override
+  String get nodeDetailRefreshTelemetry => 'テレメトリを更新';
+
+  @override
+  String get nodeDetailTelemetryQuerying => '電波経由でピアに問い合わせ中…';
+
+  @override
+  String nodeDetailTelemetryAge(String age) {
+    return '$age前のテレメトリ';
+  }
+
+  @override
   String nodeDetailAgoSeconds(int n) {
     return '$n秒前';
   }

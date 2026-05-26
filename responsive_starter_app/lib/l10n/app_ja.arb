@@ -576,6 +576,19 @@
   "nodeDetailLastHeardKv": "最終受信",
   "nodeDetailDistanceKv": "距離",
   "nodeDetailLatLonKv": "緯度 / 経度",
+  "nodeDetailAltitudeKv": "標高",
+  "nodeDetailAltitudeMeters": "{m} m",
+  "@nodeDetailAltitudeMeters": {
+    "placeholders": {"m": {"type": "String"}}
+  },
+  "nodeDetailAltitudeUnknown": "不明",
+  "nodeDetailQueryTelemetry": "テレメトリを取得",
+  "nodeDetailRefreshTelemetry": "テレメトリを更新",
+  "nodeDetailTelemetryQuerying": "電波経由でピアに問い合わせ中…",
+  "nodeDetailTelemetryAge": "{age}前のテレメトリ",
+  "@nodeDetailTelemetryAge": {
+    "placeholders": {"age": {"type": "String"}}
+  },
   "nodeDetailAgoSeconds": "{n}秒前",
   "@nodeDetailAgoSeconds": {
     "placeholders": {"n": {"type": "int"}}

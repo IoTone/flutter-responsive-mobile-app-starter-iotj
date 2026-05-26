@@ -1611,9 +1611,14 @@ class MeshcoreController extends ChangeNotifier {
     return _telemetry[own.substring(0, kPubKeyPrefixSize * 2)];
   }
 
-  /// Telemetry for an arbitrary node by its 12-char pubkey6 hex.
-  NodeTelemetry? telemetryFor(String pubKeyPrefixHex) =>
-      _telemetry[pubKeyPrefixHex.toLowerCase()];
+  /// Telemetry for an arbitrary node, looked up by 6-byte pubkey
+  /// prefix. Accepts either the 12-char prefix or the full 64-char
+  /// pubkey hex — the controller always keys by the first 6 bytes.
+  NodeTelemetry? telemetryFor(String pubKeyHex) {
+    final String hex = pubKeyHex.toLowerCase();
+    if (hex.length < kPubKeyPrefixSize * 2) return null;
+    return _telemetry[hex.substring(0, kPubKeyPrefixSize * 2)];
+  }
 
   /// Fire a one-shot self-telemetry request. The device replies
   /// immediately (no OTA) with a 0x8B push that lands on the inbound
@@ -1621,6 +1626,71 @@ class MeshcoreController extends ChangeNotifier {
   void _requestSelfTelemetry() {
     unawaited(send(MeshcoreFrameCodec.sendTelemetryReq()).catchError((_) {}));
   }
+
+  /// Per-peer telemetry query. Sends `CMD_SEND_TELEMETRY_REQ` (0x27)
+  /// with the 32-byte pubkey appended — the device unicasts the
+  /// request over the air; the peer's eventual response arrives
+  /// asynchronously as a `PUSH_CODE_TELEMETRY_RESPONSE` (0x8B) and is
+  /// stored against the matching 6-byte prefix.
+  ///
+  /// Behaviour:
+  /// - No-op when we have a cached entry younger than [cacheFor].
+  /// - No-op when a query is already in flight for the same peer
+  ///   (the inflight flag is cleared on response or [inflightTimeout]).
+  /// - Accepts either the full 64-char pubkey hex or just the 12-char
+  ///   prefix — the prefix is enough for cache lookup, but the full
+  ///   32 bytes are needed to actually address the peer over the air.
+  ///   When only a prefix is given the call is a cache-hit no-op (we
+  ///   can't reach the peer without the rest of the key).
+  Future<void> requestPeerTelemetry(
+    String pubKeyHex, {
+    Duration cacheFor = const Duration(minutes: 5),
+    Duration inflightTimeout = const Duration(seconds: 45),
+  }) async {
+    if (!isReady) return;
+    final String hex = pubKeyHex.toLowerCase();
+    if (hex.length < kPubKeyPrefixSize * 2) return;
+    final String pub6 = hex.substring(0, kPubKeyPrefixSize * 2);
+    final NodeTelemetry? cached = _telemetry[pub6];
+    if (cached != null &&
+        DateTime.now().difference(cached.receivedAt) < cacheFor) {
+      return; // fresh enough
+    }
+    if (_telemetryInflight.contains(pub6)) return;
+    if (hex.length != kPubKeySize * 2) {
+      // Only a prefix — can't address the peer.
+      return;
+    }
+    final Uint8List pubKey = Uint8List(kPubKeySize);
+    for (int i = 0; i < kPubKeySize; i++) {
+      pubKey[i] = int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16);
+    }
+    _telemetryInflight.add(pub6);
+    notifyListeners();
+    // Auto-clear if the peer never answers (OTA loss, peer offline,
+    // or peer's privacy policy denies the request).
+    Timer(inflightTimeout, () {
+      if (_telemetryInflight.remove(pub6)) notifyListeners();
+    });
+    try {
+      await send(
+          MeshcoreFrameCodec.sendTelemetryReq(peerPubKey: pubKey));
+    } catch (_) {
+      _telemetryInflight.remove(pub6);
+      notifyListeners();
+    }
+  }
+
+  /// True while a peer-telemetry query is awaiting response. Drives
+  /// "querying…" spinners in the UI.
+  bool isQueryingTelemetry(String pubKeyHex) {
+    final String hex = pubKeyHex.toLowerCase();
+    if (hex.length < kPubKeyPrefixSize * 2) return false;
+    return _telemetryInflight
+        .contains(hex.substring(0, kPubKeyPrefixSize * 2));
+  }
+
+  final Set<String> _telemetryInflight = <String>{};
 
   void _trackTelemetry(MeshcoreInbound f) {
     if (f is! TelemetryResponseFrame) return;
@@ -1635,6 +1705,7 @@ class MeshcoreController extends ChangeNotifier {
       receivedAt: DateTime.now(),
       entries: entries,
     );
+    _telemetryInflight.remove(pub6);
   }
 
   void _trackBattery(MeshcoreInbound f) {

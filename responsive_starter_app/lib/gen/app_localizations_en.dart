@@ -1291,6 +1291,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nodeDetailLatLonKv => 'lat / lon';
 
   @override
+  String get nodeDetailAltitudeKv => 'altitude';
+
+  @override
+  String nodeDetailAltitudeMeters(String m) {
+    return '$m m';
+  }
+
+  @override
+  String get nodeDetailAltitudeUnknown => 'unknown';
+
+  @override
+  String get nodeDetailQueryTelemetry => 'Query telemetry';
+
+  @override
+  String get nodeDetailRefreshTelemetry => 'Refresh telemetry';
+
+  @override
+  String get nodeDetailTelemetryQuerying => 'querying peer over the air…';
+
+  @override
+  String nodeDetailTelemetryAge(String age) {
+    return 'telemetry from $age';
+  }
+
+  @override
   String nodeDetailAgoSeconds(int n) {
     return '${n}s ago';
   }

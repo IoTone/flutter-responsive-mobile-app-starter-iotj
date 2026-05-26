@@ -1,16 +1,20 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
+import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../gen/app_localizations.dart';
 import '../meshcore/chat_message.dart';
 import '../meshcore/discovered_node.dart';
+import '../meshcore/meshcore_controller.dart';
+import '../meshcore/node_telemetry.dart';
 import '../util/geo.dart' as geo;
 
 /// R18 polish — modal bottom sheet shown when the user taps a node
@@ -238,6 +242,13 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
               kv(l.nodeDetailLatLonKv,
                   '${n.latitude!.toStringAsFixed(5)}, '
                       '${n.longitude!.toStringAsFixed(5)}'),
+            // R47 — peer telemetry on tap. CMD_SEND_TELEMETRY_REQ goes
+            // to the device, which unicasts to the peer over the air;
+            // the peer's response arrives async and lands in the
+            // controller's _telemetry cache (keyed by pubkey6).
+            // Self-telemetry already polled on every ready, so no
+            // button needed there.
+            _TelemetrySection(node: n, isSelf: widget.isSelf, kv: kv),
             if (widget.isSelf) ...<Widget>[
               const SizedBox(height: 8),
               Text(l.nodeDetailSelf,
@@ -412,6 +423,106 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
         ),
       );
     }
+  }
+}
+
+/// R47 — telemetry section inside the node detail sheet. Reads the
+/// controller's `_telemetry` cache via Provider so it rebuilds when a
+/// 0x8B push lands. For non-self nodes also offers a button that
+/// fires `CMD_SEND_TELEMETRY_REQ` over the air; that path is OTA
+/// (seconds, not instant) so the section shows a spinner while
+/// waiting.
+class _TelemetrySection extends StatelessWidget {
+  const _TelemetrySection({
+    required this.node,
+    required this.isSelf,
+    required this.kv,
+  });
+
+  final DiscoveredNode node;
+  final bool isSelf;
+  final Widget Function(String, String) kv;
+
+  @override
+  Widget build(BuildContext context) {
+    final MeshcoreController mc = context.watch<MeshcoreController>();
+    final AppLocalizations l = AppLocalizations.of(context);
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final NodeTelemetry? t =
+        mc.telemetryFor(node.pubKeyHex);
+    final bool querying = mc.isQueryingTelemetry(node.pubKeyHex);
+
+    // Compact age string ("2 min ago", "3 h ago", …) for the receipt
+    // line. We reuse the same _ago bands as last-heard so the sheet
+    // reads consistently.
+    String ageOf(DateTime at) {
+      final int delta =
+          DateTime.now().millisecondsSinceEpoch ~/ 1000 -
+              at.millisecondsSinceEpoch ~/ 1000;
+      if (delta < 60) return l.nodeDetailAgoSeconds(delta);
+      if (delta < 3600) return l.nodeDetailAgoMinutes((delta / 60).floor());
+      if (delta < 86400) {
+        return l.nodeDetailAgoHours((delta / 3600).floor());
+      }
+      return l.nodeDetailAgoDays((delta / 86400).floor());
+    }
+
+    final List<Widget> children = <Widget>[];
+
+    if (t?.altitudeMeters != null) {
+      children.add(kv(
+          l.nodeDetailAltitudeKv,
+          l.nodeDetailAltitudeMeters(
+              t!.altitudeMeters!.toStringAsFixed(1))));
+    }
+
+    if (t != null) {
+      children.add(Padding(
+        padding: const EdgeInsets.only(top: 2, bottom: 4),
+        child: Text(
+          l.nodeDetailTelemetryAge(ageOf(t.receivedAt)),
+          style: TextStyle(
+              color: cs.onSurfaceVariant,
+              fontSize: 11,
+              fontStyle: FontStyle.italic),
+        ),
+      ));
+    }
+
+    if (!isSelf) {
+      children.add(const SizedBox(height: 4));
+      if (querying) {
+        children.add(Row(
+          children: <Widget>[
+            const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(strokeWidth: 2)),
+            const SizedBox(width: 8),
+            Text(l.nodeDetailTelemetryQuerying,
+                style: TextStyle(
+                    color: cs.onSurfaceVariant, fontSize: 12)),
+          ],
+        ));
+      } else {
+        children.add(OutlinedButton.icon(
+          icon: const Icon(Icons.terrain, size: 18),
+          label: Text(t == null
+              ? l.nodeDetailQueryTelemetry
+              : l.nodeDetailRefreshTelemetry),
+          onPressed: mc.isReady
+              ? () => unawaited(
+                  mc.requestPeerTelemetry(node.pubKeyHex))
+              : null,
+        ));
+      }
+    }
+
+    if (children.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
+    );
   }
 }
 
