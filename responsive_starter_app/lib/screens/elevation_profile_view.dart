@@ -1,6 +1,5 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -11,10 +10,13 @@ import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_controller.dart';
 
 /// R45 — exploratory altitude-profile view. **Not** meant to be
-/// useful (the protocol doesn't broadcast peer altitude yet, so most
-/// peers plot in the "?" band). Meant to be *interesting*: a NERV-
+/// useful (most peers plot in the "?" band until each one's
+/// telemetry has been queried). Meant to be *interesting*: a NERV-
 /// style targeting HUD with iconic real-world references drawn at
-/// their true heights and our node pinned at the phone-GPS altitude.
+/// their true heights and our node pinned at the altitude reported
+/// by the paired device's GPS (via the CMD_SEND_TELEMETRY_REQ /
+/// 0x8B path, populated automatically on every ready transition).
+/// Phone-GPS altitude is used only as a last-resort fallback.
 ///
 /// Reference set (handpicked for an order-of-magnitude spread):
 ///   - Person ........... 1.7 m
@@ -45,23 +47,6 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     vsync: this,
     duration: const Duration(seconds: 4),
   )..repeat();
-
-  @override
-  void initState() {
-    super.initState();
-    // Phone GPS is the only altitude source we have (SelfInfo doesn't
-    // carry it). Kick a one-shot fix on mount so the ME line draws at
-    // a real elevation. Errors and missing permissions are swallowed
-    // by the controller; the view degrades to a "?" ME band.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final MeshcoreController mc =
-          context.read<MeshcoreController>();
-      if (mc.ownLocation?.altitudeMeters == null) {
-        unawaited(mc.requestPhoneLocationFix());
-      }
-    });
-  }
 
   @override
   void dispose() {
