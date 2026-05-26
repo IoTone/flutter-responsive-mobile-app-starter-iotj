@@ -11,6 +11,7 @@ import '../gen/app_localizations.dart';
 import '../meshcore/coverage_store.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_controller.dart';
+import '../util/lora_range.dart';
 import 'node_detail_sheet.dart';
 
 /// F8 — Fabric survey view. Paints **mesh coverage** as a quilt of
@@ -196,6 +197,50 @@ class _FabricSurveyViewState extends State<FabricSurveyView> {
               // street tiles.
               if (cells.isNotEmpty)
                 PolygonLayer(polygons: cells),
+              // R48 — per-peer reach circles. Diameter is an
+              // estimate of how far the peer would still be hearable
+              // by another node like ours, derived from the heard
+              // RSSI + known distance (when both ends have GPS) and
+              // falling back to RSSI-bin / radio-tuple anchors when
+              // not. See `estimatedPeerReachMeters`. Drawn before
+              // the markers so the pins stay on top.
+              CircleLayer(
+                circles: <CircleMarker>[
+                  // Self range — uses the existing radio-tuple
+                  // anchor (we know our own TX power and modulation).
+                  if (mc.selfInfo != null)
+                    CircleMarker(
+                      point: LatLng(selfLat, selfLon),
+                      radius: estimatedLoraRangeMeters(
+                        spreadingFactor: mc.selfInfo!.spreadingFactor,
+                        bandwidthKhz: mc.selfInfo!.bandwidthKhz,
+                        txPowerDbm: mc.selfInfo!.txPowerDbm,
+                      ),
+                      useRadiusInMeter: true,
+                      color: cs.primary.withValues(alpha: .10),
+                      borderColor: cs.primary.withValues(alpha: .55),
+                      borderStrokeWidth: 1.2,
+                    ),
+                  for (final DiscoveredNode n in withLoc)
+                    CircleMarker(
+                      point: LatLng(n.latitude!, n.longitude!),
+                      radius: estimatedPeerReachMeters(
+                        rssiDbm: n.rssi?.toDouble(),
+                        distanceMeters:
+                            mc.distanceMetersTo(n.latitude!, n.longitude!),
+                        ourSpreadingFactor:
+                            mc.selfInfo?.spreadingFactor ?? 7,
+                        ourBandwidthKhz:
+                            mc.selfInfo?.bandwidthKhz ?? 125.0,
+                        ourTxPowerDbm: mc.selfInfo?.txPowerDbm ?? 14,
+                      ),
+                      useRadiusInMeter: true,
+                      color: cs.tertiary.withValues(alpha: .08),
+                      borderColor: cs.tertiary.withValues(alpha: .45),
+                      borderStrokeWidth: 1.0,
+                    ),
+                ],
+              ),
               // Tiny pins for peers in the current set so the user
               // can correlate covered cells with the nodes that
               // contributed.

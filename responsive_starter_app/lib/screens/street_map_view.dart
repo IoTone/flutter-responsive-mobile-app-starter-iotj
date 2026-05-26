@@ -207,8 +207,12 @@ class _StreetMapViewState extends State<StreetMapView> {
                   userAgentPackageName:
                       'com.iotone.meshmore_sns_app',
                 ),
-              // R25+1 — range circle for self + each peer. Drawn
-              // before markers so the marker icons sit on top.
+              // R25+1 — range circle for self. Uses our radio-tuple
+              // anchor (we know TX power + modulation).
+              // R48 — per-peer reach circles. Sized via
+              // [estimatedPeerReachMeters] from heard RSSI + known
+              // distance instead of a flat radius. Drawn before the
+              // marker icons so the pins stay on top.
               CircleLayer(
                 circles: <CircleMarker>[
                   CircleMarker(
@@ -222,7 +226,14 @@ class _StreetMapViewState extends State<StreetMapView> {
                   for (final DiscoveredNode n in withLoc)
                     CircleMarker(
                       point: LatLng(n.latitude!, n.longitude!),
-                      radius: rangeM,
+                      radius: estimatedPeerReachMeters(
+                        rssiDbm: n.rssi?.toDouble(),
+                        distanceMeters: mc.distanceMetersTo(
+                            n.latitude!, n.longitude!),
+                        ourSpreadingFactor: si?.spreadingFactor ?? 7,
+                        ourBandwidthKhz: si?.bandwidthKhz ?? 125.0,
+                        ourTxPowerDbm: si?.txPowerDbm ?? 14,
+                      ),
                       useRadiusInMeter: true,
                       color: cs.tertiary.withValues(alpha: .06),
                       borderColor: cs.tertiary.withValues(alpha: .35),
