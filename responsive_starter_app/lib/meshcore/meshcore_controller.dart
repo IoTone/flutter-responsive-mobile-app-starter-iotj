@@ -19,6 +19,7 @@ import 'known_store.dart';
 import 'node_tags_store.dart';
 import 'mesh_event.dart';
 import 'meshcore_connection.dart';
+import 'node_telemetry.dart';
 import 'own_location.dart';
 import 'coverage_store.dart';
 import 'paired_device_history.dart';
@@ -83,6 +84,13 @@ class MeshcoreController extends ChangeNotifier {
         _startBatteryPolling();
         _startSelfInfoPolling();
         _probeChannels();
+        // Pull self-telemetry once on ready — the only thing
+        // CMD_SET_OTHER_PARAMS's telemetry mode controls is whether
+        // the device *broadcasts* it on the air; the companion path
+        // (CMD_SEND_TELEMETRY_REQ → PUSH_CODE_TELEMETRY_RESPONSE) is
+        // always available and returns immediately for the self case.
+        // Used to populate altitude in ownLocation.
+        _requestSelfTelemetry();
         // Drain anything the device queued before/while we connected
         // (heard contacts/adverts + received messages).
         _drainStart();
@@ -111,6 +119,7 @@ class MeshcoreController extends ChangeNotifier {
       _trackBattery(f);
       _trackDeviceInfo(f);
       _trackCustomVars(f);
+      _trackTelemetry(f);
       // R25+1 — own movement trail. Every inbound frame might have
       // bumped ownLocation (SelfInfoFrame's lat/lon), so sample
       // here. Deduped internally by movement threshold.
@@ -1568,6 +1577,50 @@ class MeshcoreController extends ChangeNotifier {
       advertLocPolicy: si.advertLocPolicy,
       multiAcks: clamped,
     ));
+  }
+
+  // -------------------------------------------------------------------
+  // Telemetry — CMD_SEND_TELEMETRY_REQ (0x27) / PUSH_CODE_TELEMETRY_RESPONSE
+  // (0x8B). Keyed by 6-byte pubkey-prefix (12-char hex). Self-telemetry
+  // is the entry under our own pubkey6; peer telemetry is everything
+  // else (populated only when the app explicitly queries a peer, which
+  // is out of scope for v1).
+  // -------------------------------------------------------------------
+
+  final Map<String, NodeTelemetry> _telemetry = <String, NodeTelemetry>{};
+
+  /// Telemetry for our own device, if a 0x8B push has arrived. Null
+  /// before the first self-telemetry round-trip completes.
+  NodeTelemetry? get selfTelemetry {
+    final String? own = ownPubKeyHex;
+    if (own == null) return null;
+    return _telemetry[own.substring(0, kPubKeyPrefixSize * 2)];
+  }
+
+  /// Telemetry for an arbitrary node by its 12-char pubkey6 hex.
+  NodeTelemetry? telemetryFor(String pubKeyPrefixHex) =>
+      _telemetry[pubKeyPrefixHex.toLowerCase()];
+
+  /// Fire a one-shot self-telemetry request. The device replies
+  /// immediately (no OTA) with a 0x8B push that lands on the inbound
+  /// stream and gets ingested by [_trackTelemetry].
+  void _requestSelfTelemetry() {
+    unawaited(send(MeshcoreFrameCodec.sendTelemetryReq()).catchError((_) {}));
+  }
+
+  void _trackTelemetry(MeshcoreInbound f) {
+    if (f is! TelemetryResponseFrame) return;
+    final StringBuffer hex = StringBuffer();
+    for (final int b in f.pubKeyPrefix) {
+      hex.write(b.toRadixString(16).padLeft(2, '0'));
+    }
+    final String pub6 = hex.toString();
+    final List<LppEntry> entries = decodeCayenneLpp(f.lppPayload);
+    _telemetry[pub6] = NodeTelemetry.fromFrame(
+      pubKeyPrefixHex: pub6,
+      receivedAt: DateTime.now(),
+      entries: entries,
+    );
   }
 
   void _trackBattery(MeshcoreInbound f) {

@@ -11,6 +11,7 @@ import 'package:meshmore_sns_app/meshcore/known_store.dart';
 import 'package:meshmore_sns_app/meshcore/mesh_event.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
+import 'package:meshmore_sns_app/meshcore/node_telemetry.dart';
 import 'package:meshmore_sns_app/meshcore/own_location.dart';
 import 'package:meshmore_sns_app/perms/location_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -244,6 +245,139 @@ void main() {
     expect(ctrl.phoneLocationFix!.altitudeMeters, 100.0);
     expect(ctrl.phoneLocationFix!.source, OwnLocationSource.phoneFix);
     ctrl.dispose();
+  });
+
+  group('telemetry (R47) — self-telemetry via 0x27 / 0x8B', () {
+    test('reaching ready sends CMD_SEND_TELEMETRY_REQ (0x27) with three '
+        'zero-pad bytes (self-telemetry, len == 4)', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      final Iterable<Uint8List> telemReqs = fake.sent.where(
+          (Uint8List b) =>
+              b.length == 4 &&
+              b[0] == 0x27 &&
+              b[1] == 0 &&
+              b[2] == 0 &&
+              b[3] == 0);
+      expect(telemReqs, isNotEmpty,
+          reason: 'expected at least one 0x27 self-telemetry request '
+              'on ready');
+      ctrl.dispose();
+    });
+
+    test('0x8B response with a GPS triplet lands in selfTelemetry '
+        '(altitude decoded from CayenneLPP)', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      // SelfInfo with all-zero pubkey → ownPubKeyHex starts with
+      // twelve zero hex chars (pubKey is bytes 4..35 in the frame,
+      // zeroed by Uint8List(58)).
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      // Build a 0x8B push: [opcode][reserved=0][6B pub6 = 0…][LPP GPS].
+      // GPS fixture (matches the codec test): channel=1, type=0x88,
+      // lat=42.3519 lon=-87.9094 alt=10.00 m.
+      final List<int> frame = <int>[
+        0x8B, 0x00, // opcode + reserved
+        0, 0, 0, 0, 0, 0, // pub6 (matches our zeroed-pubkey self)
+        0x01, 0x88, // LPP channel + type (GPS)
+        0x06, 0x76, 0x5F, // lat = 0x06765F / 10000 = 42.3519
+        0xF2, 0x96, 0x0A, // lon = signed → -87.9094
+        0x00, 0x03, 0xE8, // alt = 1000 / 100 = 10.00 m
+      ];
+      fake.emit(Uint8List.fromList(frame));
+      await Future<void>.delayed(Duration.zero);
+
+      final NodeTelemetry? t = ctrl.selfTelemetry;
+      expect(t, isNotNull);
+      expect(t!.hasGpsFix, isTrue);
+      expect(t.altitudeMeters, closeTo(10.0, 1e-2));
+      expect(t.latitude, closeTo(42.3519, 1e-4));
+      expect(t.longitude, closeTo(-87.9094, 1e-4));
+      ctrl.dispose();
+    });
+
+    test('all-zero GPS triplet is treated as "no fix" '
+        '(altitude stays null)', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      // 0x8B with an all-zero GPS triplet — chip without a fix.
+      final List<int> frame = <int>[
+        0x8B, 0x00,
+        0, 0, 0, 0, 0, 0,
+        0x01, 0x88,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+      ];
+      fake.emit(Uint8List.fromList(frame));
+      await Future<void>.delayed(Duration.zero);
+
+      final NodeTelemetry? t = ctrl.selfTelemetry;
+      expect(t, isNotNull);
+      expect(t!.hasGpsFix, isFalse);
+      expect(t.altitudeMeters, isNull);
+      ctrl.dispose();
+    });
+
+    test('peer telemetry (different pubkey-prefix) is stored under '
+        'its own key, not in selfTelemetry', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      // pub6 = AA BB CC DD EE FF → not us.
+      final List<int> frame = <int>[
+        0x8B, 0x00,
+        0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
+        0x01, 0x88,
+        0x06, 0x76, 0x5F,
+        0xF2, 0x96, 0x0A,
+        0x00, 0x03, 0xE8,
+      ];
+      fake.emit(Uint8List.fromList(frame));
+      await Future<void>.delayed(Duration.zero);
+
+      final NodeTelemetry? self = ctrl.selfTelemetry;
+      // selfTelemetry is null because no 0x8B arrived with our pub6.
+      expect(self, isNull);
+
+      final NodeTelemetry? peer =
+          ctrl.telemetryFor('aabbccddeeff');
+      expect(peer, isNotNull);
+      expect(peer!.altitudeMeters, closeTo(10.0, 1e-2));
+      ctrl.dispose();
+    });
   });
 
   test('setAdvertLocPolicy emits CMD_SET_OTHER_PARAMS (0x26) and '
