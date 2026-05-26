@@ -620,6 +620,13 @@ class MeshcoreController extends ChangeNotifier {
   /// (timestamp resolution). Persistence is batched on a 5-second
   /// timer so a long drive doesn't pound shared_preferences.
   void _recordCoverage(double lat, double lon) {
+    // Guard: an advert can carry a malformed i32 lat/lon that decodes
+    // to an out-of-Earth-range double (anything up to ±2147°). Without
+    // this filter the bogus value gets persisted as a coverage cell
+    // and trips flutter_map's polygon assertion next time the survey
+    // view renders (it expects latitudes in ±90 / longitudes in ±180).
+    if (!lat.isFinite || !lon.isFinite) return;
+    if (lat.abs() > 90.0 || lon.abs() > 180.0) return;
     final ({int latBucket, int lonBucket}) b =
         CoverageStore.bucketFor(lat, lon);
     final String key = CoverageStore.cellKey(b.latBucket, b.lonBucket);

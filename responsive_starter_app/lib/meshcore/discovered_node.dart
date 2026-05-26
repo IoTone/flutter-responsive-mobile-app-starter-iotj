@@ -110,7 +110,11 @@ class DiscoveredNode {
         _ => 'Node',
       };
 
-  bool get hasLocation => latitude != null && longitude != null;
+  bool get hasLocation =>
+      latitude != null &&
+      longitude != null &&
+      latitude!.abs() <= 90.0 &&
+      longitude!.abs() <= 180.0;
 
   String get shortId =>
       pubKeyHex.length >= 12 ? pubKeyHex.substring(0, 12) : pubKeyHex;

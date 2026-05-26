@@ -77,8 +77,24 @@ class CoverageStore {
       final Map<String, dynamic> doc =
           jsonDecode(raw) as Map<String, dynamic>;
       final Map<String, int> out = <String, int>{};
+      // Cell bucket ranges: lat = round-down of degrees / cellDeg.
+      // At cellDeg = 0.002, valid lat buckets are [-45000, 45000] and
+      // valid lon buckets are [-90000, 90000]. Anything outside is a
+      // corrupted entry (typically from a peer's malformed advert
+      // that got persisted before this guard existed) and must be
+      // dropped — flutter_map polygon assertions reject lat/lon
+      // outside ±90 / ±180.
+      final int maxLatBucket = (90.0 / cellDeg).ceil();
+      final int maxLonBucket = (180.0 / cellDeg).ceil();
       doc.forEach((String k, dynamic v) {
-        if (v is num) out[k] = v.toInt();
+        if (v is! num) return;
+        final ({int latBucket, int lonBucket})? b = parseKey(k);
+        if (b == null) return;
+        if (b.latBucket.abs() > maxLatBucket ||
+            b.lonBucket.abs() > maxLonBucket) {
+          return;
+        }
+        out[k] = v.toInt();
       });
       return out;
     } catch (_) {

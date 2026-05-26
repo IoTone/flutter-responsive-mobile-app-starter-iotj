@@ -66,6 +66,22 @@ void main() {
       expect(await CoverageStore.load(), isEmpty);
     });
 
+    test('load drops out-of-Earth-range cells (corrupted advert '
+        'persisted before the runtime guard existed)', () async {
+      // -1633.968° lon / 0.002° = -816984 bucket — the exact value
+      // flutter_map asserted on. Plus a few other garbage rows.
+      final Map<String, int> bad = <String, int>{
+        '22756,-61339': 1716240000, // good
+        '99999999,0': 1716240100, // lat out of range
+        '0,-816984': 1716240200, // lon out of range
+        '0,816984': 1716240300, // lon out of range (+)
+      };
+      await CoverageStore.save(bad);
+      final Map<String, int> back = await CoverageStore.load();
+      expect(back, hasLength(1));
+      expect(back.containsKey('22756,-61339'), isTrue);
+    });
+
     test('cellCentre is the geographic centre of the bucket', () {
       // For bucket (22756, -61339), origin is at lat=22756*cellDeg,
       // lon=-61339*cellDeg; centre is +cellDeg/2 in each.
