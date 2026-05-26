@@ -167,6 +167,75 @@ void main() {
       expect(r, closeTo(anchor, 1.0));
     });
 
+    test('distance-only (no RSSI) — repeater gets a bigger circle '
+        'than a chat node at the same distance', () {
+      final double repeater = estimatedPeerReachMeters(
+        rssiDbm: null,
+        distanceMeters: 1500,
+        peerType: 2, // repeater
+        ourSpreadingFactor: 7,
+        ourBandwidthKhz: 125.0,
+        ourTxPowerDbm: 14,
+      );
+      final double chat = estimatedPeerReachMeters(
+        rssiDbm: null,
+        distanceMeters: 1500,
+        peerType: 1, // chat
+        ourSpreadingFactor: 7,
+        ourBandwidthKhz: 125.0,
+        ourTxPowerDbm: 14,
+      );
+      // Repeater multiplier 3.0 × ~1500 m anchor = 4500 m; chat = 2250 m
+      // (max with 1500 × 1.5 = 2250 m). Repeater clearly wins.
+      expect(repeater, greaterThan(chat));
+      expect(repeater / chat, greaterThan(1.5));
+    });
+
+    test('distance-only fallback never goes below distance × 1.5 '
+        '(we heard them from this far → reach is at least that far)',
+        () {
+      final double r = estimatedPeerReachMeters(
+        rssiDbm: null,
+        distanceMeters: 8000,
+        peerType: 1,
+        ourSpreadingFactor: 7,
+        ourBandwidthKhz: 125.0,
+        ourTxPowerDbm: 14,
+      );
+      // 8 km away, chat type: anchor ~1.5 km × 1.0 = 1.5 km; distance
+      // lower bound = 12 km. The lower bound wins.
+      expect(r, closeTo(12000, 50));
+    });
+
+    test('peerReachTypeMultiplier table', () {
+      expect(peerReachTypeMultiplier(1), 1.0);
+      expect(peerReachTypeMultiplier(2), 3.0);
+      expect(peerReachTypeMultiplier(3), 2.0);
+      expect(peerReachTypeMultiplier(4), closeTo(0.7, 1e-9));
+      expect(peerReachTypeMultiplier(99), 1.0); // unknown defaults
+    });
+
+    test('no-data peers still differ by role — repeater anchor '
+        'circle is bigger than chat anchor circle', () {
+      final double repeater = estimatedPeerReachMeters(
+        rssiDbm: null,
+        distanceMeters: null,
+        peerType: 2,
+        ourSpreadingFactor: 7,
+        ourBandwidthKhz: 125.0,
+        ourTxPowerDbm: 14,
+      );
+      final double chat = estimatedPeerReachMeters(
+        rssiDbm: null,
+        distanceMeters: null,
+        peerType: 1,
+        ourSpreadingFactor: 7,
+        ourBandwidthKhz: 125.0,
+        ourTxPowerDbm: 14,
+      );
+      expect(repeater / chat, closeTo(3.0, 0.01));
+    });
+
     test('clamps to ceiling and floor', () {
       // Crazy headroom — should clamp to ceiling.
       expect(

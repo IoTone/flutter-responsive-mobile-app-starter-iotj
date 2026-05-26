@@ -230,6 +230,7 @@ class _StreetMapViewState extends State<StreetMapView> {
                         rssiDbm: n.rssi?.toDouble(),
                         distanceMeters: mc.distanceMetersTo(
                             n.latitude!, n.longitude!),
+                        peerType: n.type,
                         ourSpreadingFactor: si?.spreadingFactor ?? 7,
                         ourBandwidthKhz: si?.bandwidthKhz ?? 125.0,
                         ourTxPowerDbm: si?.txPowerDbm ?? 14,

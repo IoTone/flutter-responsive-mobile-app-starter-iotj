@@ -228,6 +228,7 @@ class _FabricSurveyViewState extends State<FabricSurveyView> {
                         rssiDbm: n.rssi?.toDouble(),
                         distanceMeters:
                             mc.distanceMetersTo(n.latitude!, n.longitude!),
+                        peerType: n.type,
                         ourSpreadingFactor:
                             mc.selfInfo?.spreadingFactor ?? 7,
                         ourBandwidthKhz:

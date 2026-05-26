@@ -54,12 +54,21 @@ double estimatedPeerReachMeters({
   required int ourSpreadingFactor,
   required double ourBandwidthKhz,
   required int ourTxPowerDbm,
+  int peerType = 1,
   double pathLossExponent = 3.0,
   double clampMin = 200.0,
   double clampMax = 20000.0,
 }) {
   final double sensitivity = loraSensitivityDbm(
       spreadingFactor: ourSpreadingFactor, bandwidthKhz: ourBandwidthKhz);
+  final double anchor = estimatedLoraRangeMeters(
+    spreadingFactor: ourSpreadingFactor,
+    bandwidthKhz: ourBandwidthKhz,
+    txPowerDbm: ourTxPowerDbm,
+  );
+  final double typeMult = peerReachTypeMultiplier(peerType);
+
+  // Path 1: RSSI + distance (most precise — log-distance path-loss).
   if (rssiDbm != null && distanceMeters != null && distanceMeters > 0) {
     final double headroom = rssiDbm - sensitivity;
     if (headroom <= 0) return distanceMeters.clamp(clampMin, clampMax);
@@ -67,10 +76,9 @@ double estimatedPeerReachMeters({
         math.pow(10.0, headroom / (10.0 * pathLossExponent)).toDouble();
     return reach.clamp(clampMin, clampMax);
   }
+
+  // Path 2: RSSI only — coarse RSSI bin scaled by type.
   if (rssiDbm != null) {
-    // No distance to anchor the model — coarse RSSI bin keeps the
-    // circle vaguely truthful without lying about precision we don't
-    // have.
     final double binned;
     if (rssiDbm > -75) {
       binned = 5000.0;
@@ -83,13 +91,44 @@ double estimatedPeerReachMeters({
     } else {
       binned = 300.0;
     }
-    return binned.clamp(clampMin, clampMax);
+    return (binned * typeMult).clamp(clampMin, clampMax);
   }
-  return estimatedLoraRangeMeters(
-    spreadingFactor: ourSpreadingFactor,
-    bandwidthKhz: ourBandwidthKhz,
-    txPowerDbm: ourTxPowerDbm,
-  ).clamp(clampMin, clampMax);
+
+  // Path 3: Distance only — we heard them from this far, so reach is
+  // at least the distance. Bias by 1.5× as "they probably reach a bit
+  // further than the point where we happen to be" and take the max
+  // with the type-scaled anchor so a known-repeater nearby still gets
+  // a big circle.
+  if (distanceMeters != null && distanceMeters > 0) {
+    return math
+        .max(distanceMeters * 1.5, anchor * typeMult)
+        .clamp(clampMin, clampMax);
+  }
+
+  // Path 4: nothing known about the peer beyond its type — anchor ×
+  // type multiplier so repeaters / rooms / sensors visibly differ.
+  return (anchor * typeMult).clamp(clampMin, clampMax);
+}
+
+/// Per-advert-type reach multiplier on our radio anchor. Used by
+/// [estimatedPeerReachMeters] when we don't have RSSI but do know the
+/// peer's role:
+/// - **Repeater (2)**: mast-mounted, big antenna, high TX, mains
+///   power. ~3× a handheld chat node.
+/// - **Room server (3)**: server-class, fixed install, well-sited.
+///   ~2×.
+/// - **Chat (1)**: handheld baseline, 1×.
+/// - **Sensor (4)**: low-power, narrow purpose, often duty-cycled.
+///   ~0.7×.
+/// - Unknown / other: 1×.
+double peerReachTypeMultiplier(int peerType) {
+  return switch (peerType) {
+    1 => 1.0, // chat
+    2 => 3.0, // repeater
+    3 => 2.0, // room server
+    4 => 0.7, // sensor
+    _ => 1.0,
+  };
 }
 
 /// LoRa receiver sensitivity (dBm) for a given SF + BW. Reference
