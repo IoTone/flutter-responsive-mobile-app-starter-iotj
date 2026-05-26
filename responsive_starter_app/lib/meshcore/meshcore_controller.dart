@@ -427,6 +427,13 @@ class MeshcoreController extends ChangeNotifier {
       return OwnLocation(
         latitude: si.latitude,
         longitude: si.longitude,
+        // SelfInfo doesn't carry altitude over the wire (the
+        // companion protocol has lat/lon only), so we borrow the
+        // most-recent phone-GPS altitude when one is cached.
+        // The phone is in our hand at roughly the same elevation
+        // as the paired device — close enough for the elevation-
+        // profile view and any "altitude readout" UI.
+        altitudeMeters: _phoneFix?.altitudeMeters,
         source: OwnLocationSource.deviceReported,
       );
     }
@@ -466,6 +473,24 @@ class MeshcoreController extends ChangeNotifier {
   void clearPhoneLocationFix() {
     if (_phoneFix == null) return;
     _phoneFix = null;
+    notifyListeners();
+  }
+
+  /// Cache an externally-acquired [PhoneFix] as our phone-side
+  /// own-location. Used by `AutoPublishController` (R36) which
+  /// already calls `_location.currentFix()` periodically — pumping
+  /// every fix through here means `ownLocation.altitudeMeters` and
+  /// the elevation-profile view stay live without a dedicated
+  /// background subscription. Dedup is cheap because the same
+  /// PhoneFix re-cached is a no-op aside from notifyListeners.
+  void cachePhoneFix(PhoneFix fix) {
+    _phoneFix = OwnLocation(
+      latitude: fix.latitude,
+      longitude: fix.longitude,
+      altitudeMeters: fix.altitudeMeters,
+      source: OwnLocationSource.phoneFix,
+    );
+    _trackOwnLocationForTrail();
     notifyListeners();
   }
 

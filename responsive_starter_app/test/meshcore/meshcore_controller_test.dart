@@ -190,6 +190,62 @@ void main() {
     ctrl.dispose();
   });
 
+  test('R44 follow-up — device lat/lon merges altitude from cached '
+      'phone fix (the protocol has no altitude in SelfInfo so the '
+      'phone GPS reading is the only altitude source we have)',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final NoopLocationService loc = NoopLocationService(
+        next: const PhoneFix(
+            latitude: 45.5, longitude: -122.7, altitudeMeters: 245.0));
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection: MeshcoreConnection(
+          handshakeTimeout: const Duration(seconds: 5)),
+      locationService: loc,
+    );
+    await ctrl.connect();
+    // Cache a phone fix WITH altitude.
+    final bool ok = await ctrl.requestPhoneLocationFix();
+    expect(ok, isTrue);
+    expect(ctrl.ownLocation!.altitudeMeters, 245.0);
+    expect(ctrl.ownLocation!.source, OwnLocationSource.phoneFix);
+
+    // Device now reports lat/lon → ownLocation flips to
+    // deviceReported but altitude is borrowed from the cached
+    // phone fix.
+    fake.emit(selfInfoFrameAt(lat: 45.515, lon: -122.678));
+    await Future<void>.delayed(Duration.zero);
+    expect(ctrl.ownLocation!.source, OwnLocationSource.deviceReported);
+    expect(ctrl.ownLocation!.latitude, closeTo(45.515, 1e-5));
+    expect(ctrl.ownLocation!.altitudeMeters, 245.0,
+        reason: 'altitude must be borrowed from phone fix; SelfInfo '
+            'has no altitude field over the wire');
+    ctrl.dispose();
+  });
+
+  test('cachePhoneFix updates _phoneFix without requiring a fresh '
+      'currentFix roundtrip (used by AutoPublishController)',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl = MeshcoreController(
+      transportFactory: () async => fake,
+      connection: MeshcoreConnection(
+          handshakeTimeout: const Duration(seconds: 5)),
+    );
+    await ctrl.connect();
+    expect(ctrl.phoneLocationFix, isNull);
+
+    ctrl.cachePhoneFix(const PhoneFix(
+        latitude: 45.5, longitude: -122.7, altitudeMeters: 100.0));
+    expect(ctrl.phoneLocationFix, isNotNull);
+    expect(ctrl.phoneLocationFix!.altitudeMeters, 100.0);
+    expect(ctrl.phoneLocationFix!.source, OwnLocationSource.phoneFix);
+    ctrl.dispose();
+  });
+
   test('setAdvertLocPolicy emits CMD_SET_OTHER_PARAMS (0x26) and '
       'preserves manualAdd/telemetry/multiAcks from SelfInfo',
       () async {

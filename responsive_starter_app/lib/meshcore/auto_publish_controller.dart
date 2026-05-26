@@ -147,6 +147,12 @@ class AutoPublishController extends ChangeNotifier {
     if (!mc.isReady) return;
     final PhoneFix? fix = cached ?? await _location.currentFix();
     if (fix == null) return;
+    // R44 follow-up — keep the controller's ownLocation altitude
+    // fresh. AutoPublishController is already paying the GPS-read
+    // cost; pumping the result back into the controller means the
+    // elevation-profile view and any altitude readout get phone
+    // GPS altitude on the same cadence the device gets lat/lon.
+    mc.cachePhoneFix(fix);
     try {
       // R44 — forward altitude too. Phone GPS reports altitude in
       // metres above the WGS-84 ellipsoid; when the chip didn't
