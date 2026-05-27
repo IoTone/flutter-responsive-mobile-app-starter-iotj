@@ -512,9 +512,24 @@ class _GridScreenState extends State<GridScreen>
           ),
         _GridViewMode.elevation =>
           ElevationProfileView(filteredNodes: visible),
-        _GridViewMode.tree => MeshTreeView(
-            filteredNodes: visible,
-            frozen: !_live && _userInteracted,
+        // Tree mode overlays the legend strip on top of the canvas
+        // so the info button does something here (the radial branch
+        // is the only other place that hosts a legend). Stack lets
+        // the legend dismiss without restructuring the layout.
+        _GridViewMode.tree => Stack(
+            children: <Widget>[
+              MeshTreeView(
+                filteredNodes: visible,
+                frozen: !_live && _userInteracted,
+              ),
+              if (_legendVisible)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  child: _TreeLegend(cs: cs, l: l),
+                ),
+            ],
           ),
         _GridViewMode.radial => Column(
         children: <Widget>[
@@ -575,9 +590,7 @@ class _GridScreenState extends State<GridScreen>
             ),
           ),
           if (_legendVisible)
-            _viewMode == _GridViewMode.tree
-                ? _TreeLegend(cs: cs, l: l)
-                : _GridLegend(cs: cs, scaleKm: scaleKm, l: l),
+            _GridLegend(cs: cs, scaleKm: scaleKm, l: l),
           const Divider(height: 1),
           Expanded(
             child: visible.isEmpty
