@@ -2282,6 +2282,30 @@ abstract class AppLocalizations {
   /// **'lat / lon'**
   String get nodeDetailLatLonKv;
 
+  /// No description provided for @nodeDetailHopsKv.
+  ///
+  /// In en, this message translates to:
+  /// **'hops'**
+  String get nodeDetailHopsKv;
+
+  /// No description provided for @nodeDetailHopsDirect.
+  ///
+  /// In en, this message translates to:
+  /// **'direct (0 hops)'**
+  String get nodeDetailHopsDirect;
+
+  /// No description provided for @nodeDetailHopsViaRepeaters.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} via repeater(s)'**
+  String nodeDetailHopsViaRepeaters(int n);
+
+  /// No description provided for @nodeDetailHopsUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'unknown'**
+  String get nodeDetailHopsUnknown;
+
   /// No description provided for @nodeDetailAltitudeKv.
   ///
   /// In en, this message translates to:

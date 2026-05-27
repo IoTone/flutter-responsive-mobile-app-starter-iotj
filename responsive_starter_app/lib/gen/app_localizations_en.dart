@@ -1291,6 +1291,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nodeDetailLatLonKv => 'lat / lon';
 
   @override
+  String get nodeDetailHopsKv => 'hops';
+
+  @override
+  String get nodeDetailHopsDirect => 'direct (0 hops)';
+
+  @override
+  String nodeDetailHopsViaRepeaters(int n) {
+    return '$n via repeater(s)';
+  }
+
+  @override
+  String get nodeDetailHopsUnknown => 'unknown';
+
+  @override
   String get nodeDetailAltitudeKv => 'altitude';
 
   @override

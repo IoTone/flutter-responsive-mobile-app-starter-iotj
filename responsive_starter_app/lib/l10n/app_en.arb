@@ -576,6 +576,13 @@
   "nodeDetailLastHeardKv": "last heard",
   "nodeDetailDistanceKv": "distance",
   "nodeDetailLatLonKv": "lat / lon",
+  "nodeDetailHopsKv": "hops",
+  "nodeDetailHopsDirect": "direct (0 hops)",
+  "nodeDetailHopsViaRepeaters": "{n} via repeater(s)",
+  "@nodeDetailHopsViaRepeaters": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "nodeDetailHopsUnknown": "unknown",
   "nodeDetailAltitudeKv": "altitude",
   "nodeDetailAltitudeMeters": "{m} m",
   "@nodeDetailAltitudeMeters": {

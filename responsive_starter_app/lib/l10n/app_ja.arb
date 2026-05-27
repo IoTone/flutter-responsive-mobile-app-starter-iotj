@@ -576,6 +576,13 @@
   "nodeDetailLastHeardKv": "最終受信",
   "nodeDetailDistanceKv": "距離",
   "nodeDetailLatLonKv": "緯度 / 経度",
+  "nodeDetailHopsKv": "ホップ数",
+  "nodeDetailHopsDirect": "直接 (0 ホップ)",
+  "nodeDetailHopsViaRepeaters": "{n} 経由リピーター",
+  "@nodeDetailHopsViaRepeaters": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "nodeDetailHopsUnknown": "不明",
   "nodeDetailAltitudeKv": "標高",
   "nodeDetailAltitudeMeters": "{m} m",
   "@nodeDetailAltitudeMeters": {

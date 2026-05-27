@@ -1236,6 +1236,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodeDetailLatLonKv => '緯度 / 経度';
 
   @override
+  String get nodeDetailHopsKv => 'ホップ数';
+
+  @override
+  String get nodeDetailHopsDirect => '直接 (0 ホップ)';
+
+  @override
+  String nodeDetailHopsViaRepeaters(int n) {
+    return '$n 経由リピーター';
+  }
+
+  @override
+  String get nodeDetailHopsUnknown => '不明';
+
+  @override
   String get nodeDetailAltitudeKv => '標高';
 
   @override
