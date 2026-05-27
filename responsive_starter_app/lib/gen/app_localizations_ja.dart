@@ -1258,13 +1258,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get meshTreeLegendSelf => 'あなた — 中央に固定。';
 
   @override
-  String get meshTreeLegendRepeater => 'リピーター / ルーム — ハブ色。ピアはこれらを経由して広がる。';
+  String get meshTreeLegendRepeater =>
+      '四角 = リピーター。マスト設置インフラ、ハブ色。ピアはこれらを経由して広がる。';
 
   @override
-  String get meshTreeLegendChat => 'チャットノード — DM 可能なピア。';
+  String get meshTreeLegendRoom => 'ひし形 = ルームサーバ。名前付きルームをホストするサーバ級ノード。';
 
   @override
-  String get meshTreeLegendSensor => 'センサー — 特定用途のノード。';
+  String get meshTreeLegendChat => '円 = チャットノード。DM 可能なピア。';
+
+  @override
+  String get meshTreeLegendSensor => '小さい円（暗）= センサー。特定用途のノード。';
 
   @override
   String get meshTreeLegendFloat => '浮遊（エッジなし）— advert のみで受信、経路不明。';
@@ -1275,6 +1279,29 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get meshTreeLegendInteract =>
       'ピンチで拡大縮小、ドラッグで移動、ノードをタップで詳細。「中央に戻す」でリセット。';
+
+  @override
+  String get fabricLegendTitle => 'ファブリックサーベイ';
+
+  @override
+  String get fabricLegendDesc =>
+      'メッシュが観測された場所の永続的な記録。各長方形は小さな地理セル（約 220 m × 220 m）で、デバイスがこの位置と接続したときにログ。';
+
+  @override
+  String get fabricLegendCell => '塗りつぶしセル — ここで一度はメッシュが届いた。';
+
+  @override
+  String get fabricLegendRecency =>
+      '明るい塗り = より新しい。階層 — 1時間以内、24時間以内、7日以内、それ以上。';
+
+  @override
+  String get fabricLegendMarker => '第三色のピンは現在のセット内のピア。タップで詳細。';
+
+  @override
+  String get fabricLegendSelf => '原色のピンはあなた。';
+
+  @override
+  String get fabricLegendReset => '新しい地域に移動するときは、オーバーフローメニューからサーベイをリセット。';
 
   @override
   String get nodeDetailHopsKv => 'ホップ数';

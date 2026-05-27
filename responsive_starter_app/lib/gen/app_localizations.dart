@@ -2327,19 +2327,25 @@ abstract class AppLocalizations {
   /// No description provided for @meshTreeLegendRepeater.
   ///
   /// In en, this message translates to:
-  /// **'Repeater / room — hub colour. Peers fan out through these.'**
+  /// **'Square = repeater. Mast-mounted infra, hub colour. Peers fan out through these.'**
   String get meshTreeLegendRepeater;
+
+  /// No description provided for @meshTreeLegendRoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Diamond = room server. Server-class node hosting named rooms.'**
+  String get meshTreeLegendRoom;
 
   /// No description provided for @meshTreeLegendChat.
   ///
   /// In en, this message translates to:
-  /// **'Chat node — peer you can DM.'**
+  /// **'Circle = chat node. Peer you can DM.'**
   String get meshTreeLegendChat;
 
   /// No description provided for @meshTreeLegendSensor.
   ///
   /// In en, this message translates to:
-  /// **'Sensor — narrow-purpose node.'**
+  /// **'Small circle (dim) = sensor. Narrow-purpose node.'**
   String get meshTreeLegendSensor;
 
   /// No description provided for @meshTreeLegendFloat.
@@ -2359,6 +2365,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pinch to zoom, drag to pan, tap a node for details. Use Recenter to reset.'**
   String get meshTreeLegendInteract;
+
+  /// No description provided for @fabricLegendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'FABRIC SURVEY'**
+  String get fabricLegendTitle;
+
+  /// No description provided for @fabricLegendDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A persistent record of where the mesh has been observed. Each rectangle is a small geographic cell (~220 m × 220 m) the device logged on contact with this location.'**
+  String get fabricLegendDesc;
+
+  /// No description provided for @fabricLegendCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled cell — the mesh reached here at some point.'**
+  String get fabricLegendCell;
+
+  /// No description provided for @fabricLegendRecency.
+  ///
+  /// In en, this message translates to:
+  /// **'Brighter fill = more recent. Tiers: < 1 h, < 24 h, < 7 d, older.'**
+  String get fabricLegendRecency;
+
+  /// No description provided for @fabricLegendMarker.
+  ///
+  /// In en, this message translates to:
+  /// **'Tertiary-coloured pins mark peers in the current set. Tap one for details.'**
+  String get fabricLegendMarker;
+
+  /// No description provided for @fabricLegendSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'The primary-coloured pin is you.'**
+  String get fabricLegendSelf;
+
+  /// No description provided for @fabricLegendReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the survey from the overflow menu when you move to a new area.'**
+  String get fabricLegendReset;
 
   /// No description provided for @nodeDetailHopsKv.
   ///

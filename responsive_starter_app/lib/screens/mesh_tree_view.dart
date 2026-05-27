@@ -345,8 +345,9 @@ class _MeshTreePainter extends CustomPainter {
       final NodePosition? p = positions[n.id];
       if (p == null) continue;
       final Offset c = Offset(p.x, p.y);
-      final ({Color colour, double radius}) style = _styleFor(n);
-      // Halo for known / favourites.
+      final _NodeStyle style = _styleFor(n);
+      // Halo for known / favourites — same circle for any glyph
+      // shape so the affinity cue stays consistent.
       if (favPubKeys.contains(n.id)) {
         canvas.drawCircle(
             c,
@@ -362,15 +363,14 @@ class _MeshTreePainter extends CustomPainter {
               ..color = style.colour.withValues(alpha: .18)
               ..style = PaintingStyle.fill);
       }
-      // Body + outline.
-      canvas.drawCircle(c, style.radius, Paint()..color = bg);
-      canvas.drawCircle(
-          c,
-          style.radius,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = n.isSelf ? 2.4 : 1.5
-            ..color = style.colour);
+      // Body + outline, shape-aware.
+      final Paint fillBg = Paint()..color = bg;
+      final Paint strokeBody = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = n.isSelf ? 2.4 : 1.5
+        ..color = style.colour;
+      _drawShape(canvas, c, style.radius, style.shape, fillBg);
+      _drawShape(canvas, c, style.radius, style.shape, strokeBody);
       // Centre dot for self.
       if (n.isSelf) {
         canvas.drawCircle(c, 3.0, Paint()..color = style.colour);
@@ -393,13 +393,47 @@ class _MeshTreePainter extends CustomPainter {
     }
   }
 
-  ({Color colour, double radius}) _styleFor(MeshGraphNode n) {
-    if (n.isSelf) return (colour: accent, radius: 10);
+  /// Draw the node glyph at [centre] with half-extent [r] using
+  /// [paint]. The shape encodes the node's role so the topology is
+  /// readable at a glance without leaning on colour alone:
+  ///
+  /// - **circle** — chat / sensor / self (endpoints + ego)
+  /// - **square** — repeater (mast-mounted, infra)
+  /// - **diamond** — room server (server-class infra)
+  void _drawShape(
+      Canvas canvas, Offset centre, double r, _NodeShape shape, Paint paint) {
+    switch (shape) {
+      case _NodeShape.circle:
+        canvas.drawCircle(centre, r, paint);
+      case _NodeShape.square:
+        final Rect rect =
+            Rect.fromCenter(center: centre, width: r * 2, height: r * 2);
+        canvas.drawRect(rect, paint);
+      case _NodeShape.diamond:
+        final Path p = Path()
+          ..moveTo(centre.dx, centre.dy - r)
+          ..lineTo(centre.dx + r, centre.dy)
+          ..lineTo(centre.dx, centre.dy + r)
+          ..lineTo(centre.dx - r, centre.dy)
+          ..close();
+        canvas.drawPath(p, paint);
+    }
+  }
+
+  _NodeStyle _styleFor(MeshGraphNode n) {
+    if (n.isSelf) {
+      return _NodeStyle(
+          colour: accent, radius: 10, shape: _NodeShape.circle);
+    }
     return switch (n.type) {
-      kAdvTypeRepeater => (colour: hub, radius: 9),
-      kAdvTypeRoom => (colour: hub, radius: 8),
-      kAdvTypeSensor => (colour: accentDim, radius: 5),
-      _ => (colour: accent, radius: 6), // chat or unknown
+      kAdvTypeRepeater => _NodeStyle(
+          colour: hub, radius: 10, shape: _NodeShape.square),
+      kAdvTypeRoom => _NodeStyle(
+          colour: hub, radius: 9, shape: _NodeShape.diamond),
+      kAdvTypeSensor => _NodeStyle(
+          colour: accentDim, radius: 5, shape: _NodeShape.circle),
+      _ => _NodeStyle(
+          colour: accent, radius: 6, shape: _NodeShape.circle),
     };
   }
 
@@ -430,4 +464,19 @@ class _MeshTreePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _MeshTreePainter old) => true;
+}
+
+/// Glyph shape per node role. Circle = endpoint, square = repeater
+/// infra, diamond = room server.
+enum _NodeShape { circle, square, diamond }
+
+class _NodeStyle {
+  const _NodeStyle({
+    required this.colour,
+    required this.radius,
+    required this.shape,
+  });
+  final Color colour;
+  final double radius;
+  final _NodeShape shape;
 }

@@ -506,9 +506,20 @@ class _GridScreenState extends State<GridScreen>
             filteredNodes: visible,
             frozen: !_live && _userInteracted,
           ),
-        _GridViewMode.fabric => FabricSurveyView(
-            filteredNodes: visible,
-            frozen: !_live && _userInteracted,
+        _GridViewMode.fabric => Stack(
+            children: <Widget>[
+              FabricSurveyView(
+                filteredNodes: visible,
+                frozen: !_live && _userInteracted,
+              ),
+              if (_legendVisible)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  child: _FabricLegend(cs: cs, l: l),
+                ),
+            ],
           ),
         _GridViewMode.elevation =>
           ElevationProfileView(filteredNodes: visible),
@@ -1118,7 +1129,9 @@ class _TreeLegend extends StatelessWidget {
                     height: 1.35)),
           ),
           row(Icons.my_location, l.meshTreeLegendSelf, colour: cs.primary),
-          row(Icons.hub, l.meshTreeLegendRepeater, colour: cs.tertiary),
+          row(Icons.crop_square, l.meshTreeLegendRepeater,
+              colour: cs.tertiary),
+          row(Icons.diamond, l.meshTreeLegendRoom, colour: cs.tertiary),
           row(Icons.circle, l.meshTreeLegendChat, colour: cs.primary),
           row(Icons.sensors, l.meshTreeLegendSensor,
               colour: cs.primary.withValues(alpha: .55)),
@@ -1126,6 +1139,71 @@ class _TreeLegend extends StatelessWidget {
               colour: cs.onSurfaceVariant),
           row(Icons.arrow_forward, l.meshTreeLegendArrow),
           row(Icons.touch_app, l.meshTreeLegendInteract),
+        ],
+      ),
+    );
+  }
+}
+
+/// R50 — info-button legend specifically for the Fabric Survey view.
+/// Different from the radial legend ([_GridLegend]) and the tree
+/// legend ([_TreeLegend]) — explains the coverage quilt cells,
+/// recency tiers, and the peer markers.
+class _FabricLegend extends StatelessWidget {
+  const _FabricLegend({required this.cs, required this.l});
+  final ColorScheme cs;
+  final AppLocalizations l;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(IconData icon, String text, {Color? colour}) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Icon(icon, size: 14, color: colour ?? cs.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(text,
+                    style: TextStyle(
+                        color: cs.onSurface,
+                        fontSize: 12,
+                        height: 1.35)),
+              ),
+            ],
+          ),
+        );
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: cs.outline.withValues(alpha: .35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(l.fabricLegendTitle,
+              style: TextStyle(
+                  color: cs.onSurfaceVariant,
+                  fontSize: 11,
+                  letterSpacing: 3)),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text(l.fabricLegendDesc,
+                style: TextStyle(
+                    color: cs.onSurface,
+                    fontSize: 12,
+                    height: 1.35)),
+          ),
+          row(Icons.grid_view, l.fabricLegendCell, colour: cs.secondary),
+          row(Icons.gradient, l.fabricLegendRecency, colour: cs.secondary),
+          row(Icons.place, l.fabricLegendMarker, colour: cs.tertiary),
+          row(Icons.my_location, l.fabricLegendSelf, colour: cs.primary),
+          row(Icons.delete_sweep, l.fabricLegendReset),
         ],
       ),
     );

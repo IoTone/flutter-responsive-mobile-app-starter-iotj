@@ -1315,13 +1315,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get meshTreeLegendRepeater =>
-      'Repeater / room — hub colour. Peers fan out through these.';
+      'Square = repeater. Mast-mounted infra, hub colour. Peers fan out through these.';
 
   @override
-  String get meshTreeLegendChat => 'Chat node — peer you can DM.';
+  String get meshTreeLegendRoom =>
+      'Diamond = room server. Server-class node hosting named rooms.';
 
   @override
-  String get meshTreeLegendSensor => 'Sensor — narrow-purpose node.';
+  String get meshTreeLegendChat => 'Circle = chat node. Peer you can DM.';
+
+  @override
+  String get meshTreeLegendSensor =>
+      'Small circle (dim) = sensor. Narrow-purpose node.';
 
   @override
   String get meshTreeLegendFloat =>
@@ -1334,6 +1339,32 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get meshTreeLegendInteract =>
       'Pinch to zoom, drag to pan, tap a node for details. Use Recenter to reset.';
+
+  @override
+  String get fabricLegendTitle => 'FABRIC SURVEY';
+
+  @override
+  String get fabricLegendDesc =>
+      'A persistent record of where the mesh has been observed. Each rectangle is a small geographic cell (~220 m × 220 m) the device logged on contact with this location.';
+
+  @override
+  String get fabricLegendCell =>
+      'Filled cell — the mesh reached here at some point.';
+
+  @override
+  String get fabricLegendRecency =>
+      'Brighter fill = more recent. Tiers: < 1 h, < 24 h, < 7 d, older.';
+
+  @override
+  String get fabricLegendMarker =>
+      'Tertiary-coloured pins mark peers in the current set. Tap one for details.';
+
+  @override
+  String get fabricLegendSelf => 'The primary-coloured pin is you.';
+
+  @override
+  String get fabricLegendReset =>
+      'Reset the survey from the overflow menu when you move to a new area.';
 
   @override
   String get nodeDetailHopsKv => 'hops';
