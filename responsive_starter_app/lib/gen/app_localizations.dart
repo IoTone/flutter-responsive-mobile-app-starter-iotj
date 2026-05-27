@@ -2300,6 +2300,66 @@ abstract class AppLocalizations {
   /// **'Waiting for contact sync — the tree is built from each contact\'s outPath.'**
   String get meshTreeEmpty;
 
+  /// No description provided for @meshTreeRecenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Recenter'**
+  String get meshTreeRecenter;
+
+  /// No description provided for @meshTreeLegendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MESH TREE'**
+  String get meshTreeLegendTitle;
+
+  /// No description provided for @meshTreeLegendDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A directed graph of how the radio reaches each contact. Edges come from Contact.outPath — the exact repeater chain the device uses to send.'**
+  String get meshTreeLegendDesc;
+
+  /// No description provided for @meshTreeLegendSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'You — pinned at the centre.'**
+  String get meshTreeLegendSelf;
+
+  /// No description provided for @meshTreeLegendRepeater.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeater / room — hub colour. Peers fan out through these.'**
+  String get meshTreeLegendRepeater;
+
+  /// No description provided for @meshTreeLegendChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat node — peer you can DM.'**
+  String get meshTreeLegendChat;
+
+  /// No description provided for @meshTreeLegendSensor.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor — narrow-purpose node.'**
+  String get meshTreeLegendSensor;
+
+  /// No description provided for @meshTreeLegendFloat.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating (no edges) — heard via advert only; route unknown.'**
+  String get meshTreeLegendFloat;
+
+  /// No description provided for @meshTreeLegendArrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrows point away from us, toward the destination peer.'**
+  String get meshTreeLegendArrow;
+
+  /// No description provided for @meshTreeLegendInteract.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinch to zoom, drag to pan, tap a node for details. Use Recenter to reset.'**
+  String get meshTreeLegendInteract;
+
   /// No description provided for @nodeDetailHopsKv.
   ///
   /// In en, this message translates to:

@@ -1301,6 +1301,41 @@ class AppLocalizationsEn extends AppLocalizations {
       'Waiting for contact sync — the tree is built from each contact\'s outPath.';
 
   @override
+  String get meshTreeRecenter => 'Recenter';
+
+  @override
+  String get meshTreeLegendTitle => 'MESH TREE';
+
+  @override
+  String get meshTreeLegendDesc =>
+      'A directed graph of how the radio reaches each contact. Edges come from Contact.outPath — the exact repeater chain the device uses to send.';
+
+  @override
+  String get meshTreeLegendSelf => 'You — pinned at the centre.';
+
+  @override
+  String get meshTreeLegendRepeater =>
+      'Repeater / room — hub colour. Peers fan out through these.';
+
+  @override
+  String get meshTreeLegendChat => 'Chat node — peer you can DM.';
+
+  @override
+  String get meshTreeLegendSensor => 'Sensor — narrow-purpose node.';
+
+  @override
+  String get meshTreeLegendFloat =>
+      'Floating (no edges) — heard via advert only; route unknown.';
+
+  @override
+  String get meshTreeLegendArrow =>
+      'Arrows point away from us, toward the destination peer.';
+
+  @override
+  String get meshTreeLegendInteract =>
+      'Pinch to zoom, drag to pan, tap a node for details. Use Recenter to reset.';
+
+  @override
   String get nodeDetailHopsKv => 'hops';
 
   @override

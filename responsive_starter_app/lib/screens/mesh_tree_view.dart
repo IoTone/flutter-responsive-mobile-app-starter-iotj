@@ -46,6 +46,7 @@ class _MeshTreeViewState extends State<MeshTreeView>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
   final Map<String, NodePosition> _positions = <String, NodePosition>{};
+  final TransformationController _transform = TransformationController();
   ForceLayout? _layout;
   int _lastGraphSignature = 0;
   Size _lastSize = Size.zero;
@@ -67,7 +68,15 @@ class _MeshTreeViewState extends State<MeshTreeView>
   @override
   void dispose() {
     _ticker.dispose();
+    _transform.dispose();
     super.dispose();
+  }
+
+  void _recenter() {
+    // Animate-feel via a quick interpolation isn't worth the
+    // complexity here — the snap to identity is fine and matches the
+    // visual model ("reset view").
+    _transform.value = Matrix4.identity();
   }
 
   /// Rebuild the simulation when the graph's node-set changes. We
@@ -191,29 +200,81 @@ class _MeshTreeViewState extends State<MeshTreeView>
       builder: (BuildContext _, BoxConstraints c) {
         final Size size = Size(c.maxWidth, c.maxHeight);
         _ensureLayout(graph, size);
-        return GestureDetector(
-          onTapUp: (TapUpDetails d) =>
-              _maybeShowDetail(mc, d.localPosition),
-          child: SizedBox.expand(
-            child: CustomPaint(
-              painter: _MeshTreePainter(
-                graph: graph,
-                positions: _positions,
-                knownPubKeys: mc.known,
-                favPubKeys: mc.favorites,
-                accent: cs.primary,
-                accentDim: cs.primary.withValues(alpha: .35),
-                hub: cs.tertiary,
-                edge: cs.primary.withValues(alpha: .55),
-                edgeFloat: cs.outline.withValues(alpha: .35),
-                label: cs.onSurface,
-                bg: cs.surface,
-                emptyMsg: graph.nodes.length <= 1
-                    ? l.meshTreeEmpty
-                    : null,
+        return Stack(
+          children: <Widget>[
+            // InteractiveViewer handles pinch-zoom + two-finger pan +
+            // mouse-wheel zoom. The canvas inside is laid out at the
+            // viewport size; the viewer transforms it. Gestures
+            // delivered to children land in the *unscaled* coordinate
+            // space, so hit-testing against _positions still works
+            // without manual matrix math.
+            //
+            // boundaryMargin huge so you can pan a long way before
+            // hitting an edge — the layout drifts outward when the
+            // mesh grows large.
+            Positioned.fill(
+              child: InteractiveViewer(
+                transformationController: _transform,
+                minScale: 0.3,
+                maxScale: 4.0,
+                boundaryMargin: const EdgeInsets.all(1200),
+                child: GestureDetector(
+                  onTapUp: (TapUpDetails d) =>
+                      _maybeShowDetail(mc, d.localPosition),
+                  child: SizedBox(
+                    width: size.width,
+                    height: size.height,
+                    child: CustomPaint(
+                      painter: _MeshTreePainter(
+                        graph: graph,
+                        positions: _positions,
+                        knownPubKeys: mc.known,
+                        favPubKeys: mc.favorites,
+                        accent: cs.primary,
+                        accentDim: cs.primary.withValues(alpha: .35),
+                        hub: cs.tertiary,
+                        edge: cs.primary.withValues(alpha: .55),
+                        edgeFloat: cs.outline.withValues(alpha: .35),
+                        label: cs.onSurface,
+                        bg: cs.surface,
+                        emptyMsg: graph.nodes.length <= 1
+                            ? l.meshTreeEmpty
+                            : null,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
+            // Recenter overlay — listens to the transformation
+            // controller so it appears only when the user has zoomed
+            // or panned away from the default view. Identity matrix
+            // means already centred → nothing to do, button hidden.
+            Positioned(
+              right: 12,
+              bottom: 12,
+              child: AnimatedBuilder(
+                animation: _transform,
+                builder: (BuildContext _, Widget? __) {
+                  final bool atIdentity =
+                      _transform.value.isIdentity();
+                  return AnimatedOpacity(
+                    duration: const Duration(milliseconds: 180),
+                    opacity: atIdentity ? 0.0 : 1.0,
+                    child: IgnorePointer(
+                      ignoring: atIdentity,
+                      child: FilledButton.tonalIcon(
+                        icon: const Icon(
+                            Icons.center_focus_strong, size: 16),
+                        label: Text(l.meshTreeRecenter),
+                        onPressed: _recenter,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
     );

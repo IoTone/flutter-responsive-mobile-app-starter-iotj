@@ -1245,6 +1245,38 @@ class AppLocalizationsJa extends AppLocalizations {
   String get meshTreeEmpty => 'コンタクト同期を待機中 — ツリーは各コンタクトの outPath から構築されます。';
 
   @override
+  String get meshTreeRecenter => '中央に戻す';
+
+  @override
+  String get meshTreeLegendTitle => 'メッシュツリー';
+
+  @override
+  String get meshTreeLegendDesc =>
+      '無線がどの経路で各コンタクトに到達するかの有向グラフ。エッジは Contact.outPath — デバイスが送信に使う正確なリピーター連鎖。';
+
+  @override
+  String get meshTreeLegendSelf => 'あなた — 中央に固定。';
+
+  @override
+  String get meshTreeLegendRepeater => 'リピーター / ルーム — ハブ色。ピアはこれらを経由して広がる。';
+
+  @override
+  String get meshTreeLegendChat => 'チャットノード — DM 可能なピア。';
+
+  @override
+  String get meshTreeLegendSensor => 'センサー — 特定用途のノード。';
+
+  @override
+  String get meshTreeLegendFloat => '浮遊（エッジなし）— advert のみで受信、経路不明。';
+
+  @override
+  String get meshTreeLegendArrow => '矢印は自分から目的ピアへ向かう。';
+
+  @override
+  String get meshTreeLegendInteract =>
+      'ピンチで拡大縮小、ドラッグで移動、ノードをタップで詳細。「中央に戻す」でリセット。';
+
+  @override
   String get nodeDetailHopsKv => 'ホップ数';
 
   @override

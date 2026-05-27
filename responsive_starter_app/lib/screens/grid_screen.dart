@@ -574,7 +574,10 @@ class _GridScreenState extends State<GridScreen>
               ],
             ),
           ),
-          if (_legendVisible) _GridLegend(cs: cs, scaleKm: scaleKm, l: l),
+          if (_legendVisible)
+            _viewMode == _GridViewMode.tree
+                ? _TreeLegend(cs: cs, l: l)
+                : _GridLegend(cs: cs, scaleKm: scaleKm, l: l),
           const Divider(height: 1),
           Expanded(
             child: visible.isEmpty
@@ -1045,4 +1048,73 @@ class _GridPainter extends CustomPainter {
       old.reduceMotion != reduceMotion ||
       old.rippleAt != rippleAt ||
       old.scaleKm != scaleKm;
+}
+
+/// R50 — info-button legend specifically for the Mesh Tree view.
+/// Different from the radial legend ([_GridLegend]) because the tree
+/// has no rings, no scale, and the node glyphs mean something
+/// different (role × halo state instead of recency).
+class _TreeLegend extends StatelessWidget {
+  const _TreeLegend({required this.cs, required this.l});
+  final ColorScheme cs;
+  final AppLocalizations l;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(IconData icon, String text, {Color? colour}) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Icon(icon, size: 14, color: colour ?? cs.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(text,
+                    style: TextStyle(
+                        color: cs.onSurface,
+                        fontSize: 12,
+                        height: 1.35)),
+              ),
+            ],
+          ),
+        );
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: cs.outline.withValues(alpha: .35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(l.meshTreeLegendTitle,
+              style: TextStyle(
+                  color: cs.onSurfaceVariant,
+                  fontSize: 11,
+                  letterSpacing: 3)),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text(l.meshTreeLegendDesc,
+                style: TextStyle(
+                    color: cs.onSurface,
+                    fontSize: 12,
+                    height: 1.35)),
+          ),
+          row(Icons.my_location, l.meshTreeLegendSelf, colour: cs.primary),
+          row(Icons.hub, l.meshTreeLegendRepeater, colour: cs.tertiary),
+          row(Icons.circle, l.meshTreeLegendChat, colour: cs.primary),
+          row(Icons.sensors, l.meshTreeLegendSensor,
+              colour: cs.primary.withValues(alpha: .55)),
+          row(Icons.help_outline, l.meshTreeLegendFloat,
+              colour: cs.onSurfaceVariant),
+          row(Icons.arrow_forward, l.meshTreeLegendArrow),
+          row(Icons.touch_app, l.meshTreeLegendInteract),
+        ],
+      ),
+    );
+  }
 }
