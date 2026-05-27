@@ -1236,6 +1236,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodeDetailLatLonKv => '緯度 / 経度';
 
   @override
+  String get gridViewTree => 'メッシュツリー';
+
+  @override
+  String get gridViewTreeShort => 'ツリー';
+
+  @override
+  String get meshTreeEmpty => 'コンタクト同期を待機中 — ツリーは各コンタクトの outPath から構築されます。';
+
+  @override
   String get nodeDetailHopsKv => 'ホップ数';
 
   @override

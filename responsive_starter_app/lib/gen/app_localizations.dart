@@ -2282,6 +2282,24 @@ abstract class AppLocalizations {
   /// **'lat / lon'**
   String get nodeDetailLatLonKv;
 
+  /// No description provided for @gridViewTree.
+  ///
+  /// In en, this message translates to:
+  /// **'Mesh tree'**
+  String get gridViewTree;
+
+  /// No description provided for @gridViewTreeShort.
+  ///
+  /// In en, this message translates to:
+  /// **'TREE'**
+  String get gridViewTreeShort;
+
+  /// No description provided for @meshTreeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for contact sync — the tree is built from each contact\'s outPath.'**
+  String get meshTreeEmpty;
+
   /// No description provided for @nodeDetailHopsKv.
   ///
   /// In en, this message translates to:

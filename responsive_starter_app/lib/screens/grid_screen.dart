@@ -19,6 +19,7 @@ import 'elevation_profile_view.dart';
 import 'equal_grid_view.dart';
 import 'fabric_survey_view.dart';
 import 'globe_view.dart';
+import 'mesh_tree_view.dart';
 import 'node_detail_sheet.dart';
 import 'street_map_view.dart';
 
@@ -36,6 +37,7 @@ enum _GridViewMode {
   streetMap,
   fabric,
   elevation,
+  tree,
 }
 
 /// R18 / U9 — the hyperlocal grid: a radial range-ring view of the
@@ -196,6 +198,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.streetMap => Icons.map_outlined,
         _GridViewMode.fabric => Icons.view_quilt,
         _GridViewMode.elevation => Icons.terrain,
+        _GridViewMode.tree => Icons.account_tree,
       };
 
   /// 4–5 character all-caps label for the picker button + menu. Keep
@@ -209,6 +212,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.streetMap => l.gridViewStreetMapShort,
         _GridViewMode.fabric => l.gridViewFabricShort,
         _GridViewMode.elevation => l.gridViewElevationShort,
+        _GridViewMode.tree => l.gridViewTreeShort,
       };
 
   static String _longLabel(_GridViewMode m, AppLocalizations l) =>
@@ -219,6 +223,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.streetMap => l.gridViewStreetMap,
         _GridViewMode.fabric => l.gridViewFabric,
         _GridViewMode.elevation => l.gridViewElevation,
+        _GridViewMode.tree => l.gridViewTree,
       };
 
 
@@ -507,6 +512,10 @@ class _GridScreenState extends State<GridScreen>
           ),
         _GridViewMode.elevation =>
           ElevationProfileView(filteredNodes: visible),
+        _GridViewMode.tree => MeshTreeView(
+            filteredNodes: visible,
+            frozen: !_live && _userInteracted,
+          ),
         _GridViewMode.radial => Column(
         children: <Widget>[
           Padding(

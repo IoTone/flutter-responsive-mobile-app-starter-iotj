@@ -1291,6 +1291,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nodeDetailLatLonKv => 'lat / lon';
 
   @override
+  String get gridViewTree => 'Mesh tree';
+
+  @override
+  String get gridViewTreeShort => 'TREE';
+
+  @override
+  String get meshTreeEmpty =>
+      'Waiting for contact sync — the tree is built from each contact\'s outPath.';
+
+  @override
   String get nodeDetailHopsKv => 'hops';
 
   @override
