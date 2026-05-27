@@ -134,7 +134,12 @@ class _FabricSurveyViewState extends State<FabricSurveyView> {
       if (b == null) return;
       final double latOrigin = b.latBucket * CoverageStore.cellDeg;
       final double lonOrigin = b.lonBucket * CoverageStore.cellDeg;
-      // Recency ramp: <1 h ago = full alpha 65%; >7 d ago = 12%.
+      // Recency ramp: <1 h ago = strong fill; >7 d ago = faint.
+      // The coverage quilt is the *primary* signal of this view —
+      // each cell shouts "the mesh reached here." Stronger alpha
+      // than the reach-circles use; this layer wants to dominate.
+      // Theme `secondary` reads cleaner over OSM tiles than the
+      // mustard `primary` of the NERV palette.
       final int ageSec = nowSec - unixSec;
       double recency;
       if (ageSec < 3600) {
@@ -154,9 +159,9 @@ class _FabricSurveyViewState extends State<FabricSurveyView> {
               lonOrigin + CoverageStore.cellDeg),
           LatLng(latOrigin, lonOrigin + CoverageStore.cellDeg),
         ],
-        color: cs.primary.withValues(alpha: 0.18 + 0.42 * recency),
-        borderColor: cs.primary.withValues(alpha: 0.30 * recency),
-        borderStrokeWidth: 0.5,
+        color: cs.secondary.withValues(alpha: 0.30 + 0.55 * recency),
+        borderColor: cs.secondary.withValues(alpha: 0.50 + 0.40 * recency),
+        borderStrokeWidth: 0.8,
       ));
     });
 
