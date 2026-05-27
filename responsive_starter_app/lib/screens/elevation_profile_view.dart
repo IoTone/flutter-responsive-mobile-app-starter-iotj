@@ -1,5 +1,6 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -48,10 +49,56 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     duration: const Duration(seconds: 4),
   )..repeat();
 
+  /// R45+1 — while the view is open, we passively walk through the
+  /// peer list and ask the device for each one's telemetry, one
+  /// every [_queryInterval]. Rate-limited so a fleet of N peers
+  /// takes ~5N seconds to fully populate, which keeps OTA airtime
+  /// well below the channel's saturation point.
+  ///
+  /// The controller dedupes against its own cache + inflight set —
+  /// repeated requestPeerTelemetry calls for the same peer are
+  /// cheap no-ops when fresh telemetry already exists.
+  Timer? _autoQueryTimer;
+  static const Duration _queryInterval = Duration(seconds: 5);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _autoQueryTimer = Timer.periodic(_queryInterval, (_) {
+        _stepAutoQuery();
+      });
+    });
+  }
+
   @override
   void dispose() {
+    _autoQueryTimer?.cancel();
     _scan.dispose();
     super.dispose();
+  }
+
+  void _stepAutoQuery() {
+    if (!mounted) return;
+    final MeshcoreController mc = context.read<MeshcoreController>();
+    if (!mc.isReady) return;
+    // Eligible = visible peer with no resolved altitude (neither in
+    // the advert field nor in the telemetry cache). Sort by
+    // lastHeardUnix descending so recently-heard peers — likeliest
+    // to actually answer — go first.
+    final List<DiscoveredNode> source =
+        widget.filteredNodes ?? mc.nodes;
+    final List<DiscoveredNode> eligible = <DiscoveredNode>[
+      for (final DiscoveredNode n in source)
+        if (n.pubKeyHex != mc.ownPubKeyHex &&
+            n.altitudeMeters == null &&
+            mc.telemetryFor(n.pubKeyHex)?.altitudeMeters == null)
+          n,
+    ]..sort((DiscoveredNode a, DiscoveredNode b) =>
+        b.lastHeardUnix.compareTo(a.lastHeardUnix));
+    if (eligible.isEmpty) return; // everyone in scope is populated
+    unawaited(mc.requestPeerTelemetry(eligible.first.pubKeyHex));
   }
 
   @override
@@ -62,10 +109,26 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
 
     final List<DiscoveredNode> source =
         widget.filteredNodes ?? mc.nodes;
+    // No more hasLocation filter — altitude can come from telemetry
+    // independent of an advert lat/lon, so a peer without GPS in its
+    // advert can still plot vertically if telemetry told us its
+    // altitude. The x-position is just a stagger, not a real
+    // coordinate, so this is honest.
     final List<DiscoveredNode> peers = <DiscoveredNode>[
       for (final DiscoveredNode n in source)
-        if (n.hasLocation) n
+        if (n.pubKeyHex != mc.ownPubKeyHex) n,
     ];
+
+    // R45+1 — merge altitude from telemetry cache as a fallback to
+    // the (always-null) advert field. When firmware eventually ships
+    // an advert altitude slot, n.altitudeMeters takes priority; until
+    // then this is the only way peers get above the ground band.
+    final Map<String, double> peerAlt = <String, double>{};
+    for (final DiscoveredNode n in peers) {
+      final double? resolved = n.altitudeMeters ??
+          mc.telemetryFor(n.pubKeyHex)?.altitudeMeters;
+      if (resolved != null) peerAlt[n.pubKeyHex] = resolved;
+    }
 
     final double? selfAlt = mc.ownLocation?.altitudeMeters;
 
@@ -81,6 +144,7 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
             painter: _ElevationProfilePainter(
               selfAltMeters: selfAlt,
               peers: peers,
+              peerAltOverrides: peerAlt,
               knownPubKeys: mc.known,
               favPubKeys: mc.favorites,
               accent: cs.primary,
@@ -146,6 +210,7 @@ class _ElevationProfilePainter extends CustomPainter {
   _ElevationProfilePainter({
     required this.selfAltMeters,
     required this.peers,
+    required this.peerAltOverrides,
     required this.knownPubKeys,
     required this.favPubKeys,
     required this.accent,
@@ -165,6 +230,13 @@ class _ElevationProfilePainter extends CustomPainter {
 
   final double? selfAltMeters;
   final List<DiscoveredNode> peers;
+
+  /// R45+1 — resolved altitude per peer (keyed by pubKeyHex). Falls
+  /// back through advert → telemetry cache → null in the caller; the
+  /// painter just reads this map. Peers absent from the map land in
+  /// the unknown band along the ground.
+  final Map<String, double> peerAltOverrides;
+
   final Set<String> knownPubKeys;
   final Set<String> favPubKeys;
   final Color accent;
@@ -290,14 +362,14 @@ class _ElevationProfilePainter extends CustomPainter {
     // area, not actual measurement".
     _drawUnknownBand(canvas, size, axisWidth, groundY);
 
-    // Peer markers. Today altitudeMeters is always null on peers;
-    // they all land in the unknown band. When firmware ships
-    // advert altitude, the same code path will plot them at their
-    // real height with no widget changes.
+    // Peer markers. Altitude resolution order, in the caller:
+    // advert field → telemetry cache → null. Peers absent from
+    // peerAltOverrides land in the unknown band; peers present
+    // plot at their resolved height.
     int unknownCount = 0;
     for (int i = 0; i < peers.length; i++) {
       final DiscoveredNode n = peers[i];
-      final double? alt = n.altitudeMeters;
+      final double? alt = peerAltOverrides[n.pubKeyHex];
       if (alt == null) {
         // Stagger horizontally in the unknown band, top-right of
         // the workspace, so multiple peers don't stack.
