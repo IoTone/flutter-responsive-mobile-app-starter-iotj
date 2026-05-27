@@ -219,9 +219,13 @@ class _StreetMapViewState extends State<StreetMapView> {
                     point: LatLng(selfLat, selfLon),
                     radius: rangeM,
                     useRadiusInMeter: true,
-                    color: cs.tertiary.withValues(alpha: .12),
-                    borderColor: cs.tertiary.withValues(alpha: .55),
-                    borderStrokeWidth: 1.0,
+                    // Outline-only: even modest fill alpha accumulates
+                    // unreadably over OSM tiles when many circles
+                    // overlap. Border carries the signal; map stays
+                    // legible underneath.
+                    color: const Color(0x00000000),
+                    borderColor: cs.tertiary.withValues(alpha: .75),
+                    borderStrokeWidth: 1.4,
                   ),
                   for (final DiscoveredNode n in withLoc)
                     CircleMarker(
@@ -236,8 +240,8 @@ class _StreetMapViewState extends State<StreetMapView> {
                         ourTxPowerDbm: si?.txPowerDbm ?? 14,
                       ),
                       useRadiusInMeter: true,
-                      color: cs.tertiary.withValues(alpha: .06),
-                      borderColor: cs.tertiary.withValues(alpha: .35),
+                      color: const Color(0x00000000),
+                      borderColor: cs.tertiary.withValues(alpha: .55),
                       borderStrokeWidth: 1.0,
                     ),
                 ],

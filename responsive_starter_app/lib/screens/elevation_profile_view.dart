@@ -72,32 +72,38 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     return AnimatedBuilder(
       animation: _scan,
       builder: (BuildContext _, Widget? __) {
-        return CustomPaint(
-          painter: _ElevationProfilePainter(
-            selfAltMeters: selfAlt,
-            peers: peers,
-            knownPubKeys: mc.known,
-            favPubKeys: mc.favorites,
-            accent: cs.primary,
-            accentDim: cs.primary.withValues(alpha: .40),
-            accentFaint: cs.primary.withValues(alpha: .18),
-            warn: cs.tertiary,
-            fg: cs.onSurface,
-            bg: cs.surface,
-            scanT: _scan.value,
-            header: l.elevationProfileTitle,
-            altLabel: l.elevationProfileAltLabel,
-            meLabel: l.elevationProfileMeLabel,
-            unknownLabel: l.elevationProfileUnknownLabel,
-            peerCountLabel: l.elevationProfilePeers(peers.length),
-            referenceLabels: <_RefId, String>{
-              _RefId.person: l.elevationRefPerson,
-              _RefId.house: l.elevationRefHouse,
-              _RefId.redwood: l.elevationRefRedwood,
-              _RefId.empireState: l.elevationRefEmpireState,
-              _RefId.burj: l.elevationRefBurj,
-              _RefId.mtFuji: l.elevationRefMtFuji,
-            },
+        // CustomPaint without a child collapses to Size.zero, leaving
+        // only the parent Scaffold's banner visible. SizedBox.expand
+        // gives it the body's full constraints so the painter has
+        // somewhere to draw.
+        return SizedBox.expand(
+          child: CustomPaint(
+            painter: _ElevationProfilePainter(
+              selfAltMeters: selfAlt,
+              peers: peers,
+              knownPubKeys: mc.known,
+              favPubKeys: mc.favorites,
+              accent: cs.primary,
+              accentDim: cs.primary.withValues(alpha: .40),
+              accentFaint: cs.primary.withValues(alpha: .18),
+              warn: cs.tertiary,
+              fg: cs.onSurface,
+              bg: cs.surface,
+              scanT: _scan.value,
+              header: l.elevationProfileTitle,
+              altLabel: l.elevationProfileAltLabel,
+              meLabel: l.elevationProfileMeLabel,
+              unknownLabel: l.elevationProfileUnknownLabel,
+              peerCountLabel: l.elevationProfilePeers(peers.length),
+              referenceLabels: <_RefId, String>{
+                _RefId.person: l.elevationRefPerson,
+                _RefId.house: l.elevationRefHouse,
+                _RefId.redwood: l.elevationRefRedwood,
+                _RefId.empireState: l.elevationRefEmpireState,
+                _RefId.burj: l.elevationRefBurj,
+                _RefId.mtFuji: l.elevationRefMtFuji,
+              },
+            ),
           ),
         );
       },

@@ -217,9 +217,12 @@ class _FabricSurveyViewState extends State<FabricSurveyView> {
                         txPowerDbm: mc.selfInfo!.txPowerDbm,
                       ),
                       useRadiusInMeter: true,
-                      color: cs.primary.withValues(alpha: .10),
-                      borderColor: cs.primary.withValues(alpha: .55),
-                      borderStrokeWidth: 1.2,
+                      // Outline-only — even modest fill alpha
+                      // accumulates unreadably over the OSM tiles +
+                      // coverage polygons when many circles overlap.
+                      color: const Color(0x00000000),
+                      borderColor: cs.primary.withValues(alpha: .75),
+                      borderStrokeWidth: 1.4,
                     ),
                   for (final DiscoveredNode n in withLoc)
                     CircleMarker(
@@ -236,8 +239,8 @@ class _FabricSurveyViewState extends State<FabricSurveyView> {
                         ourTxPowerDbm: mc.selfInfo?.txPowerDbm ?? 14,
                       ),
                       useRadiusInMeter: true,
-                      color: cs.tertiary.withValues(alpha: .08),
-                      borderColor: cs.tertiary.withValues(alpha: .45),
+                      color: const Color(0x00000000),
+                      borderColor: cs.tertiary.withValues(alpha: .55),
                       borderStrokeWidth: 1.0,
                     ),
                 ],
