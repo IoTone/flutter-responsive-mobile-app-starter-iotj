@@ -254,6 +254,13 @@ class _MeshTreeViewState extends State<MeshTreeView>
       maxHops: _maxHops,
     );
 
+    // Diagnostic counts — localise any "nodes missing" issue to the
+    // filter (input vs shown) vs rendering (shown vs what's drawn).
+    final int totalNodes = mc.nodes.length;
+    final int inputNodes =
+        (widget.filteredNodes ?? mc.nodes).length;
+    final int shownPeers = graph.nodes.length - 1; // minus self
+
     return LayoutBuilder(
       builder: (BuildContext _, BoxConstraints c) {
         final Size size = Size(c.maxWidth, c.maxHeight);
@@ -327,6 +334,30 @@ class _MeshTreeViewState extends State<MeshTreeView>
                   onPressed: _recenter,
                 ),
               ),
+            // Diagnostic chip — input → shown counts.
+            Positioned(
+              left: 12,
+              top: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: cs.surface.withValues(alpha: .82),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                      color: cs.outline.withValues(alpha: .5)),
+                ),
+                child: Text(
+                  'shown $shownPeers · in $inputNodes · '
+                  'total $totalNodes',
+                  style: TextStyle(
+                    color: cs.onSurfaceVariant,
+                    fontSize: 10,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ),
+            ),
             // Hop-depth slider — trims the tree to peers within
             // N hops. 0 = Direct, 6 = All (incl. advert-only
             // floaters). Default 2.

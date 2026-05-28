@@ -2037,7 +2037,17 @@ class MeshcoreController extends ChangeNotifier {
         // R49 — preserve the outbound repeater chain for topology
         // drawing. activePath gives the prefix of valid bytes; the
         // tail of the 64-byte buffer is zero-padding we discard.
-        outPathHashes: List<int>.unmodifiable(c.activePath),
+        //
+        // A flood-routed contact reports out_path_len == 0xFF (the
+        // flood sentinel) — there is no fixed path. activePath would
+        // clamp that to a bogus 64-byte chain, which then reads as a
+        // 64-hop peer and gets filtered out of the tree at every hop
+        // setting. Treat it as an UNKNOWN route (null) instead, so
+        // it shows as a floater at the "All" setting like any other
+        // advert-only peer.
+        outPathHashes: c.outPathLen == kPathLenFlood
+            ? null
+            : List<int>.unmodifiable(c.activePath),
       );
     } else if (f is AdvertFrame) {
       _upsertAdvert(f.advert);
