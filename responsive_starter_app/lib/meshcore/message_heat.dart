@@ -4,6 +4,23 @@ import 'dart:math' as math;
 
 import 'coverage_store.dart';
 
+/// Parse the "name: …" prefix MeshCore prepends to channel-message
+/// text (firmware does `sprintf("%s: ", sender_name)` in
+/// sendGroupMessage). Returns the trimmed sender name, or null when
+/// there's no plausible prefix.
+///
+/// Guards: the separator must be within the first 32 chars (names
+/// are short) and there must be non-empty text before it. A message
+/// body that happens to contain ": " later (e.g. "see you at 5: pm")
+/// won't be misread as long as a real name prefix is absent — we
+/// take the *first* ": " which is the convention's position.
+String? parseChannelSenderName(String text) {
+  final int sep = text.indexOf(': ');
+  if (sep <= 0 || sep > 32) return null;
+  final String name = text.substring(0, sep).trim();
+  return name.isEmpty ? null : name;
+}
+
 /// R51 — one social "ping": a message we observed, with enough
 /// context for the sns-cells view to flash a toast and (when the
 /// sender is located + known) highlight a node.

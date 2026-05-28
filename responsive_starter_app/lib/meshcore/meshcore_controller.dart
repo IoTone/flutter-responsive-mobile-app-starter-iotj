@@ -1323,19 +1323,47 @@ class MeshcoreController extends ChangeNotifier {
         isChannel: false,
       );
     } else if (f is ChannelMessageFrame) {
-      // Channel messages carry no sender identity (anonymous
-      // broadcast) — deposit heat at our own cell, the receive
-      // point. Still toasts so the chatter is visible.
+      // Channel messages have no sender *field*, but MeshCore
+      // firmware prepends the sender's name to the text as
+      // "name: message" (sprintf "%s: " in sendGroupMessage). So we
+      // can attribute by name: parse the prefix, match it to a
+      // single known node, and place the heat at *that* node — same
+      // as a DM. Falls back to our own cell when the name is
+      // missing, unmatched, ambiguous, or the matched node has no
+      // location. Attribution is advisory (channel text isn't
+      // per-sender signed), which is fine for a social heat map.
       final ChannelMessage cm = f.message;
+      final DiscoveredNode? sender = _resolveChannelSender(cm.text);
+      final bool located = sender?.hasLocation == true;
       final OwnLocation? own = ownLocation;
       _heat.record(
         text: cm.text,
         atUnix: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        lat: own?.latitude,
-        lon: own?.longitude,
+        lat: located ? sender!.latitude : own?.latitude,
+        lon: located ? sender!.longitude : own?.longitude,
+        pubKeyHex: located ? sender!.pubKeyHex : null,
         isChannel: true,
       );
     }
+  }
+
+  /// Parse the "name: …" prefix MeshCore prepends to channel text and
+  /// resolve it to a single known node. Returns null when there's no
+  /// prefix, no match, or an ambiguous (>1) match — name strings
+  /// aren't unique or authenticated, so we only attribute on an
+  /// unambiguous hit.
+  DiscoveredNode? _resolveChannelSender(String text) {
+    final String? name = parseChannelSenderName(text);
+    if (name == null) return null;
+    final String want = name.toLowerCase();
+    DiscoveredNode? hit;
+    for (final DiscoveredNode n in _nodes.values) {
+      if (n.name.toLowerCase() == want) {
+        if (hit != null) return null; // ambiguous — bail
+        hit = n;
+      }
+    }
+    return hit;
   }
 
   /// Set the device clock to the phone's wall clock so device-sourced

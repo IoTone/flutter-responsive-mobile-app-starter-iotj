@@ -97,4 +97,33 @@ void main() {
       expect(t.lastPing, isNull);
     });
   });
+
+  group('parseChannelSenderName', () {
+    test('extracts the "name: " prefix MeshCore prepends', () {
+      expect(parseChannelSenderName('Alice: hello there'), 'Alice');
+      expect(parseChannelSenderName('Bob-T1000: on my way'),
+          'Bob-T1000');
+    });
+
+    test('trims surrounding whitespace in the name', () {
+      expect(parseChannelSenderName('  Carol : hi'), 'Carol');
+    });
+
+    test('null when there is no prefix separator', () {
+      expect(parseChannelSenderName('just a message'), isNull);
+      expect(parseChannelSenderName(''), isNull);
+    });
+
+    test('null when the separator is too far in (not a name)', () {
+      // A body with a late ": " and no short name prefix.
+      expect(
+          parseChannelSenderName(
+              'this is a very long sentence with a colon: here'),
+          isNull);
+    });
+
+    test('null when nothing precedes the separator', () {
+      expect(parseChannelSenderName(': orphaned'), isNull);
+    });
+  });
 }
