@@ -21,6 +21,7 @@ import 'fabric_survey_view.dart';
 import 'globe_view.dart';
 import 'mesh_tree_view.dart';
 import 'node_detail_sheet.dart';
+import 'sns_cells_view.dart';
 import 'street_map_view.dart';
 
 /// R27 — three map views in the /grid picker:
@@ -38,6 +39,7 @@ enum _GridViewMode {
   fabric,
   elevation,
   tree,
+  snsCells,
 }
 
 /// R18 / U9 — the hyperlocal grid: a radial range-ring view of the
@@ -199,6 +201,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.fabric => Icons.view_quilt,
         _GridViewMode.elevation => Icons.terrain,
         _GridViewMode.tree => Icons.account_tree,
+        _GridViewMode.snsCells => Icons.local_fire_department,
       };
 
   /// 4–5 character all-caps label for the picker button + menu. Keep
@@ -213,6 +216,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.fabric => l.gridViewFabricShort,
         _GridViewMode.elevation => l.gridViewElevationShort,
         _GridViewMode.tree => l.gridViewTreeShort,
+        _GridViewMode.snsCells => l.gridViewSnsCellsShort,
       };
 
   static String _longLabel(_GridViewMode m, AppLocalizations l) =>
@@ -224,6 +228,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.fabric => l.gridViewFabric,
         _GridViewMode.elevation => l.gridViewElevation,
         _GridViewMode.tree => l.gridViewTree,
+        _GridViewMode.snsCells => l.gridViewSnsCells,
       };
 
 
@@ -539,6 +544,21 @@ class _GridScreenState extends State<GridScreen>
                   right: 0,
                   top: 0,
                   child: _TreeLegend(cs: cs, l: l),
+                ),
+            ],
+          ),
+        _GridViewMode.snsCells => Stack(
+            children: <Widget>[
+              SnsCellsView(
+                filteredNodes: visible,
+                frozen: !_live && _userInteracted,
+              ),
+              if (_legendVisible)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  child: _SnsCellsLegend(cs: cs, l: l),
                 ),
             ],
           ),
@@ -1204,6 +1224,69 @@ class _FabricLegend extends StatelessWidget {
           row(Icons.place, l.fabricLegendMarker, colour: cs.tertiary),
           row(Icons.my_location, l.fabricLegendSelf, colour: cs.primary),
           row(Icons.delete_sweep, l.fabricLegendReset),
+        ],
+      ),
+    );
+  }
+}
+
+/// R51 — info-button legend for the sns-cells social heat map.
+class _SnsCellsLegend extends StatelessWidget {
+  const _SnsCellsLegend({required this.cs, required this.l});
+  final ColorScheme cs;
+  final AppLocalizations l;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(IconData icon, String text, {Color? colour}) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Icon(icon, size: 14, color: colour ?? cs.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(text,
+                    style: TextStyle(
+                        color: cs.onSurface,
+                        fontSize: 12,
+                        height: 1.35)),
+              ),
+            ],
+          ),
+        );
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: cs.outline.withValues(alpha: .35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(l.snsCellsLegendTitle,
+              style: TextStyle(
+                  color: cs.onSurfaceVariant,
+                  fontSize: 11,
+                  letterSpacing: 3)),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text(l.snsCellsLegendDesc,
+                style: TextStyle(
+                    color: cs.onSurface, fontSize: 12, height: 1.35)),
+          ),
+          row(Icons.local_fire_department, l.snsCellsLegendHot,
+              colour: const Color(0xFFFF3030)),
+          row(Icons.ac_unit, l.snsCellsLegendCool),
+          row(Icons.chat_bubble_outline, l.snsCellsLegendToast,
+              colour: cs.tertiary),
+          row(Icons.lock_outline, l.snsCellsLegendChannel,
+              colour: cs.primary),
+          row(Icons.timelapse, l.snsCellsLegendDecay),
         ],
       ),
     );

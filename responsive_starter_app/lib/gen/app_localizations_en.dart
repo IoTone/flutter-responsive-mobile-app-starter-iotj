@@ -1297,6 +1297,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gridViewTreeShort => 'TREE';
 
   @override
+  String get gridViewSnsCells => 'SNS cells (heat)';
+
+  @override
+  String get gridViewSnsCellsShort => 'SNS';
+
+  @override
+  String get snsCellsAwaitingFix =>
+      'Waiting for a location fix — the heat map centres on you.';
+
+  @override
+  String snsCellsStatus(int active, int hot) {
+    return '$active cells · $hot hot';
+  }
+
+  @override
+  String get snsCellsLegendTitle => 'SNS CELLS';
+
+  @override
+  String get snsCellsLegendDesc =>
+      'A live social-activity heat map. Each observed message warms its cell; cells cool over a one-hour horizon.';
+
+  @override
+  String get snsCellsLegendHot =>
+      'Bright red = busy (≈5+ messages in the last minute).';
+
+  @override
+  String get snsCellsLegendCool =>
+      'Fading to white = quieting down; gone after ~1 h idle.';
+
+  @override
+  String get snsCellsLegendToast =>
+      'New messages flash as a toast near their source, then vanish.';
+
+  @override
+  String get snsCellsLegendChannel =>
+      'Channel messages are anonymous — they warm your own cell (the receive point).';
+
+  @override
+  String get snsCellsLegendDecay =>
+      'Only the last hour is tracked; nothing is stored.';
+
+  @override
   String get meshTreeEmpty =>
       'Waiting for contact sync — the tree is built from each contact\'s outPath.';
 

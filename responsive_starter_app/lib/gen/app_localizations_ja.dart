@@ -1242,6 +1242,42 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridViewTreeShort => 'ツリー';
 
   @override
+  String get gridViewSnsCells => 'SNS セル（ヒート）';
+
+  @override
+  String get gridViewSnsCellsShort => 'SNS';
+
+  @override
+  String get snsCellsAwaitingFix => '位置情報を待機中 — ヒートマップは自分を中心に表示されます。';
+
+  @override
+  String snsCellsStatus(int active, int hot) {
+    return '$active セル · $hot ホット';
+  }
+
+  @override
+  String get snsCellsLegendTitle => 'SNS セル';
+
+  @override
+  String get snsCellsLegendDesc =>
+      'ライブのソーシャル活動ヒートマップ。観測したメッセージごとにセルが温まり、1時間の地平で冷えていきます。';
+
+  @override
+  String get snsCellsLegendHot => '明るい赤 = 活発（直近1分で約5件以上）。';
+
+  @override
+  String get snsCellsLegendCool => '白へ退色 = 沈静化。約1時間無活動で消滅。';
+
+  @override
+  String get snsCellsLegendToast => '新着メッセージは発信元付近にトーストで点滅し、消えます。';
+
+  @override
+  String get snsCellsLegendChannel => 'チャンネルメッセージは匿名 — 自分のセル（受信地点）を温めます。';
+
+  @override
+  String get snsCellsLegendDecay => '直近1時間のみ追跡。保存はされません。';
+
+  @override
   String get meshTreeEmpty => 'コンタクト同期を待機中 — ツリーは各コンタクトの outPath から構築されます。';
 
   @override

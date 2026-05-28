@@ -2294,6 +2294,72 @@ abstract class AppLocalizations {
   /// **'TREE'**
   String get gridViewTreeShort;
 
+  /// No description provided for @gridViewSnsCells.
+  ///
+  /// In en, this message translates to:
+  /// **'SNS cells (heat)'**
+  String get gridViewSnsCells;
+
+  /// No description provided for @gridViewSnsCellsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'SNS'**
+  String get gridViewSnsCellsShort;
+
+  /// No description provided for @snsCellsAwaitingFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for a location fix — the heat map centres on you.'**
+  String get snsCellsAwaitingFix;
+
+  /// No description provided for @snsCellsStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'{active} cells · {hot} hot'**
+  String snsCellsStatus(int active, int hot);
+
+  /// No description provided for @snsCellsLegendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SNS CELLS'**
+  String get snsCellsLegendTitle;
+
+  /// No description provided for @snsCellsLegendDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A live social-activity heat map. Each observed message warms its cell; cells cool over a one-hour horizon.'**
+  String get snsCellsLegendDesc;
+
+  /// No description provided for @snsCellsLegendHot.
+  ///
+  /// In en, this message translates to:
+  /// **'Bright red = busy (≈5+ messages in the last minute).'**
+  String get snsCellsLegendHot;
+
+  /// No description provided for @snsCellsLegendCool.
+  ///
+  /// In en, this message translates to:
+  /// **'Fading to white = quieting down; gone after ~1 h idle.'**
+  String get snsCellsLegendCool;
+
+  /// No description provided for @snsCellsLegendToast.
+  ///
+  /// In en, this message translates to:
+  /// **'New messages flash as a toast near their source, then vanish.'**
+  String get snsCellsLegendToast;
+
+  /// No description provided for @snsCellsLegendChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel messages are anonymous — they warm your own cell (the receive point).'**
+  String get snsCellsLegendChannel;
+
+  /// No description provided for @snsCellsLegendDecay.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the last hour is tracked; nothing is stored.'**
+  String get snsCellsLegendDecay;
+
   /// No description provided for @meshTreeEmpty.
   ///
   /// In en, this message translates to:

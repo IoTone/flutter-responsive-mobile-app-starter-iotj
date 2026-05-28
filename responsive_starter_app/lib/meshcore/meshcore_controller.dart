@@ -19,6 +19,7 @@ import 'known_store.dart';
 import 'node_tags_store.dart';
 import 'mesh_event.dart';
 import 'meshcore_connection.dart';
+import 'message_heat.dart';
 import 'node_telemetry.dart';
 import 'own_location.dart';
 import 'coverage_store.dart';
@@ -129,6 +130,7 @@ class MeshcoreController extends ChangeNotifier {
       _maybeDrain(f);
       _ingestNode(f);
       _ingestChat(f);
+      _trackMessageHeat(f);
       _logEvent(f);
       notifyListeners();
     });
@@ -1274,6 +1276,59 @@ class MeshcoreController extends ChangeNotifier {
       // carries 16 bytes — the AES-128 key. We store a defensive
       // copy because Uint8List can be a view.
       _channelPsks[ci.channelIdx] = List<int>.unmodifiable(ci.psk);
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // R51 — social activity heat (sns-cells view). Buckets observed
+  // messages into geographic cells and scores them by time-decayed
+  // density. DMs land at the (located) sender's cell; channel
+  // messages are anonymous in MeshCore so they land at our own cell
+  // (the message reached us *here*).
+  // -------------------------------------------------------------------
+
+  final MessageHeatTracker _heat = MessageHeatTracker();
+
+  /// cellKey → hotness in [0, 1] over the last hour. Pruned on read.
+  Map<String, double> messageHeatScores() => _heat.scores();
+
+  /// Most recently observed message (drives the sns-cells toast).
+  HeatPing? get lastHeatPing => _heat.lastPing;
+
+  void _trackMessageHeat(MeshcoreInbound f) {
+    if (f is ContactMessageFrame) {
+      // DM: resolve sender by 6-byte prefix; place heat at the
+      // sender's known location when we have one.
+      final ContactMessage cm = f.message;
+      final String prefixHex = _hex(cm.pubKeyPrefix);
+      DiscoveredNode? sender;
+      for (final DiscoveredNode n in _nodes.values) {
+        if (n.pubKeyHex.startsWith(prefixHex)) {
+          sender = n;
+          break;
+        }
+      }
+      _heat.record(
+        text: cm.text,
+        atUnix: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        lat: sender?.hasLocation == true ? sender!.latitude : null,
+        lon: sender?.hasLocation == true ? sender!.longitude : null,
+        pubKeyHex: sender?.pubKeyHex,
+        isChannel: false,
+      );
+    } else if (f is ChannelMessageFrame) {
+      // Channel messages carry no sender identity (anonymous
+      // broadcast) — deposit heat at our own cell, the receive
+      // point. Still toasts so the chatter is visible.
+      final ChannelMessage cm = f.message;
+      final OwnLocation? own = ownLocation;
+      _heat.record(
+        text: cm.text,
+        atUnix: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        lat: own?.latitude,
+        lon: own?.longitude,
+        isChannel: true,
+      );
     }
   }
 
