@@ -97,11 +97,17 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     }
     final List<DiscoveredNode> source =
         widget.filteredNodes ?? mc.nodes;
+    // Eligible = no altitude AND not already in-flight. The
+    // in-flight filter prevents us from re-targeting the same peer
+    // every tick (which made the prior loop hammer the first
+    // eligible peer for the full 45 s inflightTimeout). Without it
+    // peers further down the list never got a chance.
     final List<DiscoveredNode> eligible = <DiscoveredNode>[
       for (final DiscoveredNode n in source)
         if (n.pubKeyHex != mc.ownPubKeyHex &&
             n.altitudeMeters == null &&
-            mc.telemetryFor(n.pubKeyHex)?.altitudeMeters == null)
+            mc.telemetryFor(n.pubKeyHex)?.altitudeMeters == null &&
+            !mc.isQueryingTelemetry(n.pubKeyHex))
           n,
     ]..sort((DiscoveredNode a, DiscoveredNode b) =>
         b.lastHeardUnix.compareTo(a.lastHeardUnix));
@@ -117,8 +123,9 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     _queriesFired++;
     _lastTargetName =
         target.name.isEmpty ? target.shortId : target.name;
-    debugPrint('[elev.auto] querying ${target.pubKeyHex} '
-        '(${target.name}) — query #$_queriesFired');
+    debugPrint('[elev.auto] sending telemetry req → ${target.name} '
+        '(${target.pubKeyHex.substring(0, 16)}…) — '
+        'send #$_queriesFired');
     unawaited(mc.requestPeerTelemetry(target.pubKeyHex));
     if (mounted) setState(() {}); // refresh status chip
   }
@@ -240,6 +247,21 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
                   if (_lastTargetName != null)
                     Text('last: $_lastTargetName',
                         overflow: TextOverflow.ellipsis),
+                  // If we've sent several queries but seen no
+                  // resolutions, the peer side almost certainly isn't
+                  // responding — most common cause is peer's
+                  // telemetry mode being off (CMD_SET_OTHER_PARAMS
+                  // packs a byte where the low bits gate which
+                  // sensors are exposed).
+                  if (_queriesFired >= 3 && resolvedCount == 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        'no responses — peer telem mode\noff?',
+                        style: TextStyle(
+                            color: cs.tertiary, fontSize: 10),
+                      ),
+                    ),
                 ],
               ),
             ),
