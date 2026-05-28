@@ -581,6 +581,7 @@
   "gridViewSnsCells": "SNS セル（ヒート）",
   "gridViewSnsCellsShort": "SNS",
   "snsCellsAwaitingFix": "位置情報を待機中 — ヒートマップは自分を中心に表示されます。",
+  "snsCellsClear": "クリア",
   "snsCellsStatus": "{active} セル · {hot} ホット",
   "@snsCellsStatus": {
     "placeholders": {"active": {"type": "int"}, "hot": {"type": "int"}}

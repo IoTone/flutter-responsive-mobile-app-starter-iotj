@@ -2312,6 +2312,12 @@ abstract class AppLocalizations {
   /// **'Waiting for a location fix — the heat map centres on you.'**
   String get snsCellsAwaitingFix;
 
+  /// No description provided for @snsCellsClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get snsCellsClear;
+
   /// No description provided for @snsCellsStatus.
   ///
   /// In en, this message translates to:

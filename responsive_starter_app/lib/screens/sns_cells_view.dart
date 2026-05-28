@@ -1,6 +1,7 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -194,6 +195,24 @@ class _SnsCellsViewState extends State<SnsCellsView>
             ),
           ),
         ),
+        // Clear-heat control — wipes the accumulated heat + toasts.
+        // Useful when moving to a new area or to reset the pulse.
+        Positioned(
+          right: 12,
+          bottom: 12,
+          child: FilledButton.tonalIcon(
+            icon: const Icon(Icons.clear_all, size: 16),
+            label: Text(l.snsCellsClear),
+            onPressed: () {
+              mc.clearMessageHeat();
+              setState(() {
+                _toasts.clear();
+                _flashPubKey = null;
+                _lastPingSeq = mc.lastHeatPing?.seq ?? 0;
+              });
+            },
+          ),
+        ),
       ],
     );
   }
@@ -283,6 +302,12 @@ class _SnsCellsPainter extends CustomPainter {
     }
 
     // --- Heat cells ---
+    // Glitch clock: a coarse time quantum (~7 fps) drives the jitter
+    // + RGB-split phase so hot cells shimmer like a degrading CRT
+    // feed without thrashing every frame.
+    final int glitchQuantum = nowMs ~/ 140;
+    final double splitPhase =
+        math.sin(nowMs / 220.0); // -1..1, ~0.7 Hz
     final double cellPx =
         CoverageStore.cellDeg * _mPerDegLat * pxPerMeter;
     heat.forEach((String key, double hotness) {
@@ -291,16 +316,43 @@ class _SnsCellsPainter extends CustomPainter {
       if (b == null) return;
       final ({double lat, double lon}) c =
           CoverageStore.cellCentre(b.latBucket, b.lonBucket);
-      final Offset cc = project(c.lat, c.lon);
-      final Rect r = Rect.fromCenter(
-          center: cc,
-          width: math.max(cellPx, 6),
-          height: math.max(cellPx, 6));
+      Offset cc = project(c.lat, c.lon);
+
+      // Glitch jitter — the hotter the cell, the more it twitches.
+      // Deterministic per (cell, time-quantum) so it's stable within
+      // a glitch frame but jumps between them.
+      if (hotness > 0.5) {
+        final int h = Object.hash(key, glitchQuantum);
+        final double jx = ((h & 0x7) - 3.5) * hotness * 0.6;
+        final double jy = (((h >> 3) & 0x7) - 3.5) * hotness * 0.6;
+        cc = cc.translate(jx, jy);
+      }
+
+      final double w = math.max(cellPx, 6);
+      final Rect r = Rect.fromCenter(center: cc, width: w, height: w);
       // white (cool) → red (hot). Alpha also rises with heat so a
       // near-cool cell stays faint and the map breathes.
       final Color fill = Color.lerp(cool, hot, hotness)!
           .withValues(alpha: (0.20 + 0.62 * hotness).clamp(0.0, 0.85));
       canvas.drawRect(r, Paint()..color = fill);
+
+      // RGB-split / chromatic aberration on hot cells — draw a red
+      // ghost and a cyan ghost offset opposite ways, amount tied to
+      // hotness + the split phase. Reads as a glitchy "signal hot"
+      // cue and intensifies as the cell heats up.
+      if (hotness > 0.6) {
+        final double s = splitPhase * (1.0 + hotness * 2.5);
+        final Paint redGhost = Paint()
+          ..color =
+              const Color(0xFFFF0040).withValues(alpha: 0.30 * hotness)
+          ..blendMode = BlendMode.screen;
+        final Paint cyanGhost = Paint()
+          ..color =
+              const Color(0xFF00FFE0).withValues(alpha: 0.22 * hotness)
+          ..blendMode = BlendMode.screen;
+        canvas.drawRect(r.shift(Offset(s, 0)), redGhost);
+        canvas.drawRect(r.shift(Offset(-s, 0)), cyanGhost);
+      }
     });
 
     // --- Grid lines (faint) for spatial reference ---
@@ -353,7 +405,10 @@ class _SnsCellsPainter extends CustomPainter {
         selfPaint);
     canvas.drawCircle(centre, 4, Paint()..color = self);
 
-    // --- Toasts ---
+    // --- Glitch overlay: CRT scanlines + sweep + occasional tear ---
+    _drawGlitch(canvas, size);
+
+    // --- Toasts (drawn on top of scanlines so text stays crisp) ---
     for (final _Toast t in toasts) {
       final double age = (nowMs - t.createdMs) / toastLifeMs;
       if (age >= 1.0) continue;
@@ -366,6 +421,59 @@ class _SnsCellsPainter extends CustomPainter {
       // Rise slightly as it ages.
       final Offset pos = anchor.translate(0, -18 - age * 24);
       _drawToast(canvas, pos, t.text, opacity, t.isChannel);
+    }
+  }
+
+  /// CRT-style glitch layer: static scanlines, a sweeping bright
+  /// line, and an occasional horizontal "tear" band that offsets a
+  /// slice of the frame. Kept subtle — the heat data is the point,
+  /// the glitch is flavour.
+  void _drawGlitch(Canvas canvas, Size size) {
+    // Static scanlines — dark horizontal lines every 3px.
+    final Paint scan = Paint()
+      ..color = Colors.black.withValues(alpha: 0.10)
+      ..strokeWidth = 1.0;
+    for (double y = 0; y < size.height; y += 3.0) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), scan);
+    }
+
+    // Sweeping scan line — one brighter band travelling top→bottom
+    // on a ~3.2 s loop.
+    final double sweepT = (nowMs % 3200) / 3200.0;
+    final double sweepY = sweepT * size.height;
+    final Paint sweep = Paint()
+      ..shader = ui.Gradient.linear(
+        Offset(0, sweepY - 14),
+        Offset(0, sweepY + 14),
+        <Color>[
+          accent.withValues(alpha: 0.0),
+          accent.withValues(alpha: 0.16),
+          accent.withValues(alpha: 0.0),
+        ],
+        <double>[0.0, 0.5, 1.0],
+      );
+    canvas.drawRect(
+        Rect.fromLTWH(0, sweepY - 14, size.width, 28), sweep);
+
+    // Occasional tear — every few seconds, a thin horizontal slice
+    // gets a bright offset bar (RGB-split coloured). Driven by a
+    // coarse time hash so it fires irregularly, not on a metronome.
+    final int tearWindow = nowMs ~/ 700;
+    final int tearHash = Object.hash(tearWindow, 0x5eed);
+    if (tearHash % 5 == 0) {
+      final double ty =
+          (tearHash >> 3 & 0xFF) / 255.0 * size.height;
+      final double th = 2.0 + (tearHash >> 11 & 0x3);
+      canvas.drawRect(
+          Rect.fromLTWH(0, ty, size.width, th),
+          Paint()
+            ..color = const Color(0xFFFF0040).withValues(alpha: 0.18)
+            ..blendMode = BlendMode.screen);
+      canvas.drawRect(
+          Rect.fromLTWH(0, ty + th, size.width, th),
+          Paint()
+            ..color = const Color(0xFF00FFE0).withValues(alpha: 0.14)
+            ..blendMode = BlendMode.screen);
     }
   }
 

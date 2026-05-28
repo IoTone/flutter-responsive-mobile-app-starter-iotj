@@ -1307,6 +1307,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Waiting for a location fix — the heat map centres on you.';
 
   @override
+  String get snsCellsClear => 'Clear';
+
+  @override
   String snsCellsStatus(int active, int hot) {
     return '$active cells · $hot hot';
   }

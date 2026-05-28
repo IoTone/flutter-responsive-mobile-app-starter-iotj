@@ -1251,6 +1251,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get snsCellsAwaitingFix => '位置情報を待機中 — ヒートマップは自分を中心に表示されます。';
 
   @override
+  String get snsCellsClear => 'クリア';
+
+  @override
   String snsCellsStatus(int active, int hot) {
     return '$active セル · $hot ホット';
   }

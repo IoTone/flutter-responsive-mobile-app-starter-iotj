@@ -1295,6 +1295,12 @@ class MeshcoreController extends ChangeNotifier {
   /// Most recently observed message (drives the sns-cells toast).
   HeatPing? get lastHeatPing => _heat.lastPing;
 
+  /// Wipe all accumulated social heat (sns-cells "clear" control).
+  void clearMessageHeat() {
+    _heat.clear();
+    notifyListeners();
+  }
+
   void _trackMessageHeat(MeshcoreInbound f) {
     if (f is ContactMessageFrame) {
       // DM: resolve sender by 6-byte prefix; place heat at the
