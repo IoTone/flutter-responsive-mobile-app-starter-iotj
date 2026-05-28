@@ -3,6 +3,7 @@
 import 'package:go_router/go_router.dart';
 
 import 'screens/app_settings_screen.dart';
+import 'screens/battery_screen.dart';
 import 'screens/channels_screen.dart';
 import 'screens/device_config_screen.dart';
 import 'screens/dm_screen.dart';
@@ -53,6 +54,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/settings/location',
       builder: (_, __) => const LocationSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/settings/battery',
+      builder: (_, __) => const BatteryScreen(),
     ),
   ],
 );

@@ -866,5 +866,58 @@
   "otherMultiAcksHelper": "0 = シングル ACK (既定)。値が大きいほど送信確定までに待つ追加 ACK 数。",
   "otherApply": "適用",
   "otherSentSnack": "OTHER PARAMS を送信 — デバイス側の書込に時間がかかる場合があります。",
-  "otherAwaitingDevice": "— デバイス待機中 —"
+  "otherAwaitingDevice": "— デバイス待機中 —",
+
+  "batteryTitle": "バッテリー",
+  "batteryConfigSubtitle": "充電量・消費レート・残り時間の推定",
+  "batteryAwaiting": "デバイスからのバッテリー値を待機中…",
+  "batteryReset": "履歴をリセット",
+  "batteryResetConfirm": "保存済みのバッテリー履歴をすべて消去しますか？新しい値が届くと推定は再構築されます。",
+  "batteryVoltageLabel": "電圧",
+  "batteryCharging": "充電中",
+  "batteryChargingNote": "充電中 — 残り時間の推定は一時停止しています。",
+  "batteryTimeToEmpty": "残り時間",
+  "batteryEstimating": "消費データを収集中 — 数分間の放電後に推定値が表示されます。",
+  "batteryDrainRate": "消費レート",
+  "batteryBasis": "根拠",
+  "batteryBasisObserved": "{span} の放電実測に基づく",
+  "@batteryBasisObserved": {
+    "placeholders": {"span": {"type": "String"}}
+  },
+  "batteryBasisRated": "定格 (容量 ÷ 標準消費電流)",
+  "batteryConfidence": "信頼度",
+  "batteryConfHigh": "高",
+  "batteryConfMedium": "中",
+  "batteryConfLow": "低",
+  "batteryMethodObserved": "放電実測",
+  "batteryMethodRated": "定格推定",
+  "batteryMethodNone": "データ収集中",
+  "batterySpecTitle": "デバイスモデル",
+  "batterySpecGeneric": "不明なハードウェア — 汎用の単セル Li-ion モデルを使用します。定格容量での照合ができないため、推定は実測消費に依存します。",
+  "batterySpecCapacity": "容量: {mah} mAh",
+  "@batterySpecCapacity": {
+    "placeholders": {"mah": {"type": "int"}}
+  },
+  "batterySpecCapacityUnknown": "容量: ユーザー供給 (不明)",
+  "batterySpecDraw": "標準消費: 約 {ma} mA (受信時)",
+  "@batterySpecDraw": {
+    "placeholders": {"ma": {"type": "int"}}
+  },
+  "batteryHistoryTitle": "電圧履歴",
+  "batteryHistorySpan": "{span} · {count} サンプル",
+  "@batteryHistorySpan": {
+    "placeholders": {"span": {"type": "String"}, "count": {"type": "int"}}
+  },
+  "batteryDurDH": "{days}日 {hours}時間",
+  "@batteryDurDH": {
+    "placeholders": {"days": {"type": "int"}, "hours": {"type": "int"}}
+  },
+  "batteryDurHM": "{hours}時間 {mins}分",
+  "@batteryDurHM": {
+    "placeholders": {"hours": {"type": "int"}, "mins": {"type": "int"}}
+  },
+  "batteryDurM": "{mins}分",
+  "@batteryDurM": {
+    "placeholders": {"mins": {"type": "int"}}
+  }
 }

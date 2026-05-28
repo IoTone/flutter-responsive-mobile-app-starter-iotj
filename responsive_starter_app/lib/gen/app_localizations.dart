@@ -3547,6 +3547,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'— awaiting device —'**
   String get otherAwaitingDevice;
+
+  /// No description provided for @batteryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery'**
+  String get batteryTitle;
+
+  /// No description provided for @batteryConfigSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Charge, drain rate, and time-to-empty estimate'**
+  String get batteryConfigSubtitle;
+
+  /// No description provided for @batteryAwaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for a battery reading from the device…'**
+  String get batteryAwaiting;
+
+  /// No description provided for @batteryReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset history'**
+  String get batteryReset;
+
+  /// No description provided for @batteryResetConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all stored battery history? The runtime estimate will rebuild as new readings arrive.'**
+  String get batteryResetConfirm;
+
+  /// No description provided for @batteryVoltageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'VOLTAGE'**
+  String get batteryVoltageLabel;
+
+  /// No description provided for @batteryCharging.
+  ///
+  /// In en, this message translates to:
+  /// **'Charging'**
+  String get batteryCharging;
+
+  /// No description provided for @batteryChargingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Charging — runtime estimate paused.'**
+  String get batteryChargingNote;
+
+  /// No description provided for @batteryTimeToEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'TIME TO EMPTY'**
+  String get batteryTimeToEmpty;
+
+  /// No description provided for @batteryEstimating.
+  ///
+  /// In en, this message translates to:
+  /// **'Gathering drain data — an estimate appears after a few minutes of discharge.'**
+  String get batteryEstimating;
+
+  /// No description provided for @batteryDrainRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Drain rate'**
+  String get batteryDrainRate;
+
+  /// No description provided for @batteryBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'Basis'**
+  String get batteryBasis;
+
+  /// No description provided for @batteryBasisObserved.
+  ///
+  /// In en, this message translates to:
+  /// **'measured over {span} of discharge'**
+  String batteryBasisObserved(String span);
+
+  /// No description provided for @batteryBasisRated.
+  ///
+  /// In en, this message translates to:
+  /// **'nameplate (capacity ÷ typical draw)'**
+  String get batteryBasisRated;
+
+  /// No description provided for @batteryConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'confidence'**
+  String get batteryConfidence;
+
+  /// No description provided for @batteryConfHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'high'**
+  String get batteryConfHigh;
+
+  /// No description provided for @batteryConfMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'medium'**
+  String get batteryConfMedium;
+
+  /// No description provided for @batteryConfLow.
+  ///
+  /// In en, this message translates to:
+  /// **'low'**
+  String get batteryConfLow;
+
+  /// No description provided for @batteryMethodObserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured discharge'**
+  String get batteryMethodObserved;
+
+  /// No description provided for @batteryMethodRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Rated estimate'**
+  String get batteryMethodRated;
+
+  /// No description provided for @batteryMethodNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Gathering data'**
+  String get batteryMethodNone;
+
+  /// No description provided for @batterySpecTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'DEVICE MODEL'**
+  String get batterySpecTitle;
+
+  /// No description provided for @batterySpecGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown hardware — using a generic single-cell Li-ion model. The estimate relies on observed drain (no nameplate capacity to cross-check).'**
+  String get batterySpecGeneric;
+
+  /// No description provided for @batterySpecCapacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity: {mah} mAh'**
+  String batterySpecCapacity(int mah);
+
+  /// No description provided for @batterySpecCapacityUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity: user-supplied (unknown)'**
+  String get batterySpecCapacityUnknown;
+
+  /// No description provided for @batterySpecDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Typical draw: ~{ma} mA (radio receiving)'**
+  String batterySpecDraw(int ma);
+
+  /// No description provided for @batteryHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'VOLTAGE HISTORY'**
+  String get batteryHistoryTitle;
+
+  /// No description provided for @batteryHistorySpan.
+  ///
+  /// In en, this message translates to:
+  /// **'{span} · {count} samples'**
+  String batteryHistorySpan(String span, int count);
+
+  /// No description provided for @batteryDurDH.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d {hours}h'**
+  String batteryDurDH(int days, int hours);
+
+  /// No description provided for @batteryDurHM.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {mins}m'**
+  String batteryDurHM(int hours, int mins);
+
+  /// No description provided for @batteryDurM.
+  ///
+  /// In en, this message translates to:
+  /// **'{mins}m'**
+  String batteryDurM(int mins);
 }
 
 class _AppLocalizationsDelegate

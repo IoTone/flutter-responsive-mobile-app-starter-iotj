@@ -1932,4 +1932,113 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get otherAwaitingDevice => '— デバイス待機中 —';
+
+  @override
+  String get batteryTitle => 'バッテリー';
+
+  @override
+  String get batteryConfigSubtitle => '充電量・消費レート・残り時間の推定';
+
+  @override
+  String get batteryAwaiting => 'デバイスからのバッテリー値を待機中…';
+
+  @override
+  String get batteryReset => '履歴をリセット';
+
+  @override
+  String get batteryResetConfirm =>
+      '保存済みのバッテリー履歴をすべて消去しますか？新しい値が届くと推定は再構築されます。';
+
+  @override
+  String get batteryVoltageLabel => '電圧';
+
+  @override
+  String get batteryCharging => '充電中';
+
+  @override
+  String get batteryChargingNote => '充電中 — 残り時間の推定は一時停止しています。';
+
+  @override
+  String get batteryTimeToEmpty => '残り時間';
+
+  @override
+  String get batteryEstimating => '消費データを収集中 — 数分間の放電後に推定値が表示されます。';
+
+  @override
+  String get batteryDrainRate => '消費レート';
+
+  @override
+  String get batteryBasis => '根拠';
+
+  @override
+  String batteryBasisObserved(String span) {
+    return '$span の放電実測に基づく';
+  }
+
+  @override
+  String get batteryBasisRated => '定格 (容量 ÷ 標準消費電流)';
+
+  @override
+  String get batteryConfidence => '信頼度';
+
+  @override
+  String get batteryConfHigh => '高';
+
+  @override
+  String get batteryConfMedium => '中';
+
+  @override
+  String get batteryConfLow => '低';
+
+  @override
+  String get batteryMethodObserved => '放電実測';
+
+  @override
+  String get batteryMethodRated => '定格推定';
+
+  @override
+  String get batteryMethodNone => 'データ収集中';
+
+  @override
+  String get batterySpecTitle => 'デバイスモデル';
+
+  @override
+  String get batterySpecGeneric =>
+      '不明なハードウェア — 汎用の単セル Li-ion モデルを使用します。定格容量での照合ができないため、推定は実測消費に依存します。';
+
+  @override
+  String batterySpecCapacity(int mah) {
+    return '容量: $mah mAh';
+  }
+
+  @override
+  String get batterySpecCapacityUnknown => '容量: ユーザー供給 (不明)';
+
+  @override
+  String batterySpecDraw(int ma) {
+    return '標準消費: 約 $ma mA (受信時)';
+  }
+
+  @override
+  String get batteryHistoryTitle => '電圧履歴';
+
+  @override
+  String batteryHistorySpan(String span, int count) {
+    return '$span · $count サンプル';
+  }
+
+  @override
+  String batteryDurDH(int days, int hours) {
+    return '$days日 $hours時間';
+  }
+
+  @override
+  String batteryDurHM(int hours, int mins) {
+    return '$hours時間 $mins分';
+  }
+
+  @override
+  String batteryDurM(int mins) {
+    return '$mins分';
+  }
 }

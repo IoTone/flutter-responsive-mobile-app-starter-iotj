@@ -866,5 +866,58 @@
   "otherMultiAcksHelper": "0 = single ack (default). Higher = wait for N extra acks before considering a send confirmed.",
   "otherApply": "Apply",
   "otherSentSnack": "OTHER PARAMS sent — device-side write may take a moment.",
-  "otherAwaitingDevice": "— awaiting device —"
+  "otherAwaitingDevice": "— awaiting device —",
+
+  "batteryTitle": "Battery",
+  "batteryConfigSubtitle": "Charge, drain rate, and time-to-empty estimate",
+  "batteryAwaiting": "Waiting for a battery reading from the device…",
+  "batteryReset": "Reset history",
+  "batteryResetConfirm": "Clear all stored battery history? The runtime estimate will rebuild as new readings arrive.",
+  "batteryVoltageLabel": "VOLTAGE",
+  "batteryCharging": "Charging",
+  "batteryChargingNote": "Charging — runtime estimate paused.",
+  "batteryTimeToEmpty": "TIME TO EMPTY",
+  "batteryEstimating": "Gathering drain data — an estimate appears after a few minutes of discharge.",
+  "batteryDrainRate": "Drain rate",
+  "batteryBasis": "Basis",
+  "batteryBasisObserved": "measured over {span} of discharge",
+  "@batteryBasisObserved": {
+    "placeholders": {"span": {"type": "String"}}
+  },
+  "batteryBasisRated": "nameplate (capacity ÷ typical draw)",
+  "batteryConfidence": "confidence",
+  "batteryConfHigh": "high",
+  "batteryConfMedium": "medium",
+  "batteryConfLow": "low",
+  "batteryMethodObserved": "Measured discharge",
+  "batteryMethodRated": "Rated estimate",
+  "batteryMethodNone": "Gathering data",
+  "batterySpecTitle": "DEVICE MODEL",
+  "batterySpecGeneric": "Unknown hardware — using a generic single-cell Li-ion model. The estimate relies on observed drain (no nameplate capacity to cross-check).",
+  "batterySpecCapacity": "Capacity: {mah} mAh",
+  "@batterySpecCapacity": {
+    "placeholders": {"mah": {"type": "int"}}
+  },
+  "batterySpecCapacityUnknown": "Capacity: user-supplied (unknown)",
+  "batterySpecDraw": "Typical draw: ~{ma} mA (radio receiving)",
+  "@batterySpecDraw": {
+    "placeholders": {"ma": {"type": "int"}}
+  },
+  "batteryHistoryTitle": "VOLTAGE HISTORY",
+  "batteryHistorySpan": "{span} · {count} samples",
+  "@batteryHistorySpan": {
+    "placeholders": {"span": {"type": "String"}, "count": {"type": "int"}}
+  },
+  "batteryDurDH": "{days}d {hours}h",
+  "@batteryDurDH": {
+    "placeholders": {"days": {"type": "int"}, "hours": {"type": "int"}}
+  },
+  "batteryDurHM": "{hours}h {mins}m",
+  "@batteryDurHM": {
+    "placeholders": {"hours": {"type": "int"}, "mins": {"type": "int"}}
+  },
+  "batteryDurM": "{mins}m",
+  "@batteryDurM": {
+    "placeholders": {"mins": {"type": "int"}}
+  }
 }

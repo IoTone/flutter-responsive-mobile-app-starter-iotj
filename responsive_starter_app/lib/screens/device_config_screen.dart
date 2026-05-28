@@ -666,6 +666,14 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                   height: 1.5),
             );
           }),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.battery_charging_full),
+            title: Text(l.batteryTitle),
+            subtitle: Text(l.batteryConfigSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/battery'),
+          ),
         ],
       ),
     );

@@ -2020,4 +2020,116 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get otherAwaitingDevice => '— awaiting device —';
+
+  @override
+  String get batteryTitle => 'Battery';
+
+  @override
+  String get batteryConfigSubtitle =>
+      'Charge, drain rate, and time-to-empty estimate';
+
+  @override
+  String get batteryAwaiting =>
+      'Waiting for a battery reading from the device…';
+
+  @override
+  String get batteryReset => 'Reset history';
+
+  @override
+  String get batteryResetConfirm =>
+      'Clear all stored battery history? The runtime estimate will rebuild as new readings arrive.';
+
+  @override
+  String get batteryVoltageLabel => 'VOLTAGE';
+
+  @override
+  String get batteryCharging => 'Charging';
+
+  @override
+  String get batteryChargingNote => 'Charging — runtime estimate paused.';
+
+  @override
+  String get batteryTimeToEmpty => 'TIME TO EMPTY';
+
+  @override
+  String get batteryEstimating =>
+      'Gathering drain data — an estimate appears after a few minutes of discharge.';
+
+  @override
+  String get batteryDrainRate => 'Drain rate';
+
+  @override
+  String get batteryBasis => 'Basis';
+
+  @override
+  String batteryBasisObserved(String span) {
+    return 'measured over $span of discharge';
+  }
+
+  @override
+  String get batteryBasisRated => 'nameplate (capacity ÷ typical draw)';
+
+  @override
+  String get batteryConfidence => 'confidence';
+
+  @override
+  String get batteryConfHigh => 'high';
+
+  @override
+  String get batteryConfMedium => 'medium';
+
+  @override
+  String get batteryConfLow => 'low';
+
+  @override
+  String get batteryMethodObserved => 'Measured discharge';
+
+  @override
+  String get batteryMethodRated => 'Rated estimate';
+
+  @override
+  String get batteryMethodNone => 'Gathering data';
+
+  @override
+  String get batterySpecTitle => 'DEVICE MODEL';
+
+  @override
+  String get batterySpecGeneric =>
+      'Unknown hardware — using a generic single-cell Li-ion model. The estimate relies on observed drain (no nameplate capacity to cross-check).';
+
+  @override
+  String batterySpecCapacity(int mah) {
+    return 'Capacity: $mah mAh';
+  }
+
+  @override
+  String get batterySpecCapacityUnknown => 'Capacity: user-supplied (unknown)';
+
+  @override
+  String batterySpecDraw(int ma) {
+    return 'Typical draw: ~$ma mA (radio receiving)';
+  }
+
+  @override
+  String get batteryHistoryTitle => 'VOLTAGE HISTORY';
+
+  @override
+  String batteryHistorySpan(String span, int count) {
+    return '$span · $count samples';
+  }
+
+  @override
+  String batteryDurDH(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String batteryDurHM(int hours, int mins) {
+    return '${hours}h ${mins}m';
+  }
+
+  @override
+  String batteryDurM(int mins) {
+    return '${mins}m';
+  }
 }

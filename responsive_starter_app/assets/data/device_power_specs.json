@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "note": "Per-device power reference for battery-life estimation. Current draws are approximate, community/datasheet-derived figures for a MeshCore companion/repeater workload (radio in continuous RX, display behaviour varies by firmware build) and are NOT regulatory or vendor guarantees. Capacity is the *typical* pack shipped/used with the board; many boards take a user-supplied cell, so treat capacity as a hint and prefer observed drain. The only hardware signal the companion protocol exposes is the free-form DeviceInfo.manufacturer string (+ firmware version), so matching is substring-based and case-insensitive.",
+  "default": {
+    "id": "generic_liion_1s",
+    "label": "Generic single-cell Li-ion",
+    "chemistry": "liion",
+    "cellCount": 1,
+    "fullVolts": 4.20,
+    "emptyVolts": 3.30,
+    "capacityMah": 0,
+    "ocvCurve": [
+      [3.30, 0],
+      [3.50, 5],
+      [3.68, 10],
+      [3.74, 20],
+      [3.77, 30],
+      [3.79, 40],
+      [3.82, 50],
+      [3.87, 60],
+      [3.92, 70],
+      [3.98, 80],
+      [4.08, 90],
+      [4.20, 100]
+    ],
+    "currentMa": {},
+    "notes": "Fallback model used when the connected hardware isn't in the table. Resting OCV curve for a typical 1S Li-ion / LiPo cell; estimation falls back to observed drain only (no rated cross-check) since capacity is unknown."
+  },
+  "specs": [
+    {
+      "id": "heltec_lora32_v3",
+      "label": "Heltec WiFi LoRa 32 V3",
+      "match": { "manufacturerContains": ["heltec"], "firmwareContains": [] },
+      "chemistry": "liion",
+      "cellCount": 1,
+      "fullVolts": 4.20,
+      "emptyVolts": 3.30,
+      "capacityMah": 0,
+      "currentMa": { "idle": 38, "rx": 48, "tx": 120 },
+      "notes": "ESP32-S3 + SX1262. User-supplied LiPo (capacity unknown). OLED on adds ~10-15 mA. Figures approximate."
+    },
+    {
+      "id": "lilygo_tbeam",
+      "label": "LilyGo T-Beam (with GPS)",
+      "match": { "manufacturerContains": ["t-beam", "tbeam", "lilygo", "ttgo"], "firmwareContains": [] },
+      "chemistry": "liion",
+      "cellCount": 1,
+      "fullVolts": 4.20,
+      "emptyVolts": 3.30,
+      "capacityMah": 3000,
+      "currentMa": { "idle": 70, "rx": 95, "tx": 150 },
+      "notes": "ESP32 + SX1276/1262 + NEO-6M GPS. GPS dominates idle draw. Typical 18650 ~3000 mAh."
+    },
+    {
+      "id": "rak_wisblock_4631",
+      "label": "RAK WisBlock (RAK4631)",
+      "match": { "manufacturerContains": ["rak", "wisblock", "rak4631"], "firmwareContains": [] },
+      "chemistry": "liion",
+      "cellCount": 1,
+      "fullVolts": 4.20,
+      "emptyVolts": 3.00,
+      "capacityMah": 0,
+      "currentMa": { "idle": 14, "rx": 28, "tx": 110 },
+      "notes": "nRF52840 + SX1262. Low-power; common solar repeater platform. User-supplied LiPo (capacity unknown)."
+    },
+    {
+      "id": "seeed_xiao_nrf52840",
+      "label": "Seeed XIAO nRF52840 + SX1262",
+      "match": { "manufacturerContains": ["xiao", "seeed"], "firmwareContains": [] },
+      "chemistry": "lipo",
+      "cellCount": 1,
+      "fullVolts": 4.20,
+      "emptyVolts": 3.00,
+      "capacityMah": 0,
+      "currentMa": { "idle": 12, "rx": 26, "tx": 105 },
+      "notes": "nRF52840 + SX1262 wio tracker class. Very low idle. User-supplied LiPo (capacity unknown)."
+    }
+  ]
+}

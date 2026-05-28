@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.108+1
+version: 1.0.109+1
 
 environment:
   sdk: ^3.5.0
@@ -155,6 +155,11 @@ flutter:
       # Built offline via tool/pack_cities.dart; re-run when the
       # GeoNames source refreshes.
       - assets/data/cities15000.bin
+      # Per-device power reference for battery-life estimation
+      # (capacity, OCV curve, typical current draw). Offline-first:
+      # baked into the binary like the region presets; bump the app
+      # to refresh. Matched against DeviceInfo.manufacturer.
+      - assets/data/device_power_specs.json
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

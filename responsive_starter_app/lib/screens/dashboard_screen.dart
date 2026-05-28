@@ -215,21 +215,44 @@ class DashboardScreen extends StatelessWidget {
         _LocationTile(mc: mc),
         if (mc.batteryMillivolts != null) ...<Widget>[
           const SizedBox(height: 18),
-          Text(l.dashboardBattery,
-              style: TextStyle(
-                  color: cs.onSurfaceVariant,
-                  fontSize: 12,
-                  letterSpacing: 4)),
-          const SizedBox(height: 4),
-          Text(
-            l.dashboardBatteryReadout(
-                  mc.batteryVolts!.toStringAsFixed(2),
-                  mc.batteryPercent ?? 0,
-                ) +
-                (mc.charging == true ? '  ⚡ ${l.dashboardCharging}' : ''),
-            style: TextStyle(
-                color: mc.charging == true ? cs.tertiary : cs.onSurface,
-                fontFamily: 'monospace'),
+          InkWell(
+            onTap: () => context.push('/settings/battery'),
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Text(l.dashboardBattery,
+                          style: TextStyle(
+                              color: cs.onSurfaceVariant,
+                              fontSize: 12,
+                              letterSpacing: 4)),
+                      const SizedBox(width: 6),
+                      Icon(Icons.chevron_right,
+                          size: 16, color: cs.onSurfaceVariant),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l.dashboardBatteryReadout(
+                          mc.batteryVolts!.toStringAsFixed(2),
+                          mc.batteryPercent ?? 0,
+                        ) +
+                        (mc.charging == true
+                            ? '  ⚡ ${l.dashboardCharging}'
+                            : ''),
+                    style: TextStyle(
+                        color: mc.charging == true
+                            ? cs.tertiary
+                            : cs.onSurface,
+                        fontFamily: 'monospace'),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
         const SizedBox(height: 24),

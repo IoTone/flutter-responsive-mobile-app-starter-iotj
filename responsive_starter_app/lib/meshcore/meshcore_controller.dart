@@ -4,11 +4,15 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:meshcore/meshcore.dart';
 
 import 'background_keepalive.dart';
 import 'background_prefs.dart';
+import 'battery_history_store.dart';
+import 'battery_model.dart';
 import 'default_channel_store.dart';
+import 'device_power_specs.dart';
 import 'ble_connector.dart';
 import 'chat_message.dart';
 import 'chat_store.dart';
@@ -148,6 +152,8 @@ class MeshcoreController extends ChangeNotifier {
     _loadKnown();
     _loadTags();
     _loadCoverage();
+    _loadBatteryHistory();
+    _loadPowerSpecs();
     unawaited(_dmReadStore.load().then((_) {
       // Notify so any UI watching unread counts (Nodes badge, etc.)
       // re-renders once the persisted last-read timestamps are in.
@@ -1442,6 +1448,146 @@ class MeshcoreController extends ChangeNotifier {
     });
   }
 
+  // --- Battery-life estimation (per-device history + spec) ---
+  //
+  // The companion protocol only gives us pack voltage, so runtime is
+  // estimated from voltage-over-time (observed drain) plus a per-
+  // device nameplate cross-check. History is persisted per device so
+  // the estimate survives restarts; see [BatteryHistoryStore] and
+  // [estimateBattery].
+
+  final Map<String, List<BatterySample>> _battHistory =
+      <String, List<BatterySample>>{};
+  bool _battHistoryDirty = false;
+  Timer? _battHistorySaveTimer;
+  DevicePowerSpecs _powerSpecs = DevicePowerSpecs.builtin;
+
+  /// Own 12-hex-char pubkey prefix (pub6), or null before SelfInfo.
+  String? get _ownPub6 {
+    final String? hex = ownPubKeyHex;
+    if (hex == null || hex.length < kPubKeyPrefixSize * 2) return null;
+    return hex.substring(0, kPubKeyPrefixSize * 2);
+  }
+
+  Future<void> _loadBatteryHistory() async {
+    final Map<String, List<BatterySample>> v =
+        await BatteryHistoryStore.load();
+    if (v.isEmpty) return;
+    _battHistory
+      ..clear()
+      ..addAll(v);
+    notifyListeners();
+  }
+
+  Future<void> _loadPowerSpecs() async {
+    try {
+      final String raw =
+          await rootBundle.loadString('assets/data/device_power_specs.json');
+      _powerSpecs = DevicePowerSpecs.parse(raw);
+      notifyListeners();
+    } catch (_) {
+      // No asset bundle (e.g. a plain unit test) — keep the built-in
+      // generic fallback. The estimator still works, observed-only.
+      _powerSpecs = DevicePowerSpecs.builtin;
+    }
+  }
+
+  /// Power spec resolved for the connected device, matched on the
+  /// DeviceInfo manufacturer / firmware strings. Always non-null (the
+  /// generic single-cell Li-ion fallback when nothing matches).
+  DevicePowerSpec get resolvedPowerSpec => _powerSpecs.resolve(
+        manufacturer: _deviceInfo?.manufacturer,
+        firmware: _deviceInfo?.firmwareVersion,
+      );
+
+  /// Persisted voltage history for the connected device, oldest
+  /// first. Empty before any reading (or before SelfInfo identifies
+  /// us).
+  List<BatterySample> get batteryHistory {
+    final String? pub = _ownPub6;
+    if (pub == null) return const <BatterySample>[];
+    return List<BatterySample>.unmodifiable(
+        _battHistory[pub] ?? const <BatterySample>[]);
+  }
+
+  /// Current battery-life estimate for the connected device. Folds
+  /// the persisted voltage history, the resolved device spec, and the
+  /// charging trend into a single [BatteryEstimate].
+  BatteryEstimate get batteryEstimate {
+    final List<BatterySample> hist = batteryHistory;
+    if (hist.isEmpty) {
+      // Fall back to the latest live reading even before it's been
+      // decimated into the persisted history, so the screen isn't
+      // blank on a fresh connect.
+      final int? mv = batteryMillivolts;
+      if (mv == null) return BatteryEstimate.empty;
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      return estimateBattery(
+        samples: <BatterySample>[(atUnix: now, millivolts: mv)],
+        spec: resolvedPowerSpec,
+        charging: _charging,
+      );
+    }
+    return estimateBattery(
+      samples: hist,
+      spec: resolvedPowerSpec,
+      charging: _charging,
+      nowUnix: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    );
+  }
+
+  void _recordBatterySample(int millivolts, int nowUnix) {
+    final String? pub = _ownPub6;
+    if (pub == null) return; // can't attribute without SelfInfo yet
+    final List<BatterySample> list =
+        _battHistory.putIfAbsent(pub, () => <BatterySample>[]);
+    // Decimate: keep at most one stored sample per minInterval.
+    if (list.isNotEmpty &&
+        nowUnix - list.last.atUnix < BatteryHistoryStore.minIntervalSec) {
+      return;
+    }
+    list.add((atUnix: nowUnix, millivolts: millivolts));
+    while (list.length > BatteryHistoryStore.maxSamplesPerDevice) {
+      list.removeAt(0);
+    }
+    // Evict the least-recently-updated device when over the cap.
+    while (_battHistory.length > BatteryHistoryStore.maxDevices) {
+      String? oldestPub;
+      int oldestTs = 1 << 62;
+      _battHistory.forEach((String k, List<BatterySample> s) {
+        final int t = s.isEmpty ? 0 : s.last.atUnix;
+        if (t < oldestTs) {
+          oldestTs = t;
+          oldestPub = k;
+        }
+      });
+      if (oldestPub == null || oldestPub == pub) break;
+      _battHistory.remove(oldestPub);
+    }
+    _battHistoryDirty = true;
+    _battHistorySaveTimer ??=
+        Timer(const Duration(seconds: 10), _flushBatteryHistory);
+    notifyListeners();
+  }
+
+  Future<void> _flushBatteryHistory() async {
+    _battHistorySaveTimer = null;
+    if (!_battHistoryDirty) return;
+    _battHistoryDirty = false;
+    await BatteryHistoryStore.save(_battHistory);
+  }
+
+  /// Wipe the persisted battery history (all devices). Exposed for a
+  /// "reset" affordance on the battery screen + tests.
+  Future<void> resetBatteryHistory() async {
+    _battHistory.clear();
+    _battHistoryDirty = false;
+    _battHistorySaveTimer?.cancel();
+    _battHistorySaveTimer = null;
+    await BatteryHistoryStore.clear();
+    notifyListeners();
+  }
+
   /// SelfInfo refresh timer. The MeshCore companion protocol doesn't
   /// auto-push fresh SelfInfo when the device's onboard GPS updates,
   /// so a long-running session with `advertLocPolicy = Device GPS`
@@ -1918,6 +2064,7 @@ class MeshcoreController extends ChangeNotifier {
               ? false
               : null;
     }
+    _recordBatterySample(f.battery.batteryMillivolts, now);
   }
 
   void _probeChannels() {
@@ -2315,10 +2462,12 @@ class MeshcoreController extends ChangeNotifier {
     _scanTimer?.cancel();
     _battTimer?.cancel();
     _selfInfoTimer?.cancel();
+    _battHistorySaveTimer?.cancel();
     _statesSub?.cancel();
     _inboundSub?.cancel();
     _rawSub?.cancel();
     _persistChat(); // final flush
+    unawaited(_flushBatteryHistory()); // final flush
     unawaited(_keepalive.stop());
     unawaited(_incomingCh.close());
     unawaited(_incomingDm.close());
