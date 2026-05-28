@@ -2426,6 +2426,12 @@ abstract class AppLocalizations {
   /// **'≤6 / All'**
   String get meshTreeHopsAll;
 
+  /// No description provided for @meshTreeHopsFlood.
+  ///
+  /// In en, this message translates to:
+  /// **'Flood / All'**
+  String get meshTreeHopsFlood;
+
   /// No description provided for @meshTreeHopsN.
   ///
   /// In en, this message translates to:
@@ -2479,6 +2485,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Small circle (dim) = sensor. Narrow-purpose node.'**
   String get meshTreeLegendSensor;
+
+  /// No description provided for @meshTreeLegendFlood.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashed edge to you = flood-routed contact. Reachable, but with no fixed path.'**
+  String get meshTreeLegendFlood;
 
   /// No description provided for @meshTreeLegendFloat.
   ///
@@ -2563,6 +2575,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'unknown'**
   String get nodeDetailHopsUnknown;
+
+  /// No description provided for @nodeDetailHopsFlood.
+  ///
+  /// In en, this message translates to:
+  /// **'Flood'**
+  String get nodeDetailHopsFlood;
 
   /// No description provided for @nodeDetailAltitudeKv.
   ///

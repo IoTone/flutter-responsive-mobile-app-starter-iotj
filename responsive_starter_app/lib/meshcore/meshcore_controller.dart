@@ -2048,6 +2048,10 @@ class MeshcoreController extends ChangeNotifier {
         outPathHashes: c.outPathLen == kPathLenFlood
             ? null
             : List<int>.unmodifiable(c.activePath),
+        // Flood-routed = reachable, no fixed path. Keep this flag so
+        // the UI can show "Flood" (like the official app) instead of
+        // conflating it with advert-only "unknown".
+        viaFlood: c.outPathLen == kPathLenFlood,
       );
     } else if (f is AdvertFrame) {
       _upsertAdvert(f.advert);
@@ -2090,6 +2094,7 @@ class MeshcoreController extends ChangeNotifier {
       // us (may be null for advert-only-heard peers, which is the
       // signal the topology resolver uses to draw dashed).
       outPathHashes: prev?.outPathHashes,
+      viaFlood: prev?.viaFlood ?? false,
     );
     // F8 — peer's advertised position is a "the mesh extends to
     // here" observation. Same coverage bucket as own-location

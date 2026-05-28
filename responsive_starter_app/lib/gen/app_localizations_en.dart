@@ -1379,6 +1379,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get meshTreeHopsAll => '≤6 / All';
 
   @override
+  String get meshTreeHopsFlood => 'Flood / All';
+
+  @override
   String meshTreeHopsN(int n) {
     return '≤$n hops';
   }
@@ -1410,6 +1413,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get meshTreeLegendSensor =>
       'Small circle (dim) = sensor. Narrow-purpose node.';
+
+  @override
+  String get meshTreeLegendFlood =>
+      'Dashed edge to you = flood-routed contact. Reachable, but with no fixed path.';
 
   @override
   String get meshTreeLegendFloat =>
@@ -1462,6 +1469,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nodeDetailHopsUnknown => 'unknown';
+
+  @override
+  String get nodeDetailHopsFlood => 'Flood';
 
   @override
   String get nodeDetailAltitudeKv => 'altitude';

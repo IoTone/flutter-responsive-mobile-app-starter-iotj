@@ -1165,6 +1165,8 @@ class _TreeLegend extends StatelessWidget {
           row(Icons.circle, l.meshTreeLegendChat, colour: cs.primary),
           row(Icons.sensors, l.meshTreeLegendSensor,
               colour: cs.primary.withValues(alpha: .55)),
+          row(Icons.more_horiz, l.meshTreeLegendFlood,
+              colour: cs.onSurfaceVariant),
           row(Icons.help_outline, l.meshTreeLegendFloat,
               colour: cs.onSurfaceVariant),
           row(Icons.arrow_forward, l.meshTreeLegendArrow),

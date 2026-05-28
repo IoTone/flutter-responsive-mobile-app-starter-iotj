@@ -242,19 +242,21 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
               kv(l.nodeDetailLatLonKv,
                   '${n.latitude!.toStringAsFixed(5)}, '
                       '${n.longitude!.toStringAsFixed(5)}'),
-            // R49+1 — hop count from the contact's outPathHashes. The
-            // three-state field (null / [] / non-empty) maps cleanly
-            // onto three user-facing strings: unknown (advert-only,
-            // no path info) / direct / N via repeaters.
+            // R49+1 — hop value, matching the official app's
+            // categories: Direct (0 hops) / N via repeaters / Flood
+            // (reachable, no fixed path) / unknown (advert-only, not
+            // a contact at all).
             if (!widget.isSelf)
               kv(
                 l.nodeDetailHopsKv,
-                n.outPathHashes == null
-                    ? l.nodeDetailHopsUnknown
-                    : n.outPathHashes!.isEmpty
+                n.outPathHashes != null
+                    ? (n.outPathHashes!.isEmpty
                         ? l.nodeDetailHopsDirect
                         : l.nodeDetailHopsViaRepeaters(
-                            n.outPathHashes!.length),
+                            n.outPathHashes!.length))
+                    : n.viaFlood
+                        ? l.nodeDetailHopsFlood
+                        : l.nodeDetailHopsUnknown,
               ),
             // R47 — peer telemetry on tap. CMD_SEND_TELEMETRY_REQ goes
             // to the device, which unicasts to the peer over the air;

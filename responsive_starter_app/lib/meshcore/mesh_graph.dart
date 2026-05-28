@@ -30,14 +30,20 @@ class MeshGraphNode {
 /// Directed edge in the topology tree, oriented from us → repeaters
 /// → leaf peer (i.e. the way our device sends to that peer).
 class MeshGraphEdge {
-  const MeshGraphEdge(this.fromId, this.toId);
+  const MeshGraphEdge(this.fromId, this.toId, {this.flood = false});
   final String fromId;
   final String toId;
+
+  /// True for a "reachable via flood" link (self → flood-routed
+  /// contact) — drawn dashed, since there's no fixed path. Normal
+  /// (solid) edges are direct / repeater-chain hops.
+  final bool flood;
 
   String get key => '$fromId|$toId';
 
   @override
-  String toString() => 'MeshGraphEdge($fromId → $toId)';
+  String toString() =>
+      'MeshGraphEdge($fromId → $toId${flood ? ' flood' : ''})';
 }
 
 /// The full mesh topology tree we can derive from the controller.
@@ -53,10 +59,14 @@ class MeshGraph {
   /// - Every `DiscoveredNode` with a resolved
   ///   `topologyChainFor(pubKey) == [r0, r1, ...]` contributes the
   ///   edge chain `self → r0 → r1 → ... → peer`.
-  /// - Peers with `topologyChainFor == null` (advert-only-heard or
-  ///   unresolved chain) are added as **disconnected** nodes — they
-  ///   float in the layout, which honestly reflects "we know they
-  ///   exist but not where in the tree they sit."
+  /// - **Flood-routed** peers (`viaFlood`, no fixed path) get a
+  ///   dashed `self → peer` edge — reachable, but the route isn't
+  ///   pinned. This mirrors the official app's "Flood" hop category.
+  /// - Peers with `topologyChainFor == null` that are *not* flood
+  ///   (advert-only-heard, unresolved chain) are added as
+  ///   **disconnected** nodes — they float in the layout, which
+  ///   honestly reflects "we know they exist but not where in the
+  ///   tree they sit."
   /// - Peers with empty chain are direct neighbours: edge `self → peer`.
   ///
   /// Edge deduplication: many peers may share the same first hop;
@@ -93,8 +103,8 @@ class MeshGraph {
     final Set<String> seenEdges = <String>{};
     final List<MeshGraphEdge> edges = <MeshGraphEdge>[];
 
-    void addEdge(String from, String to) {
-      final MeshGraphEdge e = MeshGraphEdge(from, to);
+    void addEdge(String from, String to, {bool flood = false}) {
+      final MeshGraphEdge e = MeshGraphEdge(from, to, flood: flood);
       if (seenEdges.add(e.key)) edges.add(e);
     }
 
@@ -127,8 +137,15 @@ class MeshGraph {
       final List<DiscoveredNode>? chain =
           mc.topologyChainFor(peer.pubKeyHex);
       if (chain == null) {
-        // Unknown route — leave the node disconnected. The layout
-        // will float it out toward the rim where it can't pretend
+        if (peer.viaFlood) {
+          // Reachable via flood — no fixed path, but it IS a contact
+          // we can talk to. Tie it to self with a dashed edge so it
+          // clusters near the root instead of floating off as if we'd
+          // never reached it.
+          addEdge(selfId, peer.pubKeyHex, flood: true);
+        }
+        // Otherwise unknown route (advert-only) — leave disconnected.
+        // The layout floats it toward the rim where it can't pretend
         // to be a direct neighbour.
         continue;
       }

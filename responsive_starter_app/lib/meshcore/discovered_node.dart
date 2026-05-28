@@ -47,6 +47,7 @@ class DiscoveredNode {
     this.deviceAdvertUnix,
     required this.viaAdvert,
     this.outPathHashes,
+    this.viaFlood = false,
   });
 
   final String pubKeyHex;
@@ -96,8 +97,15 @@ class DiscoveredNode {
   /// hash to a known repeater node when one exists.
   final List<int>? outPathHashes;
 
+  /// True when this is a **flood-routed** contact (device reported
+  /// `out_path_len == 0xFF` — reachable, but with no fixed path).
+  /// Distinct from an advert-only-heard node, which also has a null
+  /// [outPathHashes] but isn't a contact at all. The official
+  /// MeshCore app shows "Flood" as the hop value for these.
+  final bool viaFlood;
+
   /// Number of repeater hops to this peer when known (`null` when
-  /// [outPathHashes] is `null`).
+  /// [outPathHashes] is `null` — i.e. flood-routed or advert-only).
   int? get hopCount => outPathHashes?.length;
 
   /// True if we've heard from this node in the last 5 minutes.

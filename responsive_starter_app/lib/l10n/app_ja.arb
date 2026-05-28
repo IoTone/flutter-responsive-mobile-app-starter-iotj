@@ -603,6 +603,7 @@
   "meshTreeEmpty": "コンタクト同期を待機中 — ツリーは各コンタクトの outPath から構築されます。",
   "meshTreeHopsDirect": "直接",
   "meshTreeHopsAll": "≤6 / 全て",
+  "meshTreeHopsFlood": "フラッド / 全て",
   "meshTreeHopsN": "≤{n} ホップ",
   "@meshTreeHopsN": {
     "placeholders": {"n": {"type": "int"}}
@@ -615,6 +616,7 @@
   "meshTreeLegendRoom": "ひし形 = ルームサーバ。名前付きルームをホストするサーバ級ノード。",
   "meshTreeLegendChat": "円 = チャットノード。DM 可能なピア。",
   "meshTreeLegendSensor": "小さい円（暗）= センサー。特定用途のノード。",
+  "meshTreeLegendFlood": "破線で自分とつながる = フラッドルーティングのコンタクト。到達可能だが固定経路なし。",
   "meshTreeLegendFloat": "浮遊（エッジなし）— advert のみで受信、経路不明。",
   "meshTreeLegendArrow": "矢印は自分から目的ピアへ向かう。",
   "meshTreeLegendInteract": "ピンチで拡大縮小、ドラッグで移動、ノードをタップで詳細。「中央に戻す」でリセット。",
@@ -632,6 +634,7 @@
     "placeholders": {"n": {"type": "int"}}
   },
   "nodeDetailHopsUnknown": "不明",
+  "nodeDetailHopsFlood": "フラッド",
   "nodeDetailAltitudeKv": "標高",
   "nodeDetailAltitudeMeters": "{m} m",
   "@nodeDetailAltitudeMeters": {

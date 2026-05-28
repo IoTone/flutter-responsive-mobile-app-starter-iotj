@@ -259,6 +259,7 @@ void main() {
       required List<int> outPath,
       double lat = 45.5,
       double lon = -122.7,
+      int? outPathLen, // override; 0xFF = flood-routed (kPathLenFlood)
     }) {
       final Uint8List f = Uint8List(148);
       f[0] = 0x03;
@@ -267,7 +268,7 @@ void main() {
       f[1] = firstByte;
       f[33] = type;
       f[34] = 0; // flags
-      f[35] = outPath.length; // out_path_len
+      f[35] = outPathLen ?? outPath.length; // out_path_len
       for (int i = 0; i < outPath.length && i < 64; i++) {
         f[36 + i] = outPath[i];
       }
@@ -347,6 +348,45 @@ void main() {
       expect(ctrl.topologyChainFor(peer.pubKeyHex), isNull,
           reason: 'no path info → dashed direct line, '
               'never a falsely-claimed direct neighbour');
+    });
+
+    test('flood-routed contact (out_path_len 0xFF) → viaFlood, null '
+        'path, and a dashed flood edge to self in the graph', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      // Contact synced with out_path_len == 0xFF (kPathLenFlood):
+      // reachable, but the device has no fixed route to it.
+      fake.emit(contactFrame(
+          firstByte: 0xDD, type: 1, outPath: <int>[], outPathLen: 0xFF));
+      await Future<void>.delayed(Duration.zero);
+
+      final DiscoveredNode peer =
+          ctrl.nodes.firstWhere((n) => n.name == 'peer221');
+      expect(peer.viaFlood, isTrue,
+          reason: 'out_path_len 0xFF marks a flood-routed contact');
+      expect(peer.outPathHashes, isNull,
+          reason: 'flood has no fixed path → null, not [] (direct)');
+
+      // The graph should connect a flood node to self with a dashed
+      // (flood) edge — reachable, but no fixed path. It must NOT be a
+      // floating orphan, and must NOT claim a solid direct line.
+      final MeshGraph g = MeshGraph.fromController(ctrl, maxHops: 6);
+      final MeshGraphEdge floodEdge = g.edges.firstWhere(
+        (MeshGraphEdge e) => e.toId == peer.pubKeyHex,
+        orElse: () => throw StateError('flood node had no edge to self'),
+      );
+      expect(floodEdge.fromId, 'self');
+      expect(floodEdge.flood, isTrue,
+          reason: 'flood reachability is drawn dashed, not solid');
     });
 
     test('subsequent advert for a contact-synced peer preserves the '

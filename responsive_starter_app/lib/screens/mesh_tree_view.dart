@@ -52,8 +52,11 @@ class _MeshTreeViewState extends State<MeshTreeView>
   Size _lastSize = Size.zero;
 
   /// Max hop depth shown. 0 = direct neighbours only, 6 = everything
-  /// (including advert-only floaters). Default 2 — direct + 1- + 2-hop.
-  int _maxHops = 2;
+  /// (flood-routed + advert-only floaters). Default 6 — in practice
+  /// almost every MeshCore contact is flood-routed, so a lower default
+  /// shows only the handful of direct/repeater peers (the "3 nodes"
+  /// surprise). Start wide; the user dials *down* to declutter.
+  int _maxHops = 6;
 
   /// When true the view continuously scales/pans to frame the whole
   /// graph (so a few-hundred-node cloud is always visible). Disabled
@@ -382,7 +385,9 @@ class _MeshTreeViewState extends State<MeshTreeView>
 
   String _hopLabel(int hops, AppLocalizations l) {
     if (hops <= 0) return l.meshTreeHopsDirect;
-    if (hops >= 6) return l.meshTreeHopsAll;
+    // Top of the range = "everything", which in practice is mostly
+    // flood-routed contacts — label it the way the official app does.
+    if (hops >= 6) return l.meshTreeHopsFlood;
     return l.meshTreeHopsN(hops);
   }
 }
@@ -492,12 +497,23 @@ class _MeshTreePainter extends CustomPainter {
     final Paint edgePaint = Paint()
       ..color = edge
       ..strokeWidth = 1.2;
+    // Flood edges: dimmer + dashed — reachable, but no fixed path.
+    final Paint floodPaint = Paint()
+      ..color = edgeFloat
+      ..strokeWidth = 1.0;
     for (final MeshGraphEdge e in graph.edges) {
       final NodePosition? a = positions[e.fromId];
       final NodePosition? b = positions[e.toId];
       if (a == null || b == null) continue;
-      canvas.drawLine(Offset(a.x, a.y), Offset(b.x, b.y), edgePaint);
-      _drawArrow(canvas, Offset(a.x, a.y), Offset(b.x, b.y), edgePaint);
+      final Offset p0 = Offset(a.x, a.y);
+      final Offset p1 = Offset(b.x, b.y);
+      if (e.flood) {
+        _drawDashedLine(canvas, p0, p1, floodPaint);
+        _drawArrow(canvas, p0, p1, floodPaint);
+      } else {
+        canvas.drawLine(p0, p1, edgePaint);
+        _drawArrow(canvas, p0, p1, edgePaint);
+      }
     }
 
     // Nodes.
@@ -620,6 +636,27 @@ class _MeshTreePainter extends CustomPainter {
     );
     canvas.drawLine(tip, left, paint);
     canvas.drawLine(tip, right, paint);
+  }
+
+  void _drawDashedLine(Canvas canvas, Offset from, Offset to, Paint paint) {
+    const double dash = 5;
+    const double gap = 4;
+    final double dx = to.dx - from.dx;
+    final double dy = to.dy - from.dy;
+    final double len = math.sqrt(dx * dx + dy * dy);
+    if (len < 1) return;
+    final double ux = dx / len;
+    final double uy = dy / len;
+    double t = 0;
+    while (t < len) {
+      final double end = math.min(t + dash, len);
+      canvas.drawLine(
+        Offset(from.dx + ux * t, from.dy + uy * t),
+        Offset(from.dx + ux * end, from.dy + uy * end),
+        paint,
+      );
+      t += dash + gap;
+    }
   }
 
   @override

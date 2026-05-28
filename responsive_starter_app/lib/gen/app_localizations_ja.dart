@@ -1312,6 +1312,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get meshTreeHopsAll => '≤6 / 全て';
 
   @override
+  String get meshTreeHopsFlood => 'フラッド / 全て';
+
+  @override
   String meshTreeHopsN(int n) {
     return '≤$n ホップ';
   }
@@ -1341,6 +1344,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get meshTreeLegendSensor => '小さい円（暗）= センサー。特定用途のノード。';
+
+  @override
+  String get meshTreeLegendFlood =>
+      '破線で自分とつながる = フラッドルーティングのコンタクト。到達可能だが固定経路なし。';
 
   @override
   String get meshTreeLegendFloat => '浮遊（エッジなし）— advert のみで受信、経路不明。';
@@ -1388,6 +1395,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get nodeDetailHopsUnknown => '不明';
+
+  @override
+  String get nodeDetailHopsFlood => 'フラッド';
 
   @override
   String get nodeDetailAltitudeKv => '標高';

@@ -603,6 +603,7 @@
   "meshTreeEmpty": "Waiting for contact sync — the tree is built from each contact's outPath.",
   "meshTreeHopsDirect": "Direct",
   "meshTreeHopsAll": "≤6 / All",
+  "meshTreeHopsFlood": "Flood / All",
   "meshTreeHopsN": "≤{n} hops",
   "@meshTreeHopsN": {
     "placeholders": {"n": {"type": "int"}}
@@ -615,6 +616,7 @@
   "meshTreeLegendRoom": "Diamond = room server. Server-class node hosting named rooms.",
   "meshTreeLegendChat": "Circle = chat node. Peer you can DM.",
   "meshTreeLegendSensor": "Small circle (dim) = sensor. Narrow-purpose node.",
+  "meshTreeLegendFlood": "Dashed edge to you = flood-routed contact. Reachable, but with no fixed path.",
   "meshTreeLegendFloat": "Floating (no edges) — heard via advert only; route unknown.",
   "meshTreeLegendArrow": "Arrows point away from us, toward the destination peer.",
   "meshTreeLegendInteract": "Pinch to zoom, drag to pan, tap a node for details. Use Recenter to reset.",
@@ -632,6 +634,7 @@
     "placeholders": {"n": {"type": "int"}}
   },
   "nodeDetailHopsUnknown": "unknown",
+  "nodeDetailHopsFlood": "Flood",
   "nodeDetailAltitudeKv": "altitude",
   "nodeDetailAltitudeMeters": "{m} m",
   "@nodeDetailAltitudeMeters": {
