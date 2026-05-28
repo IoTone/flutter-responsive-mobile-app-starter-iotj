@@ -60,6 +60,7 @@ class _SnsCellsViewState extends State<SnsCellsView>
   static const int _toastLifeMs = 3500;
 
   final List<_Toast> _toasts = <_Toast>[];
+  final TransformationController _transform = TransformationController();
   int _lastPingSeq = 0;
   String? _flashPubKey; // node to highlight (most recent located DM)
   int _flashUntilMs = 0;
@@ -70,6 +71,8 @@ class _SnsCellsViewState extends State<SnsCellsView>
     _ticker = Ticker(_onTick)..start();
   }
 
+  void _resetView() => _transform.value = Matrix4.identity();
+
   void _onTick(Duration _) {
     // Repaint ~every frame so heat visibly cools and toasts fade.
     // Cheap — the painter only walks active cells (sparse).
@@ -79,6 +82,7 @@ class _SnsCellsViewState extends State<SnsCellsView>
   @override
   void dispose() {
     _ticker.dispose();
+    _transform.dispose();
     super.dispose();
   }
 
@@ -87,6 +91,7 @@ class _SnsCellsViewState extends State<SnsCellsView>
     if (p == null || p.seq == _lastPingSeq) return;
     _lastPingSeq = p.seq;
     final int now = DateTime.now().millisecondsSinceEpoch;
+    final bool located = p.latitude != null && p.longitude != null;
     _toasts.add(_Toast(
       text: p.text,
       lat: p.latitude,
@@ -98,6 +103,15 @@ class _SnsCellsViewState extends State<SnsCellsView>
     if (p.pubKeyHex != null) {
       _flashPubKey = p.pubKeyHex;
       _flashUntilMs = now + _toastLifeMs;
+    }
+    // Auto-scroll to the sender: a located ping snaps the view back
+    // to the fit-to-content frame, which always includes the sender
+    // (the painter fits self + every active cell + node). Done in a
+    // post-frame callback so we don't mutate the transform mid-build.
+    if (located && !_transform.value.isIdentity()) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _resetView();
+      });
     }
     // Bound the toast list — keep the newest handful.
     while (_toasts.length > 6) {
@@ -148,27 +162,59 @@ class _SnsCellsViewState extends State<SnsCellsView>
     return Stack(
       children: <Widget>[
         Positioned.fill(
-          child: CustomPaint(
-            painter: _SnsCellsPainter(
-              selfLat: selfLat,
-              selfLon: selfLon,
-              heat: heat,
-              nodes: nodes,
-              toasts: _toasts,
-              flashPubKey: _flashPubKey,
-              nowMs: now,
-              toastLifeMs: _toastLifeMs,
-              accent: cs.primary,
-              hot: const Color(0xFFFF3030),
-              cool: Colors.white,
-              node: cs.onSurfaceVariant,
-              flash: cs.tertiary,
-              self: cs.primary,
-              label: cs.onSurface,
-              toastBg: cs.surface,
-              toastBorder: cs.outline,
-              bg: cs.surface,
+          child: InteractiveViewer(
+            transformationController: _transform,
+            minScale: 0.4,
+            maxScale: 6.0,
+            boundaryMargin: const EdgeInsets.all(800),
+            child: CustomPaint(
+              painter: _SnsCellsPainter(
+                selfLat: selfLat,
+                selfLon: selfLon,
+                heat: heat,
+                nodes: nodes,
+                toasts: _toasts,
+                flashPubKey: _flashPubKey,
+                nowMs: now,
+                toastLifeMs: _toastLifeMs,
+                accent: cs.primary,
+                hot: const Color(0xFFFF3030),
+                cool: Colors.white,
+                node: cs.onSurfaceVariant,
+                flash: cs.tertiary,
+                self: cs.primary,
+                label: cs.onSurface,
+                toastBg: cs.surface,
+                toastBorder: cs.outline,
+                bg: cs.surface,
+              ),
+              child: const SizedBox.expand(),
             ),
+          ),
+        ),
+        // Recenter — fades in when zoomed/panned away from the base
+        // fit-to-content view.
+        Positioned(
+          right: 12,
+          top: 12,
+          child: AnimatedBuilder(
+            animation: _transform,
+            builder: (BuildContext _, Widget? __) {
+              final bool atIdentity = _transform.value.isIdentity();
+              return AnimatedOpacity(
+                duration: const Duration(milliseconds: 180),
+                opacity: atIdentity ? 0.0 : 1.0,
+                child: IgnorePointer(
+                  ignoring: atIdentity,
+                  child: FilledButton.tonalIcon(
+                    icon: const Icon(
+                        Icons.center_focus_strong, size: 16),
+                    label: Text(l.meshTreeRecenter),
+                    onPressed: _resetView,
+                  ),
+                ),
+              );
+            },
           ),
         ),
         // Status chip — active cells + hot count.
@@ -301,6 +347,42 @@ class _SnsCellsPainter extends CustomPainter {
           centre.dx + dE * pxPerMeter, centre.dy - dN * pxPerMeter);
     }
 
+    final double cellPx =
+        CoverageStore.cellDeg * _mPerDegLat * pxPerMeter;
+
+    // --- Reference grid (always on) ---
+    // Aligned to the geographic cell lattice so heat squares sit
+    // inside grid cells. When cells are too small to read, step by
+    // a multiple so lines stay ~16 px+ apart instead of vanishing.
+    final Paint grid = Paint()
+      ..color = node.withValues(alpha: 0.14)
+      ..strokeWidth = 0.5;
+    final int step = math.max(1, (16 / cellPx).ceil());
+    final double gridPx = cellPx * step;
+    if (gridPx.isFinite && gridPx >= 2) {
+      // Screen x of the cell boundary just west of self, then walk.
+      final double selfCellLon =
+          (selfLon / CoverageStore.cellDeg).floor() *
+              CoverageStore.cellDeg;
+      final double originDx =
+          (selfCellLon - selfLon) * mPerDegLon * pxPerMeter;
+      double x0 = centre.dx + originDx;
+      x0 -= (x0 / gridPx).ceil() * gridPx; // back up off-screen
+      for (double x = x0; x < size.width; x += gridPx) {
+        canvas.drawLine(Offset(x, 0), Offset(x, size.height), grid);
+      }
+      final double selfCellLat =
+          (selfLat / CoverageStore.cellDeg).floor() *
+              CoverageStore.cellDeg;
+      final double originDy =
+          -(selfCellLat - selfLat) * _mPerDegLat * pxPerMeter;
+      double y0 = centre.dy + originDy;
+      y0 -= (y0 / gridPx).ceil() * gridPx;
+      for (double y = y0; y < size.height; y += gridPx) {
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
+      }
+    }
+
     // --- Heat cells ---
     // Glitch clock: a coarse time quantum (~7 fps) drives the jitter
     // + RGB-split phase so hot cells shimmer like a degrading CRT
@@ -308,8 +390,6 @@ class _SnsCellsPainter extends CustomPainter {
     final int glitchQuantum = nowMs ~/ 140;
     final double splitPhase =
         math.sin(nowMs / 220.0); // -1..1, ~0.7 Hz
-    final double cellPx =
-        CoverageStore.cellDeg * _mPerDegLat * pxPerMeter;
     heat.forEach((String key, double hotness) {
       final ({int latBucket, int lonBucket})? b =
           CoverageStore.parseKey(key);
@@ -328,12 +408,15 @@ class _SnsCellsPainter extends CustomPainter {
         cc = cc.translate(jx, jy);
       }
 
-      final double w = math.max(cellPx, 6);
+      // Minimum 12 px so a single-message cell is clearly visible
+      // even when zoomed out.
+      final double w = math.max(cellPx, 12);
       final Rect r = Rect.fromCenter(center: cc, width: w, height: w);
-      // white (cool) → red (hot). Alpha also rises with heat so a
-      // near-cool cell stays faint and the map breathes.
+      // white (cool) → red (hot). Floor the alpha at 0.40 so even a
+      // single fresh message reads as a solid patch rather than a
+      // ghost; ramp to near-opaque when hot.
       final Color fill = Color.lerp(cool, hot, hotness)!
-          .withValues(alpha: (0.20 + 0.62 * hotness).clamp(0.0, 0.85));
+          .withValues(alpha: (0.40 + 0.50 * hotness).clamp(0.0, 0.92));
       canvas.drawRect(r, Paint()..color = fill);
 
       // RGB-split / chromatic aberration on hot cells — draw a red
@@ -354,22 +437,6 @@ class _SnsCellsPainter extends CustomPainter {
         canvas.drawRect(r.shift(Offset(-s, 0)), cyanGhost);
       }
     });
-
-    // --- Grid lines (faint) for spatial reference ---
-    final Paint grid = Paint()
-      ..color = node.withValues(alpha: 0.12)
-      ..strokeWidth = 0.5;
-    if (cellPx >= 12) {
-      // Only draw the lattice when cells are big enough to read.
-      final double startX = centre.dx % cellPx;
-      for (double x = startX; x < size.width; x += cellPx) {
-        canvas.drawLine(Offset(x, 0), Offset(x, size.height), grid);
-      }
-      final double startY = centre.dy % cellPx;
-      for (double y = startY; y < size.height; y += cellPx) {
-        canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
-      }
-    }
 
     // --- Nodes ---
     for (final DiscoveredNode n in nodes) {
@@ -409,18 +476,31 @@ class _SnsCellsPainter extends CustomPainter {
     _drawGlitch(canvas, size);
 
     // --- Toasts (drawn on top of scanlines so text stays crisp) ---
+    // Located messages (DMs from a positioned sender) toast *over
+    // the sender*, rising as they age. Unlocated / anonymous channel
+    // messages can't be placed — instead of piling on our crosshair
+    // (which read as "from me"), they stack as banners down from the
+    // top so the chatter is visible without lying about its origin.
+    int bannerSlot = 0;
     for (final _Toast t in toasts) {
       final double age = (nowMs - t.createdMs) / toastLifeMs;
       if (age >= 1.0) continue;
       final double opacity = age < 0.15
           ? age / 0.15 // fade in
           : (1.0 - (age - 0.15) / 0.85).clamp(0.0, 1.0); // hold + out
-      final Offset anchor = (t.lat != null && t.lon != null)
-          ? project(t.lat!, t.lon!)
-          : centre;
-      // Rise slightly as it ages.
-      final Offset pos = anchor.translate(0, -18 - age * 24);
-      _drawToast(canvas, pos, t.text, opacity, t.isChannel);
+      final bool located = t.lat != null && t.lon != null;
+      if (located) {
+        final Offset anchor = project(t.lat!, t.lon!);
+        final Offset pos = anchor.translate(0, -18 - age * 24);
+        _drawToast(canvas, pos, t.text, opacity, t.isChannel);
+      } else {
+        // Top-banner stack — newest highest. Slide in from the right
+        // edge slightly as it appears.
+        final double y = 16 + bannerSlot * 26.0;
+        final Offset pos = Offset(size.width / 2, y);
+        _drawToast(canvas, pos, t.text, opacity, t.isChannel);
+        bannerSlot++;
+      }
     }
   }
 
