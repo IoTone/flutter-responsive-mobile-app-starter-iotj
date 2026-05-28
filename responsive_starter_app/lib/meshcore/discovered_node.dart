@@ -136,7 +136,12 @@ class DiscoveredNode {
       latitude != null &&
       longitude != null &&
       latitude!.abs() <= 90.0 &&
-      longitude!.abs() <= 180.0;
+      longitude!.abs() <= 180.0 &&
+      // (0, 0) is the firmware's unset sentinel — a node that hasn't
+      // acquired GPS reports it, and it lands in the Gulf of Guinea
+      // off West Africa. Treat exactly (0,0) as "no location" so we
+      // never pin a phantom node at Null Island on the map / globe.
+      !(latitude!.abs() < 1e-9 && longitude!.abs() < 1e-9);
 
   String get shortId =>
       pubKeyHex.length >= 12 ? pubKeyHex.substring(0, 12) : pubKeyHex;

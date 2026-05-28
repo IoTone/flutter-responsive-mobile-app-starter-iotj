@@ -627,6 +627,10 @@ class MeshcoreController extends ChangeNotifier {
     // view renders (it expects latitudes in ±90 / longitudes in ±180).
     if (!lat.isFinite || !lon.isFinite) return;
     if (lat.abs() > 90.0 || lon.abs() > 180.0) return;
+    // (0,0) is the unset sentinel (Null Island) — never a real
+    // observation. Drop it so the coverage quilt doesn't grow a
+    // phantom cell off West Africa.
+    if (lat.abs() < 1e-9 && lon.abs() < 1e-9) return;
     final ({int latBucket, int lonBucket}) b =
         CoverageStore.bucketFor(lat, lon);
     final String key = CoverageStore.cellKey(b.latBucket, b.lonBucket);
