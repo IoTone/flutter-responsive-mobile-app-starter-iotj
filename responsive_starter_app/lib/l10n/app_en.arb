@@ -601,6 +601,12 @@
   "snsCellsLegendChannel": "Channel messages are anonymous — they warm your own cell (the receive point).",
   "snsCellsLegendDecay": "Only the last hour is tracked; nothing is stored.",
   "meshTreeEmpty": "Waiting for contact sync — the tree is built from each contact's outPath.",
+  "meshTreeHopsDirect": "Direct",
+  "meshTreeHopsAll": "≤6 / All",
+  "meshTreeHopsN": "≤{n} hops",
+  "@meshTreeHopsN": {
+    "placeholders": {"n": {"type": "int"}}
+  },
   "meshTreeRecenter": "Recenter",
   "meshTreeLegendTitle": "MESH TREE",
   "meshTreeLegendDesc": "A directed graph of how the radio reaches each contact. Edges come from Contact.outPath — the exact repeater chain the device uses to send.",

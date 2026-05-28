@@ -1373,6 +1373,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Waiting for contact sync — the tree is built from each contact\'s outPath.';
 
   @override
+  String get meshTreeHopsDirect => 'Direct';
+
+  @override
+  String get meshTreeHopsAll => '≤6 / All';
+
+  @override
+  String meshTreeHopsN(int n) {
+    return '≤$n hops';
+  }
+
+  @override
   String get meshTreeRecenter => 'Recenter';
 
   @override

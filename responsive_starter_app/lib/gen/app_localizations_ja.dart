@@ -1306,6 +1306,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get meshTreeEmpty => 'コンタクト同期を待機中 — ツリーは各コンタクトの outPath から構築されます。';
 
   @override
+  String get meshTreeHopsDirect => '直接';
+
+  @override
+  String get meshTreeHopsAll => '≤6 / 全て';
+
+  @override
+  String meshTreeHopsN(int n) {
+    return '≤$n ホップ';
+  }
+
+  @override
   String get meshTreeRecenter => '中央に戻す';
 
   @override

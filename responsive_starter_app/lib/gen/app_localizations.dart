@@ -2414,6 +2414,24 @@ abstract class AppLocalizations {
   /// **'Waiting for contact sync — the tree is built from each contact\'s outPath.'**
   String get meshTreeEmpty;
 
+  /// No description provided for @meshTreeHopsDirect.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct'**
+  String get meshTreeHopsDirect;
+
+  /// No description provided for @meshTreeHopsAll.
+  ///
+  /// In en, this message translates to:
+  /// **'≤6 / All'**
+  String get meshTreeHopsAll;
+
+  /// No description provided for @meshTreeHopsN.
+  ///
+  /// In en, this message translates to:
+  /// **'≤{n} hops'**
+  String meshTreeHopsN(int n);
+
   /// No description provided for @meshTreeRecenter.
   ///
   /// In en, this message translates to:

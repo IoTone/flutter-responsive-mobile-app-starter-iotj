@@ -51,6 +51,10 @@ class _MeshTreeViewState extends State<MeshTreeView>
   int _lastGraphSignature = 0;
   Size _lastSize = Size.zero;
 
+  /// Max hop depth shown. 0 = direct neighbours only, 6 = everything
+  /// (including advert-only floaters). Default 2 — direct + 1- + 2-hop.
+  int _maxHops = 2;
+
   @override
   void initState() {
     super.initState();
@@ -194,6 +198,7 @@ class _MeshTreeViewState extends State<MeshTreeView>
     final MeshGraph graph = MeshGraph.fromController(
       mc,
       filteredNodes: widget.filteredNodes,
+      maxHops: _maxHops,
     );
 
     return LayoutBuilder(
@@ -274,9 +279,85 @@ class _MeshTreeViewState extends State<MeshTreeView>
                 },
               ),
             ),
+            // Hop-depth slider — trims the tree to peers within
+            // N hops. 0 = Direct, 6 = All (incl. advert-only
+            // floaters). Default 2.
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
+              child: _HopSlider(
+                value: _maxHops,
+                label: _hopLabel(_maxHops, l),
+                cs: cs,
+                onChanged: (int v) {
+                  if (v != _maxHops) setState(() => _maxHops = v);
+                },
+              ),
+            ),
           ],
         );
       },
+    );
+  }
+
+  String _hopLabel(int hops, AppLocalizations l) {
+    if (hops <= 0) return l.meshTreeHopsDirect;
+    if (hops >= 6) return l.meshTreeHopsAll;
+    return l.meshTreeHopsN(hops);
+  }
+}
+
+/// Compact hop-depth slider for the tree view. 0..6 with a label
+/// chip showing the current setting.
+class _HopSlider extends StatelessWidget {
+  const _HopSlider({
+    required this.value,
+    required this.label,
+    required this.cs,
+    required this.onChanged,
+  });
+  final int value;
+  final String label;
+  final ColorScheme cs;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: cs.surface.withValues(alpha: .88),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: cs.outline.withValues(alpha: .55)),
+      ),
+      child: Row(
+        children: <Widget>[
+          Icon(Icons.account_tree, size: 14, color: cs.primary),
+          const SizedBox(width: 6),
+          SizedBox(
+            width: 84,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: cs.onSurface,
+                fontSize: 11,
+                fontFamily: 'monospace',
+                letterSpacing: 1,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Slider(
+              value: value.toDouble(),
+              min: 0,
+              max: 6,
+              divisions: 6,
+              onChanged: (double v) => onChanged(v.round()),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -67,9 +67,17 @@ class MeshGraph {
   /// used. The path resolver still walks the controller's whole node
   /// table, so a repeater that's part of a peer's path but not in the
   /// filter still shows up as an intermediate hub.
+  /// [maxHops] caps the resolved hop depth shown. A peer is included
+  /// when its hop count (`outPathHashes.length`, 0 = direct) is
+  /// `<= maxHops`. Peers with **unknown** routes (advert-only, no
+  /// path info) are included only at the top of the range
+  /// (`maxHops >= 6`), treated as the "show everything, including
+  /// unknowns" setting. Default 6 keeps the unfiltered behaviour for
+  /// callers that don't pass it.
   static MeshGraph fromController(
     MeshcoreController mc, {
     List<DiscoveredNode>? filteredNodes,
+    int maxHops = 6,
   }) {
     const String selfId = 'self';
     final Map<String, MeshGraphNode> byId = <String, MeshGraphNode>{
@@ -105,6 +113,15 @@ class MeshGraph {
     final List<DiscoveredNode> peers = filteredNodes ?? mc.nodes;
     for (final DiscoveredNode peer in peers) {
       if (peer.pubKeyHex == ownHex) continue; // don't double the root
+
+      // Hop-depth filter. Known hop count = outPathHashes.length
+      // (0 = direct). Unknown route (null) shows only at the top of
+      // the range.
+      final int? hops = peer.outPathHashes?.length;
+      final bool passesHops =
+          hops == null ? maxHops >= 6 : hops <= maxHops;
+      if (!passesHops) continue;
+
       addNode(peer);
 
       final List<DiscoveredNode>? chain =

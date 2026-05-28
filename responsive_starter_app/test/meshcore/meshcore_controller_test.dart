@@ -10,6 +10,7 @@ import 'package:meshmore_sns_app/meshcore/favorite_store.dart';
 import 'package:meshmore_sns_app/meshcore/known_store.dart';
 import 'package:meshmore_sns_app/meshcore/mesh_event.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
+import 'package:meshmore_sns_app/meshcore/mesh_graph.dart';
 import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
 import 'package:meshmore_sns_app/meshcore/node_telemetry.dart';
 import 'package:meshmore_sns_app/meshcore/own_location.dart';
@@ -483,6 +484,55 @@ void main() {
           .pubKeyHex;
       expect(ctrl.topologyChainFor(pub), isNull,
           reason: 'ambiguous first-byte hash must yield null');
+    });
+
+    test('R51 — MeshGraph maxHops trims peers by resolved hop depth',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      // Repeaters 0xB1, 0xB2 (so chains resolve), plus peers at
+      // hop depths 0, 1, 2.
+      fake.emit(contactFrame(firstByte: 0xB1, type: 2, outPath: <int>[]));
+      fake.emit(contactFrame(firstByte: 0xB2, type: 2, outPath: <int>[]));
+      fake.emit(contactFrame(
+          firstByte: 0xD0, type: 1, outPath: <int>[])); // direct
+      fake.emit(contactFrame(
+          firstByte: 0xD1, type: 1, outPath: <int>[0xB1])); // 1 hop
+      fake.emit(contactFrame(
+          firstByte: 0xD2, type: 1, outPath: <int>[0xB1, 0xB2])); // 2
+      await Future<void>.delayed(Duration.zero);
+
+      bool hasNode(MeshGraph g, String name) =>
+          g.nodes.any((MeshGraphNode n) => n.label == name);
+
+      // Direct only — peer208 (0xD0) in, the 1- and 2-hop peers out.
+      final MeshGraph direct =
+          MeshGraph.fromController(ctrl, maxHops: 0);
+      expect(hasNode(direct, 'peer208'), isTrue);
+      expect(hasNode(direct, 'peer209'), isFalse);
+      expect(hasNode(direct, 'peer210'), isFalse);
+
+      // ≤2 hops — all three peers in.
+      final MeshGraph two =
+          MeshGraph.fromController(ctrl, maxHops: 2);
+      expect(hasNode(two, 'peer208'), isTrue);
+      expect(hasNode(two, 'peer209'), isTrue);
+      expect(hasNode(two, 'peer210'), isTrue);
+
+      // ≤1 hop — the 2-hop peer (peer210) is excluded.
+      final MeshGraph one =
+          MeshGraph.fromController(ctrl, maxHops: 1);
+      expect(hasNode(one, 'peer209'), isTrue);
+      expect(hasNode(one, 'peer210'), isFalse);
     });
   });
 
