@@ -276,13 +276,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    l.dashboardBatteryReadout(
-                          mc.batteryVolts!.toStringAsFixed(2),
-                          mc.batteryPercent ?? 0,
-                        ) +
-                        (mc.charging == true
-                            ? '  ⚡ ${l.dashboardCharging}'
-                            : ''),
+                    _batteryLine(mc, l),
                     style: TextStyle(
                         color: mc.charging == true
                             ? cs.tertiary
@@ -501,6 +495,32 @@ class _LocationDebugLine extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Dashboard battery line: voltage + the **model's** state-of-charge
+/// estimate (OCV-curve, more accurate than the raw linear percent),
+/// with a compact time-to-empty when the estimator has one. Charging
+/// supersedes the runtime (it's paused while charging).
+String _batteryLine(MeshcoreController mc, AppLocalizations l) {
+  final est = mc.batteryEstimate;
+  final int percent =
+      est.socPercent.isNaN ? (mc.batteryPercent ?? 0) : est.socPercent.round();
+  final StringBuffer b = StringBuffer(l.dashboardBatteryReadout(
+    mc.batteryVolts!.toStringAsFixed(2),
+    percent,
+  ));
+  if (mc.charging == true) {
+    b.write('  ⚡ ${l.dashboardCharging}');
+  } else if (est.timeToEmpty != null) {
+    b.write(' · ${l.dashboardBatteryLeft(_fmtBatteryDur(est.timeToEmpty!, l))}');
+  }
+  return b.toString();
+}
+
+String _fmtBatteryDur(Duration d, AppLocalizations l) {
+  if (d.inDays > 0) return l.batteryDurDH(d.inDays, d.inHours % 24);
+  if (d.inHours > 0) return l.batteryDurHM(d.inHours, d.inMinutes % 60);
+  return l.batteryDurM(d.inMinutes);
 }
 
 /// R52 — quick device rename from the dashboard. Opens a small dialog,

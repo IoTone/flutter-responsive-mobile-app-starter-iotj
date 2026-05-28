@@ -152,6 +152,12 @@
       "percent": {"type": "int"}
     }
   },
+  "dashboardBatteryLeft": "~{time} left",
+  "@dashboardBatteryLeft": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
 
   "nodesScanArea": "Scan area",
   "nodesScanning": "Scanning…",

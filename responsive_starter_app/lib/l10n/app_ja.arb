@@ -152,6 +152,12 @@
       "percent": {"type": "int"}
     }
   },
+  "dashboardBatteryLeft": "残り約{time}",
+  "@dashboardBatteryLeft": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
 
   "nodesScanArea": "周辺をスキャン",
   "nodesScanning": "スキャン中…",

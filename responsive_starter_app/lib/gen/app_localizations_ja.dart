@@ -379,6 +379,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String dashboardBatteryLeft(String time) {
+    return '残り約$time';
+  }
+
+  @override
   String get nodesScanArea => '周辺をスキャン';
 
   @override

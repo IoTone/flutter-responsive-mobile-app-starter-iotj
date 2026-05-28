@@ -782,6 +782,12 @@ abstract class AppLocalizations {
   /// **'{volts}V · ~{percent}%'**
   String dashboardBatteryReadout(String volts, int percent);
 
+  /// No description provided for @dashboardBatteryLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'~{time} left'**
+  String dashboardBatteryLeft(String time);
+
   /// No description provided for @nodesScanArea.
   ///
   /// In en, this message translates to:

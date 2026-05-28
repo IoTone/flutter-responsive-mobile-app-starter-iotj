@@ -398,6 +398,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String dashboardBatteryLeft(String time) {
+    return '~$time left';
+  }
+
+  @override
   String get nodesScanArea => 'Scan area';
 
   @override
