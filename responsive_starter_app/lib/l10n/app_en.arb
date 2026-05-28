@@ -22,6 +22,8 @@
   "dashboardNoActivity": "— no activity —",
   "dashboardAwaitingDevice": "— awaiting device —",
   "dashboardAwaitingDeviceLocation": "— awaiting device location —",
+  "dashboardUnnamed": "(unnamed)",
+  "dashboardRenameTitle": "Device name",
   "dashboardLocationNotSet": "Not set — neither device nor phone fix yet",
   "dashboardLocationConfigure": "CONFIGURE",
   "dashboardLocationSourceLabel": "source · {source}",
@@ -826,7 +828,7 @@
   "deviceAdvertSourcePinned": "Pinned",
   "deviceAdvertSourceGps": "Device GPS",
   "deviceToastNameEmpty": "Enter a node name",
-  "deviceToastNameSet": "Name set — re-advertise so neighbours pick it up",
+  "deviceToastNameSet": "Name updated — re-advertising to neighbours",
   "deviceToastSendFailed": "Send failed: {error}",
   "@deviceToastSendFailed": {
     "placeholders": {"error": {"type": "String"}}

@@ -1512,6 +1512,39 @@ void main() {
       ctrl.dispose();
     });
 
+    test('R52 — setAdvertName refreshes SelfInfo so the rename takes '
+        'effect (self-advert 0x07 + appStart 0x01 follow the name)',
+        () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame()); // → ready
+      await Future<void>.delayed(Duration.zero);
+      fake.sent.clear(); // ignore handshake/ready traffic
+
+      await ctrl.setAdvertName('Renamed');
+      // Let the unawaited refreshSelfInfo() pipeline run.
+      await Future<void>.delayed(Duration.zero);
+
+      final int nameIdx =
+          fake.sent.indexWhere((f) => f.isNotEmpty && f[0] == 0x08);
+      final int advertIdx =
+          fake.sent.indexWhere((f) => f.isNotEmpty && f[0] == 0x07);
+      final int appStartIdx =
+          fake.sent.indexWhere((f) => f.isNotEmpty && f[0] == 0x01);
+      expect(nameIdx, isNonNegative, reason: 'SET_ADVERT_NAME sent');
+      expect(advertIdx, greaterThan(nameIdx),
+          reason: 'self-advert follows the rename to propagate it');
+      expect(appStartIdx, greaterThan(nameIdx),
+          reason: 'appStart follows to re-read SelfInfo');
+      ctrl.dispose();
+    });
+
     test('R44 — setAdvertLatLon with altitude emits a 13-byte frame '
         '(opcode + 3×i32) instead of the 9-byte lat/lon-only form',
         () async {

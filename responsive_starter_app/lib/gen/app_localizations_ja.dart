@@ -59,6 +59,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dashboardAwaitingDeviceLocation => '— デバイス位置情報を待機中 —';
 
   @override
+  String get dashboardUnnamed => '(名前なし)';
+
+  @override
+  String get dashboardRenameTitle => 'デバイス名';
+
+  @override
   String get dashboardLocationNotSet => '未設定 — デバイス・スマートフォンともに位置情報未取得';
 
   @override
@@ -1821,7 +1827,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deviceToastNameEmpty => 'ノード名を入力してください';
 
   @override
-  String get deviceToastNameSet => '名前を設定 — 隣接ノードに反映するため再アドバートを実行';
+  String get deviceToastNameSet => '名前を更新 — 隣接ノードへ再アドバート中';
 
   @override
   String deviceToastSendFailed(String error) {

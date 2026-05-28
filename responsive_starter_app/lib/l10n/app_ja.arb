@@ -22,6 +22,8 @@
   "dashboardNoActivity": "— アクティビティなし —",
   "dashboardAwaitingDevice": "— デバイス待機中 —",
   "dashboardAwaitingDeviceLocation": "— デバイス位置情報を待機中 —",
+  "dashboardUnnamed": "(名前なし)",
+  "dashboardRenameTitle": "デバイス名",
   "dashboardLocationNotSet": "未設定 — デバイス・スマートフォンともに位置情報未取得",
   "dashboardLocationConfigure": "設定",
   "dashboardLocationSourceLabel": "ソース · {source}",
@@ -826,7 +828,7 @@
   "deviceAdvertSourcePinned": "ピン留め",
   "deviceAdvertSourceGps": "デバイス GPS",
   "deviceToastNameEmpty": "ノード名を入力してください",
-  "deviceToastNameSet": "名前を設定 — 隣接ノードに反映するため再アドバートを実行",
+  "deviceToastNameSet": "名前を更新 — 隣接ノードへ再アドバート中",
   "deviceToastSendFailed": "送信失敗: {error}",
   "@deviceToastSendFailed": {
     "placeholders": {"error": {"type": "String"}}

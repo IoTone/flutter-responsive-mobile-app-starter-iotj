@@ -66,6 +66,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardAwaitingDeviceLocation => '— awaiting device location —';
 
   @override
+  String get dashboardUnnamed => '(unnamed)';
+
+  @override
+  String get dashboardRenameTitle => 'Device name';
+
+  @override
   String get dashboardLocationNotSet =>
       'Not set — neither device nor phone fix yet';
 
@@ -1900,7 +1906,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deviceToastNameSet =>
-      'Name set — re-advertise so neighbours pick it up';
+      'Name updated — re-advertising to neighbours';
 
   @override
   String deviceToastSendFailed(String error) {

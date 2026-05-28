@@ -1757,18 +1757,25 @@ class MeshcoreController extends ChangeNotifier {
     // refresh GPS into selfInfo when handling `setOtherParams`
     // though — sending the same policy back as a no-op may shake
     // the cache loose without changing any state.
-    if (before != null) {
-      await setAdvertLocPolicy(before.advertLocPolicy)
-          .catchError((_) {});
+    // Wrapped in try/catch: the link can drop mid-refresh (these are
+    // multiple awaited round-trips), and `send` throws *synchronously*
+    // when disconnected — which a per-future `.catchError` can't
+    // intercept. Swallow it; a refresh is always best-effort.
+    try {
+      if (before != null) {
+        await setAdvertLocPolicy(before.advertLocPolicy);
+      }
+      // 1) Zero-hop advert triggers firmware GPS read + state update
+      //    (theoretically — confirmed by the v37 capture that this
+      //    alone wasn't enough).
+      await sendSelfAdvert(flood: false);
+      // 2) appStart re-fetches the SelfInfo response.
+      await send(MeshcoreFrameCodec.appStart(
+        appName: _connection.appName,
+      ));
+    } catch (_) {
+      // link dropped or device busy — best-effort, ignore.
     }
-    // 1) Zero-hop advert triggers firmware GPS read + state update
-    //    (theoretically — confirmed by the v37 capture that this
-    //    alone wasn't enough).
-    await sendSelfAdvert(flood: false).catchError((_) {});
-    // 2) appStart re-fetches the SelfInfo response.
-    await send(MeshcoreFrameCodec.appStart(
-      appName: _connection.appName,
-    )).catchError((_) {});
   }
 
   // --- Device info + identity/advert (R7) ---
@@ -1908,12 +1915,21 @@ class MeshcoreController extends ChangeNotifier {
     unawaited(Future<void>.microtask(_maybeAutoEnableGps));
   }
 
-  /// Set this node's advertised name (`SET_ADVERT_NAME`). The change
-  /// propagates to neighbours on the next advert. No-op if not ready.
+  /// Set this node's advertised name (`SET_ADVERT_NAME`). No-op if not
+  /// ready or blank.
+  ///
+  /// After the write we kick a [refreshSelfInfo] so the change takes
+  /// effect end-to-end: the zero-hop self-advert pushes the new name
+  /// onto the mesh immediately (rather than waiting for the next
+  /// scheduled advert), and the follow-up appStart re-reads SelfInfo
+  /// so the app's own surfaces (dashboard, Device config) reflect the
+  /// rename without a reconnect. Fire-and-forget so callers can toast
+  /// right after the name write.
   Future<void> setAdvertName(String name) async {
     final String n = name.trim();
     if (n.isEmpty || !isReady) return;
     await send(MeshcoreFrameCodec.setAdvertName(n));
+    unawaited(refreshSelfInfo());
   }
 
   /// Set this node's advertised location (`SET_ADVERT_LATLON`), in

@@ -194,6 +194,18 @@ abstract class AppLocalizations {
   /// **'— awaiting device location —'**
   String get dashboardAwaitingDeviceLocation;
 
+  /// No description provided for @dashboardUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'(unnamed)'**
+  String get dashboardUnnamed;
+
+  /// No description provided for @dashboardRenameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device name'**
+  String get dashboardRenameTitle;
+
   /// No description provided for @dashboardLocationNotSet.
   ///
   /// In en, this message translates to:
@@ -3335,7 +3347,7 @@ abstract class AppLocalizations {
   /// No description provided for @deviceToastNameSet.
   ///
   /// In en, this message translates to:
-  /// **'Name set — re-advertise so neighbours pick it up'**
+  /// **'Name updated — re-advertising to neighbours'**
   String get deviceToastNameSet;
 
   /// No description provided for @deviceToastSendFailed.

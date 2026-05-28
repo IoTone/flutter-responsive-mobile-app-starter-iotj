@@ -151,19 +151,58 @@ class DashboardScreen extends StatelessWidget {
             style: TextStyle(
                 color: cs.onSurfaceVariant, fontSize: 12, letterSpacing: 4)),
         const SizedBox(height: 4),
-        Text(
-          selfInfo == null
-              ? l.dashboardAwaitingDevice
-              : '${selfInfo.name}\n'
-                  '${selfInfo.frequencyMhz}MHz  '
-                  'SF${selfInfo.spreadingFactor}  '
-                  'CR${selfInfo.codingRate}  '
-                  '${selfInfo.txPowerDbm}dBm',
-          style: TextStyle(
-              color: cs.onSurface,
-              fontFamily: 'monospace',
-              height: 1.5),
-        ),
+        if (selfInfo == null)
+          Text(l.dashboardAwaitingDevice,
+              style: TextStyle(
+                  color: cs.onSurface,
+                  fontFamily: 'monospace',
+                  height: 1.5))
+        else ...<Widget>[
+          // R52 — the device name is editable right here. Tap to
+          // rename; setAdvertName re-advertises + refreshes SelfInfo,
+          // so the change takes effect without digging into Device
+          // config.
+          InkWell(
+            onTap: mc.isReady
+                ? () => _showRenameDialog(context, mc, selfInfo.name)
+                : null,
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                children: <Widget>[
+                  Flexible(
+                    child: Text(
+                      selfInfo.name.isEmpty
+                          ? l.dashboardUnnamed
+                          : selfInfo.name,
+                      style: TextStyle(
+                          color: cs.onSurface,
+                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16),
+                    ),
+                  ),
+                  if (mc.isReady) ...<Widget>[
+                    const SizedBox(width: 6),
+                    Icon(Icons.edit_outlined, size: 14, color: cs.primary),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '${selfInfo.frequencyMhz}MHz  '
+            'SF${selfInfo.spreadingFactor}  '
+            'CR${selfInfo.codingRate}  '
+            '${selfInfo.txPowerDbm}dBm',
+            style: TextStyle(
+                color: cs.onSurface,
+                fontFamily: 'monospace',
+                height: 1.5),
+          ),
+        ],
         // R39 — region preset readout. The answer to "what region am
         // I on?" should be visible from the dashboard, not buried in
         // Device Config. Matched against the device's live tuple;
@@ -460,6 +499,69 @@ class _LocationDebugLine extends StatelessWidget {
         fontSize: 10,
         height: 1.35,
       ),
+    );
+  }
+}
+
+/// R52 — quick device rename from the dashboard. Opens a small dialog,
+/// then writes the new advert name (which re-advertises + refreshes
+/// SelfInfo via [MeshcoreController.setAdvertName]).
+Future<void> _showRenameDialog(
+    BuildContext context, MeshcoreController mc, String current) async {
+  final AppLocalizations l = AppLocalizations.of(context);
+  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+  final String? result = await showDialog<String>(
+    context: context,
+    builder: (_) => _RenameDeviceDialog(initial: current),
+  );
+  if (result == null) return; // cancelled
+  final String n = result.trim();
+  if (n.isEmpty) {
+    messenger.showSnackBar(SnackBar(content: Text(l.deviceToastNameEmpty)));
+    return;
+  }
+  await mc.setAdvertName(n);
+  messenger.showSnackBar(SnackBar(content: Text(l.deviceToastNameSet)));
+}
+
+class _RenameDeviceDialog extends StatefulWidget {
+  const _RenameDeviceDialog({required this.initial});
+  final String initial;
+  @override
+  State<_RenameDeviceDialog> createState() => _RenameDeviceDialogState();
+}
+
+class _RenameDeviceDialogState extends State<_RenameDeviceDialog> {
+  late final TextEditingController _c =
+      TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l.dashboardRenameTitle),
+      content: TextField(
+        controller: _c,
+        autofocus: true,
+        maxLength: 31, // kMaxAdvertName
+        textInputAction: TextInputAction.done,
+        decoration: InputDecoration(labelText: l.deviceAdvertName),
+        onSubmitted: (_) => Navigator.pop(context, _c.text),
+      ),
+      actions: <Widget>[
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.actionCancel)),
+        FilledButton(
+            onPressed: () => Navigator.pop(context, _c.text),
+            child: Text(l.deviceSetName)),
+      ],
     );
   }
 }
