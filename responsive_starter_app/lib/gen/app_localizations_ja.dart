@@ -1377,6 +1377,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodeDetailTelemetryQuerying => '電波経由でピアに問い合わせ中…';
 
   @override
+  String get nodeDetailTelemetryNotContact =>
+      '同期済みコンタクトではありません — テレメトリは要求できません。まずデバイスにこのノードをコンタクトとして追加してください。';
+
+  @override
   String nodeDetailTelemetryAge(String age) {
     return '$age前のテレメトリ';
   }

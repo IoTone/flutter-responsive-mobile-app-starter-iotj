@@ -1446,6 +1446,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nodeDetailTelemetryQuerying => 'querying peer over the air…';
 
   @override
+  String get nodeDetailTelemetryNotContact =>
+      'Not a synced contact — telemetry can\'t be requested. Add this node as a contact on the device first.';
+
+  @override
   String nodeDetailTelemetryAge(String age) {
     return 'telemetry from $age';
   }

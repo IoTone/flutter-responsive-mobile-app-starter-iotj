@@ -628,6 +628,7 @@
   "nodeDetailQueryTelemetry": "Query telemetry",
   "nodeDetailRefreshTelemetry": "Refresh telemetry",
   "nodeDetailTelemetryQuerying": "querying peer over the air…",
+  "nodeDetailTelemetryNotContact": "Not a synced contact — telemetry can't be requested. Add this node as a contact on the device first.",
   "nodeDetailTelemetryAge": "telemetry from {age}",
   "@nodeDetailTelemetryAge": {
     "placeholders": {"age": {"type": "String"}}

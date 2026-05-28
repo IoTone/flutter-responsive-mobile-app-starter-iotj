@@ -628,6 +628,7 @@
   "nodeDetailQueryTelemetry": "テレメトリを取得",
   "nodeDetailRefreshTelemetry": "テレメトリを更新",
   "nodeDetailTelemetryQuerying": "電波経由でピアに問い合わせ中…",
+  "nodeDetailTelemetryNotContact": "同期済みコンタクトではありません — テレメトリは要求できません。まずデバイスにこのノードをコンタクトとして追加してください。",
   "nodeDetailTelemetryAge": "{age}前のテレメトリ",
   "@nodeDetailTelemetryAge": {
     "placeholders": {"age": {"type": "String"}}

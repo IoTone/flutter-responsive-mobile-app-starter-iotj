@@ -505,7 +505,23 @@ class _TelemetrySection extends StatelessWidget {
 
     if (!isSelf) {
       children.add(const SizedBox(height: 4));
-      if (querying) {
+      // Peer-telemetry requires the target to be a *synced contact*
+      // on our device — the firmware does lookupContactByPubKey and
+      // silently drops the request if the peer is only advert-heard.
+      // outPathHashes != null is our reliable "is a contact" signal
+      // (path info only arrives via ContactFrame). When it's null,
+      // explain why the query can't fire instead of offering a
+      // button that does nothing.
+      final bool isContact = node.outPathHashes != null;
+      if (!isContact) {
+        children.add(Text(
+          l.nodeDetailTelemetryNotContact,
+          style: TextStyle(
+              color: cs.onSurfaceVariant,
+              fontSize: 12,
+              fontStyle: FontStyle.italic),
+        ));
+      } else if (querying) {
         children.add(Row(
           children: <Widget>[
             const SizedBox(

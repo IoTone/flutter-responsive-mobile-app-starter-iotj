@@ -2540,6 +2540,12 @@ abstract class AppLocalizations {
   /// **'querying peer over the air…'**
   String get nodeDetailTelemetryQuerying;
 
+  /// No description provided for @nodeDetailTelemetryNotContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a synced contact — telemetry can\'t be requested. Add this node as a contact on the device first.'**
+  String get nodeDetailTelemetryNotContact;
+
   /// No description provided for @nodeDetailTelemetryAge.
   ///
   /// In en, this message translates to:
