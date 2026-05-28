@@ -55,6 +55,12 @@ class _MeshTreeViewState extends State<MeshTreeView>
   /// (including advert-only floaters). Default 2 — direct + 1- + 2-hop.
   int _maxHops = 2;
 
+  /// When true the view continuously scales/pans to frame the whole
+  /// graph (so a few-hundred-node cloud is always visible). Disabled
+  /// the moment the user pinch-zooms or pans; re-enabled by the
+  /// recenter button.
+  bool _autoFit = true;
+
   @override
   void initState() {
     super.initState();
@@ -65,8 +71,51 @@ class _MeshTreeViewState extends State<MeshTreeView>
     if (widget.frozen) return;
     if (_layout == null) return;
     _layout!.step();
+    if (_autoFit) _fitToContent();
     // Touch state so CustomPaint repaints with the new positions.
     if (mounted) setState(() {});
+  }
+
+  /// Scale + pan the InteractiveViewer so every node fits the
+  /// viewport with padding. Lerped toward the target each frame so
+  /// the framing eases as the layout settles instead of snapping.
+  void _fitToContent() {
+    if (_positions.isEmpty || _lastSize == Size.zero) return;
+    double minX = double.infinity, minY = double.infinity;
+    double maxX = -double.infinity, maxY = -double.infinity;
+    for (final NodePosition p in _positions.values) {
+      if (p.x < minX) minX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y > maxY) maxY = p.y;
+    }
+    final double contentW = math.max(maxX - minX, 1);
+    final double contentH = math.max(maxY - minY, 1);
+    const double pad = 64.0;
+    final double sx = (_lastSize.width - pad) / contentW;
+    final double sy = (_lastSize.height - pad) / contentH;
+    final double target = math.min(sx, sy).clamp(0.1, 1.8);
+    final double cx = (minX + maxX) / 2;
+    final double cy = (minY + maxY) / 2;
+    final double tTx = _lastSize.width / 2 - cx * target;
+    final double tTy = _lastSize.height / 2 - cy * target;
+
+    final Matrix4 cur = _transform.value;
+    final double curScale = cur.getMaxScaleOnAxis();
+    // Matrix4 storage is column-major; translation x/y live at 12/13.
+    final double curTx = cur.storage[12];
+    final double curTy = cur.storage[13];
+    const double k = 0.18; // lerp factor — smooth easing
+    final double ns = curScale + (target - curScale) * k;
+    final double ntx = curTx + (tTx - curTx) * k;
+    final double nty = curTy + (tTy - curTy) * k;
+    // Build scale+translate directly via setEntry to avoid the
+    // deprecated Matrix4.translate/scale helpers.
+    _transform.value = Matrix4.identity()
+      ..setEntry(0, 0, ns) // scale x
+      ..setEntry(1, 1, ns) // scale y
+      ..setEntry(0, 3, ntx) // translate x
+      ..setEntry(1, 3, nty); // translate y
   }
 
   @override
@@ -77,10 +126,9 @@ class _MeshTreeViewState extends State<MeshTreeView>
   }
 
   void _recenter() {
-    // Animate-feel via a quick interpolation isn't worth the
-    // complexity here — the snap to identity is fine and matches the
-    // visual model ("reset view").
-    _transform.value = Matrix4.identity();
+    // Re-enable auto-fit so the view eases back to framing the whole
+    // graph. (Manual pinch/pan had turned it off.)
+    setState(() => _autoFit = true);
   }
 
   /// Rebuild the simulation when the graph's node-set changes. We
@@ -141,10 +189,11 @@ class _MeshTreeViewState extends State<MeshTreeView>
       ],
       centerX: cx,
       centerY: cy,
-      // Keep every node inside the viewport — floaters (disconnected
-      // advert-only peers) would otherwise be pushed off-screen by
-      // repulsion and look like they vanished at higher hop settings.
-      bounds: (w: size.width, h: size.height),
+      // No bounds — let the cloud spread to its natural size (capped
+      // by the centering force). Visibility is handled by auto-fit
+      // in the view, which scales the InteractiveViewer to frame the
+      // whole graph however large it gets. Clamping to the viewport
+      // instead just piles hundreds of nodes into overlapping blobs.
     );
   }
 
@@ -224,9 +273,15 @@ class _MeshTreeViewState extends State<MeshTreeView>
             Positioned.fill(
               child: InteractiveViewer(
                 transformationController: _transform,
-                minScale: 0.3,
+                minScale: 0.1,
                 maxScale: 4.0,
-                boundaryMargin: const EdgeInsets.all(1200),
+                boundaryMargin: const EdgeInsets.all(2000),
+                // Manual pinch/pan turns off auto-fit so we stop
+                // fighting the user; the recenter button turns it
+                // back on.
+                onInteractionStart: (_) {
+                  if (_autoFit) setState(() => _autoFit = false);
+                },
                 child: GestureDetector(
                   onTapUp: (TapUpDetails d) =>
                       _maybeShowDetail(mc, d.localPosition),
@@ -258,31 +313,20 @@ class _MeshTreeViewState extends State<MeshTreeView>
             // Recenter overlay — listens to the transformation
             // controller so it appears only when the user has zoomed
             // or panned away from the default view. Identity matrix
-            // means already centred → nothing to do, button hidden.
-            Positioned(
-              right: 12,
-              bottom: 12,
-              child: AnimatedBuilder(
-                animation: _transform,
-                builder: (BuildContext _, Widget? __) {
-                  final bool atIdentity =
-                      _transform.value.isIdentity();
-                  return AnimatedOpacity(
-                    duration: const Duration(milliseconds: 180),
-                    opacity: atIdentity ? 0.0 : 1.0,
-                    child: IgnorePointer(
-                      ignoring: atIdentity,
-                      child: FilledButton.tonalIcon(
-                        icon: const Icon(
-                            Icons.center_focus_strong, size: 16),
-                        label: Text(l.meshTreeRecenter),
-                        onPressed: _recenter,
-                      ),
-                    ),
-                  );
-                },
+            // Shown only when the user has taken manual control
+            // (auto-fit off). Tapping re-enables auto-fit so the view
+            // eases back to framing the whole graph.
+            if (!_autoFit)
+              Positioned(
+                right: 12,
+                bottom: 12,
+                child: FilledButton.tonalIcon(
+                  icon: const Icon(
+                      Icons.center_focus_strong, size: 16),
+                  label: Text(l.meshTreeRecenter),
+                  onPressed: _recenter,
+                ),
               ),
-            ),
             // Hop-depth slider — trims the tree to peers within
             // N hops. 0 = Direct, 6 = All (incl. advert-only
             // floaters). Default 2.
