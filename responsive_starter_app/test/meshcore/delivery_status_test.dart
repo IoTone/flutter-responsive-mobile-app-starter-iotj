@@ -113,6 +113,36 @@ void main() {
       ctrl.dispose();
     });
 
+    test('DM: ACK arriving BEFORE MsgSent still resolves to delivered '
+        '(out-of-order firmware) — not a false timeout', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      // Short ack-timeout: if the out-of-order ACK weren't reconciled,
+      // the message would flip to `failed` within 30 ms.
+      final MeshcoreController ctrl = await readyController(fake,
+          deliveryTimeoutOverride: const Duration(milliseconds: 30));
+
+      await ctrl.sendDirectText(peer, 'ping');
+      // ACK lands first (before the device's send confirmation).
+      fake.emit(ackFrame(0xCAFEBABE));
+      await Future<void>.delayed(Duration.zero);
+      // Still sending — the tag isn't known yet, ACK is cached.
+      expect(ctrl.dmHistoryFor(peer).single.delivery,
+          MessageDelivery.sending);
+
+      // SENT confirmation arrives → reconcile to delivered immediately.
+      fake.emit(msgSentFrame(ack: 0xCAFEBABE, flood: false));
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.dmHistoryFor(peer).single.delivery,
+          MessageDelivery.delivered);
+
+      // Past the timeout window: must stay delivered, never failed.
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      expect(ctrl.dmHistoryFor(peer).single.delivery,
+          MessageDelivery.delivered);
+      ctrl.dispose();
+    });
+
     test('channel: sent is terminal (flood → no ack expected)', () async {
       final FakeMeshcoreTransport fake =
           FakeMeshcoreTransport(connected: true);

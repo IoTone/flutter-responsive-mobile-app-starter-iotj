@@ -1148,6 +1148,13 @@ class MeshcoreController extends ChangeNotifier {
   //   expectedAck tag.
   // - failed: the BLE send threw, the confirm watchdog fired, or a
   //   DM's ack-timeout elapsed with no receipt.
+  //
+  // Ordering: some firmware pushes the PUSH_CODE_ACK *before* the
+  // RESP_CODE_SENT confirmation (the ACK can't be matched yet — we
+  // don't learn the expectedAck tag until the SENT frame). So an
+  // unmatched ACK is cached briefly and reconciled when the SENT
+  // frame lands; otherwise the message would (wrongly) time out as
+  // failed despite having been delivered.
 
   /// Outgoing message ids awaiting a RESP_CODE_SENT, oldest first.
   final List<String> _pendingSendIds = <String>[];
@@ -1155,6 +1162,12 @@ class MeshcoreController extends ChangeNotifier {
   /// Per-message lifecycle timers (confirm watchdog, then DM ack
   /// timeout), keyed by message id.
   final Map<String, Timer> _deliveryTimers = <String, Timer>{};
+
+  /// ACK tags seen *before* their RESP_CODE_SENT (tag → epoch ms).
+  /// Consumed when the matching SENT confirmation arrives. Pruned by
+  /// age so a never-matched ACK can't accumulate.
+  final Map<int, int> _recentAcks = <int, int>{};
+  static const int _recentAckTtlMs = 30000;
 
   /// How long to wait for the device's send confirmation before
   /// giving up on an outgoing message.
@@ -1207,6 +1220,19 @@ class MeshcoreController extends ChangeNotifier {
     return Duration(milliseconds: clamped);
   }
 
+  void _recordRecentAck(int tag) {
+    final int now = DateTime.now().millisecondsSinceEpoch;
+    _recentAcks.removeWhere((_, int ts) => now - ts > _recentAckTtlMs);
+    _recentAcks[tag] = now;
+  }
+
+  /// True if [tag] was acked within the TTL; consumes it.
+  bool _consumeRecentAck(int tag) {
+    final int? ts = _recentAcks.remove(tag);
+    if (ts == null) return false;
+    return DateTime.now().millisecondsSinceEpoch - ts <= _recentAckTtlMs;
+  }
+
   void _trackDelivery(MeshcoreInbound f) {
     if (f is MsgSentFrame) {
       if (_pendingSendIds.isEmpty) return;
@@ -1217,9 +1243,13 @@ class MeshcoreController extends ChangeNotifier {
         ..delivery = MessageDelivery.sent
         ..expectedAck = f.sent.expectedAck;
       _deliveryTimers.remove(id)?.cancel();
-      // Channel/broadcast (flood) has no recipient receipt → terminal.
-      // A direct message waits for the matching ACK push.
-      if (!f.sent.isFlood) {
+      if (_consumeRecentAck(f.sent.expectedAck)) {
+        // The ACK raced ahead of this SENT confirmation (firmware
+        // ordering). Reconcile now — delivered, no timeout.
+        m.delivery = MessageDelivery.delivered;
+      } else if (!f.sent.isFlood) {
+        // Direct message: wait for the recipient ACK. Channel/
+        // broadcast (flood) has no receipt → terminal at sent.
         _deliveryTimers[id] = Timer(_ackTimeoutFor(f.sent.estTimeoutMs), () {
           final ChatMessage? msg = _messageById(id);
           if (msg != null && msg.delivery == MessageDelivery.sent) {
@@ -1232,9 +1262,10 @@ class MeshcoreController extends ChangeNotifier {
       }
       _persistChat();
     } else if (f is AckFrame) {
-      // Match the ack tag to the most recent still-sent DM. Tags are
-      // 32-bit; collisions are unlikely within a handful of in-flight
-      // messages, and matching newest-first is the safe choice.
+      // Match the ack tag to the most recent still-sent message. Tags
+      // are 32-bit; collisions are unlikely within a handful of
+      // in-flight messages, and matching newest-first is the safe
+      // choice.
       for (int i = _messages.length - 1; i >= 0; i--) {
         final ChatMessage m = _messages[i];
         if (m.outgoing &&
@@ -1243,9 +1274,13 @@ class MeshcoreController extends ChangeNotifier {
           m.delivery = MessageDelivery.delivered;
           _deliveryTimers.remove(m.id)?.cancel();
           _persistChat();
-          break;
+          return;
         }
       }
+      // No matching sent message yet — the ACK arrived before the
+      // RESP_CODE_SENT confirmation. Remember it so the SENT frame can
+      // reconcile to delivered instead of timing out.
+      _recordRecentAck(f.ackCrc);
     }
   }
 
