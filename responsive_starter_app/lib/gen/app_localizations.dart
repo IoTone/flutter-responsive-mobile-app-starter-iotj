@@ -1196,6 +1196,48 @@ abstract class AppLocalizations {
   /// **'FUJI'**
   String get gridViewElevationShort;
 
+  /// No description provided for @fujiLegendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'FUJIさん'**
+  String get fujiLegendTitle;
+
+  /// No description provided for @fujiLegendDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude survey. Heights on a √-scaled axis against famous landmarks. Your device\'s altitude comes from device GPS telemetry or the phone fix.'**
+  String get fujiLegendDesc;
+
+  /// No description provided for @fujiLegendMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashed line = you. At your altitude, or pinned to the ground with ALT? until it resolves.'**
+  String get fujiLegendMe;
+
+  /// No description provided for @fujiLegendRefs.
+  ///
+  /// In en, this message translates to:
+  /// **'Silhouettes = real-world references (person → Mt Fuji) for scale.'**
+  String get fujiLegendRefs;
+
+  /// No description provided for @fujiLegendPeers.
+  ///
+  /// In en, this message translates to:
+  /// **'Dots = peers, plotted at their telemetry altitude once queried.'**
+  String get fujiLegendPeers;
+
+  /// No description provided for @fujiLegendUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Striped band along the ground = peers with no altitude yet.'**
+  String get fujiLegendUnknown;
+
+  /// No description provided for @fujiLegendAutoQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'The AUTO-QUERY box pulls peer altitudes slowly; tap it to restart.'**
+  String get fujiLegendAutoQuery;
+
   /// No description provided for @elevationProfileTitle.
   ///
   /// In en, this message translates to:

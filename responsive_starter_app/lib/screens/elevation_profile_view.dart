@@ -283,7 +283,7 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
         // colour-coded: self = primary, favourite = tertiary,
         // known = accent-dim, else default.
         Positioned(
-          right: 12,
+          left: 12,
           top: 56,
           child: GestureDetector(
             onTap: () {
@@ -312,7 +312,7 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
                   letterSpacing: 1,
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Row(
@@ -506,11 +506,19 @@ class _ElevationProfilePainter extends CustomPainter {
         Offset(0, groundY), Offset(size.width - axisWidth, groundY),
         groundLine);
 
-    // Self pin: horizontal line at our altitude, marker chip on
-    // the left edge.
-    if (selfAltMeters != null) {
-      final double y = groundY -
-          _altToYOffset(selfAltMeters!.clamp(0.0, _altMax), pxPerSqrtMeter);
+    // Self (ME) line — ALWAYS drawn so the user sees themselves on
+    // the chart. At our altitude when known; pinned to the ground
+    // line with an "ALT?" label when altitude hasn't resolved yet
+    // (no self-telemetry, no phone fix). Previously the whole ME
+    // marker vanished when altitude was null, which read as "I'm
+    // not on the map."
+    {
+      final bool known = selfAltMeters != null;
+      final double y = known
+          ? groundY -
+              _altToYOffset(
+                  selfAltMeters!.clamp(0.0, _altMax), pxPerSqrtMeter)
+          : groundY;
       final Paint mePaint = Paint()
         ..color = warn
         ..strokeWidth = 2.0;
@@ -518,8 +526,10 @@ class _ElevationProfilePainter extends CustomPainter {
           Offset(size.width - axisWidth, y), mePaint, dash: 6, gap: 5);
       final TextPainter tp = TextPainter(
         text: TextSpan(
-          text: '${meLabel.toUpperCase()} '
-              '${selfAltMeters!.toStringAsFixed(0)}m',
+          text: known
+              ? '${meLabel.toUpperCase()} '
+                  '${selfAltMeters!.toStringAsFixed(0)}m'
+              : '${meLabel.toUpperCase()} ALT?',
           style: TextStyle(
               color: warn,
               fontSize: 10,
@@ -529,8 +539,11 @@ class _ElevationProfilePainter extends CustomPainter {
         ),
         textDirection: TextDirection.ltr,
       )..layout();
+      // Lift the chip just above the ground line when alt unknown so
+      // it doesn't collide with the ground/horizon stroke.
+      final double chipY = known ? y : y - 14;
       final Rect chip = Rect.fromLTWH(
-          6, y - tp.height / 2 - 3, tp.width + 12, tp.height + 6);
+          6, chipY - tp.height / 2 - 3, tp.width + 12, tp.height + 6);
       canvas.drawRect(chip, Paint()..color = bg);
       canvas.drawRect(
           chip,
@@ -539,8 +552,7 @@ class _ElevationProfilePainter extends CustomPainter {
             ..style = PaintingStyle.stroke);
       tp.paint(canvas, Offset(chip.left + 6, chip.top + 3));
       // Bullseye dot on the right end of the dashed line.
-      final Offset endP =
-          Offset(size.width - axisWidth - 4, y);
+      final Offset endP = Offset(size.width - axisWidth - 4, y);
       canvas.drawCircle(endP, 5.0, Paint()..color = warn);
       canvas.drawCircle(endP, 2.0, Paint()..color = bg);
     }

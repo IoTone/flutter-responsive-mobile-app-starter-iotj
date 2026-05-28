@@ -601,6 +601,28 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridViewElevationShort => '富士';
 
   @override
+  String get fujiLegendTitle => 'Fujiさん';
+
+  @override
+  String get fujiLegendDesc =>
+      '標高測量。√スケール軸で有名な建造物と高さを比較。自分の標高はデバイスGPSテレメトリまたは電話の位置情報から取得。';
+
+  @override
+  String get fujiLegendMe => '破線 = あなた。標高が判明していればその位置に、未取得なら地面に「ALT?」表示。';
+
+  @override
+  String get fujiLegendRefs => 'シルエット = 実世界の基準（人 → 富士山）でスケール感を示す。';
+
+  @override
+  String get fujiLegendPeers => '点 = ピア。問い合わせ後にテレメトリ標高でプロット。';
+
+  @override
+  String get fujiLegendUnknown => '地面沿いの縞帯 = まだ標高不明のピア。';
+
+  @override
+  String get fujiLegendAutoQuery => 'AUTO-QUERY ボックスがピア標高を順次取得。タップで再起動。';
+
+  @override
   String get elevationProfileTitle => 'MESHMORE :: Fujiさん';
 
   @override

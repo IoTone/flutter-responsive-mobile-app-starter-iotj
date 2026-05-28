@@ -350,27 +350,62 @@ class _SnsCellsPainter extends CustomPainter {
     final double cellPx =
         CoverageStore.cellDeg * _mPerDegLat * pxPerMeter;
 
-    // --- Reference grid (always on) ---
+    // The CRT sweep line position — shared by the grid (for the
+    // local magnification/glow as the beam passes) and the glitch
+    // overlay (which draws the band itself).
+    final double sweepY = ((nowMs % 3200) / 3200.0) * size.height;
+
+    // --- Reference grid (always on, CRT phosphor glow) ---
     // Aligned to the geographic cell lattice so heat squares sit
     // inside grid cells. When cells are too small to read, step by
     // a multiple so lines stay ~16 px+ apart instead of vanishing.
-    final Paint grid = Paint()
-      ..color = node.withValues(alpha: 0.14)
-      ..strokeWidth = 0.5;
+    //
+    // Uses the accent colour (not onSurfaceVariant) so it's visible
+    // on monochromatic/terminal themes where surface-variant is
+    // nearly the background. Each line is drawn as a soft blurred
+    // glow + a crisp bright core = phosphor look. Near the sweep
+    // line, horizontal lines bow apart (a passing "lens"
+    // magnification) and everything brightens.
     final int step = math.max(1, (16 / cellPx).ceil());
     final double gridPx = cellPx * step;
     if (gridPx.isFinite && gridPx >= 2) {
-      // Screen x of the cell boundary just west of self, then walk.
+      const double bandHalf = 34.0; // sweep influence radius (px)
+      final Paint glow = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.0
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.6);
+      final Paint core = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.8;
+
+      // Vertical lines (no displacement — beam is horizontal — but
+      // brighten the segment that crosses the sweep band).
       final double selfCellLon =
           (selfLon / CoverageStore.cellDeg).floor() *
               CoverageStore.cellDeg;
       final double originDx =
           (selfCellLon - selfLon) * mPerDegLon * pxPerMeter;
       double x0 = centre.dx + originDx;
-      x0 -= (x0 / gridPx).ceil() * gridPx; // back up off-screen
+      x0 -= (x0 / gridPx).ceil() * gridPx;
       for (double x = x0; x < size.width; x += gridPx) {
-        canvas.drawLine(Offset(x, 0), Offset(x, size.height), grid);
+        glow.color = accent.withValues(alpha: 0.10);
+        core.color = accent.withValues(alpha: 0.32);
+        canvas.drawLine(Offset(x, 0), Offset(x, size.height), glow);
+        canvas.drawLine(Offset(x, 0), Offset(x, size.height), core);
+        // Energised segment where the beam crosses.
+        canvas.drawLine(
+            Offset(x, sweepY - bandHalf),
+            Offset(x, sweepY + bandHalf),
+            Paint()
+              ..strokeWidth = 1.4
+              ..color = accent.withValues(alpha: 0.55)
+              ..maskFilter =
+                  const MaskFilter.blur(BlurStyle.normal, 1.5));
       }
+
+      // Horizontal lines — displaced away from the sweep centre
+      // within the band (magnification), brighter the closer they
+      // are to the beam.
       final double selfCellLat =
           (selfLat / CoverageStore.cellDeg).floor() *
               CoverageStore.cellDeg;
@@ -379,7 +414,20 @@ class _SnsCellsPainter extends CustomPainter {
       double y0 = centre.dy + originDy;
       y0 -= (y0 / gridPx).ceil() * gridPx;
       for (double y = y0; y < size.height; y += gridPx) {
-        canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
+        final double d = y - sweepY;
+        double yy = y;
+        double bright = 0.0;
+        if (d.abs() < bandHalf) {
+          final double t = 1.0 - d.abs() / bandHalf; // 0..1 at centre
+          // Push the line away from the beam centre — lattice spreads
+          // = magnified — by up to ~10 px right at the beam.
+          yy = y + d.sign * t * 10.0;
+          bright = t;
+        }
+        glow.color = accent.withValues(alpha: 0.10 + 0.30 * bright);
+        core.color = accent.withValues(alpha: 0.32 + 0.45 * bright);
+        canvas.drawLine(Offset(0, yy), Offset(size.width, yy), glow);
+        canvas.drawLine(Offset(0, yy), Offset(size.width, yy), core);
       }
     }
 

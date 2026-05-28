@@ -526,8 +526,18 @@ class _GridScreenState extends State<GridScreen>
                 ),
             ],
           ),
-        _GridViewMode.elevation =>
-          ElevationProfileView(filteredNodes: visible),
+        _GridViewMode.elevation => Stack(
+            children: <Widget>[
+              ElevationProfileView(filteredNodes: visible),
+              if (_legendVisible)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: _FujiLegend(cs: cs, l: l),
+                ),
+            ],
+          ),
         // Tree mode overlays the legend strip on top of the canvas
         // so the info button does something here (the radial branch
         // is the only other place that hosts a legend). Stack lets
@@ -1224,6 +1234,68 @@ class _FabricLegend extends StatelessWidget {
           row(Icons.place, l.fabricLegendMarker, colour: cs.tertiary),
           row(Icons.my_location, l.fabricLegendSelf, colour: cs.primary),
           row(Icons.delete_sweep, l.fabricLegendReset),
+        ],
+      ),
+    );
+  }
+}
+
+/// Info-button legend for the Fujiさん elevation view.
+class _FujiLegend extends StatelessWidget {
+  const _FujiLegend({required this.cs, required this.l});
+  final ColorScheme cs;
+  final AppLocalizations l;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(IconData icon, String text, {Color? colour}) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Icon(icon, size: 14, color: colour ?? cs.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(text,
+                    style: TextStyle(
+                        color: cs.onSurface,
+                        fontSize: 12,
+                        height: 1.35)),
+              ),
+            ],
+          ),
+        );
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: cs.outline.withValues(alpha: .35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(l.fujiLegendTitle,
+              style: TextStyle(
+                  color: cs.onSurfaceVariant,
+                  fontSize: 11,
+                  letterSpacing: 3)),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text(l.fujiLegendDesc,
+                style: TextStyle(
+                    color: cs.onSurface, fontSize: 12, height: 1.35)),
+          ),
+          row(Icons.my_location, l.fujiLegendMe, colour: cs.tertiary),
+          row(Icons.terrain, l.fujiLegendRefs, colour: cs.primary),
+          row(Icons.circle, l.fujiLegendPeers,
+              colour: cs.primary.withValues(alpha: .7)),
+          row(Icons.help_outline, l.fujiLegendUnknown,
+              colour: cs.onSurfaceVariant),
+          row(Icons.touch_app, l.fujiLegendAutoQuery),
         ],
       ),
     );

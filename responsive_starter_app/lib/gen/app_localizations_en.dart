@@ -635,6 +635,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gridViewElevationShort => 'FUJI';
 
   @override
+  String get fujiLegendTitle => 'FUJIさん';
+
+  @override
+  String get fujiLegendDesc =>
+      'Altitude survey. Heights on a √-scaled axis against famous landmarks. Your device\'s altitude comes from device GPS telemetry or the phone fix.';
+
+  @override
+  String get fujiLegendMe =>
+      'Dashed line = you. At your altitude, or pinned to the ground with ALT? until it resolves.';
+
+  @override
+  String get fujiLegendRefs =>
+      'Silhouettes = real-world references (person → Mt Fuji) for scale.';
+
+  @override
+  String get fujiLegendPeers =>
+      'Dots = peers, plotted at their telemetry altitude once queried.';
+
+  @override
+  String get fujiLegendUnknown =>
+      'Striped band along the ground = peers with no altitude yet.';
+
+  @override
+  String get fujiLegendAutoQuery =>
+      'The AUTO-QUERY box pulls peer altitudes slowly; tap it to restart.';
+
+  @override
   String get elevationProfileTitle => 'MESHMORE :: FUJIさん';
 
   @override
