@@ -61,11 +61,20 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
   Timer? _autoQueryTimer;
   static const Duration _queryInterval = Duration(seconds: 5);
 
+  // Observability counters for the status chip — make it visible
+  // whether queries are firing and getting responses.
+  int _queriesFired = 0;
+  int _ticksWithNoEligible = 0;
+  String? _lastTargetName;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // Fire one immediately so the first peer doesn't have to wait
+      // the full 5 s; then periodic from there.
+      _stepAutoQuery();
       _autoQueryTimer = Timer.periodic(_queryInterval, (_) {
         _stepAutoQuery();
       });
@@ -82,11 +91,10 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
   void _stepAutoQuery() {
     if (!mounted) return;
     final MeshcoreController mc = context.read<MeshcoreController>();
-    if (!mc.isReady) return;
-    // Eligible = visible peer with no resolved altitude (neither in
-    // the advert field nor in the telemetry cache). Sort by
-    // lastHeardUnix descending so recently-heard peers — likeliest
-    // to actually answer — go first.
+    if (!mc.isReady) {
+      debugPrint('[elev.auto] skip — not ready');
+      return;
+    }
     final List<DiscoveredNode> source =
         widget.filteredNodes ?? mc.nodes;
     final List<DiscoveredNode> eligible = <DiscoveredNode>[
@@ -97,8 +105,22 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
           n,
     ]..sort((DiscoveredNode a, DiscoveredNode b) =>
         b.lastHeardUnix.compareTo(a.lastHeardUnix));
-    if (eligible.isEmpty) return; // everyone in scope is populated
-    unawaited(mc.requestPeerTelemetry(eligible.first.pubKeyHex));
+    if (eligible.isEmpty) {
+      _ticksWithNoEligible++;
+      debugPrint('[elev.auto] no eligible peers '
+          '(${source.length} visible, '
+          'tick $_ticksWithNoEligible)');
+      if (mounted) setState(() {}); // refresh status chip
+      return;
+    }
+    final DiscoveredNode target = eligible.first;
+    _queriesFired++;
+    _lastTargetName =
+        target.name.isEmpty ? target.shortId : target.name;
+    debugPrint('[elev.auto] querying ${target.pubKeyHex} '
+        '(${target.name}) — query #$_queriesFired');
+    unawaited(mc.requestPeerTelemetry(target.pubKeyHex));
+    if (mounted) setState(() {}); // refresh status chip
   }
 
   @override
@@ -132,45 +154,98 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
 
     final double? selfAlt = mc.ownLocation?.altitudeMeters;
 
-    return AnimatedBuilder(
-      animation: _scan,
-      builder: (BuildContext _, Widget? __) {
-        // CustomPaint without a child collapses to Size.zero, leaving
-        // only the parent Scaffold's banner visible. SizedBox.expand
-        // gives it the body's full constraints so the painter has
-        // somewhere to draw.
-        return SizedBox.expand(
-          child: CustomPaint(
-            painter: _ElevationProfilePainter(
-              selfAltMeters: selfAlt,
-              peers: peers,
-              peerAltOverrides: peerAlt,
-              knownPubKeys: mc.known,
-              favPubKeys: mc.favorites,
-              accent: cs.primary,
-              accentDim: cs.primary.withValues(alpha: .40),
-              accentFaint: cs.primary.withValues(alpha: .18),
-              warn: cs.tertiary,
-              fg: cs.onSurface,
-              bg: cs.surface,
-              scanT: _scan.value,
-              header: l.elevationProfileTitle,
-              altLabel: l.elevationProfileAltLabel,
-              meLabel: l.elevationProfileMeLabel,
-              unknownLabel: l.elevationProfileUnknownLabel,
-              peerCountLabel: l.elevationProfilePeers(peers.length),
-              referenceLabels: <_RefId, String>{
-                _RefId.person: l.elevationRefPerson,
-                _RefId.house: l.elevationRefHouse,
-                _RefId.redwood: l.elevationRefRedwood,
-                _RefId.empireState: l.elevationRefEmpireState,
-                _RefId.burj: l.elevationRefBurj,
-                _RefId.mtFuji: l.elevationRefMtFuji,
-              },
+    // Status counters for the observability chip.
+    final int resolvedCount = peerAlt.length;
+    final int inflightCount = peers
+        .where((DiscoveredNode n) =>
+            mc.isQueryingTelemetry(n.pubKeyHex))
+        .length;
+
+    return Stack(
+      children: <Widget>[
+        AnimatedBuilder(
+          animation: _scan,
+          builder: (BuildContext _, Widget? __) {
+            // CustomPaint without a child collapses to Size.zero,
+            // leaving only the parent Scaffold's banner visible.
+            // SizedBox.expand gives it the body's full constraints
+            // so the painter has somewhere to draw.
+            return SizedBox.expand(
+              child: CustomPaint(
+                painter: _ElevationProfilePainter(
+                  selfAltMeters: selfAlt,
+                  peers: peers,
+                  peerAltOverrides: peerAlt,
+                  knownPubKeys: mc.known,
+                  favPubKeys: mc.favorites,
+                  accent: cs.primary,
+                  accentDim: cs.primary.withValues(alpha: .40),
+                  accentFaint: cs.primary.withValues(alpha: .18),
+                  warn: cs.tertiary,
+                  fg: cs.onSurface,
+                  bg: cs.surface,
+                  scanT: _scan.value,
+                  header: l.elevationProfileTitle,
+                  altLabel: l.elevationProfileAltLabel,
+                  meLabel: l.elevationProfileMeLabel,
+                  unknownLabel: l.elevationProfileUnknownLabel,
+                  peerCountLabel:
+                      l.elevationProfilePeers(peers.length),
+                  referenceLabels: <_RefId, String>{
+                    _RefId.person: l.elevationRefPerson,
+                    _RefId.house: l.elevationRefHouse,
+                    _RefId.redwood: l.elevationRefRedwood,
+                    _RefId.empireState: l.elevationRefEmpireState,
+                    _RefId.burj: l.elevationRefBurj,
+                    _RefId.mtFuji: l.elevationRefMtFuji,
+                  },
+                ),
+              ),
+            );
+          },
+        ),
+        // Observability chip — makes the auto-query loop visible so
+        // we can tell whether queries are firing, in flight, and/or
+        // getting responses. If queries climb but resolved stays at
+        // 0, peers aren't answering (likely their telemetry mode is
+        // off, or our device hasn't synced contacts for them).
+        Positioned(
+          left: 12,
+          bottom: 12,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: cs.surface.withValues(alpha: .85),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                  color: cs.outline.withValues(alpha: .55)),
+            ),
+            child: DefaultTextStyle(
+              style: TextStyle(
+                color: cs.onSurface,
+                fontSize: 10,
+                fontFamily: 'monospace',
+                letterSpacing: 1,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text('AUTO-QUERY'),
+                  const SizedBox(height: 2),
+                  Text('queries: $_queriesFired · '
+                      'in-flight: $inflightCount'),
+                  Text('resolved: $resolvedCount / ${peers.length}'),
+                  if (_lastTargetName != null)
+                    Text('last: $_lastTargetName',
+                        overflow: TextOverflow.ellipsis),
+                ],
+              ),
             ),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }
