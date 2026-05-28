@@ -1703,6 +1703,7 @@ class MeshcoreController extends ChangeNotifier {
     String pubKeyHex, {
     Duration cacheFor = const Duration(minutes: 5),
     Duration inflightTimeout = const Duration(seconds: 45),
+    int maxAttempts = 0, // 0 = no cap
   }) async {
     if (!isReady) return;
     final String hex = pubKeyHex.toLowerCase();
@@ -1714,6 +1715,14 @@ class MeshcoreController extends ChangeNotifier {
       return; // fresh enough
     }
     if (_telemetryInflight.contains(pub6)) return;
+    // Per-session attempt cap. Lives on the controller (not the
+    // view) so swapping views or restarting the elevation/auto-
+    // query screen doesn't reset the count and rebombard a peer
+    // that already ignored us N times.
+    if (maxAttempts > 0 &&
+        (_telemetryAttempts[pub6] ?? 0) >= maxAttempts) {
+      return;
+    }
     if (hex.length != kPubKeySize * 2) {
       // Only a prefix — can't address the peer.
       return;
@@ -1723,6 +1732,7 @@ class MeshcoreController extends ChangeNotifier {
       pubKey[i] = int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16);
     }
     _telemetryInflight.add(pub6);
+    _telemetryAttempts[pub6] = (_telemetryAttempts[pub6] ?? 0) + 1;
     notifyListeners();
     // Auto-clear if the peer never answers (OTA loss, peer offline,
     // or peer's privacy policy denies the request).
@@ -1747,7 +1757,27 @@ class MeshcoreController extends ChangeNotifier {
         .contains(hex.substring(0, kPubKeyPrefixSize * 2));
   }
 
+  /// Number of telemetry-query attempts made for this peer this
+  /// process session. Survives view re-mounts (state lives on the
+  /// controller, not the view). Reset on a successful telemetry
+  /// receipt — see [_trackTelemetry] — so a peer that finally
+  /// answers becomes eligible for fresh polling again.
+  int telemetryAttemptsFor(String pubKeyHex) {
+    final String hex = pubKeyHex.toLowerCase();
+    if (hex.length < kPubKeyPrefixSize * 2) return 0;
+    return _telemetryAttempts[
+            hex.substring(0, kPubKeyPrefixSize * 2)] ??
+        0;
+  }
+
+  /// Total telemetry requests sent this session (incremented once
+  /// per actual outbound frame, not per call). Useful for the
+  /// observability chip in the elevation view.
+  int get telemetrySendCount =>
+      _telemetryAttempts.values.fold(0, (int a, int b) => a + b);
+
   final Set<String> _telemetryInflight = <String>{};
+  final Map<String, int> _telemetryAttempts = <String, int>{};
 
   void _trackTelemetry(MeshcoreInbound f) {
     if (f is! TelemetryResponseFrame) return;
@@ -1763,6 +1793,11 @@ class MeshcoreController extends ChangeNotifier {
       entries: entries,
     );
     _telemetryInflight.remove(pub6);
+    // Reset the per-peer attempt cap on a successful receipt — a
+    // peer that just answered is fair game for periodic refresh
+    // later, without inheriting the failed-attempts count from
+    // before they flipped telemetry on.
+    _telemetryAttempts.remove(pub6);
   }
 
   void _trackBattery(MeshcoreInbound f) {

@@ -721,6 +721,93 @@ void main() {
       ctrl.dispose();
     });
 
+    test('R50+1 maxAttempts caps per-peer retries; controller-side '
+        'attempts counter survives caller restarts', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      fake.sent.clear();
+
+      const String peer =
+          'aabbccddeeff00112233445566778899'
+          'aabbccddeeff00112233445566778899';
+
+      // Three attempts allowed. Use a short inflightTimeout so each
+      // call clears in-flight before the next.
+      Future<void> oneAttempt() async {
+        await ctrl.requestPeerTelemetry(peer,
+            maxAttempts: 3,
+            inflightTimeout: const Duration(milliseconds: 1));
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+      }
+
+      await oneAttempt();
+      await oneAttempt();
+      await oneAttempt();
+      expect(ctrl.telemetryAttemptsFor(peer), 3);
+      final int afterCap = fake.sent
+          .where((Uint8List b) => b.length == 36 && b[0] == 0x27)
+          .length;
+      expect(afterCap, 3, reason: 'three real sends happened');
+
+      // 4th call should be capped — no new 0x27 frame.
+      await oneAttempt();
+      expect(
+          fake.sent
+              .where((Uint8List b) => b.length == 36 && b[0] == 0x27)
+              .length,
+          3,
+          reason: 'cap blocks the 4th send');
+      expect(ctrl.telemetryAttemptsFor(peer), 3,
+          reason: 'counter does not advance past the cap');
+      ctrl.dispose();
+    });
+
+    test('R50+1 successful telemetry receipt resets the per-peer '
+        'attempt counter (peer becomes eligible again)', () async {
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      const String peer =
+          'aabbccddeeff00112233445566778899'
+          'aabbccddeeff00112233445566778899';
+
+      await ctrl.requestPeerTelemetry(peer,
+          inflightTimeout: const Duration(milliseconds: 1));
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      expect(ctrl.telemetryAttemptsFor(peer), 1);
+
+      // 0x8B response arrives — attempts should reset to 0.
+      final List<int> frame = <int>[
+        0x8B, 0x00,
+        0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
+        0x01, 0x88,
+        0x06, 0x76, 0x5F,
+        0xF2, 0x96, 0x0A,
+        0x00, 0x03, 0xE8,
+      ];
+      fake.emit(Uint8List.fromList(frame));
+      await Future<void>.delayed(Duration.zero);
+      expect(ctrl.telemetryAttemptsFor(peer), 0,
+          reason: 'successful response wipes the attempt count');
+      ctrl.dispose();
+    });
+
     test('peer telemetry (different pubkey-prefix) is stored under '
         'its own key, not in selfTelemetry', () async {
       final FakeMeshcoreTransport fake =

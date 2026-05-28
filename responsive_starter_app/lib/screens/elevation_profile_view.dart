@@ -74,16 +74,14 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
   static const int _maxHopsWithDistance = 2;
   static const double _maxDistanceMeters = 100000; // 100 km
 
-  // Observability counters for the status chip — make it visible
-  // whether queries are firing and getting responses.
-  int _queriesFired = 0;
+  // Observability counters — purely for the status chip. The
+  // *authoritative* attempt-per-peer cap lives on the controller
+  // (`MeshcoreController.telemetryAttemptsFor`) so it persists
+  // when the user swaps view modes and returns to the elevation
+  // view. These two local ints just label what this view-instance
+  // has done since mount.
   int _ticksWithNoEligible = 0;
   String? _lastTargetName;
-  // Per-pubkey send counter. Stays only for the life of this view
-  // instance — leaving + re-entering the screen resets, which is
-  // the right behaviour because a peer may have flipped telemetry
-  // mode on in the interim.
-  final Map<String, int> _attemptsByPub = <String, int>{};
 
   @override
   void initState() {
@@ -135,15 +133,17 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     final List<DiscoveredNode> source =
         widget.filteredNodes ?? mc.nodes;
     // Eligibility: no altitude resolved, not currently in flight,
-    // haven't already burned _maxAttemptsPerPeer sends on this peer
-    // this session, AND falls into one of the three query tiers.
+    // controller-side attempt count below the cap (persistent
+    // across view re-mounts), AND falls into one of the three
+    // query tiers.
     final List<DiscoveredNode> eligible = <DiscoveredNode>[
       for (final DiscoveredNode n in source)
         if (n.pubKeyHex != mc.ownPubKeyHex &&
             n.altitudeMeters == null &&
             mc.telemetryFor(n.pubKeyHex)?.altitudeMeters == null &&
             !mc.isQueryingTelemetry(n.pubKeyHex) &&
-            (_attemptsByPub[n.pubKeyHex] ?? 0) < _maxAttemptsPerPeer &&
+            mc.telemetryAttemptsFor(n.pubKeyHex) <
+                _maxAttemptsPerPeer &&
             _tierFor(n, mc) >= 0)
           n,
     ];
@@ -165,16 +165,18 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     });
     final DiscoveredNode target = eligible.first;
     final int tier = _tierFor(target, mc);
-    _queriesFired++;
     _lastTargetName =
         target.name.isEmpty ? target.shortId : target.name;
-    _attemptsByPub[target.pubKeyHex] =
-        (_attemptsByPub[target.pubKeyHex] ?? 0) + 1;
+    final int attemptBefore =
+        mc.telemetryAttemptsFor(target.pubKeyHex);
     debugPrint('[elev.auto] sending telemetry req → ${target.name} '
         '(tier $tier · hops ${target.hopCount ?? "?"} · '
-        'attempt ${_attemptsByPub[target.pubKeyHex]}) — '
-        'send #$_queriesFired');
-    unawaited(mc.requestPeerTelemetry(target.pubKeyHex));
+        'attempt ${attemptBefore + 1}/$_maxAttemptsPerPeer) — '
+        'session total ${mc.telemetrySendCount + 1}');
+    unawaited(mc.requestPeerTelemetry(
+      target.pubKeyHex,
+      maxAttempts: _maxAttemptsPerPeer,
+    ));
     if (mounted) setState(() {}); // refresh status chip
   }
 
@@ -209,15 +211,21 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
 
     final double? selfAlt = mc.ownLocation?.altitudeMeters;
 
-    // Status counters for the observability chip.
+    // Status counters for the observability chip. All sourced from
+    // the controller now so the counts persist across view re-mounts
+    // (you don't go back to "queries: 0" after swapping to another
+    // grid mode and back).
     final int resolvedCount = peerAlt.length;
     final int inflightCount = peers
         .where((DiscoveredNode n) =>
             mc.isQueryingTelemetry(n.pubKeyHex))
         .length;
-    final int gaveUpCount = _attemptsByPub.entries
-        .where((MapEntry<String, int> e) =>
-            e.value >= _maxAttemptsPerPeer)
+    final int totalQueries = mc.telemetrySendCount;
+    final int gaveUpCount = peers
+        .where((DiscoveredNode n) =>
+            mc.telemetryAttemptsFor(n.pubKeyHex) >=
+                _maxAttemptsPerPeer &&
+            mc.telemetryFor(n.pubKeyHex)?.altitudeMeters == null)
         .length;
     final int skippedCount = peers
         .where((DiscoveredNode n) =>
@@ -299,7 +307,7 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
                 children: <Widget>[
                   Text('AUTO-QUERY'),
                   const SizedBox(height: 2),
-                  Text('queries: $_queriesFired · '
+                  Text('queries: $totalQueries · '
                       'in-flight: $inflightCount'),
                   Text('resolved: $resolvedCount / ${peers.length}'),
                   Text('skip: $skippedCount · gave-up: $gaveUpCount'),
@@ -312,7 +320,7 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
                   // telemetry mode being off (CMD_SET_OTHER_PARAMS
                   // packs a byte where the low bits gate which
                   // sensors are exposed).
-                  if (_queriesFired >= 3 && resolvedCount == 0)
+                  if (totalQueries >= 3 && resolvedCount == 0)
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
