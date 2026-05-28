@@ -61,11 +61,29 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
   Timer? _autoQueryTimer;
   static const Duration _queryInterval = Duration(seconds: 5);
 
+  /// Stop hammering a peer after this many sends with no response.
+  /// Each send costs 1 OTA packet from us + 1 from them per hop; the
+  /// 3rd unanswered attempt is a strong signal the peer's telemetry
+  /// mode is off and no future attempt this session will help.
+  static const int _maxAttemptsPerPeer = 3;
+
+  /// Cap on hop count we'll auto-query. Direct (0) and 1-hop peers
+  /// are always queried. 2-hop only when distance is known and
+  /// reasonable. 3+ hops never auto-queried.
+  static const int _maxHopsAlways = 1;
+  static const int _maxHopsWithDistance = 2;
+  static const double _maxDistanceMeters = 100000; // 100 km
+
   // Observability counters for the status chip — make it visible
   // whether queries are firing and getting responses.
   int _queriesFired = 0;
   int _ticksWithNoEligible = 0;
   String? _lastTargetName;
+  // Per-pubkey send counter. Stays only for the life of this view
+  // instance — leaving + re-entering the screen resets, which is
+  // the right behaviour because a peer may have flipped telemetry
+  // mode on in the interim.
+  final Map<String, int> _attemptsByPub = <String, int>{};
 
   @override
   void initState() {
@@ -88,6 +106,25 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     super.dispose();
   }
 
+  /// Tier a peer for the auto-query loop:
+  /// - 0  → direct neighbour (always)
+  /// - 1  → 1-hop (always)
+  /// - 2  → 2-hop AND distance known and < 100 km
+  /// - -1 → skip (too far, too many hops, or no path info)
+  int _tierFor(DiscoveredNode n, MeshcoreController mc) {
+    final List<int>? hops = n.outPathHashes;
+    if (hops == null) return -1; // no path info → don't auto-query
+    final int hopCount = hops.length;
+    if (hopCount == 0) return 0;
+    if (hopCount <= _maxHopsAlways) return 1;
+    if (hopCount <= _maxHopsWithDistance && n.hasLocation) {
+      final double? d =
+          mc.distanceMetersTo(n.latitude!, n.longitude!);
+      if (d != null && d < _maxDistanceMeters) return 2;
+    }
+    return -1;
+  }
+
   void _stepAutoQuery() {
     if (!mounted) return;
     final MeshcoreController mc = context.read<MeshcoreController>();
@@ -97,20 +134,19 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     }
     final List<DiscoveredNode> source =
         widget.filteredNodes ?? mc.nodes;
-    // Eligible = no altitude AND not already in-flight. The
-    // in-flight filter prevents us from re-targeting the same peer
-    // every tick (which made the prior loop hammer the first
-    // eligible peer for the full 45 s inflightTimeout). Without it
-    // peers further down the list never got a chance.
+    // Eligibility: no altitude resolved, not currently in flight,
+    // haven't already burned _maxAttemptsPerPeer sends on this peer
+    // this session, AND falls into one of the three query tiers.
     final List<DiscoveredNode> eligible = <DiscoveredNode>[
       for (final DiscoveredNode n in source)
         if (n.pubKeyHex != mc.ownPubKeyHex &&
             n.altitudeMeters == null &&
             mc.telemetryFor(n.pubKeyHex)?.altitudeMeters == null &&
-            !mc.isQueryingTelemetry(n.pubKeyHex))
+            !mc.isQueryingTelemetry(n.pubKeyHex) &&
+            (_attemptsByPub[n.pubKeyHex] ?? 0) < _maxAttemptsPerPeer &&
+            _tierFor(n, mc) >= 0)
           n,
-    ]..sort((DiscoveredNode a, DiscoveredNode b) =>
-        b.lastHeardUnix.compareTo(a.lastHeardUnix));
+    ];
     if (eligible.isEmpty) {
       _ticksWithNoEligible++;
       debugPrint('[elev.auto] no eligible peers '
@@ -119,12 +155,24 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
       if (mounted) setState(() {}); // refresh status chip
       return;
     }
+    // Sort by (tier asc, lastHeard desc) — lowest tier (cheapest
+    // OTA) first; within the same tier, the recently-heard peer
+    // goes first since they're likeliest to respond.
+    eligible.sort((DiscoveredNode a, DiscoveredNode b) {
+      final int t = _tierFor(a, mc).compareTo(_tierFor(b, mc));
+      if (t != 0) return t;
+      return b.lastHeardUnix.compareTo(a.lastHeardUnix);
+    });
     final DiscoveredNode target = eligible.first;
+    final int tier = _tierFor(target, mc);
     _queriesFired++;
     _lastTargetName =
         target.name.isEmpty ? target.shortId : target.name;
+    _attemptsByPub[target.pubKeyHex] =
+        (_attemptsByPub[target.pubKeyHex] ?? 0) + 1;
     debugPrint('[elev.auto] sending telemetry req → ${target.name} '
-        '(${target.pubKeyHex.substring(0, 16)}…) — '
+        '(tier $tier · hops ${target.hopCount ?? "?"} · '
+        'attempt ${_attemptsByPub[target.pubKeyHex]}) — '
         'send #$_queriesFired');
     unawaited(mc.requestPeerTelemetry(target.pubKeyHex));
     if (mounted) setState(() {}); // refresh status chip
@@ -166,6 +214,16 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     final int inflightCount = peers
         .where((DiscoveredNode n) =>
             mc.isQueryingTelemetry(n.pubKeyHex))
+        .length;
+    final int gaveUpCount = _attemptsByPub.entries
+        .where((MapEntry<String, int> e) =>
+            e.value >= _maxAttemptsPerPeer)
+        .length;
+    final int skippedCount = peers
+        .where((DiscoveredNode n) =>
+            n.altitudeMeters == null &&
+            mc.telemetryFor(n.pubKeyHex)?.altitudeMeters == null &&
+            _tierFor(n, mc) < 0)
         .length;
 
     return Stack(
@@ -244,6 +302,7 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
                   Text('queries: $_queriesFired · '
                       'in-flight: $inflightCount'),
                   Text('resolved: $resolvedCount / ${peers.length}'),
+                  Text('skip: $skippedCount · gave-up: $gaveUpCount'),
                   if (_lastTargetName != null)
                     Text('last: $_lastTargetName',
                         overflow: TextOverflow.ellipsis),
