@@ -141,6 +141,10 @@ class _MeshTreeViewState extends State<MeshTreeView>
       ],
       centerX: cx,
       centerY: cy,
+      // Keep every node inside the viewport — floaters (disconnected
+      // advert-only peers) would otherwise be pushed off-screen by
+      // repulsion and look like they vanished at higher hop settings.
+      bounds: (w: size.width, h: size.height),
     );
   }
 

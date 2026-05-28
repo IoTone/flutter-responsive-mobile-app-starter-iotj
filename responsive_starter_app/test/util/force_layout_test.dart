@@ -63,6 +63,31 @@ void main() {
       expect(self.vy, 0.0);
     });
 
+    test('bounds keep disconnected floaters inside the viewport', () {
+      // 12 disconnected nodes that would otherwise repel each other
+      // out to infinity. With bounds set, all must stay in-frame.
+      final Map<String, NodePosition> pos = <String, NodePosition>{
+        's': NodePosition(x: 200, y: 200, pinned: true),
+        for (int i = 0; i < 12; i++)
+          'n$i': NodePosition(x: 200.0 + i, y: 200.0 + i),
+      };
+      final layout = ForceLayout(
+        positions: pos,
+        edges: const <(String, String)>[],
+        bounds: (w: 400, h: 400),
+        boundMargin: 20,
+        centerX: 200,
+        centerY: 200,
+      );
+      for (int i = 0; i < 500; i++) {
+        layout.step();
+      }
+      for (final NodePosition p in pos.values) {
+        expect(p.x, inInclusiveRange(20, 380));
+        expect(p.y, inInclusiveRange(20, 380));
+      }
+    });
+
     test('kinetic energy decays toward zero (simulation settles)', () {
       final layout = ForceLayout(
         positions: <String, NodePosition>{

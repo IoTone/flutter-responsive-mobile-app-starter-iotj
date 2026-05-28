@@ -45,7 +45,18 @@ class ForceLayout {
     this.centerStrength = 0.012,
     this.centerX = 0,
     this.centerY = 0,
+    this.bounds,
+    this.boundMargin = 28.0,
   });
+
+  /// Optional viewport rectangle (width, height). When set, every
+  /// non-pinned node is clamped to stay inside it (minus
+  /// [boundMargin]) after each step — so disconnected "floater"
+  /// nodes can't be flung off-screen by repulsion. Without it a
+  /// large, sparsely-connected graph drifts its outer nodes beyond
+  /// the visible area and they appear to vanish.
+  ({double w, double h})? bounds;
+  double boundMargin;
 
   /// Mutable; one entry per node id. The simulation rewrites
   /// `x` / `y` / `vx` / `vy` in place each [step].
@@ -146,6 +157,33 @@ class ForceLayout {
       p.vy = (p.vy + fy[id]! * dt) * damping;
       p.x += p.vx;
       p.y += p.vy;
+      // Keep nodes inside the viewport so floaters can't drift out
+      // of sight. Bouncing the velocity (rather than hard-pinning)
+      // lets them re-settle along the edge instead of sticking.
+      final ({double w, double h})? b = bounds;
+      if (b != null) {
+        final double lo = boundMargin;
+        final double hiX = b.w - boundMargin;
+        final double hiY = b.h - boundMargin;
+        if (hiX > lo) {
+          if (p.x < lo) {
+            p.x = lo;
+            p.vx = -p.vx * 0.4;
+          } else if (p.x > hiX) {
+            p.x = hiX;
+            p.vx = -p.vx * 0.4;
+          }
+        }
+        if (hiY > lo) {
+          if (p.y < lo) {
+            p.y = lo;
+            p.vy = -p.vy * 0.4;
+          } else if (p.y > hiY) {
+            p.y = hiY;
+            p.vy = -p.vy * 0.4;
+          }
+        }
+      }
       kinetic += p.vx * p.vx + p.vy * p.vy;
     }
     return kinetic;
