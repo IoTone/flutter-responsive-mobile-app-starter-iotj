@@ -267,6 +267,31 @@ void main() {
     });
   });
 
+  group('PUSH_CODE_ACK (0x82) decode', () {
+    test('decodes the 4-byte ack CRC (u32 LE)', () {
+      // 0x82 + ack 0x12345678 little-endian = 78 56 34 12.
+      final MeshcoreInbound got = MeshcoreFrameCodec.decode(_hex('8278563412'));
+      expect(got, isA<AckFrame>());
+      expect((got as AckFrame).ackCrc, 0x12345678);
+    });
+
+    test('matches the MsgSent expectedAck tag for correlation', () {
+      // MSG_SENT (0x06) flood=0 ack=0x12345678 timeout=1000ms.
+      final MeshcoreInbound sent =
+          MeshcoreFrameCodec.decode(_hex('060078563412e8030000'));
+      final MeshcoreInbound ack =
+          MeshcoreFrameCodec.decode(_hex('8278563412'));
+      expect((sent as MsgSentFrame).sent.expectedAck,
+          (ack as AckFrame).ackCrc);
+    });
+
+    test('short/empty payload decodes to ack 0 (no throw)', () {
+      final MeshcoreInbound got = MeshcoreFrameCodec.decode(_hex('82'));
+      expect(got, isA<AckFrame>());
+      expect((got as AckFrame).ackCrc, 0);
+    });
+  });
+
   group('CMD_SEND_TELEMETRY_REQ (0x27) encode', () {
     test('self-telemetry: 4-byte frame with three zero-pad bytes', () {
       final Uint8List got = MeshcoreFrameCodec.sendTelemetryReq();

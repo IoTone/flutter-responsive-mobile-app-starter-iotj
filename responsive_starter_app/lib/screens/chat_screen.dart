@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../chat/chat_actions.dart';
 import '../gen/app_localizations.dart';
 import '../meshcore/chat_message.dart';
+import 'delivery_status_icon.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../tts/tts_controller.dart';
@@ -395,10 +396,19 @@ class _MessageRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(m.text, style: TextStyle(color: cs.onSurface)),
-                  if (meta.isNotEmpty)
-                    Text(meta.join(' · '),
-                        style: TextStyle(
-                            color: cs.onSurfaceVariant, fontSize: 11)),
+                  if (meta.isNotEmpty || m.outgoing && m.delivery != null)
+                    Row(
+                      children: <Widget>[
+                        if (m.outgoing && m.delivery != null) ...<Widget>[
+                          DeliveryStatusIcon(m.delivery!),
+                          const SizedBox(width: 5),
+                        ],
+                        if (meta.isNotEmpty)
+                          Text(meta.join(' · '),
+                              style: TextStyle(
+                                  color: cs.onSurfaceVariant, fontSize: 11)),
+                      ],
+                    ),
                 ],
               ),
             ),

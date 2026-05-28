@@ -46,7 +46,9 @@ class MeshcoreController extends ChangeNotifier {
     Future<void> Function(Duration)? reconnectDelay,
     BackgroundKeepalive? backgroundKeepalive,
     LocationService? locationService,
-  })  : _transportFactory =
+    Duration? deliveryTimeoutOverride,
+  })  : _deliveryTimeoutOverride = deliveryTimeoutOverride,
+        _transportFactory =
             transportFactory ?? BleConnector.autoConnect,
         _keepalive =
             backgroundKeepalive ?? const NoopBackgroundKeepalive(),
@@ -135,6 +137,7 @@ class MeshcoreController extends ChangeNotifier {
       _ingestNode(f);
       _ingestChat(f);
       _trackMessageHeat(f);
+      _trackDelivery(f);
       _logEvent(f);
       notifyListeners();
     });
@@ -1131,6 +1134,121 @@ class MeshcoreController extends ChangeNotifier {
     _persistChat();
   }
 
+  // --- Outgoing delivery tracking (QoL: per-message status glyph) ---
+  //
+  // Lifecycle: sending → sent → (DM only) delivered, or → failed.
+  // - sending: we issued the BLE send command; a watchdog catches a
+  //   device that never confirms.
+  // - sent: RESP_CODE_SENT (MsgSentFrame) arrived. We correlate it to
+  //   the oldest message still awaiting confirmation (sends are
+  //   serialised over BLE, so FIFO order holds) and record its
+  //   expectedAck tag. Channel/broadcast messages stop here — flood
+  //   routing yields no recipient receipt.
+  // - delivered: a DM's PUSH_CODE_ACK arrived carrying the same
+  //   expectedAck tag.
+  // - failed: the BLE send threw, the confirm watchdog fired, or a
+  //   DM's ack-timeout elapsed with no receipt.
+
+  /// Outgoing message ids awaiting a RESP_CODE_SENT, oldest first.
+  final List<String> _pendingSendIds = <String>[];
+
+  /// Per-message lifecycle timers (confirm watchdog, then DM ack
+  /// timeout), keyed by message id.
+  final Map<String, Timer> _deliveryTimers = <String, Timer>{};
+
+  /// How long to wait for the device's send confirmation before
+  /// giving up on an outgoing message.
+  static const Duration _confirmWatchdog = Duration(seconds: 15);
+
+  /// Test seam: when set, overrides BOTH the confirm watchdog and the
+  /// DM ack-timeout so delivery-state transitions can be exercised
+  /// without real-time waits. Null in production.
+  final Duration? _deliveryTimeoutOverride;
+
+  ChatMessage? _messageById(String id) {
+    for (final ChatMessage m in _messages) {
+      if (m.id == id) return m;
+    }
+    return null;
+  }
+
+  void _registerOutgoing(ChatMessage m) {
+    _pendingSendIds.add(m.id);
+    _deliveryTimers[m.id]?.cancel();
+    _deliveryTimers[m.id] =
+        Timer(_deliveryTimeoutOverride ?? _confirmWatchdog, () {
+      final ChatMessage? msg = _messageById(m.id);
+      if (msg != null && msg.delivery == MessageDelivery.sending) {
+        msg.delivery = MessageDelivery.failed;
+        _pendingSendIds.remove(m.id);
+        _deliveryTimers.remove(m.id);
+        _persistChat();
+        notifyListeners();
+      }
+    });
+  }
+
+  void _markOutgoingFailed(String id) {
+    final ChatMessage? m = _messageById(id);
+    if (m != null) m.delivery = MessageDelivery.failed;
+    _pendingSendIds.remove(id);
+    _deliveryTimers.remove(id)?.cancel();
+    _persistChat();
+  }
+
+  /// DM ack-timeout = the device's estimate, padded 50 % for OTA
+  /// jitter, clamped so a tiny or absurd estimate can't make the glyph
+  /// flap or hang.
+  Duration _ackTimeoutFor(int estMs) {
+    final Duration? override = _deliveryTimeoutOverride;
+    if (override != null) return override;
+    final int padded = (estMs * 1.5).round();
+    final int clamped = padded.clamp(5000, 120000);
+    return Duration(milliseconds: clamped);
+  }
+
+  void _trackDelivery(MeshcoreInbound f) {
+    if (f is MsgSentFrame) {
+      if (_pendingSendIds.isEmpty) return;
+      final String id = _pendingSendIds.removeAt(0);
+      final ChatMessage? m = _messageById(id);
+      if (m == null) return;
+      m
+        ..delivery = MessageDelivery.sent
+        ..expectedAck = f.sent.expectedAck;
+      _deliveryTimers.remove(id)?.cancel();
+      // Channel/broadcast (flood) has no recipient receipt → terminal.
+      // A direct message waits for the matching ACK push.
+      if (!f.sent.isFlood) {
+        _deliveryTimers[id] = Timer(_ackTimeoutFor(f.sent.estTimeoutMs), () {
+          final ChatMessage? msg = _messageById(id);
+          if (msg != null && msg.delivery == MessageDelivery.sent) {
+            msg.delivery = MessageDelivery.failed;
+            _deliveryTimers.remove(id);
+            _persistChat();
+            notifyListeners();
+          }
+        });
+      }
+      _persistChat();
+    } else if (f is AckFrame) {
+      // Match the ack tag to the most recent still-sent DM. Tags are
+      // 32-bit; collisions are unlikely within a handful of in-flight
+      // messages, and matching newest-first is the safe choice.
+      for (int i = _messages.length - 1; i >= 0; i--) {
+        final ChatMessage m = _messages[i];
+        if (m.outgoing &&
+            m.delivery == MessageDelivery.sent &&
+            m.expectedAck == f.ackCrc) {
+          m.delivery = MessageDelivery.delivered;
+          _deliveryTimers.remove(m.id)?.cancel();
+          _persistChat();
+          break;
+        }
+      }
+    }
+  }
+
   // --- Direct messages (P2P) ---
 
   final StreamController<ChatMessage> _incomingDm =
@@ -1194,6 +1312,19 @@ class MeshcoreController extends ChangeNotifier {
         int.parse(peerPubKeyHex.substring(i, i + 2), radix: 16),
     ];
     final int ts = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    // Optimistic row first (status: sending) so the user sees the
+    // message and its in-flight glyph immediately; promote it as the
+    // device confirm / recipient ack arrive.
+    final ChatMessage m = ChatMessage(
+      channelIdx: -1,
+      text: t,
+      outgoing: true,
+      peerPubKeyHex: peerPubKeyHex,
+      delivery: MessageDelivery.sending,
+    );
+    _addMessage(m);
+    _registerOutgoing(m);
+    notifyListeners();
     try {
       await send(MeshcoreFrameCodec.sendTextMessage(
         pubKeyPrefix: prefix,
@@ -1202,15 +1333,9 @@ class MeshcoreController extends ChangeNotifier {
       ));
     } catch (_) {
       _emitTaskError('sendDm');
-      return;
+      _markOutgoingFailed(m.id);
+      notifyListeners();
     }
-    _addMessage(ChatMessage(
-      channelIdx: -1,
-      text: t,
-      outgoing: true,
-      peerPubKeyHex: peerPubKeyHex,
-    ));
-    notifyListeners();
   }
 
   /// Ingest an inbound DM into the message store + emit on the
@@ -2082,6 +2207,15 @@ class MeshcoreController extends ChangeNotifier {
     final String t = text.trim();
     if (t.isEmpty || !isReady) return;
     final int ts = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final ChatMessage m = ChatMessage(
+      channelIdx: _activeChannel,
+      text: t,
+      outgoing: true,
+      delivery: MessageDelivery.sending,
+    );
+    _addMessage(m);
+    _registerOutgoing(m);
+    notifyListeners();
     try {
       await send(MeshcoreFrameCodec.sendChannelTextMessage(
         channelIdx: _activeChannel,
@@ -2090,14 +2224,9 @@ class MeshcoreController extends ChangeNotifier {
       ));
     } catch (_) {
       _emitTaskError('sendChannel');
-      return;
+      _markOutgoingFailed(m.id);
+      notifyListeners();
     }
-    _addMessage(ChatMessage(
-      channelIdx: _activeChannel,
-      text: t,
-      outgoing: true,
-    ));
-    notifyListeners();
   }
 
   // --- Inbound queue drain (CMD_SYNC_NEXT_MESSAGE) ---
@@ -2463,6 +2592,10 @@ class MeshcoreController extends ChangeNotifier {
     _battTimer?.cancel();
     _selfInfoTimer?.cancel();
     _battHistorySaveTimer?.cancel();
+    for (final Timer t in _deliveryTimers.values) {
+      t.cancel();
+    }
+    _deliveryTimers.clear();
     _statesSub?.cancel();
     _inboundSub?.cancel();
     _rawSub?.cancel();

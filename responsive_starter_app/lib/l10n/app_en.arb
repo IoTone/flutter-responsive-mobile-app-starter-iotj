@@ -919,5 +919,10 @@
   "batteryDurM": "{mins}m",
   "@batteryDurM": {
     "placeholders": {"mins": {"type": "int"}}
-  }
+  },
+
+  "deliverySending": "Sending…",
+  "deliverySent": "Sent into the mesh",
+  "deliveryDelivered": "Delivered (recipient acknowledged)",
+  "deliveryFailed": "Not delivered — no acknowledgement or send failed"
 }

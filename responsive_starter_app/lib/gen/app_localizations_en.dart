@@ -2132,4 +2132,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String batteryDurM(int mins) {
     return '${mins}m';
   }
+
+  @override
+  String get deliverySending => 'Sending…';
+
+  @override
+  String get deliverySent => 'Sent into the mesh';
+
+  @override
+  String get deliveryDelivered => 'Delivered (recipient acknowledged)';
+
+  @override
+  String get deliveryFailed =>
+      'Not delivered — no acknowledgement or send failed';
 }

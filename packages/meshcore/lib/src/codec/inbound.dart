@@ -73,6 +73,23 @@ class MsgSentFrame extends MeshcoreInbound {
   String toString() => 'MsgSentFrame($sent)';
 }
 
+/// `PUSH_CODE_ACK` (0x82) — delivery acknowledgement for a sent
+/// (direct) message. Carries the 4-byte CRC tag the device reported
+/// as `MsgSent.expectedAck`, so the client can match it back to the
+/// originating message and mark it delivered. Broadcast/channel
+/// messages are flood-routed and never produce an ACK.
+class AckFrame extends MeshcoreInbound {
+  const AckFrame(this.ackCrc);
+
+  /// The acknowledged message's CRC tag (u32 LE), equal to the
+  /// [MsgSent.expectedAck] returned when the message was submitted.
+  final int ackCrc;
+
+  @override
+  String toString() =>
+      'AckFrame(0x${ackCrc.toRadixString(16).padLeft(8, '0')})';
+}
+
 /// `RESP_CODE_CHANNEL_MSG_RECV` (0x08) and V3 (0x11).
 class ChannelMessageFrame extends MeshcoreInbound {
   const ChannelMessageFrame(this.message);

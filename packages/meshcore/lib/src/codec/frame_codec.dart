@@ -392,6 +392,15 @@ abstract final class MeshcoreFrameCodec {
             psk: c.bytes(kChannelPskSize, 'channelInfo.psk'),
           ));
 
+        case 0x82: // PUSH_CODE_ACK
+          // Delivery ACK for a direct message: a 4-byte CRC tag
+          // matching the MsgSent.expectedAck we recorded on send.
+          // Some firmware appends round-trip info; we only need the
+          // leading tag. Guard for a short/empty payload.
+          final int ack =
+              c.remaining >= 4 ? c.u32('ack.crc') : 0;
+          return AckFrame(ack);
+
         case 0x83: // PUSH_CODE_MSGS_WAITING
           final int? n = c.remaining >= 1 ? c.u8('msgsWaiting.count') : null;
           return MessagesWaitingFrame(n);

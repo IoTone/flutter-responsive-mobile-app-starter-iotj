@@ -3733,6 +3733,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{mins}m'**
   String batteryDurM(int mins);
+
+  /// No description provided for @deliverySending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get deliverySending;
+
+  /// No description provided for @deliverySent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent into the mesh'**
+  String get deliverySent;
+
+  /// No description provided for @deliveryDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered (recipient acknowledged)'**
+  String get deliveryDelivered;
+
+  /// No description provided for @deliveryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not delivered — no acknowledgement or send failed'**
+  String get deliveryFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -2041,4 +2041,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String batteryDurM(int mins) {
     return '$mins分';
   }
+
+  @override
+  String get deliverySending => '送信中…';
+
+  @override
+  String get deliverySent => 'メッシュへ送信済み';
+
+  @override
+  String get deliveryDelivered => '配信完了 (受信側が確認)';
+
+  @override
+  String get deliveryFailed => '未配信 — 確認応答なし、または送信失敗';
 }

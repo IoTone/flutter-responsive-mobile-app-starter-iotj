@@ -919,5 +919,10 @@
   "batteryDurM": "{mins}分",
   "@batteryDurM": {
     "placeholders": {"mins": {"type": "int"}}
-  }
+  },
+
+  "deliverySending": "送信中…",
+  "deliverySent": "メッシュへ送信済み",
+  "deliveryDelivered": "配信完了 (受信側が確認)",
+  "deliveryFailed": "未配信 — 確認応答なし、または送信失敗"
 }
