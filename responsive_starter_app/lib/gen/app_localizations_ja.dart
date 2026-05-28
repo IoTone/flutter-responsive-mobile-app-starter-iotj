@@ -1297,7 +1297,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get snsCellsLegendToast => '新着メッセージは発信元付近にトーストで点滅し、消えます。';
 
   @override
-  String get snsCellsLegendChannel => 'チャンネルメッセージは匿名 — 自分のセル（受信地点）を温めます。';
+  String get snsCellsLegendChannel =>
+      'チャンネルメッセージは送信者名を含みます — 送信者の位置が分かればそのセルを、分からなければ自分のセル（受信地点）を温めます。';
 
   @override
   String get snsCellsLegendDecay => '直近1時間のみ追跡。保存はされません。';

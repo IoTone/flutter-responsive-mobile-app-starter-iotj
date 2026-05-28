@@ -1362,7 +1362,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get snsCellsLegendChannel =>
-      'Channel messages are anonymous — they warm your own cell (the receive point).';
+      'Channel messages carry the sender\'s name — they warm the sender\'s cell when we know their location, otherwise your own cell (the receive point).';
 
   @override
   String get snsCellsLegendDecay =>

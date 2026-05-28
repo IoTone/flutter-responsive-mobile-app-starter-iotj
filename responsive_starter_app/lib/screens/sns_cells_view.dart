@@ -368,7 +368,24 @@ class _SnsCellsPainter extends CustomPainter {
     // magnification) and everything brightens.
     final int step = math.max(1, (16 / cellPx).ceil());
     final double gridPx = cellPx * step;
-    if (gridPx.isFinite && gridPx >= 2) {
+
+    // Pixel-space origin of the displayed grid lattice: the SW corner
+    // of the geographic cell that contains self, projected to pixels.
+    // Lines (and heat squares) live on `{origin + k * gridPx}`. Shared
+    // by the grid drawing AND the heat fill so heat snaps to — and
+    // fills — the same squares the lines outline, instead of floating
+    // as fixed-size blobs near the grid corners.
+    final double selfCellLon =
+        (selfLon / CoverageStore.cellDeg).floor() * CoverageStore.cellDeg;
+    final double gridOriginX =
+        centre.dx + (selfCellLon - selfLon) * mPerDegLon * pxPerMeter;
+    final double selfCellLat =
+        (selfLat / CoverageStore.cellDeg).floor() * CoverageStore.cellDeg;
+    final double gridOriginY =
+        centre.dy - (selfCellLat - selfLat) * _mPerDegLat * pxPerMeter;
+    final bool latticeOk = gridPx.isFinite && gridPx >= 2;
+
+    if (latticeOk) {
       const double bandHalf = 34.0; // sweep influence radius (px)
       final Paint glow = Paint()
         ..style = PaintingStyle.stroke
@@ -380,12 +397,7 @@ class _SnsCellsPainter extends CustomPainter {
 
       // Vertical lines (no displacement — beam is horizontal — but
       // brighten the segment that crosses the sweep band).
-      final double selfCellLon =
-          (selfLon / CoverageStore.cellDeg).floor() *
-              CoverageStore.cellDeg;
-      final double originDx =
-          (selfCellLon - selfLon) * mPerDegLon * pxPerMeter;
-      double x0 = centre.dx + originDx;
+      double x0 = gridOriginX;
       x0 -= (x0 / gridPx).ceil() * gridPx;
       for (double x = x0; x < size.width; x += gridPx) {
         glow.color = accent.withValues(alpha: 0.10);
@@ -406,12 +418,7 @@ class _SnsCellsPainter extends CustomPainter {
       // Horizontal lines — displaced away from the sweep centre
       // within the band (magnification), brighter the closer they
       // are to the beam.
-      final double selfCellLat =
-          (selfLat / CoverageStore.cellDeg).floor() *
-              CoverageStore.cellDeg;
-      final double originDy =
-          -(selfCellLat - selfLat) * _mPerDegLat * pxPerMeter;
-      double y0 = centre.dy + originDy;
+      double y0 = gridOriginY;
       y0 -= (y0 / gridPx).ceil() * gridPx;
       for (double y = y0; y < size.height; y += gridPx) {
         final double d = y - sweepY;
@@ -432,34 +439,40 @@ class _SnsCellsPainter extends CustomPainter {
     }
 
     // --- Heat cells ---
-    // Glitch clock: a coarse time quantum (~7 fps) drives the jitter
-    // + RGB-split phase so hot cells shimmer like a degrading CRT
-    // feed without thrashing every frame.
-    final int glitchQuantum = nowMs ~/ 140;
+    // Glitch clock: a coarse time quantum (~7 fps) drives the
+    // RGB-split phase so hot cells shimmer like a degrading CRT feed
+    // without thrashing every frame.
     final double splitPhase =
         math.sin(nowMs / 220.0); // -1..1, ~0.7 Hz
+
+    // Snap heat into the displayed grid lattice and fill whole grid
+    // squares. When zoomed out (e.g. senders spread across WA + BC),
+    // many fine geographic cells fall inside one visible grid square;
+    // we keep the hottest so the square reads as a solid filled cell
+    // aligned to the grid lines, rather than a small blob hovering
+    // near a grid corner.
+    final Map<(int, int), double> gridHeat = <(int, int), double>{};
+    final List<({Offset centre, double hotness})> looseHeat =
+        <({Offset centre, double hotness})>[];
     heat.forEach((String key, double hotness) {
       final ({int latBucket, int lonBucket})? b =
           CoverageStore.parseKey(key);
       if (b == null) return;
       final ({double lat, double lon}) c =
           CoverageStore.cellCentre(b.latBucket, b.lonBucket);
-      Offset cc = project(c.lat, c.lon);
-
-      // Glitch jitter — the hotter the cell, the more it twitches.
-      // Deterministic per (cell, time-quantum) so it's stable within
-      // a glitch frame but jumps between them.
-      if (hotness > 0.5) {
-        final int h = Object.hash(key, glitchQuantum);
-        final double jx = ((h & 0x7) - 3.5) * hotness * 0.6;
-        final double jy = (((h >> 3) & 0x7) - 3.5) * hotness * 0.6;
-        cc = cc.translate(jx, jy);
+      final Offset cc = project(c.lat, c.lon);
+      if (latticeOk) {
+        final int col = ((cc.dx - gridOriginX) / gridPx).floor();
+        final int row = ((cc.dy - gridOriginY) / gridPx).floor();
+        final (int, int) k = (col, row);
+        final double prev = gridHeat[k] ?? 0.0;
+        if (hotness > prev) gridHeat[k] = hotness;
+      } else {
+        looseHeat.add((centre: cc, hotness: hotness));
       }
+    });
 
-      // Minimum 12 px so a single-message cell is clearly visible
-      // even when zoomed out.
-      final double w = math.max(cellPx, 12);
-      final Rect r = Rect.fromCenter(center: cc, width: w, height: w);
+    void drawHeatRect(Rect r, double hotness) {
       // white (cool) → red (hot). Floor the alpha at 0.40 so even a
       // single fresh message reads as a solid patch rather than a
       // ghost; ramp to near-opaque when hot.
@@ -484,7 +497,24 @@ class _SnsCellsPainter extends CustomPainter {
         canvas.drawRect(r.shift(Offset(s, 0)), redGhost);
         canvas.drawRect(r.shift(Offset(-s, 0)), cyanGhost);
       }
+    }
+
+    gridHeat.forEach(((int, int) k, double hotness) {
+      final Rect r = Rect.fromLTWH(
+        gridOriginX + k.$1 * gridPx,
+        gridOriginY + k.$2 * gridPx,
+        gridPx,
+        gridPx,
+      );
+      drawHeatRect(r, hotness);
     });
+    // Degenerate lattice fallback — fixed-size centred squares.
+    for (final ({Offset centre, double hotness}) h in looseHeat) {
+      drawHeatRect(
+        Rect.fromCenter(center: h.centre, width: 12, height: 12),
+        h.hotness,
+      );
+    }
 
     // --- Nodes ---
     for (final DiscoveredNode n in nodes) {

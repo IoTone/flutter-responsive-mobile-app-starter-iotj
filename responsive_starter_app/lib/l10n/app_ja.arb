@@ -598,7 +598,7 @@
   "snsCellsLegendHot": "明るい赤 = 活発（直近1分で約5件以上）。",
   "snsCellsLegendCool": "白へ退色 = 沈静化。約1時間無活動で消滅。",
   "snsCellsLegendToast": "新着メッセージは発信元付近にトーストで点滅し、消えます。",
-  "snsCellsLegendChannel": "チャンネルメッセージは匿名 — 自分のセル（受信地点）を温めます。",
+  "snsCellsLegendChannel": "チャンネルメッセージは送信者名を含みます — 送信者の位置が分かればそのセルを、分からなければ自分のセル（受信地点）を温めます。",
   "snsCellsLegendDecay": "直近1時間のみ追跡。保存はされません。",
   "meshTreeEmpty": "コンタクト同期を待機中 — ツリーは各コンタクトの outPath から構築されます。",
   "meshTreeHopsDirect": "直接",

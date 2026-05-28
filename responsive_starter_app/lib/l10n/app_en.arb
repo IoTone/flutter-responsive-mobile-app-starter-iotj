@@ -598,7 +598,7 @@
   "snsCellsLegendHot": "Bright red = busy (≈5+ messages in the last minute).",
   "snsCellsLegendCool": "Fading to white = quieting down; gone after ~1 h idle.",
   "snsCellsLegendToast": "New messages flash as a toast near their source, then vanish.",
-  "snsCellsLegendChannel": "Channel messages are anonymous — they warm your own cell (the receive point).",
+  "snsCellsLegendChannel": "Channel messages carry the sender's name — they warm the sender's cell when we know their location, otherwise your own cell (the receive point).",
   "snsCellsLegendDecay": "Only the last hour is tracked; nothing is stored.",
   "meshTreeEmpty": "Waiting for contact sync — the tree is built from each contact's outPath.",
   "meshTreeHopsDirect": "Direct",

@@ -2399,7 +2399,7 @@ abstract class AppLocalizations {
   /// No description provided for @snsCellsLegendChannel.
   ///
   /// In en, this message translates to:
-  /// **'Channel messages are anonymous — they warm your own cell (the receive point).'**
+  /// **'Channel messages carry the sender\'s name — they warm the sender\'s cell when we know their location, otherwise your own cell (the receive point).'**
   String get snsCellsLegendChannel;
 
   /// No description provided for @snsCellsLegendDecay.
