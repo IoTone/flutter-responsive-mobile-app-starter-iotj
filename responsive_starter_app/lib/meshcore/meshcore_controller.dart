@@ -1841,6 +1841,15 @@ class MeshcoreController extends ChangeNotifier {
   int get telemetrySendCount =>
       _telemetryAttempts.values.fold(0, (int a, int b) => a + b);
 
+  /// Reset the per-peer attempt counters so the auto-query loop
+  /// gives every peer a fresh set of attempts. Used by the
+  /// "tap to restart" affordance on the Fujiさん view — handy after
+  /// a peer flips its telemetry mode on, or just to retry.
+  void resetTelemetryAttempts() {
+    _telemetryAttempts.clear();
+    notifyListeners();
+  }
+
   final Set<String> _telemetryInflight = <String>{};
   final Map<String, int> _telemetryAttempts = <String, int>{};
 

@@ -81,7 +81,7 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
   // view. These two local ints just label what this view-instance
   // has done since mount.
   int _ticksWithNoEligible = 0;
-  String? _lastTargetName;
+  String? _lastTargetPub;
 
   @override
   void initState() {
@@ -165,8 +165,7 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     });
     final DiscoveredNode target = eligible.first;
     final int tier = _tierFor(target, mc);
-    _lastTargetName =
-        target.name.isEmpty ? target.shortId : target.name;
+    _lastTargetPub = target.pubKeyHex;
     final int attemptBefore =
         mc.telemetryAttemptsFor(target.pubKeyHex);
     debugPrint('[elev.auto] sending telemetry req → ${target.name} '
@@ -277,65 +276,100 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
             );
           },
         ),
-        // Observability chip — makes the auto-query loop visible so
-        // we can tell whether queries are firing, in flight, and/or
-        // getting responses. If queries climb but resolved stays at
-        // 0, peers aren't answering (likely their telemetry mode is
-        // off, or our device hasn't synced contacts for them).
+        // Observability chip — moved up under the header band so it
+        // doesn't block the reference silhouettes. Tap it to restart
+        // the query loop (clears the per-peer attempt caps).
+        // The "last" line shows the target's last-4 pubkey chars,
+        // colour-coded: self = primary, favourite = tertiary,
+        // known = accent-dim, else default.
         Positioned(
-          left: 12,
-          bottom: 12,
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: cs.surface.withValues(alpha: .85),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                  color: cs.outline.withValues(alpha: .55)),
-            ),
-            child: DefaultTextStyle(
-              style: TextStyle(
-                color: cs.onSurface,
-                fontSize: 10,
-                fontFamily: 'monospace',
-                letterSpacing: 1,
+          right: 12,
+          top: 56,
+          child: GestureDetector(
+            onTap: () {
+              mc.resetTelemetryAttempts();
+              setState(() {
+                _ticksWithNoEligible = 0;
+                _lastTargetPub = null;
+              });
+              // Kick one immediately so the restart feels responsive.
+              _stepAutoQuery();
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: cs.surface.withValues(alpha: .85),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                    color: cs.outline.withValues(alpha: .55)),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text('AUTO-QUERY'),
-                  const SizedBox(height: 2),
-                  Text('queries: $totalQueries · '
-                      'in-flight: $inflightCount'),
-                  Text('resolved: $resolvedCount / ${peers.length}'),
-                  Text('skip: $skippedCount · gave-up: $gaveUpCount'),
-                  if (_lastTargetName != null)
-                    Text('last: $_lastTargetName',
-                        overflow: TextOverflow.ellipsis),
-                  // If we've sent several queries but seen no
-                  // resolutions, the peer side almost certainly isn't
-                  // responding — most common cause is peer's
-                  // telemetry mode being off (CMD_SET_OTHER_PARAMS
-                  // packs a byte where the low bits gate which
-                  // sensors are exposed).
-                  if (totalQueries >= 3 && resolvedCount == 0)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(
-                        'no responses — peer telem mode\noff?',
-                        style: TextStyle(
-                            color: cs.tertiary, fontSize: 10),
-                      ),
+              child: DefaultTextStyle(
+                style: TextStyle(
+                  color: cs.onSurface,
+                  fontSize: 10,
+                  fontFamily: 'monospace',
+                  letterSpacing: 1,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        const Text('AUTO-QUERY'),
+                        const SizedBox(width: 4),
+                        Icon(Icons.refresh,
+                            size: 11, color: cs.onSurfaceVariant),
+                      ],
                     ),
-                ],
+                    const SizedBox(height: 2),
+                    Text('q:$totalQueries · fly:$inflightCount'),
+                    Text('ok:$resolvedCount/${peers.length} · '
+                        'skip:$skippedCount · x:$gaveUpCount'),
+                    if (_lastTargetPub != null)
+                      _lastTargetLine(cs),
+                    if (totalQueries >= 3 && resolvedCount == 0)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          'no responses — tap to retry',
+                          style: TextStyle(
+                              color: cs.tertiary, fontSize: 10),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ],
     );
+  }
+
+  /// The "last: ABCD" line, colour-coded by the target's relationship
+  /// to us. Truncated to the last 4 pubkey-hex chars per the request.
+  Widget _lastTargetLine(ColorScheme cs) {
+    final MeshcoreController mc = context.read<MeshcoreController>();
+    final String pub = _lastTargetPub!;
+    final String tail =
+        pub.length >= 4 ? pub.substring(pub.length - 4) : pub;
+    Color colour = cs.onSurface;
+    String tag = '';
+    if (pub == mc.ownPubKeyHex) {
+      colour = cs.primary;
+      tag = ' (me)';
+    } else if (mc.favorites.contains(pub)) {
+      colour = cs.tertiary;
+      tag = ' ★';
+    } else if (mc.known.contains(pub)) {
+      colour = cs.primary.withValues(alpha: .7);
+      tag = ' ◍';
+    }
+    return Text('last: …$tail$tag',
+        style: TextStyle(color: colour, fontSize: 10));
   }
 }
 

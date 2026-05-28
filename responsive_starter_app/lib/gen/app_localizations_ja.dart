@@ -595,13 +595,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridViewFabricShort => 'メッシュ';
 
   @override
-  String get gridViewElevation => '高度プロファイル';
+  String get gridViewElevation => 'Fujiさん';
 
   @override
-  String get gridViewElevationShort => '高度';
+  String get gridViewElevationShort => '富士';
 
   @override
-  String get elevationProfileTitle => 'MESHMORE :: 高度測量';
+  String get elevationProfileTitle => 'MESHMORE :: Fujiさん';
 
   @override
   String get elevationProfileAltLabel => '高度';

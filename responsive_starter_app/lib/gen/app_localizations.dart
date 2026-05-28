@@ -1187,19 +1187,19 @@ abstract class AppLocalizations {
   /// No description provided for @gridViewElevation.
   ///
   /// In en, this message translates to:
-  /// **'Elevation profile'**
+  /// **'Fujiさん'**
   String get gridViewElevation;
 
   /// No description provided for @gridViewElevationShort.
   ///
   /// In en, this message translates to:
-  /// **'ALT'**
+  /// **'FUJI'**
   String get gridViewElevationShort;
 
   /// No description provided for @elevationProfileTitle.
   ///
   /// In en, this message translates to:
-  /// **'MESHMORE :: ELEVATION SURVEY'**
+  /// **'MESHMORE :: FUJIさん'**
   String get elevationProfileTitle;
 
   /// No description provided for @elevationProfileAltLabel.
