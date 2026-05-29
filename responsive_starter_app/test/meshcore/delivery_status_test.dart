@@ -3,9 +3,9 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshmore_sns_app/meshcore/chat_message.dart';
-import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
-import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
+import 'package:responsive_iot_2026/meshcore/chat_message.dart';
+import 'package:responsive_iot_2026/meshcore/meshcore_connection.dart';
+import 'package:responsive_iot_2026/meshcore/meshcore_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fake_transport.dart';

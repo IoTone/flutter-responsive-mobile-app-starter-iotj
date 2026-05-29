@@ -23,7 +23,7 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "com.iotone.meshmore_sns_app"
+    namespace "io.iotone.responsiveiot2026"
     compileSdk flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -41,7 +41,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.iotone.meshmore_sns_app"
+        applicationId "io.iotone.responsiveiot2026"
         // Meshmore requires BLE + modern permissions; minSdk 23 per spec.
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion

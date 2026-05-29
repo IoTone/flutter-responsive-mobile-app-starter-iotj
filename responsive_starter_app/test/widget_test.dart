@@ -6,15 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import 'package:meshmore_sns_app/app_state_model.dart';
-import 'package:meshmore_sns_app/cue/cue_service.dart';
-import 'package:meshmore_sns_app/l10n/locale_controller.dart';
-import 'package:meshmore_sns_app/main.dart';
-import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
-import 'package:meshmore_sns_app/perms/first_run_controller.dart';
-import 'package:meshmore_sns_app/perms/permissions_service.dart';
-import 'package:meshmore_sns_app/theme/theme_controller.dart';
-import 'package:meshmore_sns_app/tts/tts_controller.dart';
+import 'package:responsive_iot_2026/app_state_model.dart';
+import 'package:responsive_iot_2026/cue/cue_service.dart';
+import 'package:responsive_iot_2026/l10n/locale_controller.dart';
+import 'package:responsive_iot_2026/main.dart';
+import 'package:responsive_iot_2026/meshcore/meshcore_controller.dart';
+import 'package:responsive_iot_2026/perms/first_run_controller.dart';
+import 'package:responsive_iot_2026/perms/permissions_service.dart';
+import 'package:responsive_iot_2026/theme/theme_controller.dart';
+import 'package:responsive_iot_2026/tts/tts_controller.dart';
 
 /// No-op speech backend (keeps the smoke test off the platform channel).
 class _SilentSpeaker implements TtsSpeaker {

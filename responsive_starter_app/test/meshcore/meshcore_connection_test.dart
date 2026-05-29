@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore/meshcore.dart';
-import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
+import 'package:responsive_iot_2026/meshcore/meshcore_connection.dart';
 
 import 'fake_transport.dart';
 

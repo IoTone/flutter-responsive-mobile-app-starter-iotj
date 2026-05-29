@@ -8,23 +8,23 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 
-import 'package:meshmore_sns_app/app_router.dart';
-import 'package:meshmore_sns_app/app_state_model.dart';
-import 'package:meshmore_sns_app/cue/asset_audio_pack.dart';
-import 'package:meshmore_sns_app/cue/cue_service.dart';
-import 'package:meshmore_sns_app/gen/app_localizations.dart';
-import 'package:meshmore_sns_app/l10n/locale_controller.dart';
-import 'package:meshmore_sns_app/meshcore/auto_publish_controller.dart';
-import 'package:meshmore_sns_app/meshcore/background_keepalive.dart';
-import 'package:meshmore_sns_app/meshcore/city_lookup.dart';
-import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
-import 'package:meshmore_sns_app/perms/first_run_controller.dart';
-import 'package:meshmore_sns_app/perms/location_service.dart';
-import 'package:meshmore_sns_app/perms/permissions_service.dart';
-import 'package:meshmore_sns_app/screens/first_run_intro_screen.dart';
-import 'package:meshmore_sns_app/splash/branded_splash_screen.dart';
-import 'package:meshmore_sns_app/theme/theme_controller.dart';
-import 'package:meshmore_sns_app/tts/tts_controller.dart';
+import 'package:responsive_iot_2026/app_router.dart';
+import 'package:responsive_iot_2026/app_state_model.dart';
+import 'package:responsive_iot_2026/cue/asset_audio_pack.dart';
+import 'package:responsive_iot_2026/cue/cue_service.dart';
+import 'package:responsive_iot_2026/gen/app_localizations.dart';
+import 'package:responsive_iot_2026/l10n/locale_controller.dart';
+import 'package:responsive_iot_2026/meshcore/auto_publish_controller.dart';
+import 'package:responsive_iot_2026/meshcore/background_keepalive.dart';
+import 'package:responsive_iot_2026/meshcore/city_lookup.dart';
+import 'package:responsive_iot_2026/meshcore/meshcore_controller.dart';
+import 'package:responsive_iot_2026/perms/first_run_controller.dart';
+import 'package:responsive_iot_2026/perms/location_service.dart';
+import 'package:responsive_iot_2026/perms/permissions_service.dart';
+import 'package:responsive_iot_2026/screens/first_run_intro_screen.dart';
+import 'package:responsive_iot_2026/splash/branded_splash_screen.dart';
+import 'package:responsive_iot_2026/theme/theme_controller.dart';
+import 'package:responsive_iot_2026/tts/tts_controller.dart';
 
 void main() {
   final WidgetsBinding widgetsBinding =

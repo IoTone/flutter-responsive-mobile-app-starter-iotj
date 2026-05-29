@@ -1,7 +1,7 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshmore_sns_app/util/geo.dart';
+import 'package:responsive_iot_2026/util/geo.dart';
 
 void main() {
   test('haversine NYC ↔ LA ≈ 3935 km (within 0.5%)', () {

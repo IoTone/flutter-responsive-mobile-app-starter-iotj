@@ -4,17 +4,17 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore/meshcore.dart';
-import 'package:meshmore_sns_app/meshcore/background_prefs.dart';
-import 'package:meshmore_sns_app/meshcore/discovered_node.dart';
-import 'package:meshmore_sns_app/meshcore/favorite_store.dart';
-import 'package:meshmore_sns_app/meshcore/known_store.dart';
-import 'package:meshmore_sns_app/meshcore/mesh_event.dart';
-import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
-import 'package:meshmore_sns_app/meshcore/mesh_graph.dart';
-import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
-import 'package:meshmore_sns_app/meshcore/node_telemetry.dart';
-import 'package:meshmore_sns_app/meshcore/own_location.dart';
-import 'package:meshmore_sns_app/perms/location_service.dart';
+import 'package:responsive_iot_2026/meshcore/background_prefs.dart';
+import 'package:responsive_iot_2026/meshcore/discovered_node.dart';
+import 'package:responsive_iot_2026/meshcore/favorite_store.dart';
+import 'package:responsive_iot_2026/meshcore/known_store.dart';
+import 'package:responsive_iot_2026/meshcore/mesh_event.dart';
+import 'package:responsive_iot_2026/meshcore/meshcore_connection.dart';
+import 'package:responsive_iot_2026/meshcore/mesh_graph.dart';
+import 'package:responsive_iot_2026/meshcore/meshcore_controller.dart';
+import 'package:responsive_iot_2026/meshcore/node_telemetry.dart';
+import 'package:responsive_iot_2026/meshcore/own_location.dart';
+import 'package:responsive_iot_2026/perms/location_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fake_transport.dart';

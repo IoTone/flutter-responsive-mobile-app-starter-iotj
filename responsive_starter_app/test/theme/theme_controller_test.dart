@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MIT
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshmore_sns_app/theme/mm_tokens.dart';
-import 'package:meshmore_sns_app/theme/theme_controller.dart';
+import 'package:responsive_iot_2026/theme/mm_tokens.dart';
+import 'package:responsive_iot_2026/theme/theme_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

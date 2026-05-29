@@ -9,11 +9,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:provider/provider.dart';
 
-import 'package:meshmore_sns_app/gen/app_localizations.dart';
-import 'package:meshmore_sns_app/l10n/locale_controller.dart';
-import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
-import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
-import 'package:meshmore_sns_app/screens/nodes_screen.dart';
+import 'package:responsive_iot_2026/gen/app_localizations.dart';
+import 'package:responsive_iot_2026/l10n/locale_controller.dart';
+import 'package:responsive_iot_2026/meshcore/meshcore_connection.dart';
+import 'package:responsive_iot_2026/meshcore/meshcore_controller.dart';
+import 'package:responsive_iot_2026/screens/nodes_screen.dart';
 
 import '../meshcore/fake_transport.dart';
 

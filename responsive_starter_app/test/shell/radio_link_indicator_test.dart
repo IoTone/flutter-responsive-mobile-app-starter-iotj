@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
-import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
-import 'package:meshmore_sns_app/shell/home_shell.dart';
+import 'package:responsive_iot_2026/meshcore/meshcore_connection.dart';
+import 'package:responsive_iot_2026/meshcore/meshcore_controller.dart';
+import 'package:responsive_iot_2026/shell/home_shell.dart';
 
 import '../meshcore/fake_transport.dart';
 

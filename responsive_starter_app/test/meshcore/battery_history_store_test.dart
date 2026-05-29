@@ -1,8 +1,8 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshmore_sns_app/meshcore/battery_history_store.dart';
-import 'package:meshmore_sns_app/meshcore/battery_model.dart';
+import 'package:responsive_iot_2026/meshcore/battery_history_store.dart';
+import 'package:responsive_iot_2026/meshcore/battery_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

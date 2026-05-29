@@ -1,7 +1,7 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshmore_sns_app/tts/tts_controller.dart';
+import 'package:responsive_iot_2026/tts/tts_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FakeTtsSpeaker implements TtsSpeaker {

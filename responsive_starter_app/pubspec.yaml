@@ -1,5 +1,5 @@
-name: meshmore_sns_app
-description: "Meshmore SNS — a Flutter client for the Meshcore LoRa mesh network."
+name: responsive_iot_2026
+description: "Responsive IoT 2026 — a Flutter starter for BLE & WiFi device scanning."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

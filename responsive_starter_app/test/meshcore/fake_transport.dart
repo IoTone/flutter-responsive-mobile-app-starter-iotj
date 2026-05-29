@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:meshcore/meshcore.dart';
-import 'package:meshmore_sns_app/meshcore/background_keepalive.dart';
+import 'package:responsive_iot_2026/meshcore/background_keepalive.dart';
 
 /// Records start/stop without touching the platform plugin.
 class FakeBackgroundKeepalive implements BackgroundKeepalive {

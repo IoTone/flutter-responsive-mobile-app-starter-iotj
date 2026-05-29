@@ -1,7 +1,7 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshmore_sns_app/meshcore/device_power_specs.dart';
+import 'package:responsive_iot_2026/meshcore/device_power_specs.dart';
 
 void main() {
   group('DevicePowerSpec.socForVolts (OCV interpolation)', () {

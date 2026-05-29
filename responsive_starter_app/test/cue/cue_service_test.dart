@@ -1,8 +1,8 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshmore_sns_app/cue/cue_service.dart';
-import 'package:meshmore_sns_app/theme/theme_controller.dart';
+import 'package:responsive_iot_2026/cue/cue_service.dart';
+import 'package:responsive_iot_2026/theme/theme_controller.dart';
 
 class _FakeAudio implements AudioPack {
   final List<CueKind> calls = <CueKind>[];

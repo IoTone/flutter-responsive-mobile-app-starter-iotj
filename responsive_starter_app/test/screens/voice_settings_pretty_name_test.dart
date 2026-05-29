@@ -8,7 +8,7 @@
 // + a controller + provider scaffolding).
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshmore_sns_app/screens/voice_settings_screen.dart';
+import 'package:responsive_iot_2026/screens/voice_settings_screen.dart';
 
 void main() {
   group('voicePrettyName parser', () {

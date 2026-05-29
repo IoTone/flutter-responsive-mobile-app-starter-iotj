@@ -1,11 +1,11 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshmore_sns_app/cue/cue_bridge.dart';
-import 'package:meshmore_sns_app/cue/cue_service.dart';
-import 'package:meshmore_sns_app/meshcore/meshcore_connection.dart';
-import 'package:meshmore_sns_app/meshcore/meshcore_controller.dart';
-import 'package:meshmore_sns_app/theme/theme_controller.dart';
+import 'package:responsive_iot_2026/cue/cue_bridge.dart';
+import 'package:responsive_iot_2026/cue/cue_service.dart';
+import 'package:responsive_iot_2026/meshcore/meshcore_connection.dart';
+import 'package:responsive_iot_2026/meshcore/meshcore_controller.dart';
+import 'package:responsive_iot_2026/theme/theme_controller.dart';
 
 import '../meshcore/fake_transport.dart';
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshmore_sns_app/meshcore/region_presets.dart';
+import 'package:responsive_iot_2026/meshcore/region_presets.dart';
 
 void main() {
   group('canonical preset values (community-curated tuples)', () {
