@@ -1,7 +1,5 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -10,31 +8,20 @@ import 'package:provider/provider.dart';
 
 import 'package:responsive_iot_2026/app_router.dart';
 import 'package:responsive_iot_2026/app_state_model.dart';
-import 'package:responsive_iot_2026/cue/asset_audio_pack.dart';
-import 'package:responsive_iot_2026/cue/cue_service.dart';
 import 'package:responsive_iot_2026/gen/app_localizations.dart';
 import 'package:responsive_iot_2026/l10n/locale_controller.dart';
-import 'package:responsive_iot_2026/meshcore/auto_publish_controller.dart';
-import 'package:responsive_iot_2026/meshcore/background_keepalive.dart';
-import 'package:responsive_iot_2026/meshcore/city_lookup.dart';
-import 'package:responsive_iot_2026/meshcore/meshcore_controller.dart';
 import 'package:responsive_iot_2026/perms/first_run_controller.dart';
-import 'package:responsive_iot_2026/perms/location_service.dart';
 import 'package:responsive_iot_2026/perms/permissions_service.dart';
+import 'package:responsive_iot_2026/scanner/ble_scanner.dart';
+import 'package:responsive_iot_2026/scanner/scanner_controller.dart';
 import 'package:responsive_iot_2026/screens/first_run_intro_screen.dart';
 import 'package:responsive_iot_2026/splash/branded_splash_screen.dart';
 import 'package:responsive_iot_2026/theme/theme_controller.dart';
-import 'package:responsive_iot_2026/tts/tts_controller.dart';
 
 void main() {
   final WidgetsBinding widgetsBinding =
       WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-
-  // R25 Stage 2 — pre-warm the offline city DB so the equal-grid
-  // view shows real labels on first paint. Fire-and-forget; failures
-  // degrade to grid-coord cell labels.
-  unawaited(warmCityLookup());
 
   SystemChrome.setPreferredOrientations(<DeviceOrientation>[
     DeviceOrientation.portraitUp,
@@ -47,46 +34,17 @@ void main() {
           ChangeNotifierProvider<ThemeController>(
             create: (_) => ThemeController()..load(),
           ),
-          ChangeNotifierProvider<TtsController>(
-            create: (_) => TtsController()..load(),
-          ),
-          Provider<CueService>(
-            create: (BuildContext ctx) {
-              final ThemeController tc = ctx.read<ThemeController>();
-              return CueService(
-                theme: tc,
-                // R12 per-theme audio: pull WAV cues from
-                // assets/audio/<themeKey>/<cue>.wav at play time.
-                audio: AssetAudioPack(theme: tc),
-              );
-            },
-          ),
-          ChangeNotifierProvider<MeshcoreController>(
-            create: (_) => MeshcoreController(
-              backgroundKeepalive: createBackgroundKeepalive(),
-              locationService: const GeolocatorLocationService(),
-            )..autoConnectIfPaired(),
-          ),
-          Provider<PermissionsService>(
-            create: (_) => const PlatformPermissionsService(),
+          ChangeNotifierProvider<LocaleController>(
+            create: (_) => LocaleController()..load(),
           ),
           ChangeNotifierProvider<FirstRunController>(
             create: (_) => FirstRunController()..load(),
           ),
-          ChangeNotifierProvider<LocaleController>(
-            create: (_) => LocaleController()..load(),
+          Provider<PermissionsService>(
+            create: (_) => const PlatformPermissionsService(),
           ),
-          // R36 — auto-publish location. Owns its own
-          // shared_preferences-backed settings + the periodic
-          // timer / position stream. Constructed lazily to read
-          // the already-built MeshcoreController; loads persisted
-          // state immediately so a previously-enabled loop
-          // resumes after a cold launch.
-          ChangeNotifierProvider<AutoPublishController>(
-            create: (BuildContext ctx) => AutoPublishController(
-              mc: ctx.read<MeshcoreController>(),
-              location: const GeolocatorLocationService(),
-            )..load(),
+          ChangeNotifierProvider<ScannerController>(
+            create: (_) => ScannerController(ble: FlutterBlueScanner()),
           ),
         ],
         child: const MyApp(),
@@ -95,13 +53,8 @@ void main() {
   });
 }
 
-/// Root widget. Owns the single MaterialApp + the go_router config;
-/// theme and font-scale come from [ThemeController] (R14).
-///
-/// Lifts `FlutterNativeSplash.remove()` up to here (away from
-/// HomeShell) so the native splash dismisses regardless of which
-/// gate paints next — HomeShell, the first-run intro, or the
-/// loading placeholder.
+/// Root widget: one MaterialApp + the go_router config. Theme,
+/// font-scale, and locale come from their controllers.
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -110,11 +63,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  /// Flutter-side splash min-display gate. Even when first-run prefs
-  /// resolve in microseconds the user gets ~1.5 s of the branded
-  /// splash with the rotating icon + version readout. Without this,
-  /// shared_preferences typically resolves before the first frame
-  /// and the splash never shows.
   bool _minSplashElapsed = false;
 
   @override
@@ -123,14 +71,11 @@ class _MyAppState extends State<MyApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FlutterNativeSplash.remove();
     });
-    Future<void>.delayed(const Duration(milliseconds: 2200), () {
+    Future<void>.delayed(const Duration(milliseconds: 1800), () {
       if (mounted) setState(() => _minSplashElapsed = true);
     });
   }
 
-  // R4 / U5 — l10n wiring shared between every MaterialApp branch:
-  // delegates for the generated AppLocalizations + Material + Cupertino
-  // + Widgets, plus the supported-locales list.
   static const List<LocalizationsDelegate<Object>> _localeDelegates =
       <LocalizationsDelegate<Object>>[
     AppLocalizations.delegate,
@@ -145,17 +90,6 @@ class _MyAppState extends State<MyApp> {
     final FirstRunController fr = context.watch<FirstRunController>();
     final LocaleController lc = context.watch<LocaleController>();
 
-    // R21 / U12 — gate the app on first-run state. While the pref
-    // is loading we render the splash holder so the test binding
-    // doesn't see a different MaterialApp shape mid-frame. When
-    // first-run is NOT done we mount a small MaterialApp around the
-    // intro screen (so it has theming + a Navigator without booting
-    // the full router). When done, the regular router-app boots.
-    // Show the branded Flutter splash while either (a) first-run
-    // prefs are still loading OR (b) the 1.5 s min-display gate
-    // hasn't elapsed. Without (b) the splash never appears on
-    // device — shared_preferences usually resolves before the
-    // first frame.
     if (!fr.loaded || !_minSplashElapsed) {
       return MaterialApp(
         theme: tc.theme,
@@ -167,7 +101,7 @@ class _MyAppState extends State<MyApp> {
     }
     if (!fr.done) {
       return MaterialApp(
-        title: 'Meshmore SNS',
+        onGenerateTitle: (BuildContext c) => AppLocalizations.of(c).appTitle,
         theme: tc.theme,
         locale: lc.locale,
         supportedLocales: LocaleController.supported,
@@ -176,15 +110,13 @@ class _MyAppState extends State<MyApp> {
       );
     }
     return MaterialApp.router(
-      title: 'Meshmore SNS',
+      onGenerateTitle: (BuildContext c) => AppLocalizations.of(c).appTitle,
       theme: tc.theme,
       locale: lc.locale,
       supportedLocales: LocaleController.supported,
       localizationsDelegates: _localeDelegates,
       routerConfig: appRouter,
       builder: (BuildContext context, Widget? child) {
-        // User font-size scale (R14) layered on top of the OS text
-        // scale (R13 — honour the platform setting).
         final MediaQueryData mq = MediaQuery.of(context);
         final double osScale = mq.textScaler.scale(1.0);
         return MediaQuery(

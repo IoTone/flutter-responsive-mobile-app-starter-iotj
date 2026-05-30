@@ -1,936 +1,118 @@
 {
   "@@locale": "en",
 
-  "appName": "Meshmore SNS",
-  "appSubtitle": "Socialrobot Network Service",
+  "appTitle": "Responsive IoT 2026",
+  "aboutSubtitle": "BLE & WiFi device scanner",
+  "aboutVersion": "Version {version}",
+  "@aboutVersion": { "placeholders": { "version": { "type": "String" } } },
+  "aboutDescription": "An open Flutter starter for Bluetooth LE and WiFi scanning.",
+  "aboutCopyright": "© 2026 IoTone, Inc.",
+  "aboutLicense": "MIT License",
+  "aboutMadeWith": "Built with Flutter.",
 
   "tabDashboard": "Dashboard",
-  "tabChat": "Chat",
-  "tabNodes": "Nodes",
+  "tabRadar": "Radar",
+  "tabDevices": "Devices",
   "tabSettings": "Settings",
-  "tabAbout": "About",
+  "quickNav": "Quick navigation",
 
-  "dashboardPeersInRange": "PEERS IN RANGE",
-  "dashboardKnownCount": "{n, plural, =0{0 known} =1{1 known} other{{n} known}}",
-  "@dashboardKnownCount": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "dashboardRadio": "RADIO",
-  "dashboardLocation": "LOCATION",
-  "dashboardBattery": "BATTERY",
-  "dashboardRecent": "RECENT",
-  "dashboardNoActivity": "— no activity —",
-  "dashboardAwaitingDevice": "— awaiting device —",
-  "dashboardAwaitingDeviceLocation": "— awaiting device location —",
-  "dashboardUnnamed": "(unnamed)",
-  "dashboardRenameTitle": "Device name",
-  "dashboardLocationNotSet": "Not set — neither device nor phone fix yet",
-  "dashboardLocationConfigure": "CONFIGURE",
-  "dashboardLocationSourceLabel": "source · {source}",
-  "@dashboardLocationSourceLabel": {
-    "placeholders": {"source": {"type": "String"}}
-  },
-  "statusLinked": "LINKED · NO ALERTS",
-  "statusSyncing": "SYNCING…",
-  "statusSyncingLong": "SYNCING…",
-  "statusHandshaking": "SYNCING…",
-  "statusReconnecting": "RECONNECTING…",
-  "statusLinkLost": "LINK LOST",
-  "statusOffline": "OFFLINE",
-  "statusConnecting": "CONNECTING…",
-  "actionConnect": "CONNECT",
-  "actionRetry": "RETRY",
-  "dashboardDevice": "Device",
-  "deviceMgrTitle": "DEVICE",
-  "deviceMgrNoPair": "No device paired",
-  "deviceMgrStateConnected": "CONNECTED",
-  "deviceMgrStateConnecting": "CONNECTING…",
-  "deviceMgrStateReconnecting": "RECONNECTING…",
-  "deviceMgrStateDisconnected": "DISCONNECTED",
-  "deviceMgrStateFailed": "FAILED",
-  "deviceMgrDisconnect": "Disconnect",
-  "deviceMgrReconnect": "Reconnect",
-  "deviceMgrForget": "Forget",
-  "deviceMgrPick": "PICK A DEVICE",
-  "deviceMgrScan": "Scan",
-  "deviceMgrStopScan": "Stop",
-  "deviceMgrScanHint": "Tap Scan to look for nearby MeshCore devices. When two are in range, pick the one you want.",
-  "deviceMgrScanFailed": "Scan failed: {message}",
-  "@deviceMgrScanFailed": {
-    "placeholders": {"message": {"type": "String"}}
-  },
-  "deviceMgrRecent": "RECENTLY PAIRED",
-  "deviceMgrAgoNever": "never",
-  "deviceMgrAgoNow": "just now",
-  "deviceMgrAgoMinutes": "{n} min ago",
-  "@deviceMgrAgoMinutes": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "deviceMgrAgoHours": "{n} h ago",
-  "@deviceMgrAgoHours": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "deviceMgrAgoDays": "{n} d ago",
-  "@deviceMgrAgoDays": {
-    "placeholders": {"n": {"type": "int"}}
-  },
+  "commonCancel": "Cancel",
+  "commonClose": "Close",
+  "commonRetry": "Retry",
+  "commonCopy": "Copy",
+  "commonCopied": "Copied",
 
-  "settingsHeading": "App settings",
-  "settingsConnection": "CONNECTION",
-  "settingsConnectionSubtitle": "Auto-reconnect (M7 backoff) · forget device",
-  "settingsBackgroundTitle": "Stay connected in background",
-  "settingsBackgroundOn": "Android: a persistent notification keeps the radio linked so messages arrive while backgrounded",
-  "settingsBackgroundOff": "Messages still arrive when you reopen the app (radio buffers them); no background notification",
-  "settingsLanguage": "LANGUAGE",
+  "scanStart": "Start scan",
+  "scanStop": "Stop scan",
+  "scanScanning": "Scanning…",
+  "scanIdle": "Idle",
+
+  "bluetoothOn": "Bluetooth ready",
+  "bluetoothOff": "Bluetooth is off",
+  "bluetoothUnauthorized": "Bluetooth permission needed",
+  "bluetoothUnknown": "Bluetooth state unknown",
+
+  "dashStatus": "Status",
+  "dashBleDevices": "BLE devices",
+  "dashWifiNetworks": "WiFi networks",
+  "dashRadio": "Radio",
+  "dashScanHint": "Tap Start to scan for nearby Bluetooth and WiFi devices.",
+
+  "radarEmpty": "No devices in range yet.",
+  "radarSelf": "You",
+  "radarLegendBle": "Bluetooth device",
+  "radarLegendWifi": "WiFi network",
+  "radarLegendRings": "Rings = approximate signal distance (rough).",
+
+  "devicesEmpty": "Nothing found yet — start a scan.",
+  "devicesSectionBle": "Bluetooth",
+  "devicesSectionWifi": "WiFi",
+  "deviceUnnamed": "(unnamed)",
+
+  "rssiDbm": "{rssi} dBm",
+  "@rssiDbm": { "placeholders": { "rssi": { "type": "int" } } },
+  "metersApprox": "≈ {meters} m",
+  "@metersApprox": { "placeholders": { "meters": { "type": "String" } } },
+  "signalStrong": "Strong",
+  "signalMedium": "Medium",
+  "signalWeak": "Weak",
+
+  "deviceDetailTitle": "Device detail",
+  "deviceDetailId": "Identifier",
+  "deviceDetailSignal": "Signal",
+  "deviceDetailVendor": "Vendor",
+  "deviceDetailVendorUnknown": "Unknown vendor",
+  "deviceDetailServices": "Services",
+  "deviceDetailFirstSeen": "First seen",
+  "deviceDetailLastSeen": "Last seen",
+  "deviceConnect": "Connect",
+  "deviceDisconnect": "Disconnect",
+  "deviceConnecting": "Connecting…",
+  "deviceConnected": "Connected",
+  "deviceConnectFailed": "Connection failed",
+  "deviceGattServices": "GATT services",
+
+  "wifiChannel": "ch {channel}",
+  "@wifiChannel": { "placeholders": { "channel": { "type": "int" } } },
+  "wifiCurrentOnly": "On iOS only the connected network is visible — Apple blocks third-party AP scanning.",
+  "wifiThrottleNote": "Android throttles WiFi scans, so results refresh slowly.",
+  "wifiProxyConnected": "Using relay proxy: {host}",
+  "@wifiProxyConnected": { "placeholders": { "host": { "type": "String" } } },
+
+  "settingsAppearance": "Appearance",
+  "settingsTheme": "Theme",
+  "settingsFontScale": "Text size",
+  "settingsReduceMotion": "Reduce motion",
+  "settingsHighContrast": "High contrast",
+  "settingsLanguage": "Language",
   "settingsLanguageSystem": "System default",
-  "settingsLanguageEnglish": "English",
-  "settingsLanguageJapanese": "日本語",
-  "settingsSpeech": "SPEECH (R5)",
-  "settingsSpeechOn": "Text-to-speech ON · per-channel toggle in Chat",
-  "settingsSpeechOff": "Text-to-speech OFF (default) · reads channel messages",
-  "settingsNotifications": "NOTIFICATIONS",
-  "settingsNotificationsSubtitle": "Critical → system notification + vibrate",
-  "settingsData": "DATA / ABOUT",
-  "settingsDataSubtitle": "Export diagnostics · logs · About · Terms",
   "settingsPermissions": "Permissions",
-  "settingsPermissionsSubtitle": "Open the OS settings page for this app — flip Bluetooth / Notifications on or off here.",
-  "settingsShowIntro": "Show intro again on next launch",
-  "settingsShowIntroEnabled": "Wipes the first-run flag so the permissions intro shows again — useful when you're testing the flow",
-  "settingsShowIntroDisabled": "Intro is currently scheduled for next launch",
+  "settingsDiagnostics": "Diagnostics",
+  "settingsDiagnosticsSub": "Scan event log",
+  "settingsAbout": "About",
+  "settingsScanner": "Scanner",
+  "settingsScanWifi": "Include WiFi in scans",
+  "settingsScanWifiSub": "Android only; iOS shows the connected network.",
 
-  "aboutCopyright": "Copyright (c) 2026 IoTone, Inc.",
-  "aboutSubtitleEn": "(Socialrobot Network Service)",
-  "aboutSubtitleJa": "(ソーシャルロボット・ネットワークサービス)",
-  "aboutDescription": "A MeshCore companion client.",
-  "aboutLicense": "Licensed under the MIT (X11) License.",
-  "aboutMadeWith": "Made with ♥ in Fukuoka, Japan",
-  "aboutTerms": "Terms & Conditions — wired in U5.",
-  "aboutVersion": "v{version}",
-  "@aboutVersion": {
-    "placeholders": {"version": {"type": "String"}}
-  },
+  "permBle": "Bluetooth",
+  "permLocation": "Location",
+  "permLocationWhy": "Android requires location permission to scan for nearby devices.",
+  "permGranted": "Granted",
+  "permDenied": "Denied",
+  "permRequest": "Request",
+  "permOpenSettings": "Open settings",
 
-  "personalizationHeading": "Profile & personalization",
-  "personalizationThemePreset": "THEME PRESET",
-  "personalizationType": "TYPE",
-  "personalizationFontSize": "Font size",
-  "personalizationAccessibility": "ACCESSIBILITY (R13)",
-  "personalizationHighContrast": "High contrast",
-  "personalizationHighContrastSubtitle": "Force the SEELE high-contrast palette",
-  "personalizationHighContrastHint": "High contrast is on — the SEELE high-contrast palette is forced regardless of your preset pick. Turn off High contrast below to use another theme.",
-  "personalizationReduceMotion": "Reduce motion",
-  "personalizationVisualHapticOnly": "Visual + haptic only",
-  "personalizationVisualHapticOnlySubtitle": "No information by sound; turns audio off",
-  "personalizationAudioAlerts": "AUDIO ALERTS (R12)",
-  "personalizationAudioMaster": "Audio alerts",
-  "personalizationAudioMasterDisabled": "Disabled by \"visual + haptic only\"",
-  "personalizationAudioMasterEnabled": "Off by default; augmentation only",
+  "diagEmpty": "No scan activity yet.",
+  "diagClear": "Clear",
+  "diagCopy": "Copy log",
 
-  "firstRunHeader": "MESHMORE · WELCOME",
-  "firstRunTitle": "Quick heads-up on what we'll ask for",
-  "firstRunBleTitle": "Bluetooth",
-  "firstRunBleBody": "To pair with your MeshCore radio and exchange messages over the local mesh. Required to send / receive over the air.",
-  "firstRunNotificationsTitle": "Notifications",
-  "firstRunNotificationsBody": "Asked only if you turn on \"Stay connected in background\" later in App settings. Skipped today so you're not interrupted twice.",
-  "firstRunOfflineTitle": "Offline is fine",
-  "firstRunOfflineBody": "If you skip Bluetooth, the app still works — browse message history, configure channels, read diagnostics. Just no live mesh traffic until you grant Bluetooth.",
-  "firstRunGrant": "Grant Bluetooth & continue",
-  "firstRunSkip": "Continue offline (skip permissions)",
-  "firstRunDeniedTransient": "Bluetooth wasn't granted — you can continue offline or open OS settings to change your mind.",
-  "firstRunDeniedPermanent": "Bluetooth was permanently denied — open OS settings to grant it. You can still use the app offline.",
-  "firstRunOpenSettings": "Open OS settings",
+  "firstRunTitle": "Welcome",
+  "firstRunBody": "This app scans for nearby Bluetooth and WiFi devices. It needs a couple of permissions to do that.",
+  "firstRunPermBle": "Bluetooth — to discover and connect to BLE devices.",
+  "firstRunPermLocation": "Location — Android requires it for Bluetooth and WiFi scanning.",
+  "firstRunGrant": "Grant permissions",
+  "firstRunSkip": "Skip for now",
 
-  "dashboardPaired": "paired: {name}",
-  "@dashboardPaired": {
-    "placeholders": {"name": {"type": "String"}}
-  },
-  "dashboardCharging": "CHARGING",
-  "dashboardBatteryReadout": "{volts}V · ~{percent}%",
-  "@dashboardBatteryReadout": {
-    "placeholders": {
-      "volts": {"type": "String"},
-      "percent": {"type": "int"}
-    }
-  },
-  "dashboardBatteryLeft": "~{time} left",
-  "@dashboardBatteryLeft": {
-    "placeholders": {
-      "time": {"type": "String"}
-    }
-  },
-
-  "nodesScanArea": "Scan area",
-  "nodesScanning": "Scanning…",
-  "nodesAdvertise": "Advertise",
-  "nodesSyncContacts": "Sync contacts",
-  "nodesHyperlocalGridTooltip": "Hyperlocal grid (R18)",
-  "nodesFloodAdvert": "Flood advert",
-  "nodesFloodAdvertBody": "Whole mesh — neighbours + repeaters. Best for discovery.",
-  "nodesZeroHopAdvert": "Zero-hop advert",
-  "nodesZeroHopAdvertBody": "Direct neighbours only — not rebroadcast. Quieter on a busy mesh.",
-  "nodesFloodAdvertSent": "Flood advert sent — propagates across the whole mesh (neighbours + repeaters). The other node must Advertise too before it appears here.",
-  "nodesZeroHopAdvertSent": "Zero-hop advert sent — direct neighbours only, not rebroadcast by repeaters.",
-  "nodesSearchHint": "Search by name, shortId, or pubkey…",
-  "nodesFilterStarred": "Starred",
-  "nodesFilterInRange": "In range",
-  "nodesFilterClear": "Clear",
-  "nodesFilterLastSeen": "Last seen · {label}",
-  "@nodesFilterLastSeen": {
-    "placeholders": {"label": {"type": "String"}}
-  },
-  "nodesFilterWithin": "Within · {label}",
-  "@nodesFilterWithin": {
-    "placeholders": {"label": {"type": "String"}}
-  },
-  "nodesAgeAny": "Any",
-  "nodesAgeHour": "Last hour",
-  "nodesAge24h": "Last 24 h",
-  "nodesAge7d": "Last 7 d",
-  "nodesDistAny": "Any",
-  "nodesDist100m": "≤ 100 m",
-  "nodesDist500m": "≤ 500 m",
-  "nodesDist5km": "≤ 5 km",
-  "nodesDist25km": "≤ 25 km",
-  "nodesStatusReady": "{shown} of {total} in fabric · {inRange} in range · {favs, plural, =0{0 contacts} =1{1 contact} other{{favs} contacts}}",
-  "@nodesStatusReady": {
-    "placeholders": {
-      "shown": {"type": "int"},
-      "total": {"type": "int"},
-      "inRange": {"type": "int"},
-      "favs": {"type": "int"}
-    }
-  },
-  "nodesStatusOffline": "Not connected — Settings → Diagnostics & connect",
-  "nodesInRangeBadge": "IN RANGE",
-  "nodesFarBadge": "FAR",
-  "nodesEmptyFiltered": "No nodes match this filter.\n\nTap Clear to widen, or change the chip cutoffs above.",
-  "nodesEmptyReady": "No nodes yet.\n\nDiscovery is advert-driven: a node shows up only when its advert is heard. Chatting on Public does NOT make a node appear.\n\nAsk the other node to Advertise / Share (or tap \"Advertise\" here so it can find you), then \"Scan area\".\n\nThis view shows the mesh \"fabric\" (what you've seen). Star a node to mark it as a contact.",
-  "nodesEmptyOffline": "Connect a radio to discover nearby nodes.",
-  "nodesFavTooltip": "Favourite as contact",
-  "nodesUnfavTooltip": "Unfavourite (remove from contacts)",
-
-  "gridTitle": "Hyperlocal grid",
-  "gridShowLegend": "Show legend",
-  "gridHideLegend": "Hide legend",
-  "gridPlayTooltip": "Play (refresh every interval)",
-  "gridPauseTooltip": "Pause updates",
-  "gridIntervalTooltip": "Refresh interval (when playing)",
-  "gridRange": "Range",
-  "gridRangeRoom": "Room",
-  "gridRangeHome": "Home",
-  "gridRangeBlock": "Block",
-  "gridRangeNeighborhood": "Neighborhood",
-  "gridRangeArea": "Area",
-  "gridRangeWide": "Wide",
-  "gridLegend": "LEGEND",
-  "gridLegendRings": "Three concentric rings = distance bands. With GPS on both ends, the outer ring is the **Range** scale above (~{value} right now). Without GPS, rings are RSSI bands (near / mid / far).",
-  "@gridLegendRings": {
-    "placeholders": {"value": {"type": "String"}}
-  },
-  "gridLegendSelf": "Centre marker = you. Cross-hair = N-S / E-W guide.",
-  "gridLegendDot": "Dot = a fabric node we've heard. Brightness = recency (full = just now, fades to 0 over 24 h then disappears).",
-  "gridLegendKnown": "Pulse (slow growing halo) = a known node — we have had a direct attributable exchange (DM) with them.",
-  "gridLegendFavourite": "Rapid blink in alt-colour = a favourited contact.",
-  "gridLegendRipple": "Centre-out ripple = an anonymous channel message (the protocol doesn't attribute channel msgs to a sender).",
-  "gridLegendTap": "Tap a node to see details + Message / Favourite.",
-  "gridLegendHeading": "Heading wedge / HDG line = the direction the phone's top edge is pointing relative to MAGNETIC north (not true north, not GPS travel direction). Comes from the phone's compass sensor.",
-  "gridLegendCalibration": "Calibration: if the arrow seems wrong, hold the phone level and wave it in a figure-8 motion several times. The OS handles compass calibration; the app only displays sensor accuracy (a 'Calibrate' hint appears when accuracy is poor).",
-  "gridViewRadial": "Radial",
-  "gridViewGlobe": "Globe",
-  "gridViewEqualGrid": "Equal grid",
-  "gridViewStreetMap": "Street map",
-  "gridViewPicker": "Switch map view",
-  "gridViewRadialShort": "RADAR",
-  "gridViewGlobeShort": "GLOBE",
-  "gridViewEqualGridShort": "CELLS",
-  "gridViewStreetMapShort": "ROADS",
-  "gridViewFabric": "Fabric survey",
-  "gridViewFabricShort": "MESH",
-  "gridViewElevation": "Fujiさん",
-  "gridViewElevationShort": "FUJI",
-  "fujiLegendTitle": "FUJIさん",
-  "fujiLegendDesc": "Altitude survey. Heights on a √-scaled axis against famous landmarks. Your device's altitude comes from device GPS telemetry or the phone fix.",
-  "fujiLegendMe": "Dashed line = you. At your altitude, or pinned to the ground with ALT? until it resolves.",
-  "fujiLegendRefs": "Silhouettes = real-world references (person → Mt Fuji) for scale.",
-  "fujiLegendPeers": "Dots = peers, plotted at their telemetry altitude once queried.",
-  "fujiLegendUnknown": "Striped band along the ground = peers with no altitude yet.",
-  "fujiLegendAutoQuery": "The AUTO-QUERY box pulls peer altitudes slowly; tap it to restart.",
-  "elevationProfileTitle": "MESHMORE :: FUJIさん",
-  "elevationProfileAltLabel": "Altitude",
-  "elevationProfileMeLabel": "Me",
-  "elevationProfileUnknownLabel": "altitude unknown",
-  "elevationProfilePeers": "{n} peers tracked",
-  "@elevationProfilePeers": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "elevationRefPerson": "Human",
-  "elevationRefHouse": "House",
-  "elevationRefRedwood": "Redwood",
-  "elevationRefEmpireState": "Empire State",
-  "elevationRefBurj": "Burj Khalifa",
-  "elevationRefMtFuji": "Mt Fuji",
-  "fabricCoverageCount": "MESH SURVEY · {n} CELLS",
-  "@fabricCoverageCount": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "fabricResetTooltip": "Reset coverage",
-  "fabricResetTitle": "Reset mesh-coverage survey?",
-  "fabricResetBody": "Drops every recorded cell. New observations will start filling the map again as you move and the mesh reports nearby nodes.",
-  "fabricResetApply": "Reset",
-  "streetMapRecenter": "Re-centre on me",
-  "streetMapTopoLayer": "Switch to topographical map",
-  "streetMapStandardLayer": "Switch to street map",
-  "mapHideTiles": "Hide map tiles",
-  "mapShowTiles": "Show map tiles",
-  "deviceRegionLoadedOffline": "{label} loaded — Apply when a device is connected.",
-  "@deviceRegionLoadedOffline": {
-    "placeholders": {"label": {"type": "String"}}
-  },
-  "equalGridAwaitingFix": "Equal-grid view needs your own location — waiting for a GPS fix (phone or device).",
-  "equalGridCellSize": "CELL {size}",
-  "@equalGridCellSize": {
-    "placeholders": {"size": {"type": "String"}}
-  },
-  "equalGridZoomIn": "Zoom in (tighter cells)",
-  "equalGridZoomOut": "Zoom out (wider cells)",
-  "equalGridShowStats": "Show targeting panel",
-  "equalGridHideStats": "Hide targeting panel",
-  "globeFooter": "Showing {n} peers with known location",
-  "globeOverlayArcs": "arcs",
-  "globeOverlayRegion": "region",
-  "globeOverlayLabels": "labels",
-  "globeZoom": "ZOOM",
-  "globeAltitude": "ALT",
-  "globePaused": "PAUSED",
-  "voiceOfflineBadge": "OFFLINE",
-  "dashboardLocationRefresh": "Refresh location from device",
-  "dashboardLocationAltitude": "alt {meters} m",
-  "@dashboardLocationAltitude": {
-    "placeholders": {"meters": {"type": "int"}}
-  },
-  "deviceLocReportsAwaiting": "Device reports: (awaiting)",
-  "deviceLocReportsNone": "Device reports: no GPS fix (0, 0)",
-  "deviceLocReportsValue": "Device reports: {lat}, {lon}",
-  "@deviceLocReportsValue": {
-    "placeholders": {
-      "lat": {"type": "String"},
-      "lon": {"type": "String"}
-    }
-  },
-  "deviceLocUnsaved": "✱ unsaved",
-
-  "deviceGpsModule": "ON-BOARD GPS MODULE",
-  "deviceGpsEnable": "Enable on-board GPS",
-  "deviceGpsEnabledHint": "Device firmware polls its GPS chip and updates location automatically.",
-  "deviceGpsDisabledHint": "Off — the device never reads its GPS chip; advertised location stays whatever was last written.",
-  "deviceGpsUnknown": "Waiting for device…",
-  "deviceGpsInterval": "GPS update interval",
-  "deviceGpsIntervalOff": "Off",
-  "deviceGpsIntervalSec": "Every {n} s",
-  "@deviceGpsIntervalSec": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "deviceGpsIntervalMin": "Every {n} min",
-  "@deviceGpsIntervalMin": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "deviceGpsIntervalHour": "Every {n} h",
-  "@deviceGpsIntervalHour": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "deviceGpsIntervalFixedByFirmware": "Polling cadence is fixed by this firmware build (the sensors module doesn't expose `gps_interval`).",
-
-  "locTitle": "Auto-publish location",
-  "locTileSubtitle": "Periodic + on-movement phone-GPS push to the device",
-  "locHelp": "Phone-side workaround for stale device GPS. When enabled, the app periodically (and/or on movement) reads phone GPS and writes it to the device via SET_ADVERT_LATLON + a zero-hop self-advert.",
-  "locMaster": "Auto-publish",
-  "locMasterOn": "On — using phone GPS",
-  "locMasterOff": "Off",
-  "locInterval": "Periodic interval",
-  "locMovement": "Smart broadcast (on movement)",
-  "locOff": "Off",
-  "locIntervalMin": "Every {n} min",
-  "@locIntervalMin": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "locIntervalHour": "Every {n} h",
-  "@locIntervalHour": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "locMovementM": "{m} m",
-  "@locMovementM": {
-    "placeholders": {"m": {"type": "int"}}
-  },
-  "locMovementKm": "{km} km",
-  "@locMovementKm": {
-    "placeholders": {"km": {"type": "int"}}
-  },
-  "locPublishNow": "Publish now",
-  "locPublishNowSub": "One-shot manual push to verify the loop.",
-  "locLastPublished": "Last: {lat}, {lon}  ·  {time}  ·  {trigger}",
-  "@locLastPublished": {
-    "placeholders": {
-      "lat": {"type": "String"},
-      "lon": {"type": "String"},
-      "time": {"type": "String"},
-      "trigger": {"type": "String"}
-    }
-  },
-  "locBatteryHint": "Smart-broadcast streams GPS (~10 mA continuous). Periodic-only is cheaper. Combine both for responsiveness; pick smart-broadcast alone if battery matters.",
-  "@globeFooter": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "gridEmpty": "No fabric in range yet.\n\nNodes appear here as their adverts are heard. Star a node in Nodes to mark it as a contact (rapid blink). Nodes we DM with become known (pulse).",
-  "gridStatusReady": "{visible} in fabric · {known} known · {favs, plural, =0{0 contacts} =1{1 contact} other{{favs} contacts}} · {playState}",
-  "@gridStatusReady": {
-    "placeholders": {
-      "visible": {"type": "int"},
-      "known": {"type": "int"},
-      "favs": {"type": "int"},
-      "playState": {"type": "String"}
-    }
-  },
-  "gridStatusOffline": "Not connected — Settings → Diagnostics & connect",
-  "gridPlayStatePaused": "paused",
-  "gridPlayStateLive": "live ({interval})",
-  "@gridPlayStateLive": {
-    "placeholders": {"interval": {"type": "String"}}
-  },
-  "gridFooter": "Outer ring ≈ {label} ({value}) · tap a node for details · info icon for the legend",
-  "gridHeading": "HDG {deg}° {cardinal}",
-  "@gridHeading": {
-    "placeholders": {
-      "deg": {"type": "int"},
-      "cardinal": {"type": "String"}
-    }
-  },
-  "gridHeadingCalibrate": "Compass needs calibration — wave the phone in a figure 8.",
-  "@gridFooter": {
-    "placeholders": {
-      "label": {"type": "String"},
-      "value": {"type": "String"}
-    }
-  },
-
-  "voiceSettingsTitle": "Voice (TTS quality)",
-  "voiceSettingsHint": "Off until you turn on SPEECH in App settings. Rate / pitch / voice take effect on the next utterance.",
-  "voiceRate": "Rate",
-  "voicePitch": "Pitch",
-  "voicePicker": "Voice",
-  "voicePickerEmpty": "No voices reported by the platform engine — using the system default.",
-  "voicePickerOnlyMyLanguage": "Only show my language",
-  "voicePickerOnlyMyLanguageHint": "Limits the list to voices matching the phone's current language ({lang}). Turn off to see every voice the OS reports.",
-  "@voicePickerOnlyMyLanguageHint": {
-    "placeholders": {"lang": {"type": "String"}}
-  },
-  "voicePickerFilteredCount": "{n} · {lang}",
-  "@voicePickerFilteredCount": {
-    "placeholders": {
-      "n": {"type": "int"},
-      "lang": {"type": "String"}
-    }
-  },
-  "voicePickerAllCount": "{n} · ALL",
-  "@voicePickerAllCount": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "voicePickerNoMatchForLanguage": "No voices installed for {lang}. Turn off the filter above to see other languages, or install a {lang} voice in your OS settings.",
-  "@voicePickerNoMatchForLanguage": {
-    "placeholders": {"lang": {"type": "String"}}
-  },
-  "voicePickerSystem": "System default",
-  "voicePreview": "Try a phrase",
-  "voicePreviewPhrase": "This is a Meshmore SNS voice preview.",
-  "voicePreviewDisabledHint": "Turn on SPEECH in App settings to audition a phrase.",
-
-  "settingsHubDevice": "Device configuration",
-  "settingsHubDeviceSub": "Meshcore radio & device (R7)",
-  "settingsHubApp": "App settings",
-  "settingsHubAppSub": "Connection, language, speech, data",
-  "settingsHubProfile": "Profile & personalization",
-  "settingsHubProfileSub": "Theme, font size, audio, accessibility",
-  "settingsHubChannels": "Channels",
-  "settingsHubChannelsSub": "Slots · name + PSK · #hashtag · active",
-  "settingsHubDiagnostics": "Diagnostics & connect",
-  "settingsHubDiagnosticsSub": "Connect a radio · frame log · M6 capture",
-
-  "bootHeader": "MESHMORE  /  SYNCHRONIZING",
-  "bootConnecting": "CONNECTING TO RADIO…",
-  "bootHandshaking": "HANDSHAKING…",
-  "bootSyncing": "SYNCING DEVICE STATE…",
-  "bootReady": "MESH ONLINE",
-  "bootOffline": "OFFLINE — Settings → Diagnostics & connect",
-  "bootSkip": "SKIP",
-  "bootRetry": "RETRY",
-  "bootSubtitle": "WAIT  /  進行中",
-
-  "eventAdvert": "advert · {name}",
-  "@eventAdvert": {
-    "placeholders": {"name": {"type": "String"}}
-  },
-  "eventChannelMsg": "ch{channel} · \"{text}\"",
-  "@eventChannelMsg": {
-    "placeholders": {
-      "channel": {"type": "String"},
-      "text": {"type": "String"}
-    }
-  },
-  "eventDm": "dm · \"{text}\"",
-  "@eventDm": {
-    "placeholders": {"text": {"type": "String"}}
-  },
-  "eventContact": "contact · {name}",
-  "@eventContact": {
-    "placeholders": {"name": {"type": "String"}}
-  },
-  "eventBattery": "battery {volts}V",
-  "@eventBattery": {
-    "placeholders": {"volts": {"type": "String"}}
-  },
-  "eventDeviceError": "device error (code {code})",
-  "@eventDeviceError": {
-    "placeholders": {"code": {"type": "String"}}
-  },
-  "eventDeviceClockSynced": "device clock in sync",
-  "eventDeviceClockSkew": "device clock read (offset {seconds}s)",
-  "@eventDeviceClockSkew": {
-    "placeholders": {"seconds": {"type": "String"}}
-  },
-  "eventMsgSent": "msg sent (ack {ack})",
-  "@eventMsgSent": {
-    "placeholders": {"ack": {"type": "String"}}
-  },
-  "eventDeviceInfo": "device {version}",
-  "@eventDeviceInfo": {
-    "placeholders": {"version": {"type": "String"}}
-  },
-  "eventSelfInfo": "self-info · {name}",
-  "@eventSelfInfo": {
-    "placeholders": {"name": {"type": "String"}}
-  },
-  "eventQueuedWaiting": "queued items waiting",
-  "eventQueuedWaitingN": "queued items waiting ({count})",
-  "@eventQueuedWaitingN": {
-    "placeholders": {"count": {"type": "String"}}
-  },
-
-  "chatChannelHeader": "CHANNEL · {name}",
-  "@chatChannelHeader": {
-    "placeholders": {"name": {"type": "String"}}
-  },
-  "chatManageChannels": "Manage channels",
-  "chatTtsDisabledHint": "Enable TTS in App settings",
-  "chatTtsMuted": "TTS muted for this channel",
-  "chatTtsActive": "TTS reading this channel",
-  "chatHideChannels": "Hide channels",
-  "chatShowChannels": "Show channels",
-  "chatEmpty": "— no messages on this channel —",
-  "chatJumpToNewest": "{count, plural, =1{1 new} other{{count} new}}",
-  "@chatJumpToNewest": {
-    "placeholders": {"count": {"type": "int"}}
-  },
-  "chatComposerHint": "Message {channel}",
-  "@chatComposerHint": {
-    "placeholders": {"channel": {"type": "String"}}
-  },
-  "chatComposerOffline": "Connect a radio to send",
-  "chatSend": "Send",
-  "chatMessageActions": "Message actions",
-
-  "dmTitle": "DM · {peer}",
-  "@dmTitle": {
-    "placeholders": {"peer": {"type": "String"}}
-  },
-  "dmPubkeyLabel": "pubkey · {hex}",
-  "@dmPubkeyLabel": {
-    "placeholders": {"hex": {"type": "String"}}
-  },
-  "dmEmpty": "— no messages yet —",
-  "dmOpenPeerDetail": "Peer details",
-  "dmPeerNotInFabric": "This peer hasn't shown up on the mesh yet (no advert heard).",
-  "dmComposerHint": "Message {peer}",
-  "@dmComposerHint": {
-    "placeholders": {"peer": {"type": "String"}}
-  },
-  "dmSend": "Send DM",
-
-  "actionReply": "Reply",
-  "actionReplySub": "Quote this message in your reply",
-  "actionCopy": "Copy",
-  "actionCopySub": "Copy the message text to the clipboard",
-  "actionDeleteLocal": "Delete locally",
-  "actionDeleteLocalSub": "Removes this row from your history only — over-the-air messages cannot be recalled.",
-  "actionCopied": "Copied to clipboard",
-  "actionDeleteConfirmTitle": "Delete this message locally?",
-  "actionDeleteConfirmBody": "This removes the row from your local history. MeshCore has no recall — the recipient still has it.",
-  "actionCancel": "Cancel",
-  "actionDelete": "Delete",
-
-  "nodeDetailSelf": "This is your own node — no Message / Favourite.",
-  "nodeDetailRecentDms": "RECENT DMS",
-  "nodeDetailMessage": "Message",
-  "nodeDetailFavourite": "Favourite",
-  "nodeDetailContact": "Contact",
-  "nodeDetailShowOnMap": "Show on geocoded map",
-  "nodeDetailShowOnMapSnack": "Reverse-geocoded map (R25) is on the roadmap.",
-  "nodeDetailShowOnMapFailed": "Couldn't open the maps app.",
-  "nodeDetailCopyPubkey": "Copy full pubkey",
-  "nodeDetailPubkeyCopied": "Pubkey copied",
-  "nodeDetailTags": "TAGS",
-  "nodeDetailAddTag": "tag",
-  "nodeDetailAddTagTitle": "Add tag",
-  "nodeDetailAddTagHint": "e.g. repeater, work, ham-club",
-  "nodeDetailAddTagSuggestions": "RECENTLY USED",
-  "nodeDetailAddTagApply": "Add",
-  "nodeDetailInRange": "IN RANGE",
-  "nodeDetailKnown": "KNOWN",
-  "nodeDetailContactBadge": "CONTACT",
-  "nodeDetailShortIdKv": "shortId",
-  "nodeDetailPubkeyKv": "pubkey",
-  "nodeDetailSignalKv": "signal",
-  "nodeDetailLastHeardKv": "last heard",
-  "nodeDetailDistanceKv": "distance",
-  "nodeDetailLatLonKv": "lat / lon",
-  "gridViewTree": "Mesh tree",
-  "gridViewTreeShort": "TREE",
-  "gridViewSnsCells": "SNS cells (heat)",
-  "gridViewSnsCellsShort": "SNS",
-  "snsCellsAwaitingFix": "Waiting for a location fix — the heat map centres on you.",
-  "snsCellsClear": "Clear",
-  "snsCellsStatus": "{active} cells · {hot} hot",
-  "@snsCellsStatus": {
-    "placeholders": {"active": {"type": "int"}, "hot": {"type": "int"}}
-  },
-  "snsCellsLegendTitle": "SNS CELLS",
-  "snsCellsLegendDesc": "A live social-activity heat map. Each observed message warms its cell; cells cool over a one-hour horizon.",
-  "snsCellsLegendHot": "Bright red = busy (≈5+ messages in the last minute).",
-  "snsCellsLegendCool": "Fading to white = quieting down; gone after ~1 h idle.",
-  "snsCellsLegendToast": "New messages flash as a toast near their source, then vanish.",
-  "snsCellsLegendChannel": "Channel messages carry the sender's name — they warm the sender's cell when we know their location, otherwise your own cell (the receive point).",
-  "snsCellsLegendDecay": "Only the last hour is tracked; nothing is stored.",
-  "meshTreeEmpty": "Waiting for contact sync — the tree is built from each contact's outPath.",
-  "meshTreeHopsDirect": "Direct",
-  "meshTreeHopsAll": "≤6 / All",
-  "meshTreeHopsFlood": "Flood / All",
-  "meshTreeHopsN": "≤{n} hops",
-  "@meshTreeHopsN": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "meshTreeRecenter": "Recenter",
-  "meshTreeLegendTitle": "MESH TREE",
-  "meshTreeLegendDesc": "A directed graph of how the radio reaches each contact. Edges come from Contact.outPath — the exact repeater chain the device uses to send.",
-  "meshTreeLegendSelf": "You — pinned at the centre.",
-  "meshTreeLegendRepeater": "Square = repeater. Mast-mounted infra, hub colour. Peers fan out through these.",
-  "meshTreeLegendRoom": "Diamond = room server. Server-class node hosting named rooms.",
-  "meshTreeLegendChat": "Circle = chat node. Peer you can DM.",
-  "meshTreeLegendSensor": "Small circle (dim) = sensor. Narrow-purpose node.",
-  "meshTreeLegendFlood": "Dashed edge to you = flood-routed contact. Reachable, but with no fixed path.",
-  "meshTreeLegendFloat": "Floating (no edges) — heard via advert only; route unknown.",
-  "meshTreeLegendArrow": "Arrows point away from us, toward the destination peer.",
-  "meshTreeLegendInteract": "Pinch to zoom, drag to pan, tap a node for details. Use Recenter to reset.",
-  "fabricLegendTitle": "FABRIC SURVEY",
-  "fabricLegendDesc": "A persistent record of where the mesh has been observed. Each rectangle is a small geographic cell (~220 m × 220 m) the device logged on contact with this location.",
-  "fabricLegendCell": "Filled cell — the mesh reached here at some point.",
-  "fabricLegendRecency": "Brighter fill = more recent. Tiers: < 1 h, < 24 h, < 7 d, older.",
-  "fabricLegendMarker": "Tertiary-coloured pins mark peers in the current set. Tap one for details.",
-  "fabricLegendSelf": "The primary-coloured pin is you.",
-  "fabricLegendReset": "Reset the survey from the overflow menu when you move to a new area.",
-  "nodeDetailHopsKv": "hops",
-  "nodeDetailHopsDirect": "direct (0 hops)",
-  "nodeDetailHopsViaRepeaters": "{n} via repeater(s)",
-  "@nodeDetailHopsViaRepeaters": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "nodeDetailHopsUnknown": "unknown",
-  "nodeDetailHopsFlood": "Flood",
-  "nodeDetailAltitudeKv": "altitude",
-  "nodeDetailAltitudeMeters": "{m} m",
-  "@nodeDetailAltitudeMeters": {
-    "placeholders": {"m": {"type": "String"}}
-  },
-  "nodeDetailAltitudeUnknown": "unknown",
-  "nodeDetailQueryTelemetry": "Query telemetry",
-  "nodeDetailRefreshTelemetry": "Refresh telemetry",
-  "nodeDetailTelemetryQuerying": "querying peer over the air…",
-  "nodeDetailTelemetryNotContact": "Not a synced contact — telemetry can't be requested. Add this node as a contact on the device first.",
-  "nodeDetailTelemetryAge": "telemetry from {age}",
-  "@nodeDetailTelemetryAge": {
-    "placeholders": {"age": {"type": "String"}}
-  },
-  "nodeDetailAgoSeconds": "{n}s ago",
-  "@nodeDetailAgoSeconds": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "nodeDetailAgoMinutes": "{n} min ago",
-  "@nodeDetailAgoMinutes": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "nodeDetailAgoHours": "{n} h ago",
-  "@nodeDetailAgoHours": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "nodeDetailAgoDays": "{n} d ago",
-  "@nodeDetailAgoDays": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-
-  "channelsTitle": "Channels",
-  "channelsHelp": "A channel = slot + name + 16-byte key. Public (slot 0) is the shared default. For a private group, set the SAME name & PSK in the same slot on every node.",
-  "channelsOfflineHint": "Connect a radio (Diagnostics) to edit channels.",
-  "channelsEmpty": "— empty —",
-  "channelsSlotLabel": "slot {idx}",
-  "@channelsSlotLabel": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsSlotActive": "slot {idx} · ACTIVE",
-  "@channelsSlotActive": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsEdit": "Edit",
-  "channelsSet": "Set",
-  "channelsSetSnack": "Channel {idx} set to \"{name}\" — every node needs the same name & PSK here",
-  "@channelsSetSnack": {
-    "placeholders": {
-      "idx": {"type": "int"},
-      "name": {"type": "String"}
-    }
-  },
-  "channelsDialogTitle": "Channel slot {idx}",
-  "@channelsDialogTitle": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsName": "Channel name",
-  "channelsKeySource": "Key source",
-  "channelsKeyPublic": "Public",
-  "channelsKeyHashtag": "#tag",
-  "channelsKeyHex": "Hex",
-  "channelsKeyPublicBody": "Uses the well-known Public channel key.",
-  "channelsKeyHashtagHint": "e.g. #mygroup",
-  "channelsKeyHashtagHelper": "Key derived from the tag (sha256)",
-  "channelsKeyHexHint": "32 hex chars (16 bytes)",
-  "channelsErrorTag": "Enter a #hashtag",
-  "channelsErrorHex": "PSK must be 32 hex chars (16 bytes)",
-  "channelsErrorName": "Enter a channel name",
-  "channelsCancel": "Cancel",
-  "channelsSave": "Save",
-  "channelsHelpEncryption": "Slot 0 (Public) uses a well-known key — everyone with the firmware can read it. Other slots are AES-128 encrypted with the 16-byte PSK you set; only nodes with the same PSK can decrypt.",
-  "channelsHexGenerate": "Generate random PSK",
-  "channelsHexCopy": "Copy",
-  "channelsHexCopied": "PSK copied to clipboard",
-  "channelsTagWeakShort": "Short tags are guessable. Use 12+ chars or unusual phrasing.",
-  "channelsTagWeakCommon": "Common words are guessable — an attacker can grind tags. Use unusual phrasing.",
-  "channelsSlot0WarnTitle": "Overwriting the Public channel?",
-  "channelsSlot0WarnBody": "Slot 0 is the well-known Public channel. Writing a private PSK here means you'll only be able to talk to nodes that use this exact key in slot 0 — you'll lose the shared Public channel. Proceed?",
-  "channelsSlot0WarnContinue": "Overwrite slot 0",
-  "channelsSlot0WarnCancel": "Cancel",
-  "channelsCurrentKey": "Current key",
-  "channelsRevealKey": "Reveal",
-  "channelsHideKey": "Hide",
-  "channelsCurrentKeyUnknown": "Not loaded yet — open then close this dialog after the device has synced.",
-  "channelsClear": "Clear slot",
-  "channelsClearConfirmTitle": "Clear slot {idx}?",
-  "@channelsClearConfirmTitle": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsClearConfirmBody": "MeshCore has no protocol-level \"clear\" — this slot will be overwritten back to the well-known Public defaults (name + key). Other nodes will need to do the same to talk on it again.",
-  "channelsClearConfirmAction": "Clear",
-  "channelsClearSnack": "Slot {idx} cleared (reset to Public defaults)",
-  "@channelsClearSnack": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsDefaultBadge": "DEFAULT",
-  "channelsSetDefaultTooltip": "Set as default channel on launch",
-  "channelsClearDefaultTooltip": "Clear default channel preference",
-  "channelsSetDefaultSnack": "Slot {idx} is now the launch default",
-  "@channelsSetDefaultSnack": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsClearedDefaultSnack": "Launch default cleared",
-  "channelsKeyShake": "Shake",
-  "channelsShakeTitle": "Shake to roll dice",
-  "channelsShakeBody": "Shake your phone — each accepted motion sample feeds the hash. Stop once the ring fills.",
-  "channelsShakeProgress": "{accepted} of {target} samples · {pct}%",
-  "@channelsShakeProgress": {
-    "placeholders": {
-      "accepted": {"type": "int"},
-      "target": {"type": "int"},
-      "pct": {"type": "int"}
-    }
-  },
-  "channelsShakeReroll": "Reroll",
-  "channelsShakeUse": "Use this key",
-  "channelsShakeTapFallback": "Tap to roll (reduceMotion is on — uses Random.secure instead)",
-  "channelsShareQr": "Share via QR",
-  "channelsQrTitle": "Share channel {idx}",
-  "@channelsQrTitle": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsQrBody": "Scan with a Meshmore device or any QR reader. Anyone with this code can join the channel — share only with trusted peers.",
-  "channelsQrPayload": "Payload (also copy-friendly)",
-  "channelsQrClose": "Close",
-
-  "deviceConfigTitle": "Device configuration",
-  "deviceRegionBand": "REGION / BAND",
-  "deviceRegionCurrent": "CURRENTLY APPLIED",
-  "deviceRegionUnknown": "Waiting for device…",
-  "deviceRegionCustom": "Custom (no preset match)",
-  "deviceRegionSuggestFromLocation": "Suggest from my location",
-  "deviceRegionSuggestTitle": "Apply suggested region?",
-  "deviceRegionSuggestBody": "Based on your phone GPS ({lat}, {lon}), the matching preset is {label}. Verify this is legal where you are before applying — particularly outside the country you set up in.",
-  "@deviceRegionSuggestBody": {
-    "placeholders": {
-      "lat": {"type": "String"},
-      "lon": {"type": "String"},
-      "label": {"type": "String"}
-    }
-  },
-  "deviceRegionSuggestApply": "Apply",
-  "deviceRegionSuggestNoFix": "Couldn't get a GPS fix — try outdoors with location permission granted.",
-  "deviceRegionSuggestNoMatch": "Your location doesn't match any shipped country preset — pick one manually.",
-  "deviceRegionAppliedToast": "{label} applied — make sure every node in your mesh uses the same preset.",
-  "@deviceRegionAppliedToast": {
-    "placeholders": {"label": {"type": "String"}}
-  },
-  "deviceRegionDisclaimer": "Operating points are community-curated, not regulatory guarantees. Pick the preset legal where you are and use the SAME tuple on every node. The Japan (ARIB STD-T108) preset is a community proposal that hasn't been broadly field-validated — please confirm it is legal and works on your hardware before relying on it.",
-
-  "presetUsCanada": "USA / Canada",
-  "presetUsArizona": "USA — Arizona",
-  "presetJpAribT108": "Japan (ARIB STD-T108)",
-  "presetEuUkLong": "EU / UK (Long Range)",
-  "presetEuUkMedium": "EU / UK (Medium Range)",
-  "presetEuUkNarrow": "EU / UK (Narrow)",
-  "presetCh": "Switzerland",
-  "presetCz": "Czech Republic",
-  "presetPt869": "Portugal (869 MHz)",
-  "presetAu": "Australia",
-  "presetAuNarrow": "Australia (Narrow)",
-  "presetAuSaWaQld": "Australia (SA / WA / QLD)",
-  "presetNz": "New Zealand",
-  "presetVn": "Vietnam",
-
-  "cancel": "Cancel",
-  "deviceRadioParams": "RADIO PARAMS",
-  "deviceIdentityAdvert": "IDENTITY / ADVERT",
-  "deviceChannelsSection": "CHANNELS",
-  "deviceOtherParamsSection": "OTHER PARAMS",
-  "deviceDeviceSection": "DEVICE",
-  "deviceFrequency": "Frequency (MHz)",
-  "deviceBandwidth": "Bandwidth (kHz)",
-  "deviceSpreadingFactor": "Spreading factor (5–12)",
-  "deviceCodingRate": "Coding rate (5–8)",
-  "deviceTxPower": "TX power (dBm)",
-  "deviceLoadFromDevice": "Load from device",
-  "deviceApplyRadio": "Apply radio params",
-  "deviceConnectFirst": "Connect a radio first (Diagnostics & connect).",
-  "deviceAdvertName": "Advert name",
-  "deviceSetName": "Set name",
-  "deviceAdvertLatitude": "Advert latitude (°)",
-  "deviceAdvertLongitude": "Advert longitude (°)",
-  "deviceUsePhoneLocation": "Use phone location",
-  "deviceReadDeviceLocation": "Read device location",
-  "deviceSetAdvertLocation": "Set advert location",
-  "deviceAdvertSource": "Advert location source",
-  "deviceAdvertSourceNone": "None",
-  "deviceAdvertSourcePinned": "Pinned",
-  "deviceAdvertSourceGps": "Device GPS",
-  "deviceToastNameEmpty": "Enter a node name",
-  "deviceToastNameSet": "Name updated — re-advertising to neighbours",
-  "deviceToastSendFailed": "Send failed: {error}",
-  "@deviceToastSendFailed": {
-    "placeholders": {"error": {"type": "String"}}
-  },
-  "deviceToastNoDeviceYet": "Device hasn't reported yet — try once linked",
-  "deviceToastNoGpsYet": "Device has no location yet (no GPS fix)",
-  "deviceToastLoadedDeviceLoc": "Loaded device location · tap Set advert location to broadcast",
-  "deviceToastGettingPhoneFix": "Getting phone GPS fix…",
-  "deviceToastPhoneFixFailed": "Phone GPS fix failed (services off or timeout)",
-  "deviceToastNoFixReturned": "No fix returned",
-  "deviceToastGotPhoneLoc": "Got phone location · tap Set advert location to broadcast",
-  "deviceToastInvalidLatLon": "Enter valid lat (−90..90) and lon (−180..180)",
-  "deviceToastAdvertLocSet": "Advert location set",
-  "deviceToastInvalidRadio": "Enter valid numbers for freq/BW/SF/CR",
-  "deviceToastRadioSent": "Radio params sent — restart/observe the device to confirm",
-  "deviceLocPermDenied": "Location permission needed for a phone GPS fix.",
-  "deviceLocPermDeniedPerm": "Location permission permanently denied — open OS settings to grant it.",
-  "deviceOpenSettings": "Open settings",
-
-  "diagnosticsTitle": "Diagnostics & connect",
-  "diagnosticsState": "STATE",
-  "diagnosticsSends": "SENDS",
-  "diagnosticsChannelTail": "CHANNEL-TAIL ORACLE",
-  "diagnosticsCapture": "CAPTURE / EXPORT",
-  "diagnosticsRawFrameLog": "RAW FRAME LOG (newest first)",
-  "diagnosticsConnect": "Connect",
-  "diagnosticsDisconnect": "Disconnect",
-  "diagnosticsForget": "Forget device",
-  "diagnosticsCopyLog": "Copy log",
-
-  "otherManualAddTitle": "Manual-add contacts",
-  "otherManualAddSubOn": "You add heard nodes as contacts on demand.",
-  "otherManualAddSubOff": "Heard nodes auto-promote to contacts.",
-  "otherTelemetryLabel": "Telemetry mode (raw byte)",
-  "otherTelemetryHelper": "0 = off · semantics are firmware-defined.",
-  "otherMultiAcksLabel": "Multi-acks (0–3)",
-  "otherMultiAcksHelper": "0 = single ack (default). Higher = wait for N extra acks before considering a send confirmed.",
-  "otherApply": "Apply",
-  "otherSentSnack": "OTHER PARAMS sent — device-side write may take a moment.",
-  "otherAwaitingDevice": "— awaiting device —",
-
-  "batteryTitle": "Battery",
-  "batteryConfigSubtitle": "Charge, drain rate, and time-to-empty estimate",
-  "batteryAwaiting": "Waiting for a battery reading from the device…",
-  "batteryReset": "Reset history",
-  "batteryResetConfirm": "Clear all stored battery history? The runtime estimate will rebuild as new readings arrive.",
-  "batteryVoltageLabel": "VOLTAGE",
-  "batteryCharging": "Charging",
-  "batteryChargingNote": "Charging — runtime estimate paused.",
-  "batteryTimeToEmpty": "TIME TO EMPTY",
-  "batteryEstimating": "Gathering drain data — an estimate appears after a few minutes of discharge.",
-  "batteryDrainRate": "Drain rate",
-  "batteryBasis": "Basis",
-  "batteryBasisObserved": "measured over {span} of discharge",
-  "@batteryBasisObserved": {
-    "placeholders": {"span": {"type": "String"}}
-  },
-  "batteryBasisRated": "nameplate (capacity ÷ typical draw)",
-  "batteryConfidence": "confidence",
-  "batteryConfHigh": "high",
-  "batteryConfMedium": "medium",
-  "batteryConfLow": "low",
-  "batteryMethodObserved": "Measured discharge",
-  "batteryMethodRated": "Rated estimate",
-  "batteryMethodNone": "Gathering data",
-  "batterySpecTitle": "DEVICE MODEL",
-  "batterySpecGeneric": "Unknown hardware — using a generic single-cell Li-ion model. The estimate relies on observed drain (no nameplate capacity to cross-check).",
-  "batterySpecCapacity": "Capacity: {mah} mAh",
-  "@batterySpecCapacity": {
-    "placeholders": {"mah": {"type": "int"}}
-  },
-  "batterySpecCapacityUnknown": "Capacity: user-supplied (unknown)",
-  "batterySpecDraw": "Typical draw: ~{ma} mA (radio receiving)",
-  "@batterySpecDraw": {
-    "placeholders": {"ma": {"type": "int"}}
-  },
-  "batteryHistoryTitle": "VOLTAGE HISTORY",
-  "batteryHistorySpan": "{span} · {count} samples",
-  "@batteryHistorySpan": {
-    "placeholders": {"span": {"type": "String"}, "count": {"type": "int"}}
-  },
-  "batteryDurDH": "{days}d {hours}h",
-  "@batteryDurDH": {
-    "placeholders": {"days": {"type": "int"}, "hours": {"type": "int"}}
-  },
-  "batteryDurHM": "{hours}h {mins}m",
-  "@batteryDurHM": {
-    "placeholders": {"hours": {"type": "int"}, "mins": {"type": "int"}}
-  },
-  "batteryDurM": "{mins}m",
-  "@batteryDurM": {
-    "placeholders": {"mins": {"type": "int"}}
-  },
-
-  "deliverySending": "Sending…",
-  "deliverySent": "Sent into the mesh",
-  "deliveryDelivered": "Delivered (recipient acknowledged)",
-  "deliveryFailed": "Not delivered — no acknowledgement or send failed"
+  "langEnglish": "English",
+  "langJapanese": "日本語"
 }

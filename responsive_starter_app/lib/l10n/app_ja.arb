@@ -1,936 +1,113 @@
 {
   "@@locale": "ja",
 
-  "appName": "Meshmore SNS",
-  "appSubtitle": "ソーシャルロボット・ネットワークサービス",
+  "appTitle": "Responsive IoT 2026",
+  "aboutSubtitle": "BLE・WiFi デバイススキャナー",
+  "aboutVersion": "バージョン {version}",
+  "aboutDescription": "Bluetooth LE と WiFi スキャンのためのオープンな Flutter スターター。",
+  "aboutCopyright": "© 2026 IoTone, Inc.",
+  "aboutLicense": "MIT ライセンス",
+  "aboutMadeWith": "Flutter で構築。",
 
   "tabDashboard": "ダッシュボード",
-  "tabChat": "チャット",
-  "tabNodes": "ノード",
+  "tabRadar": "レーダー",
+  "tabDevices": "デバイス",
   "tabSettings": "設定",
-  "tabAbout": "アプリ情報",
+  "quickNav": "クイックナビ",
 
-  "dashboardPeersInRange": "範囲内のピア",
-  "dashboardKnownCount": "{n}件 既知",
-  "@dashboardKnownCount": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "dashboardRadio": "ラジオ",
-  "dashboardLocation": "現在地",
-  "dashboardBattery": "バッテリー",
-  "dashboardRecent": "最近のアクティビティ",
-  "dashboardNoActivity": "— アクティビティなし —",
-  "dashboardAwaitingDevice": "— デバイス待機中 —",
-  "dashboardAwaitingDeviceLocation": "— デバイス位置情報を待機中 —",
-  "dashboardUnnamed": "(名前なし)",
-  "dashboardRenameTitle": "デバイス名",
-  "dashboardLocationNotSet": "未設定 — デバイス・スマートフォンともに位置情報未取得",
-  "dashboardLocationConfigure": "設定",
-  "dashboardLocationSourceLabel": "ソース · {source}",
-  "@dashboardLocationSourceLabel": {
-    "placeholders": {"source": {"type": "String"}}
-  },
-  "statusLinked": "接続中 · 通常",
-  "statusSyncing": "同期中…",
-  "statusSyncingLong": "同期中…",
-  "statusHandshaking": "同期中…",
-  "statusReconnecting": "再接続中…",
-  "statusLinkLost": "接続切断",
-  "statusOffline": "オフライン",
-  "statusConnecting": "接続中…",
-  "actionConnect": "接続",
-  "actionRetry": "再試行",
-  "dashboardDevice": "デバイス",
-  "deviceMgrTitle": "デバイス",
-  "deviceMgrNoPair": "デバイス未ペアリング",
-  "deviceMgrStateConnected": "接続中",
-  "deviceMgrStateConnecting": "接続中…",
-  "deviceMgrStateReconnecting": "再接続中…",
-  "deviceMgrStateDisconnected": "切断",
-  "deviceMgrStateFailed": "失敗",
-  "deviceMgrDisconnect": "切断",
-  "deviceMgrReconnect": "再接続",
-  "deviceMgrForget": "ペアリング解除",
-  "deviceMgrPick": "デバイスを選択",
-  "deviceMgrScan": "スキャン",
-  "deviceMgrStopScan": "停止",
-  "deviceMgrScanHint": "「スキャン」をタップして近くの MeshCore デバイスを探します。2 台以上ある場合はリストから選んでください。",
-  "deviceMgrScanFailed": "スキャン失敗: {message}",
-  "@deviceMgrScanFailed": {
-    "placeholders": {"message": {"type": "String"}}
-  },
-  "deviceMgrRecent": "最近のペアリング",
-  "deviceMgrAgoNever": "未使用",
-  "deviceMgrAgoNow": "たった今",
-  "deviceMgrAgoMinutes": "{n} 分前",
-  "@deviceMgrAgoMinutes": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "deviceMgrAgoHours": "{n} 時間前",
-  "@deviceMgrAgoHours": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "deviceMgrAgoDays": "{n} 日前",
-  "@deviceMgrAgoDays": {
-    "placeholders": {"n": {"type": "int"}}
-  },
+  "commonCancel": "キャンセル",
+  "commonClose": "閉じる",
+  "commonRetry": "再試行",
+  "commonCopy": "コピー",
+  "commonCopied": "コピーしました",
 
-  "settingsHeading": "アプリ設定",
-  "settingsConnection": "接続",
-  "settingsConnectionSubtitle": "自動再接続 (M7 バックオフ) · デバイス解除",
-  "settingsBackgroundTitle": "バックグラウンドで接続を維持",
-  "settingsBackgroundOn": "Android: 常駐通知でラジオ接続を維持し、バックグラウンド中もメッセージを受信",
-  "settingsBackgroundOff": "アプリ再表示時にメッセージ受信 (ラジオがバッファ); バックグラウンド通知なし",
+  "scanStart": "スキャン開始",
+  "scanStop": "スキャン停止",
+  "scanScanning": "スキャン中…",
+  "scanIdle": "待機中",
+
+  "bluetoothOn": "Bluetooth 準備完了",
+  "bluetoothOff": "Bluetooth がオフです",
+  "bluetoothUnauthorized": "Bluetooth の許可が必要です",
+  "bluetoothUnknown": "Bluetooth の状態は不明です",
+
+  "dashStatus": "状態",
+  "dashBleDevices": "BLE デバイス",
+  "dashWifiNetworks": "WiFi ネットワーク",
+  "dashRadio": "無線",
+  "dashScanHint": "「開始」をタップして近くの Bluetooth・WiFi をスキャンします。",
+
+  "radarEmpty": "範囲内にデバイスがありません。",
+  "radarSelf": "自分",
+  "radarLegendBle": "Bluetooth デバイス",
+  "radarLegendWifi": "WiFi ネットワーク",
+  "radarLegendRings": "リング = おおよその信号距離（目安）。",
+
+  "devicesEmpty": "まだ何も見つかりません — スキャンを開始してください。",
+  "devicesSectionBle": "Bluetooth",
+  "devicesSectionWifi": "WiFi",
+  "deviceUnnamed": "(名前なし)",
+
+  "rssiDbm": "{rssi} dBm",
+  "metersApprox": "≈ {meters} m",
+  "signalStrong": "強",
+  "signalMedium": "中",
+  "signalWeak": "弱",
+
+  "deviceDetailTitle": "デバイス詳細",
+  "deviceDetailId": "識別子",
+  "deviceDetailSignal": "信号",
+  "deviceDetailVendor": "ベンダー",
+  "deviceDetailVendorUnknown": "不明なベンダー",
+  "deviceDetailServices": "サービス",
+  "deviceDetailFirstSeen": "初回検出",
+  "deviceDetailLastSeen": "最終検出",
+  "deviceConnect": "接続",
+  "deviceDisconnect": "切断",
+  "deviceConnecting": "接続中…",
+  "deviceConnected": "接続済み",
+  "deviceConnectFailed": "接続に失敗しました",
+  "deviceGattServices": "GATT サービス",
+
+  "wifiChannel": "ch {channel}",
+  "wifiCurrentOnly": "iOS では接続中のネットワークのみ表示されます — Apple がサードパーティの AP スキャンを制限しています。",
+  "wifiThrottleNote": "Android は WiFi スキャンを制限するため、更新は遅くなります。",
+  "wifiProxyConnected": "中継プロキシを使用中: {host}",
+
+  "settingsAppearance": "外観",
+  "settingsTheme": "テーマ",
+  "settingsFontScale": "文字サイズ",
+  "settingsReduceMotion": "動きを減らす",
+  "settingsHighContrast": "ハイコントラスト",
   "settingsLanguage": "言語",
   "settingsLanguageSystem": "システム既定",
-  "settingsLanguageEnglish": "English",
-  "settingsLanguageJapanese": "日本語",
-  "settingsSpeech": "音声読み上げ (R5)",
-  "settingsSpeechOn": "音声読み上げ ON · チャネル別切替はチャット内",
-  "settingsSpeechOff": "音声読み上げ OFF (既定) · チャネルメッセージを読み上げ",
-  "settingsNotifications": "通知",
-  "settingsNotificationsSubtitle": "重要 → システム通知 + バイブレーション",
-  "settingsData": "データ / アプリ情報",
-  "settingsDataSubtitle": "診断エクスポート · ログ · アプリ情報 · 利用規約",
   "settingsPermissions": "権限",
-  "settingsPermissionsSubtitle": "このアプリの OS 設定画面を開く — Bluetooth / 通知をオン・オフできます。",
-  "settingsShowIntro": "次回起動時に紹介を再表示",
-  "settingsShowIntroEnabled": "初回フラグを消去し権限紹介を再表示 — フロー検証時に便利",
-  "settingsShowIntroDisabled": "紹介は次回起動時に表示予定",
+  "settingsDiagnostics": "診断",
+  "settingsDiagnosticsSub": "スキャンイベントログ",
+  "settingsAbout": "情報",
+  "settingsScanner": "スキャナー",
+  "settingsScanWifi": "スキャンに WiFi を含める",
+  "settingsScanWifiSub": "Android のみ。iOS は接続中のネットワークを表示します。",
 
-  "aboutCopyright": "Copyright (c) 2026 IoTone, Inc.",
-  "aboutSubtitleEn": "(Socialrobot Network Service)",
-  "aboutSubtitleJa": "(ソーシャルロボット・ネットワークサービス)",
-  "aboutDescription": "MeshCore コンパニオンクライアント。",
-  "aboutLicense": "MIT (X11) ライセンスで提供。",
-  "aboutMadeWith": "福岡から ♥ をこめて",
-  "aboutTerms": "利用規約 — U5 で配線予定。",
-  "aboutVersion": "v{version}",
-  "@aboutVersion": {
-    "placeholders": {"version": {"type": "String"}}
-  },
+  "permBle": "Bluetooth",
+  "permLocation": "位置情報",
+  "permLocationWhy": "Android では近くのデバイスのスキャンに位置情報の許可が必要です。",
+  "permGranted": "許可済み",
+  "permDenied": "拒否",
+  "permRequest": "リクエスト",
+  "permOpenSettings": "設定を開く",
 
-  "personalizationHeading": "プロフィール & パーソナライズ",
-  "personalizationThemePreset": "テーマプリセット",
-  "personalizationType": "文字",
-  "personalizationFontSize": "フォントサイズ",
-  "personalizationAccessibility": "アクセシビリティ (R13)",
-  "personalizationHighContrast": "ハイコントラスト",
-  "personalizationHighContrastSubtitle": "SEELE ハイコントラストパレットを強制適用",
-  "personalizationHighContrastHint": "ハイコントラストが ON のため、プリセットの選択に関わらず SEELE ハイコントラストパレットが強制されます。別テーマを使うには下の「ハイコントラスト」を OFF にしてください。",
-  "personalizationReduceMotion": "モーションを減らす",
-  "personalizationVisualHapticOnly": "視覚 + 触覚のみ",
-  "personalizationVisualHapticOnlySubtitle": "音による情報提示なし; 音声をオフ",
-  "personalizationAudioAlerts": "音声アラート (R12)",
-  "personalizationAudioMaster": "音声アラート",
-  "personalizationAudioMasterDisabled": "「視覚 + 触覚のみ」により無効",
-  "personalizationAudioMasterEnabled": "既定で OFF; 補助としてのみ",
+  "diagEmpty": "スキャン活動はまだありません。",
+  "diagClear": "クリア",
+  "diagCopy": "ログをコピー",
 
-  "firstRunHeader": "MESHMORE · ようこそ",
-  "firstRunTitle": "アプリが必要とする権限について",
-  "firstRunBleTitle": "Bluetooth",
-  "firstRunBleBody": "MeshCore ラジオとペアリングし、ローカルメッシュ越しにメッセージを送受信します。OTA 通信に必須です。",
-  "firstRunNotificationsTitle": "通知",
-  "firstRunNotificationsBody": "後でアプリ設定の「バックグラウンドで接続を維持」を ON にした場合のみ求めます。今回はスキップし二度確認しません。",
-  "firstRunOfflineTitle": "オフラインでも使えます",
-  "firstRunOfflineBody": "Bluetooth をスキップしてもアプリは動作します — メッセージ履歴の閲覧、チャネル設定、診断などが可能。Bluetooth を許可するまでライブメッシュ通信のみ利用不可。",
-  "firstRunGrant": "Bluetooth を許可して続行",
-  "firstRunSkip": "オフラインで続行 (権限をスキップ)",
-  "firstRunDeniedTransient": "Bluetooth が許可されませんでした — オフラインで続行するか、OS 設定で許可を変更できます。",
-  "firstRunDeniedPermanent": "Bluetooth が永続的に拒否されました — OS 設定で許可してください。オフラインでも引き続き利用可能です。",
-  "firstRunOpenSettings": "OS 設定を開く",
+  "firstRunTitle": "ようこそ",
+  "firstRunBody": "このアプリは近くの Bluetooth・WiFi デバイスをスキャンします。そのためにいくつかの権限が必要です。",
+  "firstRunPermBle": "Bluetooth — BLE デバイスの検出と接続のため。",
+  "firstRunPermLocation": "位置情報 — Android では Bluetooth・WiFi スキャンに必要です。",
+  "firstRunGrant": "権限を許可",
+  "firstRunSkip": "後で",
 
-  "dashboardPaired": "ペア済み: {name}",
-  "@dashboardPaired": {
-    "placeholders": {"name": {"type": "String"}}
-  },
-  "dashboardCharging": "充電中",
-  "dashboardBatteryReadout": "{volts}V · 約{percent}%",
-  "@dashboardBatteryReadout": {
-    "placeholders": {
-      "volts": {"type": "String"},
-      "percent": {"type": "int"}
-    }
-  },
-  "dashboardBatteryLeft": "残り約{time}",
-  "@dashboardBatteryLeft": {
-    "placeholders": {
-      "time": {"type": "String"}
-    }
-  },
-
-  "nodesScanArea": "周辺をスキャン",
-  "nodesScanning": "スキャン中…",
-  "nodesAdvertise": "アドバート送信",
-  "nodesSyncContacts": "コンタクト同期",
-  "nodesHyperlocalGridTooltip": "ハイパーローカルグリッド (R18)",
-  "nodesFloodAdvert": "フラッドアドバート",
-  "nodesFloodAdvertBody": "メッシュ全体 — 隣接 + リピーター。発見に最適。",
-  "nodesZeroHopAdvert": "ゼロホップアドバート",
-  "nodesZeroHopAdvertBody": "隣接のみ — 再ブロードキャストなし。混雑したメッシュ向け。",
-  "nodesFloodAdvertSent": "フラッドアドバートを送信 — メッシュ全体に伝播 (隣接 + リピーター)。相手側でも Advertise を実行するまで表示されません。",
-  "nodesZeroHopAdvertSent": "ゼロホップアドバートを送信 — 隣接のみ、リピーターは再ブロードキャストしません。",
-  "nodesSearchHint": "名前 / shortId / 公開鍵で検索…",
-  "nodesFilterStarred": "お気に入り",
-  "nodesFilterInRange": "範囲内",
-  "nodesFilterClear": "クリア",
-  "nodesFilterLastSeen": "最終受信 · {label}",
-  "@nodesFilterLastSeen": {
-    "placeholders": {"label": {"type": "String"}}
-  },
-  "nodesFilterWithin": "距離 · {label}",
-  "@nodesFilterWithin": {
-    "placeholders": {"label": {"type": "String"}}
-  },
-  "nodesAgeAny": "指定なし",
-  "nodesAgeHour": "1時間以内",
-  "nodesAge24h": "24時間以内",
-  "nodesAge7d": "7日以内",
-  "nodesDistAny": "指定なし",
-  "nodesDist100m": "100 m 以内",
-  "nodesDist500m": "500 m 以内",
-  "nodesDist5km": "5 km 以内",
-  "nodesDist25km": "25 km 以内",
-  "nodesStatusReady": "{shown}/{total}件 表示 · {inRange}件 範囲内 · {favs}件 コンタクト",
-  "@nodesStatusReady": {
-    "placeholders": {
-      "shown": {"type": "int"},
-      "total": {"type": "int"},
-      "inRange": {"type": "int"},
-      "favs": {"type": "int"}
-    }
-  },
-  "nodesStatusOffline": "未接続 — 設定 → 診断で接続",
-  "nodesInRangeBadge": "範囲内",
-  "nodesFarBadge": "遠距離",
-  "nodesEmptyFiltered": "条件に一致するノードがありません。\n\n上の「クリア」で絞り込みを解除するか、各チップで条件を変更してください。",
-  "nodesEmptyReady": "ノードがまだありません。\n\n発見はアドバート駆動で、アドバートを受信したノードのみここに表示されます。Public でのチャットは発見につながりません。\n\n相手にも Advertise を実行してもらう (またはこちらで「Advertise」をタップ) 後、「Scan area」を実行してください。\n\nこの画面はメッシュの「ファブリック」(これまでに見たもの) を示します。スターをタップするとコンタクトに登録できます。",
-  "nodesEmptyOffline": "ラジオを接続して周辺ノードを発見してください。",
-  "nodesFavTooltip": "コンタクトに登録",
-  "nodesUnfavTooltip": "コンタクトから削除",
-
-  "gridTitle": "ハイパーローカルグリッド",
-  "gridShowLegend": "凡例を表示",
-  "gridHideLegend": "凡例を非表示",
-  "gridPlayTooltip": "再生 (一定間隔で更新)",
-  "gridPauseTooltip": "一時停止",
-  "gridIntervalTooltip": "更新間隔 (再生時)",
-  "gridRange": "範囲",
-  "gridRangeRoom": "部屋",
-  "gridRangeHome": "家",
-  "gridRangeBlock": "ブロック",
-  "gridRangeNeighborhood": "近隣",
-  "gridRangeArea": "エリア",
-  "gridRangeWide": "広域",
-  "gridLegend": "凡例",
-  "gridLegendRings": "同心円 3 本 = 距離帯。両端に GPS がある場合、外側のリングは上の「範囲」スケール (現在 ~{value})。GPS がない場合は RSSI 帯 (近 / 中 / 遠)。",
-  "@gridLegendRings": {
-    "placeholders": {"value": {"type": "String"}}
-  },
-  "gridLegendSelf": "中央 = 自分。十字 = 南北 / 東西の目安。",
-  "gridLegendDot": "ドット = 受信したファブリックノード。明るさ = 新しさ (受信直後 = 最大、24時間で 0 に減衰し消滅)。",
-  "gridLegendKnown": "パルス (緩やかに広がる輪) = 既知ノード — 直接やり取り (DM) があったノード。",
-  "gridLegendFavourite": "別色での速い点滅 = お気に入りのコンタクト。",
-  "gridLegendRipple": "中央からの波紋 = 匿名のチャネルメッセージ (プロトコル上、送信者を特定できません)。",
-  "gridLegendTap": "ノードをタップで詳細 + メッセージ / お気に入り。",
-  "gridLegendHeading": "方位ウェッジ・HDG 表示 = スマートフォン上端が**磁北**を基準に向いている方向（真北でも GPS 進行方向でもなく、スマートフォンの方位センサーが示す方位）。",
-  "gridLegendCalibration": "キャリブレーション: 矢印がずれている場合、スマートフォンを水平に持って数回 8 の字に動かしてください。コンパスのキャリブレーションは OS が行い、アプリは精度のみ表示します（精度が悪いと「Calibrate」ヒントが出ます）。",
-  "gridViewRadial": "ラジアル",
-  "gridViewGlobe": "グローブ",
-  "gridViewEqualGrid": "等分グリッド",
-  "gridViewStreetMap": "ストリートマップ",
-  "gridViewPicker": "マップ表示を切替",
-  "gridViewRadialShort": "レーダー",
-  "gridViewGlobeShort": "グローブ",
-  "gridViewEqualGridShort": "セル",
-  "gridViewStreetMapShort": "ロード",
-  "gridViewFabric": "ファブリック調査",
-  "gridViewFabricShort": "メッシュ",
-  "gridViewElevation": "Fujiさん",
-  "gridViewElevationShort": "富士",
-  "fujiLegendTitle": "Fujiさん",
-  "fujiLegendDesc": "標高測量。√スケール軸で有名な建造物と高さを比較。自分の標高はデバイスGPSテレメトリまたは電話の位置情報から取得。",
-  "fujiLegendMe": "破線 = あなた。標高が判明していればその位置に、未取得なら地面に「ALT?」表示。",
-  "fujiLegendRefs": "シルエット = 実世界の基準（人 → 富士山）でスケール感を示す。",
-  "fujiLegendPeers": "点 = ピア。問い合わせ後にテレメトリ標高でプロット。",
-  "fujiLegendUnknown": "地面沿いの縞帯 = まだ標高不明のピア。",
-  "fujiLegendAutoQuery": "AUTO-QUERY ボックスがピア標高を順次取得。タップで再起動。",
-  "elevationProfileTitle": "MESHMORE :: Fujiさん",
-  "elevationProfileAltLabel": "高度",
-  "elevationProfileMeLabel": "現在地",
-  "elevationProfileUnknownLabel": "高度不明",
-  "elevationProfilePeers": "{n} 個のノード",
-  "@elevationProfilePeers": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "elevationRefPerson": "人間",
-  "elevationRefHouse": "家",
-  "elevationRefRedwood": "セコイア",
-  "elevationRefEmpireState": "エンパイア",
-  "elevationRefBurj": "ブルジュ",
-  "elevationRefMtFuji": "富士山",
-  "fabricCoverageCount": "メッシュ調査 · {n} セル",
-  "@fabricCoverageCount": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "fabricResetTooltip": "調査結果をリセット",
-  "fabricResetTitle": "メッシュ調査結果をリセットしますか？",
-  "fabricResetBody": "記録済みのセルをすべて削除します。移動と近隣ノードの観測に応じて新しい記録が再び埋まっていきます。",
-  "fabricResetApply": "リセット",
-  "streetMapRecenter": "現在地に戻す",
-  "streetMapTopoLayer": "地形図に切り替え",
-  "streetMapStandardLayer": "標準地図に切り替え",
-  "mapHideTiles": "地図タイルを非表示",
-  "mapShowTiles": "地図タイルを表示",
-  "deviceRegionLoadedOffline": "{label} を読み込みました — デバイス接続時に「適用」してください。",
-  "@deviceRegionLoadedOffline": {
-    "placeholders": {"label": {"type": "String"}}
-  },
-  "equalGridAwaitingFix": "等分グリッド表示には自分の位置が必要です — GPS 取得待ち（スマートフォンまたはデバイス）。",
-  "equalGridCellSize": "セル {size}",
-  "@equalGridCellSize": {
-    "placeholders": {"size": {"type": "String"}}
-  },
-  "equalGridZoomIn": "ズームイン（セルを狭く）",
-  "equalGridZoomOut": "ズームアウト（セルを広く）",
-  "equalGridShowStats": "ターゲティングパネルを表示",
-  "equalGridHideStats": "ターゲティングパネルを非表示",
-  "globeFooter": "位置情報のある {n} 件のピアを表示",
-  "globeOverlayArcs": "アーク",
-  "globeOverlayRegion": "地域",
-  "globeOverlayLabels": "ラベル",
-  "globeZoom": "ズーム",
-  "globeAltitude": "高度",
-  "globePaused": "一時停止",
-  "voiceOfflineBadge": "オフライン",
-  "dashboardLocationRefresh": "デバイスから位置を更新",
-  "dashboardLocationAltitude": "高度 {meters} m",
-  "@dashboardLocationAltitude": {
-    "placeholders": {"meters": {"type": "int"}}
-  },
-  "deviceLocReportsAwaiting": "デバイス報告値: (待機中)",
-  "deviceLocReportsNone": "デバイス報告値: GPS 未取得 (0, 0)",
-  "deviceLocReportsValue": "デバイス報告値: {lat}, {lon}",
-  "@deviceLocReportsValue": {
-    "placeholders": {
-      "lat": {"type": "String"},
-      "lon": {"type": "String"}
-    }
-  },
-  "deviceLocUnsaved": "✱ 未保存",
-
-  "deviceGpsModule": "オンボード GPS モジュール",
-  "deviceGpsEnable": "オンボード GPS を有効化",
-  "deviceGpsEnabledHint": "デバイスファームウェアが GPS チップを定期的に読み取り、位置を自動更新します。",
-  "deviceGpsDisabledHint": "オフ — デバイスは GPS を一切読み取らず、配信される位置は最後に書き込まれた値のままです。",
-  "deviceGpsUnknown": "デバイス応答待ち…",
-  "deviceGpsInterval": "GPS 更新間隔",
-  "deviceGpsIntervalOff": "オフ",
-  "deviceGpsIntervalSec": "{n} 秒ごと",
-  "@deviceGpsIntervalSec": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "deviceGpsIntervalMin": "{n} 分ごと",
-  "@deviceGpsIntervalMin": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "deviceGpsIntervalHour": "{n} 時間ごと",
-  "@deviceGpsIntervalHour": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "deviceGpsIntervalFixedByFirmware": "このファームウェアビルドでは GPS 更新間隔がハードコードされており、変更できません（sensors モジュールが `gps_interval` を公開していないため）。",
-
-  "locTitle": "位置の自動公開",
-  "locTileSubtitle": "定期 + 移動検知でスマートフォン GPS をデバイスに反映",
-  "locHelp": "デバイス GPS が古いままの場合のスマートフォン側ワークアラウンド。有効時、定期・移動検知のいずれかで取得した GPS を SET_ADVERT_LATLON + ゼロホップ アドバートでデバイスに書き込みます。",
-  "locMaster": "自動公開",
-  "locMasterOn": "オン — スマートフォン GPS 使用中",
-  "locMasterOff": "オフ",
-  "locInterval": "定期間隔",
-  "locMovement": "スマートブロードキャスト (移動検知)",
-  "locOff": "オフ",
-  "locIntervalMin": "{n} 分ごと",
-  "@locIntervalMin": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "locIntervalHour": "{n} 時間ごと",
-  "@locIntervalHour": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "locMovementM": "{m} m",
-  "@locMovementM": {
-    "placeholders": {"m": {"type": "int"}}
-  },
-  "locMovementKm": "{km} km",
-  "@locMovementKm": {
-    "placeholders": {"km": {"type": "int"}}
-  },
-  "locPublishNow": "今すぐ公開",
-  "locPublishNowSub": "ループ動作の確認用に手動で 1 回送信。",
-  "locLastPublished": "最終: {lat}, {lon}  ·  {time}  ·  {trigger}",
-  "@locLastPublished": {
-    "placeholders": {
-      "lat": {"type": "String"},
-      "lon": {"type": "String"},
-      "time": {"type": "String"},
-      "trigger": {"type": "String"}
-    }
-  },
-  "locBatteryHint": "スマートブロードキャストは GPS を継続使用 (約 10 mA)。定期のみは省電力。両方有効で応答性最大、バッテリー優先ならスマートブロードキャストのみ推奨。",
-  "@globeFooter": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "gridEmpty": "まだ範囲内にファブリックがありません。\n\nアドバートを受信するとここに表示されます。Nodes 画面でスターをタップしてコンタクト登録 (速い点滅)。DM 交換したノードは既知になります (パルス)。",
-  "gridStatusReady": "{visible}件 ファブリック · {known}件 既知 · {favs}件 コンタクト · {playState}",
-  "@gridStatusReady": {
-    "placeholders": {
-      "visible": {"type": "int"},
-      "known": {"type": "int"},
-      "favs": {"type": "int"},
-      "playState": {"type": "String"}
-    }
-  },
-  "gridStatusOffline": "未接続 — 設定 → 診断で接続",
-  "gridPlayStatePaused": "一時停止中",
-  "gridPlayStateLive": "ライブ ({interval})",
-  "@gridPlayStateLive": {
-    "placeholders": {"interval": {"type": "String"}}
-  },
-  "gridFooter": "外側リング ≈ {label} ({value}) · ノードをタップで詳細 · ⓘ で凡例",
-  "gridHeading": "方位 {deg}° {cardinal}",
-  "@gridHeading": {
-    "placeholders": {
-      "deg": {"type": "int"},
-      "cardinal": {"type": "String"}
-    }
-  },
-  "gridHeadingCalibrate": "コンパス要校正 — スマートフォンを 8 の字に振ってください。",
-  "@gridFooter": {
-    "placeholders": {
-      "label": {"type": "String"},
-      "value": {"type": "String"}
-    }
-  },
-
-  "voiceSettingsTitle": "音声 (TTS 品質)",
-  "voiceSettingsHint": "「アプリ設定」で SPEECH を ON にするまで無効。レート / ピッチ / 音声は次の発話から適用されます。",
-  "voiceRate": "速度",
-  "voicePitch": "ピッチ",
-  "voicePicker": "音声",
-  "voicePickerEmpty": "プラットフォームエンジンから利用可能な音声が報告されていません — システム既定を使用します。",
-  "voicePickerOnlyMyLanguage": "現在の言語のみ表示",
-  "voicePickerOnlyMyLanguageHint": "スマートフォンの現在の言語（{lang}）に一致する音声のみを表示します。オフにするとOSが報告する全音声を表示します。",
-  "@voicePickerOnlyMyLanguageHint": {
-    "placeholders": {"lang": {"type": "String"}}
-  },
-  "voicePickerFilteredCount": "{n} 件 · {lang}",
-  "@voicePickerFilteredCount": {
-    "placeholders": {
-      "n": {"type": "int"},
-      "lang": {"type": "String"}
-    }
-  },
-  "voicePickerAllCount": "{n} 件 · すべて",
-  "@voicePickerAllCount": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "voicePickerNoMatchForLanguage": "{lang} の音声がインストールされていません。上のフィルターをオフにして他言語を表示するか、OS の設定から {lang} の音声を追加してください。",
-  "@voicePickerNoMatchForLanguage": {
-    "placeholders": {"lang": {"type": "String"}}
-  },
-  "voicePickerSystem": "システム既定",
-  "voicePreview": "サンプル再生",
-  "voicePreviewPhrase": "これは Meshmore SNS の音声プレビューです。",
-  "voicePreviewDisabledHint": "プレビューを聴くには、アプリ設定で SPEECH を ON にしてください。",
-
-  "settingsHubDevice": "デバイス設定",
-  "settingsHubDeviceSub": "MeshCore ラジオ & デバイス (R7)",
-  "settingsHubApp": "アプリ設定",
-  "settingsHubAppSub": "接続 · 言語 · 音声 · データ",
-  "settingsHubProfile": "プロフィール & パーソナライズ",
-  "settingsHubProfileSub": "テーマ · フォントサイズ · 音声 · アクセシビリティ",
-  "settingsHubChannels": "チャンネル",
-  "settingsHubChannelsSub": "スロット · 名前 + PSK · #ハッシュタグ · 有効",
-  "settingsHubDiagnostics": "診断 & 接続",
-  "settingsHubDiagnosticsSub": "ラジオ接続 · フレームログ · M6 キャプチャ",
-
-  "bootHeader": "MESHMORE  /  同期中",
-  "bootConnecting": "ラジオに接続中…",
-  "bootHandshaking": "ハンドシェイク中…",
-  "bootSyncing": "デバイス状態を同期中…",
-  "bootReady": "メッシュ オンライン",
-  "bootOffline": "オフライン — 設定 → 診断 & 接続",
-  "bootSkip": "スキップ",
-  "bootRetry": "再試行",
-  "bootSubtitle": "待機  /  WAIT",
-
-  "eventAdvert": "アドバート · {name}",
-  "@eventAdvert": {
-    "placeholders": {"name": {"type": "String"}}
-  },
-  "eventChannelMsg": "ch{channel} · 「{text}」",
-  "@eventChannelMsg": {
-    "placeholders": {
-      "channel": {"type": "String"},
-      "text": {"type": "String"}
-    }
-  },
-  "eventDm": "DM · 「{text}」",
-  "@eventDm": {
-    "placeholders": {"text": {"type": "String"}}
-  },
-  "eventContact": "コンタクト · {name}",
-  "@eventContact": {
-    "placeholders": {"name": {"type": "String"}}
-  },
-  "eventBattery": "バッテリー {volts}V",
-  "@eventBattery": {
-    "placeholders": {"volts": {"type": "String"}}
-  },
-  "eventDeviceError": "デバイスエラー (コード {code})",
-  "@eventDeviceError": {
-    "placeholders": {"code": {"type": "String"}}
-  },
-  "eventDeviceClockSynced": "デバイス時計 同期",
-  "eventDeviceClockSkew": "デバイス時計 読取 (オフセット {seconds}s)",
-  "@eventDeviceClockSkew": {
-    "placeholders": {"seconds": {"type": "String"}}
-  },
-  "eventMsgSent": "メッセージ送信 (ack {ack})",
-  "@eventMsgSent": {
-    "placeholders": {"ack": {"type": "String"}}
-  },
-  "eventDeviceInfo": "デバイス {version}",
-  "@eventDeviceInfo": {
-    "placeholders": {"version": {"type": "String"}}
-  },
-  "eventSelfInfo": "セルフ情報 · {name}",
-  "@eventSelfInfo": {
-    "placeholders": {"name": {"type": "String"}}
-  },
-  "eventQueuedWaiting": "キュー待機中",
-  "eventQueuedWaitingN": "キュー待機中 ({count})",
-  "@eventQueuedWaitingN": {
-    "placeholders": {"count": {"type": "String"}}
-  },
-
-  "chatChannelHeader": "チャンネル · {name}",
-  "@chatChannelHeader": {
-    "placeholders": {"name": {"type": "String"}}
-  },
-  "chatManageChannels": "チャンネル管理",
-  "chatTtsDisabledHint": "アプリ設定で TTS を有効化",
-  "chatTtsMuted": "このチャンネルの TTS をミュート中",
-  "chatTtsActive": "このチャンネルを TTS で読み上げ中",
-  "chatHideChannels": "チャンネルを隠す",
-  "chatShowChannels": "チャンネルを表示",
-  "chatEmpty": "— このチャンネルにメッセージはありません —",
-  "chatJumpToNewest": "新着 {count} 件",
-  "@chatJumpToNewest": {
-    "placeholders": {"count": {"type": "int"}}
-  },
-  "chatComposerHint": "{channel} へメッセージ",
-  "@chatComposerHint": {
-    "placeholders": {"channel": {"type": "String"}}
-  },
-  "chatComposerOffline": "送信するにはラジオに接続",
-  "chatSend": "送信",
-  "chatMessageActions": "メッセージ操作",
-
-  "dmTitle": "DM · {peer}",
-  "@dmTitle": {
-    "placeholders": {"peer": {"type": "String"}}
-  },
-  "dmPubkeyLabel": "公開鍵 · {hex}",
-  "@dmPubkeyLabel": {
-    "placeholders": {"hex": {"type": "String"}}
-  },
-  "dmEmpty": "— メッセージはまだありません —",
-  "dmOpenPeerDetail": "相手の詳細",
-  "dmPeerNotInFabric": "この相手はまだメッシュ上で確認されていません（アドバート未受信）。",
-  "dmComposerHint": "{peer} へメッセージ",
-  "@dmComposerHint": {
-    "placeholders": {"peer": {"type": "String"}}
-  },
-  "dmSend": "DM 送信",
-
-  "actionReply": "返信",
-  "actionReplySub": "このメッセージを引用して返信",
-  "actionCopy": "コピー",
-  "actionCopySub": "メッセージ本文をクリップボードにコピー",
-  "actionDeleteLocal": "ローカル削除",
-  "actionDeleteLocalSub": "履歴からこの行のみ削除 — OTA 送信済みのメッセージは取り消せません。",
-  "actionCopied": "クリップボードにコピーしました",
-  "actionDeleteConfirmTitle": "このメッセージをローカルから削除しますか?",
-  "actionDeleteConfirmBody": "ローカル履歴からこの行を削除します。MeshCore に取り消しはなく、受信者側には残ります。",
-  "actionCancel": "キャンセル",
-  "actionDelete": "削除",
-
-  "nodeDetailSelf": "これはあなた自身のノードです — メッセージ / お気に入りは利用不可。",
-  "nodeDetailRecentDms": "最近の DM",
-  "nodeDetailMessage": "メッセージ",
-  "nodeDetailFavourite": "お気に入り",
-  "nodeDetailContact": "コンタクト",
-  "nodeDetailShowOnMap": "地図上に表示",
-  "nodeDetailShowOnMapSnack": "リバースジオコード地図 (R25) は今後対応予定です。",
-  "nodeDetailShowOnMapFailed": "マップアプリを開けませんでした。",
-  "nodeDetailCopyPubkey": "公開鍵をコピー",
-  "nodeDetailPubkeyCopied": "公開鍵をコピーしました",
-  "nodeDetailTags": "タグ",
-  "nodeDetailAddTag": "タグ",
-  "nodeDetailAddTagTitle": "タグを追加",
-  "nodeDetailAddTagHint": "例: リピーター、職場、アマチュア無線クラブ",
-  "nodeDetailAddTagSuggestions": "最近使ったタグ",
-  "nodeDetailAddTagApply": "追加",
-  "nodeDetailInRange": "範囲内",
-  "nodeDetailKnown": "既知",
-  "nodeDetailContactBadge": "コンタクト",
-  "nodeDetailShortIdKv": "shortId",
-  "nodeDetailPubkeyKv": "公開鍵",
-  "nodeDetailSignalKv": "信号",
-  "nodeDetailLastHeardKv": "最終受信",
-  "nodeDetailDistanceKv": "距離",
-  "nodeDetailLatLonKv": "緯度 / 経度",
-  "gridViewTree": "メッシュツリー",
-  "gridViewTreeShort": "ツリー",
-  "gridViewSnsCells": "SNS セル（ヒート）",
-  "gridViewSnsCellsShort": "SNS",
-  "snsCellsAwaitingFix": "位置情報を待機中 — ヒートマップは自分を中心に表示されます。",
-  "snsCellsClear": "クリア",
-  "snsCellsStatus": "{active} セル · {hot} ホット",
-  "@snsCellsStatus": {
-    "placeholders": {"active": {"type": "int"}, "hot": {"type": "int"}}
-  },
-  "snsCellsLegendTitle": "SNS セル",
-  "snsCellsLegendDesc": "ライブのソーシャル活動ヒートマップ。観測したメッセージごとにセルが温まり、1時間の地平で冷えていきます。",
-  "snsCellsLegendHot": "明るい赤 = 活発（直近1分で約5件以上）。",
-  "snsCellsLegendCool": "白へ退色 = 沈静化。約1時間無活動で消滅。",
-  "snsCellsLegendToast": "新着メッセージは発信元付近にトーストで点滅し、消えます。",
-  "snsCellsLegendChannel": "チャンネルメッセージは送信者名を含みます — 送信者の位置が分かればそのセルを、分からなければ自分のセル（受信地点）を温めます。",
-  "snsCellsLegendDecay": "直近1時間のみ追跡。保存はされません。",
-  "meshTreeEmpty": "コンタクト同期を待機中 — ツリーは各コンタクトの outPath から構築されます。",
-  "meshTreeHopsDirect": "直接",
-  "meshTreeHopsAll": "≤6 / 全て",
-  "meshTreeHopsFlood": "フラッド / 全て",
-  "meshTreeHopsN": "≤{n} ホップ",
-  "@meshTreeHopsN": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "meshTreeRecenter": "中央に戻す",
-  "meshTreeLegendTitle": "メッシュツリー",
-  "meshTreeLegendDesc": "無線がどの経路で各コンタクトに到達するかの有向グラフ。エッジは Contact.outPath — デバイスが送信に使う正確なリピーター連鎖。",
-  "meshTreeLegendSelf": "あなた — 中央に固定。",
-  "meshTreeLegendRepeater": "四角 = リピーター。マスト設置インフラ、ハブ色。ピアはこれらを経由して広がる。",
-  "meshTreeLegendRoom": "ひし形 = ルームサーバ。名前付きルームをホストするサーバ級ノード。",
-  "meshTreeLegendChat": "円 = チャットノード。DM 可能なピア。",
-  "meshTreeLegendSensor": "小さい円（暗）= センサー。特定用途のノード。",
-  "meshTreeLegendFlood": "破線で自分とつながる = フラッドルーティングのコンタクト。到達可能だが固定経路なし。",
-  "meshTreeLegendFloat": "浮遊（エッジなし）— advert のみで受信、経路不明。",
-  "meshTreeLegendArrow": "矢印は自分から目的ピアへ向かう。",
-  "meshTreeLegendInteract": "ピンチで拡大縮小、ドラッグで移動、ノードをタップで詳細。「中央に戻す」でリセット。",
-  "fabricLegendTitle": "ファブリックサーベイ",
-  "fabricLegendDesc": "メッシュが観測された場所の永続的な記録。各長方形は小さな地理セル（約 220 m × 220 m）で、デバイスがこの位置と接続したときにログ。",
-  "fabricLegendCell": "塗りつぶしセル — ここで一度はメッシュが届いた。",
-  "fabricLegendRecency": "明るい塗り = より新しい。階層 — 1時間以内、24時間以内、7日以内、それ以上。",
-  "fabricLegendMarker": "第三色のピンは現在のセット内のピア。タップで詳細。",
-  "fabricLegendSelf": "原色のピンはあなた。",
-  "fabricLegendReset": "新しい地域に移動するときは、オーバーフローメニューからサーベイをリセット。",
-  "nodeDetailHopsKv": "ホップ数",
-  "nodeDetailHopsDirect": "直接 (0 ホップ)",
-  "nodeDetailHopsViaRepeaters": "{n} 経由リピーター",
-  "@nodeDetailHopsViaRepeaters": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "nodeDetailHopsUnknown": "不明",
-  "nodeDetailHopsFlood": "フラッド",
-  "nodeDetailAltitudeKv": "標高",
-  "nodeDetailAltitudeMeters": "{m} m",
-  "@nodeDetailAltitudeMeters": {
-    "placeholders": {"m": {"type": "String"}}
-  },
-  "nodeDetailAltitudeUnknown": "不明",
-  "nodeDetailQueryTelemetry": "テレメトリを取得",
-  "nodeDetailRefreshTelemetry": "テレメトリを更新",
-  "nodeDetailTelemetryQuerying": "電波経由でピアに問い合わせ中…",
-  "nodeDetailTelemetryNotContact": "同期済みコンタクトではありません — テレメトリは要求できません。まずデバイスにこのノードをコンタクトとして追加してください。",
-  "nodeDetailTelemetryAge": "{age}前のテレメトリ",
-  "@nodeDetailTelemetryAge": {
-    "placeholders": {"age": {"type": "String"}}
-  },
-  "nodeDetailAgoSeconds": "{n}秒前",
-  "@nodeDetailAgoSeconds": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "nodeDetailAgoMinutes": "{n}分前",
-  "@nodeDetailAgoMinutes": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "nodeDetailAgoHours": "{n}時間前",
-  "@nodeDetailAgoHours": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-  "nodeDetailAgoDays": "{n}日前",
-  "@nodeDetailAgoDays": {
-    "placeholders": {"n": {"type": "int"}}
-  },
-
-  "channelsTitle": "チャンネル",
-  "channelsHelp": "チャンネル = スロット + 名前 + 16 バイト鍵。Public (スロット 0) は共有の既定。プライベートグループは全ノードで同じスロットに同じ名前 & PSK を設定してください。",
-  "channelsOfflineHint": "チャンネルを編集するにはラジオを接続 (診断)。",
-  "channelsEmpty": "— 未設定 —",
-  "channelsSlotLabel": "スロット {idx}",
-  "@channelsSlotLabel": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsSlotActive": "スロット {idx} · 有効",
-  "@channelsSlotActive": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsEdit": "編集",
-  "channelsSet": "設定",
-  "channelsSetSnack": "チャンネル {idx} を「{name}」に設定 — 全ノードで同じ名前 & PSK が必要",
-  "@channelsSetSnack": {
-    "placeholders": {
-      "idx": {"type": "int"},
-      "name": {"type": "String"}
-    }
-  },
-  "channelsDialogTitle": "チャンネルスロット {idx}",
-  "@channelsDialogTitle": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsName": "チャンネル名",
-  "channelsKeySource": "鍵ソース",
-  "channelsKeyPublic": "Public",
-  "channelsKeyHashtag": "#タグ",
-  "channelsKeyHex": "Hex",
-  "channelsKeyPublicBody": "公開チャンネル既定鍵を使用。",
-  "channelsKeyHashtagHint": "例: #mygroup",
-  "channelsKeyHashtagHelper": "タグから鍵を導出 (sha256)",
-  "channelsKeyHexHint": "16 進 32 文字 (16 バイト)",
-  "channelsErrorTag": "#ハッシュタグを入力してください",
-  "channelsErrorHex": "PSK は 16 進 32 文字 (16 バイト) で入力してください",
-  "channelsErrorName": "チャンネル名を入力してください",
-  "channelsCancel": "キャンセル",
-  "channelsSave": "保存",
-  "channelsHelpEncryption": "スロット 0 (Public) は既知の鍵を使用 — ファームウェアを持つ全員が読めます。他のスロットは設定した 16 バイト PSK で AES-128 暗号化。同じ PSK を持つノードのみ復号できます。",
-  "channelsHexGenerate": "PSK をランダム生成",
-  "channelsHexCopy": "コピー",
-  "channelsHexCopied": "PSK をクリップボードにコピー",
-  "channelsTagWeakShort": "短いタグは推測されやすい。12 文字以上または独自の表現を使用してください。",
-  "channelsTagWeakCommon": "一般的な単語は推測されやすい — 攻撃者にタグ総当りを許します。独自の表現を使用してください。",
-  "channelsSlot0WarnTitle": "Public チャンネルを上書きしますか?",
-  "channelsSlot0WarnBody": "スロット 0 は既知の Public チャンネルです。ここにプライベート PSK を書き込むと、同じ鍵を持つノードとしか通話できなくなり、共通の Public チャンネルを失います。続行しますか?",
-  "channelsSlot0WarnContinue": "スロット 0 を上書き",
-  "channelsSlot0WarnCancel": "キャンセル",
-  "channelsCurrentKey": "現在の鍵",
-  "channelsRevealKey": "表示",
-  "channelsHideKey": "隠す",
-  "channelsCurrentKeyUnknown": "未取得 — デバイス同期後にダイアログを開き直してください。",
-  "channelsClear": "スロットをクリア",
-  "channelsClearConfirmTitle": "スロット {idx} をクリアしますか?",
-  "@channelsClearConfirmTitle": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsClearConfirmBody": "MeshCore にはプロトコルレベルの「クリア」がありません — このスロットは Public 既定値 (名前 + 鍵) に上書きされます。他ノードも同様の操作が必要です。",
-  "channelsClearConfirmAction": "クリア",
-  "channelsClearSnack": "スロット {idx} をクリア (Public 既定値にリセット)",
-  "@channelsClearSnack": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsDefaultBadge": "既定",
-  "channelsSetDefaultTooltip": "起動時の既定チャンネルに設定",
-  "channelsClearDefaultTooltip": "既定チャンネル設定を解除",
-  "channelsSetDefaultSnack": "スロット {idx} を起動時の既定に設定",
-  "@channelsSetDefaultSnack": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsClearedDefaultSnack": "起動時の既定を解除しました",
-  "channelsKeyShake": "振る",
-  "channelsShakeTitle": "シェイクでダイスロール",
-  "channelsShakeBody": "スマートフォンを振ってください — 検出された動きサンプルがハッシュに加算されます。リングが満たされたら停止。",
-  "channelsShakeProgress": "{accepted} / {target} サンプル · {pct}%",
-  "@channelsShakeProgress": {
-    "placeholders": {
-      "accepted": {"type": "int"},
-      "target": {"type": "int"},
-      "pct": {"type": "int"}
-    }
-  },
-  "channelsShakeReroll": "再ロール",
-  "channelsShakeUse": "この鍵を使用",
-  "channelsShakeTapFallback": "タップでロール (reduceMotion 有効 — Random.secure を使用)",
-  "channelsShareQr": "QR で共有",
-  "channelsQrTitle": "チャンネル {idx} を共有",
-  "@channelsQrTitle": {
-    "placeholders": {"idx": {"type": "int"}}
-  },
-  "channelsQrBody": "Meshmore デバイス、または任意の QR リーダーでスキャン。このコードを持つ人はチャンネルに参加できます — 信頼できる相手のみと共有してください。",
-  "channelsQrPayload": "ペイロード (コピー用)",
-  "channelsQrClose": "閉じる",
-
-  "deviceConfigTitle": "デバイス設定",
-  "deviceRegionBand": "リージョン / バンド",
-  "deviceRegionCurrent": "現在の設定",
-  "deviceRegionUnknown": "デバイス応答待ち…",
-  "deviceRegionCustom": "カスタム（プリセット非該当）",
-  "deviceRegionSuggestFromLocation": "現在地から自動選択",
-  "deviceRegionSuggestTitle": "推奨リージョンを適用しますか？",
-  "deviceRegionSuggestBody": "スマートフォンの GPS（{lat}, {lon}）に基づくと、該当するプリセットは「{label}」です。国境付近では誤判定する可能性があるため、適用前に現地の法令に適合するか必ず確認してください。",
-  "@deviceRegionSuggestBody": {
-    "placeholders": {
-      "lat": {"type": "String"},
-      "lon": {"type": "String"},
-      "label": {"type": "String"}
-    }
-  },
-  "deviceRegionSuggestApply": "適用",
-  "deviceRegionSuggestNoFix": "GPS の取得に失敗しました — 屋外で位置情報の許可を確認してから再試行してください。",
-  "deviceRegionSuggestNoMatch": "現在地が出荷時プリセットの対象外です — 手動で選択してください。",
-  "deviceRegionAppliedToast": "{label} を適用しました。メッシュ内の全ノードで同じプリセットを使用してください。",
-  "@deviceRegionAppliedToast": {
-    "placeholders": {"label": {"type": "String"}}
-  },
-  "deviceRegionDisclaimer": "プリセット値はコミュニティで合意された運用例であり、法令適合を保証するものではありません。利用地で合法なプリセットを選び、メッシュ内の全ノードで同じ値を使用してください。日本（ARIB STD-T108）のプリセットはコミュニティ提案で、広範な実機検証は完了していません。実運用前に、法令適合性と動作をご自身のハードウェアで必ず確認してください。",
-
-  "presetUsCanada": "米国 / カナダ",
-  "presetUsArizona": "米国 — アリゾナ",
-  "presetJpAribT108": "日本（ARIB STD-T108）",
-  "presetEuUkLong": "EU / UK（長距離）",
-  "presetEuUkMedium": "EU / UK（中距離）",
-  "presetEuUkNarrow": "EU / UK（狭帯域）",
-  "presetCh": "スイス",
-  "presetCz": "チェコ",
-  "presetPt869": "ポルトガル（869 MHz）",
-  "presetAu": "オーストラリア",
-  "presetAuNarrow": "オーストラリア（狭帯域）",
-  "presetAuSaWaQld": "オーストラリア（SA / WA / QLD）",
-  "presetNz": "ニュージーランド",
-  "presetVn": "ベトナム",
-
-  "cancel": "キャンセル",
-  "deviceRadioParams": "ラジオパラメータ",
-  "deviceIdentityAdvert": "アイデンティティ / アドバート",
-  "deviceChannelsSection": "チャンネル",
-  "deviceOtherParamsSection": "その他のパラメータ",
-  "deviceDeviceSection": "デバイス",
-  "deviceFrequency": "周波数 (MHz)",
-  "deviceBandwidth": "帯域幅 (kHz)",
-  "deviceSpreadingFactor": "拡散率 (5–12)",
-  "deviceCodingRate": "符号化率 (5–8)",
-  "deviceTxPower": "送信電力 (dBm)",
-  "deviceLoadFromDevice": "デバイスから読込",
-  "deviceApplyRadio": "ラジオパラメータを適用",
-  "deviceConnectFirst": "まずラジオに接続してください (診断 & 接続)。",
-  "deviceAdvertName": "アドバート名",
-  "deviceSetName": "名前を設定",
-  "deviceAdvertLatitude": "アドバート緯度 (°)",
-  "deviceAdvertLongitude": "アドバート経度 (°)",
-  "deviceUsePhoneLocation": "スマートフォンの位置を使用",
-  "deviceReadDeviceLocation": "デバイスの位置を読込",
-  "deviceSetAdvertLocation": "アドバート位置を設定",
-  "deviceAdvertSource": "アドバート位置ソース",
-  "deviceAdvertSourceNone": "なし",
-  "deviceAdvertSourcePinned": "ピン留め",
-  "deviceAdvertSourceGps": "デバイス GPS",
-  "deviceToastNameEmpty": "ノード名を入力してください",
-  "deviceToastNameSet": "名前を更新 — 隣接ノードへ再アドバート中",
-  "deviceToastSendFailed": "送信失敗: {error}",
-  "@deviceToastSendFailed": {
-    "placeholders": {"error": {"type": "String"}}
-  },
-  "deviceToastNoDeviceYet": "デバイス未応答 — 接続後に再試行",
-  "deviceToastNoGpsYet": "デバイスにまだ位置情報がありません (GPS 未取得)",
-  "deviceToastLoadedDeviceLoc": "デバイス位置を読込 · ブロードキャストするには「アドバート位置を設定」をタップ",
-  "deviceToastGettingPhoneFix": "スマートフォン GPS を取得中…",
-  "deviceToastPhoneFixFailed": "スマートフォン GPS の取得失敗 (サービス無効またはタイムアウト)",
-  "deviceToastNoFixReturned": "位置情報が返されませんでした",
-  "deviceToastGotPhoneLoc": "スマートフォン位置を取得 · ブロードキャストするには「アドバート位置を設定」をタップ",
-  "deviceToastInvalidLatLon": "有効な緯度 (−90..90) と経度 (−180..180) を入力",
-  "deviceToastAdvertLocSet": "アドバート位置を設定しました",
-  "deviceToastInvalidRadio": "freq/BW/SF/CR に有効な数値を入力",
-  "deviceToastRadioSent": "ラジオパラメータを送信 — デバイスを再起動 / 観測して確認",
-  "deviceLocPermDenied": "スマートフォン GPS 取得には位置情報の許可が必要です。",
-  "deviceLocPermDeniedPerm": "位置情報が永続的に拒否されました — OS 設定で許可してください。",
-  "deviceOpenSettings": "設定を開く",
-
-  "diagnosticsTitle": "診断 & 接続",
-  "diagnosticsState": "状態",
-  "diagnosticsSends": "送信",
-  "diagnosticsChannelTail": "チャンネルテール オラクル",
-  "diagnosticsCapture": "キャプチャ / エクスポート",
-  "diagnosticsRawFrameLog": "RAW フレームログ (新しい順)",
-  "diagnosticsConnect": "接続",
-  "diagnosticsDisconnect": "切断",
-  "diagnosticsForget": "デバイスを解除",
-  "diagnosticsCopyLog": "ログをコピー",
-
-  "otherManualAddTitle": "コンタクトを手動追加",
-  "otherManualAddSubOn": "受信したノードは必要時に手動でコンタクトに追加します。",
-  "otherManualAddSubOff": "受信したノードは自動でコンタクトに昇格します。",
-  "otherTelemetryLabel": "テレメトリモード (生バイト)",
-  "otherTelemetryHelper": "0 = オフ · 意味はファームウェアに依存します。",
-  "otherMultiAcksLabel": "マルチ ACK (0–3)",
-  "otherMultiAcksHelper": "0 = シングル ACK (既定)。値が大きいほど送信確定までに待つ追加 ACK 数。",
-  "otherApply": "適用",
-  "otherSentSnack": "OTHER PARAMS を送信 — デバイス側の書込に時間がかかる場合があります。",
-  "otherAwaitingDevice": "— デバイス待機中 —",
-
-  "batteryTitle": "バッテリー",
-  "batteryConfigSubtitle": "充電量・消費レート・残り時間の推定",
-  "batteryAwaiting": "デバイスからのバッテリー値を待機中…",
-  "batteryReset": "履歴をリセット",
-  "batteryResetConfirm": "保存済みのバッテリー履歴をすべて消去しますか？新しい値が届くと推定は再構築されます。",
-  "batteryVoltageLabel": "電圧",
-  "batteryCharging": "充電中",
-  "batteryChargingNote": "充電中 — 残り時間の推定は一時停止しています。",
-  "batteryTimeToEmpty": "残り時間",
-  "batteryEstimating": "消費データを収集中 — 数分間の放電後に推定値が表示されます。",
-  "batteryDrainRate": "消費レート",
-  "batteryBasis": "根拠",
-  "batteryBasisObserved": "{span} の放電実測に基づく",
-  "@batteryBasisObserved": {
-    "placeholders": {"span": {"type": "String"}}
-  },
-  "batteryBasisRated": "定格 (容量 ÷ 標準消費電流)",
-  "batteryConfidence": "信頼度",
-  "batteryConfHigh": "高",
-  "batteryConfMedium": "中",
-  "batteryConfLow": "低",
-  "batteryMethodObserved": "放電実測",
-  "batteryMethodRated": "定格推定",
-  "batteryMethodNone": "データ収集中",
-  "batterySpecTitle": "デバイスモデル",
-  "batterySpecGeneric": "不明なハードウェア — 汎用の単セル Li-ion モデルを使用します。定格容量での照合ができないため、推定は実測消費に依存します。",
-  "batterySpecCapacity": "容量: {mah} mAh",
-  "@batterySpecCapacity": {
-    "placeholders": {"mah": {"type": "int"}}
-  },
-  "batterySpecCapacityUnknown": "容量: ユーザー供給 (不明)",
-  "batterySpecDraw": "標準消費: 約 {ma} mA (受信時)",
-  "@batterySpecDraw": {
-    "placeholders": {"ma": {"type": "int"}}
-  },
-  "batteryHistoryTitle": "電圧履歴",
-  "batteryHistorySpan": "{span} · {count} サンプル",
-  "@batteryHistorySpan": {
-    "placeholders": {"span": {"type": "String"}, "count": {"type": "int"}}
-  },
-  "batteryDurDH": "{days}日 {hours}時間",
-  "@batteryDurDH": {
-    "placeholders": {"days": {"type": "int"}, "hours": {"type": "int"}}
-  },
-  "batteryDurHM": "{hours}時間 {mins}分",
-  "@batteryDurHM": {
-    "placeholders": {"hours": {"type": "int"}, "mins": {"type": "int"}}
-  },
-  "batteryDurM": "{mins}分",
-  "@batteryDurM": {
-    "placeholders": {"mins": {"type": "int"}}
-  },
-
-  "deliverySending": "送信中…",
-  "deliverySent": "メッシュへ送信済み",
-  "deliveryDelivered": "配信完了 (受信側が確認)",
-  "deliveryFailed": "未配信 — 確認応答なし、または送信失敗"
+  "langEnglish": "English",
+  "langJapanese": "日本語"
 }

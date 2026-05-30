@@ -63,7 +63,7 @@ class _BrandedSplashScreenState extends State<BrandedSplashScreen>
               ),
               const SizedBox(height: 24),
               Text(
-                'Meshmore SNS',
+                'Responsive IoT 2026',
                 style: t.textTheme.headlineSmall?.copyWith(
                   color: cs.onSurface,
                   letterSpacing: 2,
@@ -72,7 +72,7 @@ class _BrandedSplashScreenState extends State<BrandedSplashScreen>
               ),
               const SizedBox(height: 6),
               Text(
-                'ソーシャルロボット・ネットワークサービス',
+                'BLE & WiFi scanner',
                 style: t.textTheme.labelMedium?.copyWith(
                   color: cs.onSurfaceVariant,
                   letterSpacing: 1,
