@@ -260,6 +260,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsRssiFloorOff => 'すべての信号を表示';
 
   @override
+  String get settingsWifiProxy => 'WiFi 中継プロキシ';
+
+  @override
+  String get settingsWifiProxySub =>
+      'ネットワーク上の Mac/Linux プロキシを検出して近くの WiFi をスキャン（iOS で有用）。';
+
+  @override
   String get permBle => 'Bluetooth';
 
   @override

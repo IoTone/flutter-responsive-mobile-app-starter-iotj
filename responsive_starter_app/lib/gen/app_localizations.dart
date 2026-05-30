@@ -572,6 +572,18 @@ abstract class AppLocalizations {
   /// **'Show all signals'**
   String get settingsRssiFloorOff;
 
+  /// No description provided for @settingsWifiProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'WiFi relay proxy'**
+  String get settingsWifiProxy;
+
+  /// No description provided for @settingsWifiProxySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover a Mac/Linux proxy on your network to scan nearby WiFi (useful on iOS).'**
+  String get settingsWifiProxySub;
+
   /// No description provided for @permBle.
   ///
   /// In en, this message translates to:

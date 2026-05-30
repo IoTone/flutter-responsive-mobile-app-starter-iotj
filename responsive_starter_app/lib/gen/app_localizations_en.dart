@@ -263,6 +263,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsRssiFloorOff => 'Show all signals';
 
   @override
+  String get settingsWifiProxy => 'WiFi relay proxy';
+
+  @override
+  String get settingsWifiProxySub =>
+      'Discover a Mac/Linux proxy on your network to scan nearby WiFi (useful on iOS).';
+
+  @override
   String get permBle => 'Bluetooth';
 
   @override

@@ -97,6 +97,8 @@
   "settingsRssiFloorValue": "Hide signals weaker than {dbm} dBm",
   "@settingsRssiFloorValue": { "placeholders": { "dbm": { "type": "int" } } },
   "settingsRssiFloorOff": "Show all signals",
+  "settingsWifiProxy": "WiFi relay proxy",
+  "settingsWifiProxySub": "Discover a Mac/Linux proxy on your network to scan nearby WiFi (useful on iOS).",
 
   "permBle": "Bluetooth",
   "permLocation": "Location",

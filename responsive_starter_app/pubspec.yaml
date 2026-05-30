@@ -39,6 +39,9 @@ dependencies:
   wifi_scan: ^0.4.1+2
   network_info_plus: ^6.1.1
 
+  # --- mDNS/Bonjour discovery for the optional WiFi relay proxy ---
+  nsd: ^2.3.1
+
   # --- Settings persistence ---
   shared_preferences: ^2.3.3
 

@@ -91,6 +91,8 @@
   "settingsRssiFloor": "信号フロア",
   "settingsRssiFloorValue": "{dbm} dBm より弱い信号を非表示",
   "settingsRssiFloorOff": "すべての信号を表示",
+  "settingsWifiProxy": "WiFi 中継プロキシ",
+  "settingsWifiProxySub": "ネットワーク上の Mac/Linux プロキシを検出して近くの WiFi をスキャン（iOS で有用）。",
 
   "permBle": "Bluetooth",
   "permLocation": "位置情報",

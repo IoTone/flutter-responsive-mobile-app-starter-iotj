@@ -9,6 +9,8 @@ import '../gen/app_localizations.dart';
 import '../l10n/locale_controller.dart';
 import '../perms/permissions_service.dart';
 import '../scanner/scanner_controller.dart';
+import '../scanner/wifi_proxy_source.dart';
+import '../scanner/wifi_sources.dart';
 import '../theme/theme_controller.dart';
 import '../theme/tokens.dart';
 
@@ -47,6 +49,7 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
         ),
+        const _ProxyToggle(),
         _Header(l.settingsAppearance, cs: cs),
         ListTile(
           title: Text(l.settingsTheme),
@@ -125,6 +128,34 @@ class _Header extends StatelessWidget {
             style: TextStyle(
                 color: cs.primary, fontSize: 12, letterSpacing: 3)),
       );
+}
+
+/// Toggles the WiFi source between the on-device source and the mDNS
+/// relay proxy. Local UI state — resets on relaunch (a starter-grade
+/// affordance; persist it if you ship this).
+class _ProxyToggle extends StatefulWidget {
+  const _ProxyToggle();
+  @override
+  State<_ProxyToggle> createState() => _ProxyToggleState();
+}
+
+class _ProxyToggleState extends State<_ProxyToggle> {
+  bool _on = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l = AppLocalizations.of(context);
+    final ScannerController sc = context.read<ScannerController>();
+    return SwitchListTile(
+      title: Text(l.settingsWifiProxy),
+      subtitle: Text(l.settingsWifiProxySub),
+      value: _on,
+      onChanged: (bool v) {
+        setState(() => _on = v);
+        sc.setWifiSource(v ? ProxyWifiSource() : createWifiSource());
+      },
+    );
+  }
 }
 
 class _LangTile extends StatelessWidget {

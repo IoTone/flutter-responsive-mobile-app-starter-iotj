@@ -58,5 +58,14 @@
 		     network name and for Bluetooth scanning. -->
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>This app uses your location to identify the connected WiFi network and to scan for nearby devices.</string>
+
+		<!-- Local network + Bonjour: discover the optional WiFi relay
+		     proxy (tools/wifi-proxy) advertised as _iotscan._tcp. -->
+		<key>NSLocalNetworkUsageDescription</key>
+		<string>This app discovers a WiFi relay proxy on your local network to show nearby WiFi networks.</string>
+		<key>NSBonjourServices</key>
+		<array>
+			<string>_iotscan._tcp</string>
+		</array>
 	</dict>
 </plist>
