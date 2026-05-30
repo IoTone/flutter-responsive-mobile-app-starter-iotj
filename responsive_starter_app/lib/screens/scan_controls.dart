@@ -23,8 +23,9 @@ class ScanControls {
     }
     final PermissionsService perms = context.read<PermissionsService>();
     await perms.requestBle();
-    // Android needs location permission for BLE + WiFi scan results.
-    if (!kIsWeb && Platform.isAndroid) {
+    // Location is required for WiFi/BLE scan results on Android, and
+    // for reading the connected WiFi SSID/BSSID on iOS.
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       await perms.requestLocation();
     }
     await sc.start();

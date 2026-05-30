@@ -1,34 +1,31 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Bluetooth permissions for Meshcore device link (R3).
-         BLUETOOTH / BLUETOOTH_ADMIN are kept for pre-Android 12 devices.
-         On Android 12+ (API 31+), BLUETOOTH_SCAN/CONNECT are required instead. -->
+    <!-- Bluetooth LE scanning + connection.
+         BLUETOOTH / BLUETOOTH_ADMIN cover pre-Android 12; on API 31+
+         the granular SCAN / CONNECT runtime permissions apply. -->
     <uses-permission android:name="android.permission.BLUETOOTH"
         android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
         android:maxSdkVersion="30" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
-        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <!-- Location (R22 / U13). Required on Android <= 11 for BLE scan
-         results AND required on all SDKs for the phone-GPS one-shot
-         fallback when the MeshCore device has no fix. We drop the
-         `maxSdkVersion=30` cap so geolocator can request it on
-         Android 12+ too; BLE is unaffected because we declare
-         `BLUETOOTH_SCAN` with `usesPermissionFlags="neverForLocation"`. -->
+
+    <!-- WiFi scanning. ACCESS_WIFI_STATE reads results; CHANGE_WIFI_STATE
+         lets the app trigger a scan; NEARBY_WIFI_DEVICES is the API 33+
+         runtime permission for nearby WiFi without location. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
+
+    <!-- Location is required for BLE + WiFi scan results on Android
+         <= 12. FINE is needed for full WiFi scan results. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
-
-    <!-- R17/U8 — background keep-alive foreground service so the BLE
-         link + SYNC-drain survive Doze. `connectedDevice` is the
-         correct FGS type for holding a BLE peripheral connection for
-         polling/sync (avoids the Android-15 dataSync timeout). -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- BLE is used but not strictly required (WiFi scanning still
+         works on devices without BLE). -->
+    <uses-feature android:name="android.hardware.bluetooth_le"
+        android:required="false" />
 
     <application
         android:label="Responsive IoT 2026"
@@ -43,10 +40,6 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
-            <!-- Specifies an Android theme to apply to this Activity as soon as
-                 the Android process has started. This theme is visible to the user
-                 while the Flutter UI initializes. After that, this theme continues
-                 to determine the Window background behind the Flutter UI. -->
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
@@ -61,18 +54,7 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        <!-- flutter_foreground_task service (R17/U8). connectedDevice
-             = hold a BLE peripheral connection for polling/sync. -->
-        <service
-            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
-            android:foregroundServiceType="connectedDevice"
-            android:exported="false" />
     </application>
-    <!-- Required to query activities that can process text, see:
-         https://developer.android.com/training/package-visibility?hl=en and
-         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
-
-         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>

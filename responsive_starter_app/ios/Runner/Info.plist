@@ -48,15 +48,15 @@
 		<key>UIStatusBarHidden</key>
 		<false/>
 
-		<!-- Bluetooth usage strings required for BLE link to Meshcore device (R3). -->
+		<!-- Bluetooth: scan for and connect to nearby BLE devices. -->
 		<key>NSBluetoothAlwaysUsageDescription</key>
-		<string>Meshmore SNS uses Bluetooth to communicate with your Meshcore mesh radio.</string>
+		<string>This app uses Bluetooth to scan for and connect to nearby devices.</string>
 		<key>NSBluetoothPeripheralUsageDescription</key>
-		<string>Meshmore SNS uses Bluetooth to communicate with your Meshcore mesh radio.</string>
+		<string>This app uses Bluetooth to scan for and connect to nearby devices.</string>
 
-		<!-- Location usage string for R22 / U13 — one-shot phone GPS
-		     as a fallback when the MeshCore device has no fix. -->
+		<!-- Location: iOS requires it to read the connected WiFi
+		     network name and for Bluetooth scanning. -->
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>Meshmore SNS uses your location as a one-shot fix to populate the advertised location when your MeshCore radio has no GPS.</string>
+		<string>This app uses your location to identify the connected WiFi network and to scan for nearby devices.</string>
 	</dict>
 </plist>

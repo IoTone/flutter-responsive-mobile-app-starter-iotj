@@ -8,6 +8,7 @@ import '../scanner/scanned_access_point.dart';
 import '../scanner/scanned_device.dart';
 import '../scanner/scanner_controller.dart';
 import '../scanner/signal_distance.dart';
+import '../scanner/wifi_source.dart';
 import 'device_detail_sheet.dart';
 import 'scan_controls.dart';
 
@@ -50,10 +51,34 @@ class DevicesScreen extends StatelessWidget {
         if (ble.isNotEmpty) _SectionHeader(l.devicesSectionBle, cs: cs),
         for (final ScannedDevice d in ble)
           _BleRow(device: d, cs: cs, l: l),
-        if (wifi.isNotEmpty) _SectionHeader(l.devicesSectionWifi, cs: cs),
-        for (final ScannedAccessPoint ap in wifi)
-          _WifiRow(ap: ap, cs: cs, l: l),
+        if (wifi.isNotEmpty) ...<Widget>[
+          _SectionHeader(l.devicesSectionWifi, cs: cs),
+          _WifiNote(capability: sc.wifiCapability, cs: cs, l: l),
+          for (final ScannedAccessPoint ap in wifi)
+            _WifiRow(ap: ap, cs: cs, l: l),
+        ],
       ],
+    );
+  }
+}
+
+class _WifiNote extends StatelessWidget {
+  const _WifiNote({required this.capability, required this.cs, required this.l});
+  final WifiCapability capability;
+  final ColorScheme cs;
+  final AppLocalizations l;
+  @override
+  Widget build(BuildContext context) {
+    final String? note = switch (capability) {
+      WifiCapability.connectedOnly => l.wifiCurrentOnly,
+      WifiCapability.fullScan => l.wifiThrottleNote,
+      WifiCapability.unavailable => null,
+    };
+    if (note == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+      child: Text(note,
+          style: TextStyle(color: cs.onSurfaceVariant, fontSize: 11)),
     );
   }
 }

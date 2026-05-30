@@ -14,6 +14,7 @@ import 'package:responsive_iot_2026/perms/first_run_controller.dart';
 import 'package:responsive_iot_2026/perms/permissions_service.dart';
 import 'package:responsive_iot_2026/scanner/ble_scanner.dart';
 import 'package:responsive_iot_2026/scanner/scanner_controller.dart';
+import 'package:responsive_iot_2026/scanner/wifi_sources.dart';
 import 'package:responsive_iot_2026/screens/first_run_intro_screen.dart';
 import 'package:responsive_iot_2026/splash/branded_splash_screen.dart';
 import 'package:responsive_iot_2026/theme/theme_controller.dart';
@@ -44,7 +45,10 @@ void main() {
             create: (_) => const PlatformPermissionsService(),
           ),
           ChangeNotifierProvider<ScannerController>(
-            create: (_) => ScannerController(ble: FlutterBlueScanner()),
+            create: (_) => ScannerController(
+              ble: FlutterBlueScanner(),
+              wifi: createWifiSource(),
+            ),
           ),
         ],
         child: const MyApp(),
