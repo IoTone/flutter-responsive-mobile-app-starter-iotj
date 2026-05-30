@@ -6,11 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// R4 — picks the active locale for the app. `null` = follow the OS
 /// (Flutter's default `Localizations.localeOf` resolution); otherwise
 /// override with the explicit choice. Persisted in shared_preferences
-/// under `mm.locale`.
+/// under `app.locale`.
 class LocaleController extends ChangeNotifier {
   LocaleController({Locale? initial}) : _locale = initial;
 
-  static const String _key = 'mm.locale';
+  static const String _key = 'app.locale';
 
   Locale? _locale;
   bool _loaded = false;

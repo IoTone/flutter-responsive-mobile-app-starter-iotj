@@ -88,6 +88,9 @@
   "settingsScanner": "スキャナー",
   "settingsScanWifi": "スキャンに WiFi を含める",
   "settingsScanWifiSub": "Android のみ。iOS は接続中のネットワークを表示します。",
+  "settingsRssiFloor": "信号フロア",
+  "settingsRssiFloorValue": "{dbm} dBm より弱い信号を非表示",
+  "settingsRssiFloorOff": "すべての信号を表示",
 
   "permBle": "Bluetooth",
   "permLocation": "位置情報",

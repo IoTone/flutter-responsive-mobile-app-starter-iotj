@@ -44,6 +44,9 @@ class ScannerController extends ChangeNotifier {
   bool _scanning = false;
   BleAdapterState _adapter = BleAdapterState.unknown;
 
+  /// Hide devices/APs weaker than this RSSI (dBm). -100 = show all.
+  int _rssiFloor = -100;
+
   // Single active GATT connection (the device-detail flow connects one
   // device at a time).
   String? _connectingId;
@@ -53,23 +56,35 @@ class ScannerController extends ChangeNotifier {
 
   // --- Public surface ---
 
-  /// Discovered BLE devices, strongest signal first.
+  /// Discovered BLE devices passing the RSSI floor, strongest first.
   List<ScannedDevice> get devices {
-    final List<ScannedDevice> list = _devices.values.toList();
+    final List<ScannedDevice> list = _devices.values
+        .where((ScannedDevice d) => d.rssi >= _rssiFloor)
+        .toList();
     list.sort((ScannedDevice a, ScannedDevice b) => b.rssi.compareTo(a.rssi));
     return List<ScannedDevice>.unmodifiable(list);
   }
 
-  /// Visible WiFi access points, strongest first.
+  /// Visible WiFi access points passing the RSSI floor, strongest first.
   List<ScannedAccessPoint> get accessPoints {
-    final List<ScannedAccessPoint> list = _aps.values.toList();
+    final List<ScannedAccessPoint> list = _aps.values
+        .where((ScannedAccessPoint a) => a.rssi >= _rssiFloor)
+        .toList();
     list.sort((ScannedAccessPoint a, ScannedAccessPoint b) =>
         b.rssi.compareTo(a.rssi));
     return List<ScannedAccessPoint>.unmodifiable(list);
   }
 
-  int get bleCount => _devices.length;
-  int get wifiCount => _aps.length;
+  int get bleCount => devices.length;
+  int get wifiCount => accessPoints.length;
+
+  int get rssiFloor => _rssiFloor;
+  void setRssiFloor(int dbm) {
+    final int v = dbm.clamp(-100, -40);
+    if (v == _rssiFloor) return;
+    _rssiFloor = v;
+    notifyListeners();
+  }
   bool get isScanning => _scanning;
   BleAdapterState get adapterState => _adapter;
   WifiCapability get wifiCapability => _wifi.capability;

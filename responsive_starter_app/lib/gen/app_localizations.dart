@@ -554,6 +554,24 @@ abstract class AppLocalizations {
   /// **'Android only; iOS shows the connected network.'**
   String get settingsScanWifiSub;
 
+  /// No description provided for @settingsRssiFloor.
+  ///
+  /// In en, this message translates to:
+  /// **'Signal floor'**
+  String get settingsRssiFloor;
+
+  /// No description provided for @settingsRssiFloorValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide signals weaker than {dbm} dBm'**
+  String settingsRssiFloorValue(int dbm);
+
+  /// No description provided for @settingsRssiFloorOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all signals'**
+  String get settingsRssiFloorOff;
+
   /// No description provided for @permBle.
   ///
   /// In en, this message translates to:

@@ -2,42 +2,27 @@
 // SPDX-License-Identifier: MIT
 import 'package:flutter/material.dart';
 
-/// The six design-concept themes (UX brief A–F). **D "SEELE Monolith"
-/// = [MmThemePreset.seele] is the default** (also the high-contrast /
-/// sunlight accessibility benchmark). Screens are built against the
-/// semantic [MmTokens] names only — never hard-coded colours — so
-/// every preset works (R14).
-enum MmThemePreset { nerv, agHud, hyperlocal, seele, drPop, recon }
+/// Bundled dark theme presets. Screens reference only the semantic
+/// [AppTokens] roles (never hard-coded colours), so every preset
+/// re-skins the whole UI. [AppThemePreset.midnight] is the default and
+/// the high-contrast benchmark.
+enum AppThemePreset { midnight, indigo, cyan, aqua, magenta, amber }
 
-extension MmThemePresetX on MmThemePreset {
+extension AppThemePresetX on AppThemePreset {
   String get label => switch (this) {
-        MmThemePreset.nerv => 'NERV Terminal',
-        MmThemePreset.agHud => 'AG-HUD',
-        MmThemePreset.hyperlocal => 'Hyperlocal',
-        MmThemePreset.seele => 'SEELE Monolith — default · high-contrast',
-        MmThemePreset.drPop => 'DR Pop',
-        MmThemePreset.recon => 'Recon Night',
-      };
-
-  /// Asset-folder slug for the R12 per-theme audio pack. Used by
-  /// `AssetAudioPack` to resolve `assets/audio/<key>/<cue>.wav`.
-  /// Also matches the slugs used in `brand/_audio_pack.py` and in
-  /// the per-theme grid mockups (`brand/_grid_mockup.py`).
-  String get audioPackKey => switch (this) {
-        MmThemePreset.nerv => 'nerv',
-        MmThemePreset.agHud => 'aghud',
-        MmThemePreset.hyperlocal => 'hyperlocal',
-        MmThemePreset.seele => 'seele',
-        MmThemePreset.drPop => 'drpop',
-        MmThemePreset.recon => 'recon',
+        AppThemePreset.midnight => 'Midnight',
+        AppThemePreset.indigo => 'Indigo',
+        AppThemePreset.cyan => 'Cyan',
+        AppThemePreset.aqua => 'Aqua',
+        AppThemePreset.magenta => 'Magenta',
+        AppThemePreset.amber => 'Amber',
       };
 }
 
-/// Preset-independent semantic colour contract. Every preset supplies
-/// all nine; screens reference only these.
+/// Preset-independent semantic colour contract.
 @immutable
-class MmTokens {
-  const MmTokens({
+class AppTokens {
+  const AppTokens({
     required this.base,
     required this.surface,
     required this.surfaceAlt,
@@ -60,10 +45,9 @@ class MmTokens {
   final Color ok;
 }
 
-/// Catalogued from `meshmore-sns-UX-brief.md` (per-concept palettes).
-const Map<MmThemePreset, MmTokens> kMmPresets = <MmThemePreset, MmTokens>{
-  // D — default.
-  MmThemePreset.seele: MmTokens(
+const Map<AppThemePreset, AppTokens> kAppThemes = <AppThemePreset, AppTokens>{
+  // Default — near-black with a warm off-white, high contrast.
+  AppThemePreset.midnight: AppTokens(
     base: Color(0xFF000000),
     surface: Color(0xFF0E0E0C),
     surfaceAlt: Color(0xFF15140F),
@@ -74,7 +58,7 @@ const Map<MmThemePreset, MmTokens> kMmPresets = <MmThemePreset, MmTokens>{
     alert: Color(0xFFC8102E),
     ok: Color(0xFF9A958A),
   ),
-  MmThemePreset.nerv: MmTokens(
+  AppThemePreset.indigo: AppTokens(
     base: Color(0xFF0A0E1A),
     surface: Color(0xFF121826),
     surfaceAlt: Color(0xFF1B2436),
@@ -85,7 +69,7 @@ const Map<MmThemePreset, MmTokens> kMmPresets = <MmThemePreset, MmTokens>{
     alert: Color(0xFFE6005C),
     ok: Color(0xFF9CFF00),
   ),
-  MmThemePreset.agHud: MmTokens(
+  AppThemePreset.cyan: AppTokens(
     base: Color(0xFF05060B),
     surface: Color(0xFF10131F),
     surfaceAlt: Color(0xFF161B2A),
@@ -96,7 +80,7 @@ const Map<MmThemePreset, MmTokens> kMmPresets = <MmThemePreset, MmTokens>{
     alert: Color(0xFFFF2D78),
     ok: Color(0xFF22D3EE),
   ),
-  MmThemePreset.hyperlocal: MmTokens(
+  AppThemePreset.aqua: AppTokens(
     base: Color(0xFF0B0F17),
     surface: Color(0xFF161B26),
     surfaceAlt: Color(0xFF1E2533),
@@ -107,7 +91,7 @@ const Map<MmThemePreset, MmTokens> kMmPresets = <MmThemePreset, MmTokens>{
     alert: Color(0xFFFF3B6B),
     ok: Color(0xFF7CFF6B),
   ),
-  MmThemePreset.drPop: MmTokens(
+  AppThemePreset.magenta: AppTokens(
     base: Color(0xFF101014),
     surface: Color(0xFF1C1C24),
     surfaceAlt: Color(0xFF24242E),
@@ -118,7 +102,7 @@ const Map<MmThemePreset, MmTokens> kMmPresets = <MmThemePreset, MmTokens>{
     alert: Color(0xFFFF2E88),
     ok: Color(0xFFD7FF00),
   ),
-  MmThemePreset.recon: MmTokens(
+  AppThemePreset.amber: AppTokens(
     base: Color(0xFF000000),
     surface: Color(0xFF0A0A07),
     surfaceAlt: Color(0xFF141414),
@@ -131,19 +115,15 @@ const Map<MmThemePreset, MmTokens> kMmPresets = <MmThemePreset, MmTokens>{
   ),
 };
 
-MmThemePreset presetFromId(String? id) => MmThemePreset.values.firstWhere(
-      (MmThemePreset p) => p.name == id,
-      orElse: () => MmThemePreset.seele,
+AppThemePreset presetFromId(String? id) => AppThemePreset.values.firstWhere(
+      (AppThemePreset p) => p.name == id,
+      orElse: () => AppThemePreset.midnight,
     );
 
-/// Build a Material 3 dark [ThemeData] from a token set.
-///
-/// Binds **every** commonly-used colour role + the text/icon themes to
-/// the tokens — including the M3 surface-container roles that
-/// `ColorScheme.dark(...)` would otherwise leave at fixed defaults.
-/// Without this, switching presets only nudged a couple of accents
-/// (the "themes don't change" bug); now the whole UI re-skins.
-ThemeData buildMmTheme(MmTokens t) {
+/// Build a Material 3 dark [ThemeData] from a token set. Binds every
+/// commonly-used colour role (including the M3 surface-container roles)
+/// so switching presets re-skins the whole UI.
+ThemeData buildAppTheme(AppTokens t) {
   final ColorScheme scheme = ColorScheme(
     brightness: Brightness.dark,
     surface: t.base,
@@ -212,11 +192,9 @@ ThemeData buildMmTheme(MmTokens t) {
       thumbColor: WidgetStateProperty.resolveWith((Set<WidgetState> s) =>
           s.contains(WidgetState.selected) ? t.accent : t.fgMuted),
       trackColor: WidgetStateProperty.resolveWith((Set<WidgetState> s) =>
-          s.contains(WidgetState.selected) ? t.accent.withValues(alpha: .4)
+          s.contains(WidgetState.selected)
+              ? t.accent.withValues(alpha: .4)
               : t.surfaceAlt),
-    ),
-    radioTheme: RadioThemeData(
-      fillColor: WidgetStateProperty.all(t.accent),
     ),
     sliderTheme: SliderThemeData(
       activeTrackColor: t.accent,

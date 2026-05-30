@@ -21,7 +21,7 @@ class FirstRunController extends ChangeNotifier {
   factory FirstRunController.preloaded({required bool done}) =>
       FirstRunController(initialDone: done);
 
-  static const String _key = 'mm.firstRun.done';
+  static const String _key = 'app.firstRun.done';
   bool _done;
   bool _loaded;
 

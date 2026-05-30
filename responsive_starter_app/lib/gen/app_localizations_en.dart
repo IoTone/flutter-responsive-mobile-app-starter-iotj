@@ -252,6 +252,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Android only; iOS shows the connected network.';
 
   @override
+  String get settingsRssiFloor => 'Signal floor';
+
+  @override
+  String settingsRssiFloorValue(int dbm) {
+    return 'Hide signals weaker than $dbm dBm';
+  }
+
+  @override
+  String get settingsRssiFloorOff => 'Show all signals';
+
+  @override
   String get permBle => 'Bluetooth';
 
   @override

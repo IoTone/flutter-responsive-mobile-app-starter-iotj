@@ -93,6 +93,10 @@
   "settingsScanner": "Scanner",
   "settingsScanWifi": "Include WiFi in scans",
   "settingsScanWifiSub": "Android only; iOS shows the connected network.",
+  "settingsRssiFloor": "Signal floor",
+  "settingsRssiFloorValue": "Hide signals weaker than {dbm} dBm",
+  "@settingsRssiFloorValue": { "placeholders": { "dbm": { "type": "int" } } },
+  "settingsRssiFloorOff": "Show all signals",
 
   "permBle": "Bluetooth",
   "permLocation": "Location",

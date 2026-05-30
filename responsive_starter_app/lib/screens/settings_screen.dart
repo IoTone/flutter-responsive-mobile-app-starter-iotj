@@ -8,8 +8,9 @@ import '../app_state_model.dart';
 import '../gen/app_localizations.dart';
 import '../l10n/locale_controller.dart';
 import '../perms/permissions_service.dart';
-import '../theme/mm_tokens.dart';
+import '../scanner/scanner_controller.dart';
 import '../theme/theme_controller.dart';
+import '../theme/tokens.dart';
 
 /// Settings hub: appearance/theme, language, permissions, a link to
 /// Diagnostics, and About. Demonstrates the theming + l10n pipelines.
@@ -20,24 +21,45 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeController tc = context.watch<ThemeController>();
     final LocaleController lc = context.watch<LocaleController>();
+    final ScannerController sc = context.watch<ScannerController>();
     final AppLocalizations l = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
 
     return ListView(
       children: <Widget>[
+        _Header(l.settingsScanner, cs: cs),
+        ListTile(
+          title: Text(l.settingsRssiFloor),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(sc.rssiFloor <= -100
+                  ? l.settingsRssiFloorOff
+                  : l.settingsRssiFloorValue(sc.rssiFloor)),
+              Slider(
+                value: sc.rssiFloor.toDouble(),
+                min: -100,
+                max: -40,
+                divisions: 12,
+                label: '${sc.rssiFloor} dBm',
+                onChanged: (double v) => sc.setRssiFloor(v.round()),
+              ),
+            ],
+          ),
+        ),
         _Header(l.settingsAppearance, cs: cs),
         ListTile(
           title: Text(l.settingsTheme),
-          trailing: DropdownButton<MmThemePreset>(
+          trailing: DropdownButton<AppThemePreset>(
             value: tc.preset,
             underline: const SizedBox.shrink(),
-            onChanged: (MmThemePreset? v) {
+            onChanged: (AppThemePreset? v) {
               if (v != null) tc.setPreset(v);
             },
-            items: <DropdownMenuItem<MmThemePreset>>[
-              for (final MmThemePreset p in MmThemePreset.values)
-                DropdownMenuItem<MmThemePreset>(
-                    value: p, child: Text(_presetLabel(p))),
+            items: <DropdownMenuItem<AppThemePreset>>[
+              for (final AppThemePreset p in AppThemePreset.values)
+                DropdownMenuItem<AppThemePreset>(
+                    value: p, child: Text(p.label)),
             ],
           ),
         ),
@@ -89,12 +111,6 @@ class SettingsScreen extends StatelessWidget {
         const _AboutBlock(),
       ],
     );
-  }
-
-  // Brand-neutral labels for the bundled theme presets.
-  static String _presetLabel(MmThemePreset p) {
-    final String n = p.name;
-    return n.isEmpty ? n : '${n[0].toUpperCase()}${n.substring(1)}';
   }
 }
 

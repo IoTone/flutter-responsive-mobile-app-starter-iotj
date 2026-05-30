@@ -249,6 +249,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsScanWifiSub => 'Android のみ。iOS は接続中のネットワークを表示します。';
 
   @override
+  String get settingsRssiFloor => '信号フロア';
+
+  @override
+  String settingsRssiFloorValue(int dbm) {
+    return '$dbm dBm より弱い信号を非表示';
+  }
+
+  @override
+  String get settingsRssiFloorOff => 'すべての信号を表示';
+
+  @override
   String get permBle => 'Bluetooth';
 
   @override
