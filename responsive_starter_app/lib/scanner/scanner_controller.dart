@@ -10,6 +10,9 @@ import 'scanned_access_point.dart';
 import 'scanned_device.dart';
 import 'wifi_source.dart';
 
+/// GATT connection state of a single device, for the detail UI.
+enum DeviceConnection { disconnected, connecting, connected }
+
 /// App-facing scan state, exposed via Provider. Fuses a [BleScanner]
 /// and a [WifiSource] into one observable surface: the discovered BLE
 /// devices, the visible WiFi access points, the radio/scan state, and
@@ -41,6 +44,13 @@ class ScannerController extends ChangeNotifier {
   bool _scanning = false;
   BleAdapterState _adapter = BleAdapterState.unknown;
 
+  // Single active GATT connection (the device-detail flow connects one
+  // device at a time).
+  String? _connectingId;
+  String? _connectedId;
+  bool _connectFailed = false;
+  List<GattService> _services = const <GattService>[];
+
   // --- Public surface ---
 
   /// Discovered BLE devices, strongest signal first.
@@ -66,6 +76,51 @@ class ScannerController extends ChangeNotifier {
   List<ScanEvent> get log => List<ScanEvent>.unmodifiable(_log.reversed);
 
   ScannedDevice? deviceById(String id) => _devices[id];
+
+  /// GATT services discovered on the currently-connected device.
+  List<GattService> get services => _services;
+
+  /// Connection state of [id] for the device-detail UI.
+  DeviceConnection connectionFor(String id) {
+    if (_connectingId == id) return DeviceConnection.connecting;
+    if (_connectedId == id) return DeviceConnection.connected;
+    return DeviceConnection.disconnected;
+  }
+
+  /// True if the most recent connect attempt failed (cleared on the
+  /// next attempt).
+  bool get connectFailed => _connectFailed;
+
+  /// Connect to a device and discover its GATT services.
+  Future<void> connect(String id) async {
+    if (_connectingId != null || _connectedId != null) return;
+    _connectingId = id;
+    _connectFailed = false;
+    notifyListeners();
+    try {
+      _services = await _ble.connect(id);
+      _connectedId = id;
+    } catch (_) {
+      _connectFailed = true;
+      _services = const <GattService>[];
+    } finally {
+      _connectingId = null;
+      notifyListeners();
+    }
+  }
+
+  Future<void> disconnect() async {
+    final String? id = _connectedId;
+    if (id == null) return;
+    try {
+      await _ble.disconnect(id);
+    } catch (_) {
+      // ignore — treat as disconnected regardless
+    }
+    _connectedId = null;
+    _services = const <GattService>[];
+    notifyListeners();
+  }
 
   /// Swap the WiFi source at runtime (e.g. when a relay proxy is
   /// discovered or permissions change). Re-subscribes if scanning.
@@ -171,6 +226,7 @@ class ScannerController extends ChangeNotifier {
 
   @override
   void dispose() {
+    if (_connectedId != null) unawaited(_ble.disconnect(_connectedId!));
     _adsSub?.cancel();
     _scanningSub?.cancel();
     _adapterSub?.cancel();

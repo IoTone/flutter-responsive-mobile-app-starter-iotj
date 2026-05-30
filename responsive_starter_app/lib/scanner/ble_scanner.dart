@@ -28,6 +28,13 @@ class BleAd {
 /// Whether Bluetooth is usable right now.
 enum BleAdapterState { unknown, off, unauthorized, on }
 
+/// A discovered GATT service and its characteristic UUIDs.
+class GattService {
+  const GattService({required this.uuid, required this.characteristics});
+  final String uuid;
+  final List<String> characteristics;
+}
+
 /// Abstraction over BLE scanning so the controller can be driven by a
 /// fake in tests. The platform implementation is [FlutterBlueScanner].
 abstract class BleScanner {
@@ -43,6 +50,13 @@ abstract class BleScanner {
 
   Future<void> start();
   Future<void> stop();
+
+  /// Connect to a device and return its discovered GATT services.
+  Future<List<GattService>> connect(String id);
+
+  /// Disconnect a previously-connected device.
+  Future<void> disconnect(String id);
+
   void dispose();
 }
 
@@ -72,6 +86,25 @@ class FlutterBlueScanner implements BleScanner {
 
   @override
   Future<void> stop() => FlutterBluePlus.stopScan();
+
+  @override
+  Future<List<GattService>> connect(String id) async {
+    final BluetoothDevice device = BluetoothDevice.fromId(id);
+    await device.connect(timeout: const Duration(seconds: 15));
+    final List<BluetoothService> services = await device.discoverServices();
+    return services
+        .map((BluetoothService s) => GattService(
+              uuid: s.uuid.str.toLowerCase(),
+              characteristics: s.characteristics
+                  .map((BluetoothCharacteristic c) => c.uuid.str.toLowerCase())
+                  .toList(),
+            ))
+        .toList();
+  }
+
+  @override
+  Future<void> disconnect(String id) =>
+      BluetoothDevice.fromId(id).disconnect();
 
   @override
   void dispose() {}
