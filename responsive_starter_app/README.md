@@ -1,47 +1,93 @@
-# Overview
+# Responsive IoT 2026
 
-This app is designed a starter template.  It has some design opinions, and it will implement a simple set of features typical to any mobile app.  It should be easy to customize and get something ready for an app store.  It is not intended as the "toy" examples found in medium.com posts.  It is intended to be multilinguial ready also.  It is meant to be used with a backend.
+A clean **Flutter starter for Bluetooth LE & WiFi device scanning** — a
+"forensic scanner" you can build on. It ships a working app: scan for
+nearby BLE devices and WiFi access points, plot them on a signal radar,
+inspect details, and connect to BLE devices over GATT. No backend, no
+accounts, offline-first.
 
-The app itself is a task queue.  The user creates tasks and you are given 45 minutes to 15 minutes for the task depending on priority.  Tasks will be in shuffle mode or repeat mode until a task is marked as completed.  The idea is to create extreme focus for short periods.  Break mode and other ideas will be introduced.
+> Package: `responsive_iot_2026` · bundle id `io.iotone.responsiveiot2026`
+> · MIT licensed.
 
 ## Features
 
-### Offline First
+- **Dashboard** — live scan summary (BLE / WiFi counts, radio state) and
+  a single Start/Stop control.
+- **Radar** — a radial scope placing devices by signal strength (weaker =
+  further out) at a stable per-id bearing, with an animated sweep
+  (honours reduce-motion). BLE = dot, WiFi = diamond. Tap to inspect.
+- **Devices** — unified list (BLE + WiFi), sorted by RSSI, with a
+  per-platform WiFi notice.
+- **Device detail** — identifiers, vendor (from the BT company id), live
+  signal, advertised services, and a **GATT connect** that discovers
+  services/characteristics.
+- **Settings** — theme presets, text size, reduce-motion / high-contrast,
+  language (English + 日本語), permissions, an RSSI **signal floor**, and
+  About.
+- **Diagnostics** — a rolling scan-event log with copy-to-clipboard.
+- **First-run** onboarding with permission rationale.
 
-The app should work without being online constantly.
+## Architecture
 
-### Core App
+Everything scan-related lives under [`lib/scanner/`](lib/scanner) and is
+injected, so the controller is fully unit-testable without hardware:
 
-The core app demonstrates:
-- user auth
-- a task queue timer
-- data saves to the cloud
+| Piece | Role |
+| --- | --- |
+| `ScannerController` | `ChangeNotifier` (Provider). Fuses BLE + WiFi, exposes devices/APs/counts/scan state, GATT connection, and a diagnostics log. |
+| `BleScanner` / `FlutterBlueScanner` | BLE scan + connect abstraction over `flutter_blue_plus`. Swap in `FakeBleScanner` for tests. |
+| `WifiSource` | Pluggable WiFi: `OnDeviceWifiSource` (Android full scan), `ConnectedNetworkSource` (iOS connected-only), `NoopWifiSource`. |
+| `SignalDistance` | RSSI → rough distance / radar radial fraction / band. |
+| `VendorLookup` | Small offline BT company-id → vendor table (extend it). |
 
-### Localized
+UI is `provider` + `go_router`; theming is a token-based dark theme with
+swappable presets; localization uses the standard ARB + `gen-l10n`
+pipeline (`lib/l10n/`).
 
-You can use this in more than one language.  The default supports two languages.  It is an exercise for you to add other languages, or contact us to build in more language support.
+## Platform notes (important)
 
-### Responsive
+- **WiFi scanning is asymmetric by OS design:**
+  - **Android** does a full nearby-AP scan (`wifi_scan`), but the OS
+    **throttles** scans (~4 per 2 min on many devices), so results
+    refresh slowly. Requires location permission.
+  - **iOS** has **no third-party AP-scanning API** — only the
+    *currently-connected* network is visible (`network_info_plus`), and
+    no RSSI is exposed. This is an Apple restriction, not a bug. To scan
+    nearby WiFi on iOS, use the optional relay proxy (below).
+- **Android permissions:** BLE scan/connect + location (+ `NEARBY_WIFI_DEVICES`
+  on API 33+). **iOS:** Bluetooth + location usage strings are set.
 
-Works on a variety of new and old phone layouts, even tablets
+## Optional: WiFi relay proxy (mDNS)
 
-### Open Source Software
+To get real nearby-WiFi scanning on iOS, run the companion proxy in
+[`tools/wifi-proxy/`](../tools/wifi-proxy) on a **Mac or Linux** box on
+the same network. It scans WiFi locally and serves the results over a
+small JSON endpoint advertised via Bonjour/mDNS; the app discovers it and
+shows the APs as if they were local. See that folder's README. (Caveat:
+the proxy scans the *proxy's* RF vicinity, not the phone's.)
 
-This is intended to be open.  It should be "free as in freedom" and "free as in beer".  No surprises.  No hidden API keys needed.
+## Run
 
-### Maintained
+```sh
+flutter pub get
+flutter gen-l10n      # regenerate localizations after editing lib/l10n/*.arb
+flutter run
+```
 
-A company called IoTone Japan will be maintaining this template with collaborators.  Plugin packages used in the app will be chosen and should also be modules that are maintained and OSS.
+## Test
 
-## Getting Started
+```sh
+flutter test
+flutter analyze
+```
 
-This project is a starting point for a Flutter application.
+Unit tests cover the controller (BLE ingest, RSSI floor, connection
+lifecycle), the signal math, the models, and the vendor lookup.
 
-A few resources to get you started if this is your first Flutter project:
+## Extending
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Add vendors to `VendorLookup` from the Bluetooth SIG assigned numbers.
+- Add a new `WifiSource` (e.g. the relay proxy) and call
+  `ScannerController.setWifiSource(...)`.
+- Add a theme preset in `lib/theme/tokens.dart`.
+- Add screens as new `go_router` routes in `lib/app_router.dart`.
