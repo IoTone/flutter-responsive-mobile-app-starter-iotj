@@ -103,11 +103,10 @@ class _BrandedSplashScreenState extends State<BrandedSplashScreen>
   }
 }
 
-/// Programmatic brand mark — concentric ring, three radial spokes
-/// with bullet caps (mesh nodes), and a centre diamond. Mirrors
-/// the SVG brand icons in `meshmore-sns/brand/<theme>/icon.svg`
-/// at a much smaller scale; uses the active theme's
-/// `primary` + `tertiary` so it stays on-theme.
+/// Programmatic brand mark — concentric rings, three radial spokes
+/// with bullet endcaps, and a centre diamond: a generic radar / signal
+/// motif. Uses the active theme's `primary` + `tertiary` so it stays
+/// on-theme.
 class _BrandMarkPainter extends CustomPainter {
   _BrandMarkPainter({
     required this.accent,
@@ -144,7 +143,7 @@ class _BrandMarkPainter extends CustomPainter {
     );
 
     // Three radial spokes at 12, 8, 4 o'clock with bullet endcaps
-    // — meant to read as "three peers on the mesh."
+    // — a small radial signal motif.
     final List<double> spokes = <double>[
       -math.pi / 2,
       -math.pi / 2 + 2 * math.pi / 3,

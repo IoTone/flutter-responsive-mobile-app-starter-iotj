@@ -1,11 +1,11 @@
 {
-    "name": "Meshmore SNS",
-    "short_name": "Meshmore",
+    "name": "Responsive IoT 2026",
+    "short_name": "Responsive IoT",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0A0E1A",
     "theme_color": "#0A0E1A",
-    "description": "Meshmore SNS — a Flutter client for the Meshcore LoRa mesh network.",
+    "description": "Responsive IoT 2026 — a Flutter starter for BLE & WiFi device scanning.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
