@@ -24,7 +24,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'Bluetooth LE と WiFi スキャンのためのオープンな Flutter スターター。';
 
   @override
-  String get aboutCopyright => '© 2026 IoTone, Inc.';
+  String get aboutCopyright => '© IoTone Japan, 2024–2026';
 
   @override
   String get aboutLicense => 'MIT ライセンス';

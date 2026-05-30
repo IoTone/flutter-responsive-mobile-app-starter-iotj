@@ -125,7 +125,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutCopyright.
   ///
   /// In en, this message translates to:
-  /// **'© 2026 IoTone, Inc.'**
+  /// **'© IoTone Japan, 2024–2026'**
   String get aboutCopyright;
 
   /// No description provided for @aboutLicense.

@@ -5,7 +5,7 @@
   "aboutSubtitle": "BLE・WiFi デバイススキャナー",
   "aboutVersion": "バージョン {version}",
   "aboutDescription": "Bluetooth LE と WiFi スキャンのためのオープンな Flutter スターター。",
-  "aboutCopyright": "© 2026 IoTone, Inc.",
+  "aboutCopyright": "© IoTone Japan, 2024–2026",
   "aboutLicense": "MIT ライセンス",
   "aboutMadeWith": "Flutter で構築。",
 

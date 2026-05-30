@@ -6,7 +6,7 @@
   "aboutVersion": "Version {version}",
   "@aboutVersion": { "placeholders": { "version": { "type": "String" } } },
   "aboutDescription": "An open Flutter starter for Bluetooth LE and WiFi scanning.",
-  "aboutCopyright": "© 2026 IoTone, Inc.",
+  "aboutCopyright": "© IoTone Japan, 2024–2026",
   "aboutLicense": "MIT License",
   "aboutMadeWith": "Built with Flutter.",
 

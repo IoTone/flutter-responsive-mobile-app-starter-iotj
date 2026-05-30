@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: MIT
 import 'package:go_router/go_router.dart';
 
+import 'screens/about_screen.dart';
 import 'screens/diagnostics_screen.dart';
 import 'shell/home_shell.dart';
 
-/// App routes. `/` hosts the swipe shell; Diagnostics is pushed on top.
+/// App routes. `/` hosts the swipe shell; sub-pages are pushed on top.
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
   routes: <RouteBase>[
@@ -14,5 +15,6 @@ final GoRouter appRouter = GoRouter(
       path: '/diagnostics',
       builder: (_, __) => const DiagnosticsScreen(),
     ),
+    GoRoute(path: '/about', builder: (_, __) => const AboutScreen()),
   ],
 );

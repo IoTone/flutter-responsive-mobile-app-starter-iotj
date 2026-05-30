@@ -24,6 +24,7 @@ class SettingsScreen extends StatelessWidget {
     final ThemeController tc = context.watch<ThemeController>();
     final LocaleController lc = context.watch<LocaleController>();
     final ScannerController sc = context.watch<ScannerController>();
+    final AppState app = context.watch<AppState>();
     final AppLocalizations l = AppLocalizations.of(context);
     final ColorScheme cs = Theme.of(context).colorScheme;
 
@@ -111,7 +112,13 @@ class SettingsScreen extends StatelessWidget {
           onTap: () => context.push('/diagnostics'),
         ),
         _Header(l.settingsAbout, cs: cs),
-        const _AboutBlock(),
+        ListTile(
+          leading: const Icon(Icons.info_outline),
+          title: Text(l.settingsAbout),
+          subtitle: Text('${l.appTitle} · ${l.aboutVersion(app.getAppVersion())}'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push('/about'),
+        ),
       ],
     );
   }
@@ -244,35 +251,3 @@ class _PermissionTileState extends State<_PermissionTile> {
   }
 }
 
-class _AboutBlock extends StatelessWidget {
-  const _AboutBlock();
-  @override
-  Widget build(BuildContext context) {
-    final AppLocalizations l = AppLocalizations.of(context);
-    final AppState app = context.watch<AppState>();
-    final ColorScheme cs = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(l.appTitle,
-              style: TextStyle(
-                  color: cs.onSurface,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600)),
-          const SizedBox(height: 2),
-          Text(l.aboutSubtitle,
-              style: TextStyle(color: cs.onSurfaceVariant)),
-          const SizedBox(height: 8),
-          Text(l.aboutVersion(app.getAppVersion()),
-              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12)),
-          const SizedBox(height: 8),
-          Text('${l.aboutDescription}\n${l.aboutCopyright} · ${l.aboutLicense}',
-              style: TextStyle(
-                  color: cs.onSurfaceVariant, fontSize: 12, height: 1.4)),
-        ],
-      ),
-    );
-  }
-}
