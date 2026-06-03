@@ -137,8 +137,14 @@ class _GridScreenState extends State<GridScreen>
 
   /// Live phone compass heading in degrees from magnetic north
   /// (0=N, 90=E, 180=S, 270=W). Null when no sensor data has
-  /// arrived yet. Drives the radar's "facing wedge" overlay.
+  /// arrived yet. Drives the radar's heading needle + heading-up mode.
   double? _headingDeg;
+
+  /// Radar orientation. True (default) = north-up: north is always at
+  /// the top, with a heading needle showing which way you face. False
+  /// = heading-up: the whole radar rotates so your facing direction is
+  /// at the top and the cardinal rose rotates to show where north is.
+  bool _northUp = true;
 
   /// Reported accuracy (degrees, lower = better). When > 25 we
   /// surface a small "calibrate phone (figure-8 wave)" hint.
@@ -307,6 +313,7 @@ class _GridScreenState extends State<GridScreen>
     required List<DiscoveredNode> visible,
     required double? selfLat,
     required double? selfLon,
+    double rotationRad = 0,
   }) {
     final Offset center = Offset(area.width / 2, area.height / 2);
     final double maxR = math.min(area.width, area.height) / 2 - 24;
@@ -321,6 +328,7 @@ class _GridScreenState extends State<GridScreen>
         selfLat: selfLat,
         selfLon: selfLon,
         scaleKm: GridScreen.rangeStops[_scaleIndex].km,
+        rotationRad: rotationRad,
       );
       final double d = (p - tap).distance;
       if (d <= _tapRadius && d < bestDist) {
@@ -649,6 +657,13 @@ class _GridScreenState extends State<GridScreen>
                     builder: (BuildContext _, BoxConstraints c) {
                       final Size area =
                           Size(c.maxWidth, c.maxHeight);
+                      // Heading-up rotates the whole plot so the facing
+                      // direction is at the top. North-up (default) or
+                      // no compass data → no rotation.
+                      final double headingRot =
+                          (_northUp || _headingDeg == null)
+                              ? 0.0
+                              : -(_headingDeg! * math.pi / 180);
                       return GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTapDown: (TapDownDetails d) {
@@ -658,6 +673,7 @@ class _GridScreenState extends State<GridScreen>
                             visible: visible,
                             selfLat: mc.selfInfo?.latitude,
                             selfLon: mc.selfInfo?.longitude,
+                            rotationRad: headingRot,
                           );
                           if (hit != null) {
                             _showDetail(context, mc, hit);
@@ -687,6 +703,7 @@ class _GridScreenState extends State<GridScreen>
                               rippleDuration: _rippleDuration,
                               headingDeg: _headingDeg,
                               scaleKm: scaleKm,
+                              rotationRad: headingRot,
                             ),
                           ),
                         ),
@@ -705,7 +722,7 @@ class _GridScreenState extends State<GridScreen>
                         color: cs.onSurfaceVariant, fontSize: 11),
                   ),
                 ),
-                if (_headingDeg != null)
+                if (_headingDeg != null) ...<Widget>[
                   Text(
                     l.gridHeading(_headingDeg!.round(),
                         _cardinal(_headingDeg!)),
@@ -714,6 +731,27 @@ class _GridScreenState extends State<GridScreen>
                         fontSize: 11,
                         fontFamily: 'monospace'),
                   ),
+                  // North-up / heading-up toggle. Default north-up; the
+                  // icon shows the current mode and the tooltip what a
+                  // tap switches to.
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    iconSize: 18,
+                    padding: const EdgeInsets.only(left: 8),
+                    constraints: const BoxConstraints(),
+                    tooltip: _northUp
+                        ? l.gridOrientHeadingUp
+                        : l.gridOrientNorthUp,
+                    icon: Icon(
+                      _northUp
+                          ? Icons.explore_outlined
+                          : Icons.navigation,
+                      color: cs.primary,
+                    ),
+                    onPressed: () =>
+                        setState(() => _northUp = !_northUp),
+                  ),
+                ],
               ],
             ),
           ),
@@ -844,6 +882,7 @@ class _GridPainter extends CustomPainter {
     required this.rippleDuration,
     required this.scaleKm,
     this.headingDeg,
+    this.rotationRad = 0,
   });
 
   final List<DiscoveredNode> nodes;
@@ -866,8 +905,14 @@ class _GridPainter extends CustomPainter {
   /// Live phone compass heading (degrees from magnetic north,
   /// 0=N / 90=E / 180=S / 270=W). When non-null, the painter draws a
   /// heading needle from the centre showing which way the user is
-  /// facing, paired with the north-up cardinal rose.
+  /// facing, paired with the cardinal rose.
   final double? headingDeg;
+
+  /// Plot rotation in radians. 0 = north-up (north at the top).
+  /// `-headingRad` rotates the whole scene so the facing direction is
+  /// at the top (heading-up mode). Applied to nodes, the cardinal
+  /// rose, and the heading needle so they stay mutually consistent.
+  final double rotationRad;
 
   static bool _selfHasGpsStatic(double? lat, double? lon) =>
       lat != null && lon != null && !(lat == 0 && lon == 0);
@@ -900,6 +945,7 @@ class _GridPainter extends CustomPainter {
     required double? selfLat,
     required double? selfLon,
     required double scaleKm,
+    double rotationRad = 0,
   }) {
     final bool selfGps = _selfHasGpsStatic(selfLat, selfLon);
     final double angle;
@@ -919,8 +965,10 @@ class _GridPainter extends CustomPainter {
       radius = maxR;
       angle = _hashAngle(node.pubKeyHex);
     }
+    // rotationRad rotates the whole plot (heading-up mode); 0 = north-up.
+    final double a = angle + rotationRad;
     return center +
-        Offset(radius * math.sin(angle), -radius * math.cos(angle));
+        Offset(radius * math.sin(a), -radius * math.cos(a));
   }
 
   @override
@@ -1025,6 +1073,7 @@ class _GridPainter extends CustomPainter {
         selfLat: selfLat,
         selfLon: selfLon,
         scaleKm: scaleKm,
+        rotationRad: rotationRad,
       );
 
       final bool isFav = favorites.contains(n.pubKeyHex);
@@ -1065,32 +1114,34 @@ class _GridPainter extends CustomPainter {
     }
   }
 
-  /// North-up compass rose: an 8-point tick ring + N/E/S/W letters
-  /// just outside the outer range ring. Always drawn (independent of
-  /// heading) so the radar is oriented like a real compass.
+  /// Screen direction unit vector for a compass bearing (radians,
+  /// 0 = N) under the current [rotationRad]. north-up → N points up.
+  Offset _bearingDir(double bearingRad) {
+    final double a = bearingRad + rotationRad;
+    return Offset(math.sin(a), -math.cos(a));
+  }
+
+  /// Compass rose: an 8-point tick ring + N/E/S/W letters just outside
+  /// the outer range ring. Rotates with [rotationRad] so in heading-up
+  /// mode the cardinals show where north actually is.
   void _drawCompassRose(Canvas canvas, Offset center, double maxR) {
     final Paint tick = Paint()
       ..color = base.withValues(alpha: .6)
       ..strokeWidth = 1.2;
     for (int i = 0; i < 8; i++) {
-      final double a = i * math.pi / 4 - math.pi / 2; // 0 = N (up)
-      final bool cardinal = i.isEven;
-      final double inner = maxR - (cardinal ? 10 : 6);
-      canvas.drawLine(
-        center + Offset(math.cos(a) * inner, math.sin(a) * inner),
-        center + Offset(math.cos(a) * maxR, math.sin(a) * maxR),
-        tick,
-      );
+      final Offset dir = _bearingDir(i * math.pi / 4);
+      final double inner = maxR - (i.isEven ? 10 : 6);
+      canvas.drawLine(center + dir * inner, center + dir * maxR, tick);
     }
-    final List<({String s, double ang, bool n})> marks =
-        <({String s, double ang, bool n})>[
-      (s: 'N', ang: -math.pi / 2, n: true),
-      (s: 'E', ang: 0, n: false),
-      (s: 'S', ang: math.pi / 2, n: false),
-      (s: 'W', ang: math.pi, n: false),
+    final List<({String s, double bearing, bool n})> marks =
+        <({String s, double bearing, bool n})>[
+      (s: 'N', bearing: 0, n: true),
+      (s: 'E', bearing: math.pi / 2, n: false),
+      (s: 'S', bearing: math.pi, n: false),
+      (s: 'W', bearing: 3 * math.pi / 2, n: false),
     ];
     final double lr = maxR + 12;
-    for (final ({String s, double ang, bool n}) m in marks) {
+    for (final ({String s, double bearing, bool n}) m in marks) {
       final TextPainter tp = TextPainter(
         text: TextSpan(
           text: m.s,
@@ -1103,38 +1154,32 @@ class _GridPainter extends CustomPainter {
         ),
         textDirection: TextDirection.ltr,
       )..layout();
-      final Offset c =
-          center + Offset(math.cos(m.ang) * lr, math.sin(m.ang) * lr);
+      final Offset c = center + _bearingDir(m.bearing) * lr;
       tp.paint(canvas, c - Offset(tp.width / 2, tp.height / 2));
     }
   }
 
-  /// Heading needle pointing in the user's facing direction. Compass
-  /// heading is 0 = N (up); screen-math north is -90°, hence the
-  /// offset. A short muted tail gives it a magnetic-needle feel.
+  /// Heading needle pointing in the user's facing direction. In
+  /// north-up it points toward the heading bearing; in heading-up it
+  /// points straight up (the facing direction is the top). A short
+  /// muted tail gives it a magnetic-needle feel.
   void _drawHeadingNeedle(
       Canvas canvas, Offset center, double maxR, double headingDeg) {
-    final double a = (headingDeg - 90) * math.pi / 180;
+    final Offset dir = _bearingDir(headingDeg * math.pi / 180);
+    final Offset perp = Offset(-dir.dy, dir.dx);
     final double len = (maxR * 0.34).clamp(28.0, 80.0);
-    final double cosA = math.cos(a);
-    final double sinA = math.sin(a);
-    final Offset tip = center + Offset(cosA * len, sinA * len);
-    final double pCos = math.cos(a + math.pi / 2);
-    final double pSin = math.sin(a + math.pi / 2);
     const double halfW = 6.0;
-    final Offset baseC = center + Offset(cosA * 12, sinA * 12);
-    final Offset bL = baseC + Offset(pCos * halfW, pSin * halfW);
-    final Offset bR = baseC - Offset(pCos * halfW, pSin * halfW);
+    final Offset tip = center + dir * len;
+    final Offset baseC = center + dir * 12;
     final Path needle = Path()
       ..moveTo(tip.dx, tip.dy)
-      ..lineTo(bL.dx, bL.dy)
-      ..lineTo(bR.dx, bR.dy)
+      ..lineTo((baseC + perp * halfW).dx, (baseC + perp * halfW).dy)
+      ..lineTo((baseC - perp * halfW).dx, (baseC - perp * halfW).dy)
       ..close();
     canvas.drawPath(needle, Paint()..color = accent);
-    // Muted tail opposite the facing direction.
     canvas.drawLine(
       center,
-      center - Offset(cosA * (len * 0.4), sinA * (len * 0.4)),
+      center - dir * (len * 0.4),
       Paint()
         ..color = base.withValues(alpha: .5)
         ..strokeWidth = 2,
@@ -1150,7 +1195,8 @@ class _GridPainter extends CustomPainter {
       old.reduceMotion != reduceMotion ||
       old.rippleAt != rippleAt ||
       old.scaleKm != scaleKm ||
-      old.headingDeg != headingDeg;
+      old.headingDeg != headingDeg ||
+      old.rotationRad != rotationRad;
 }
 
 /// R50 — info-button legend specifically for the Mesh Tree view.

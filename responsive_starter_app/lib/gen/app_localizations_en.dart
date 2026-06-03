@@ -963,6 +963,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Compass needs calibration — wave the phone in a figure 8.';
 
   @override
+  String get gridOrientNorthUp => 'North-up';
+
+  @override
+  String get gridOrientHeadingUp => 'Heading-up';
+
+  @override
   String get voiceSettingsTitle => 'Voice (TTS quality)';
 
   @override

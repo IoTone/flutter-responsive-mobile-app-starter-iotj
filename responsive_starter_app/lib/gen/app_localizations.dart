@@ -1724,6 +1724,18 @@ abstract class AppLocalizations {
   /// **'Compass needs calibration — wave the phone in a figure 8.'**
   String get gridHeadingCalibrate;
 
+  /// No description provided for @gridOrientNorthUp.
+  ///
+  /// In en, this message translates to:
+  /// **'North-up'**
+  String get gridOrientNorthUp;
+
+  /// No description provided for @gridOrientHeadingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading-up'**
+  String get gridOrientHeadingUp;
+
   /// No description provided for @voiceSettingsTitle.
   ///
   /// In en, this message translates to:

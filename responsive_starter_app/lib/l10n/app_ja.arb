@@ -405,6 +405,8 @@
     }
   },
   "gridHeadingCalibrate": "コンパス要校正 — スマートフォンを 8 の字に振ってください。",
+  "gridOrientNorthUp": "北を上",
+  "gridOrientHeadingUp": "進行方向を上",
   "@gridFooter": {
     "placeholders": {
       "label": {"type": "String"},

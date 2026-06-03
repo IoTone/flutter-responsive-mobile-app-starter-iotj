@@ -914,6 +914,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridHeadingCalibrate => 'コンパス要校正 — スマートフォンを 8 の字に振ってください。';
 
   @override
+  String get gridOrientNorthUp => '北を上';
+
+  @override
+  String get gridOrientHeadingUp => '進行方向を上';
+
+  @override
   String get voiceSettingsTitle => '音声 (TTS 品質)';
 
   @override

@@ -48,6 +48,10 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     duration: const Duration(seconds: 4),
   )..repeat();
 
+  /// Transient "request in flight" flag, just for the chip's spinner —
+  /// the telemetry response lands asynchronously via the controller.
+  bool _polling = false;
+
   @override
   void initState() {
     super.initState();
@@ -68,7 +72,12 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
   void _refreshSelfTelemetry() {
     final MeshcoreController mc = context.read<MeshcoreController>();
     if (mc.isReady) mc.requestSelfTelemetry();
-    if (mounted) setState(() {});
+    // Always flash the polling indicator so the tap has visible
+    // feedback even when the altitude comes back unchanged.
+    setState(() => _polling = true);
+    Future<void>.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _polling = false);
+    });
   }
 
   @override
@@ -151,43 +160,55 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
         Positioned(
           left: 12,
           top: 56,
-          child: GestureDetector(
-            onTap: _refreshSelfTelemetry,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: cs.surface.withValues(alpha: .85),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                    color: cs.outline.withValues(alpha: .55)),
-              ),
-              child: DefaultTextStyle(
-                style: TextStyle(
-                  color: cs.onSurface,
-                  fontSize: 10,
-                  fontFamily: 'monospace',
-                  letterSpacing: 1,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _refreshSelfTelemetry,
+              borderRadius: BorderRadius.circular(6),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: cs.surface.withValues(alpha: .85),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                      color: cs.outline.withValues(alpha: .55)),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        const Text('SELF TELEMETRY'),
-                        const SizedBox(width: 4),
-                        Icon(Icons.refresh,
-                            size: 11, color: cs.onSurfaceVariant),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(selfAlt != null
-                        ? 'alt: ${selfAlt.toStringAsFixed(0)} m'
-                        : 'alt: — (tap to poll)'),
-                    const Text('tap to update'),
-                  ],
+                child: DefaultTextStyle(
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontSize: 10,
+                    fontFamily: 'monospace',
+                    letterSpacing: 1,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          const Text('SELF TELEMETRY'),
+                          const SizedBox(width: 4),
+                          if (_polling)
+                            SizedBox(
+                              width: 11,
+                              height: 11,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 1.5, color: cs.primary),
+                            )
+                          else
+                            Icon(Icons.refresh,
+                                size: 11, color: cs.onSurfaceVariant),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(selfAlt != null
+                          ? 'alt: ${selfAlt.toStringAsFixed(0)} m'
+                          : 'alt: —'),
+                      Text(_polling ? 'polling…' : 'tap to update'),
+                    ],
+                  ),
                 ),
               ),
             ),
