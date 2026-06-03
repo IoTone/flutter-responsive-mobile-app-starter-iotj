@@ -700,9 +700,15 @@ class _OtherParamsEditor extends StatefulWidget {
 }
 
 class _OtherParamsEditorState extends State<_OtherParamsEditor> {
-  late final TextEditingController _telemetry =
-      TextEditingController(text: widget.si.telemetryModeRaw.toString());
+  // Telemetry mode is a packed byte: bits 0-1 = base, 2-3 = location,
+  // 4-5 = environment (each 0–3, meaning firmware-defined). Decompose
+  // it into three selectors so the user isn't editing a raw number.
+  late int _telBase = widget.si.telemetryModeRaw & 0x03;
+  late int _telLoc = (widget.si.telemetryModeRaw >> 2) & 0x03;
+  late int _telEnv = (widget.si.telemetryModeRaw >> 4) & 0x03;
   late int _multiAcks = widget.si.multiAcks;
+
+  int get _telPacked => _telBase | (_telLoc << 2) | (_telEnv << 4);
 
   @override
   void didUpdateWidget(_OtherParamsEditor old) {
@@ -711,23 +717,17 @@ class _OtherParamsEditorState extends State<_OtherParamsEditor> {
     // value after a successful SET) — re-sync the local UI state to
     // match the truth.
     if (old.si.telemetryModeRaw != widget.si.telemetryModeRaw) {
-      _telemetry.text = widget.si.telemetryModeRaw.toString();
+      _telBase = widget.si.telemetryModeRaw & 0x03;
+      _telLoc = (widget.si.telemetryModeRaw >> 2) & 0x03;
+      _telEnv = (widget.si.telemetryModeRaw >> 4) & 0x03;
     }
     if (old.si.multiAcks != widget.si.multiAcks) {
       _multiAcks = widget.si.multiAcks;
     }
   }
 
-  @override
-  void dispose() {
-    _telemetry.dispose();
-    super.dispose();
-  }
-
-  Future<void> _applyTelemetry() async {
-    final int? v = int.tryParse(_telemetry.text.trim());
-    if (v == null) return;
-    await widget.mc.setTelemetryMode(v);
+  Future<void> _applyTelemetryMode() async {
+    await widget.mc.setTelemetryMode(_telPacked);
     _snack();
   }
 
@@ -799,27 +799,64 @@ class _OtherParamsEditorState extends State<_OtherParamsEditor> {
             style:
                 TextStyle(color: cs.onSurfaceVariant, fontSize: 11)),
         const SizedBox(height: 10),
-        // telemetry mode — raw byte.
-        TextField(
-          controller: _telemetry,
-          enabled: widget.enabled,
-          keyboardType: TextInputType.number,
-          inputFormatters: <TextInputFormatter>[
-            FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
-          ],
-          decoration: InputDecoration(
-            labelText: l.otherTelemetryLabel,
-            helperText: l.otherTelemetryHelper,
-            isDense: true,
+        // Telemetry mode — base / location / environment, each 0–3.
+        // Packed into one byte (bits 0-1/2-3/4-5). Value meanings are
+        // firmware-defined; applied to the device on each change.
+        Text(l.otherTelemetryModeTitle,
+            style: TextStyle(
+                color: cs.onSurfaceVariant,
+                fontSize: 12,
+                letterSpacing: 1)),
+        const SizedBox(height: 4),
+        for (final (String, int, void Function(int)) row
+            in <(String, int, void Function(int))>[
+          (l.otherTelemetryBase, _telBase, (int v) {
+            setState(() => _telBase = v);
+            _applyTelemetryMode();
+          }),
+          (l.otherTelemetryLoc, _telLoc, (int v) {
+            setState(() => _telLoc = v);
+            _applyTelemetryMode();
+          }),
+          (l.otherTelemetryEnv, _telEnv, (int v) {
+            setState(() => _telEnv = v);
+            _applyTelemetryMode();
+          }),
+        ])
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              children: <Widget>[
+                SizedBox(
+                    width: 88,
+                    child: Text(row.$1,
+                        style:
+                            TextStyle(color: cs.onSurface, fontSize: 13))),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SegmentedButton<int>(
+                    segments: const <ButtonSegment<int>>[
+                      ButtonSegment<int>(value: 0, label: Text('0')),
+                      ButtonSegment<int>(value: 1, label: Text('1')),
+                      ButtonSegment<int>(value: 2, label: Text('2')),
+                      ButtonSegment<int>(value: 3, label: Text('3')),
+                    ],
+                    selected: <int>{row.$2},
+                    showSelectedIcon: false,
+                    style: const ButtonStyle(
+                        visualDensity: VisualDensity.compact),
+                    onSelectionChanged: widget.enabled
+                        ? (Set<int> s) => row.$3(s.first)
+                        : null,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            icon: const Icon(Icons.send, size: 16),
-            label: Text(l.otherApply),
-            onPressed: widget.enabled ? _applyTelemetry : null,
-          ),
+        const SizedBox(height: 4),
+        Text(
+          l.otherTelemetryModeHelp('$_telPacked'),
+          style: TextStyle(color: cs.onSurfaceVariant, fontSize: 11),
         ),
       ],
     );

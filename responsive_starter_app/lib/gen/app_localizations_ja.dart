@@ -2028,6 +2028,23 @@ class AppLocalizationsJa extends AppLocalizations {
   String get otherTelemetryHelper => '0 = オフ · 意味はファームウェアに依存します。';
 
   @override
+  String get otherTelemetryModeTitle => 'テレメトリモード (クラス別)';
+
+  @override
+  String get otherTelemetryBase => '基本';
+
+  @override
+  String get otherTelemetryLoc => '位置';
+
+  @override
+  String get otherTelemetryEnv => '環境';
+
+  @override
+  String otherTelemetryModeHelp(String raw) {
+    return '各クラス 0〜3 (意味はファーム依存)。WX に何も出ない場合は値を変えて再確認。生バイト: $raw';
+  }
+
+  @override
   String get otherMultiAcksLabel => 'マルチ ACK (0–3)';
 
   @override

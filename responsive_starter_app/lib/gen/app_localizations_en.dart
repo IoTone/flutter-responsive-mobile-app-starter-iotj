@@ -2117,6 +2117,23 @@ class AppLocalizationsEn extends AppLocalizations {
       '0 = off · semantics are firmware-defined.';
 
   @override
+  String get otherTelemetryModeTitle => 'Telemetry mode (per class)';
+
+  @override
+  String get otherTelemetryBase => 'Base';
+
+  @override
+  String get otherTelemetryLoc => 'Location';
+
+  @override
+  String get otherTelemetryEnv => 'Environment';
+
+  @override
+  String otherTelemetryModeHelp(String raw) {
+    return 'Each class 0–3 (firmware-defined). If WX shows nothing, try other values and re-check. Raw byte: $raw';
+  }
+
+  @override
   String get otherMultiAcksLabel => 'Multi-acks (0–3)';
 
   @override

@@ -3698,6 +3698,36 @@ abstract class AppLocalizations {
   /// **'0 = off · semantics are firmware-defined.'**
   String get otherTelemetryHelper;
 
+  /// No description provided for @otherTelemetryModeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Telemetry mode (per class)'**
+  String get otherTelemetryModeTitle;
+
+  /// No description provided for @otherTelemetryBase.
+  ///
+  /// In en, this message translates to:
+  /// **'Base'**
+  String get otherTelemetryBase;
+
+  /// No description provided for @otherTelemetryLoc.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get otherTelemetryLoc;
+
+  /// No description provided for @otherTelemetryEnv.
+  ///
+  /// In en, this message translates to:
+  /// **'Environment'**
+  String get otherTelemetryEnv;
+
+  /// No description provided for @otherTelemetryModeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Each class 0–3 (firmware-defined). If WX shows nothing, try other values and re-check. Raw byte: {raw}'**
+  String otherTelemetryModeHelp(String raw);
+
   /// No description provided for @otherMultiAcksLabel.
   ///
   /// In en, this message translates to:
