@@ -1318,6 +1318,15 @@ class AppLocalizationsJa extends AppLocalizations {
       '環境データを報告しているノードはまだありません。\nセンサー搭載ノードが照会されると表示されます — アプリ設定で「ノードのテレメトリを収集」を有効にしてください。';
 
   @override
+  String get weatherSelfNoTelemetry =>
+      'このデバイスはまだテレメトリを返していません。接続を確認してから、この画面を開き直してください。';
+
+  @override
+  String weatherSelfNoEnv(String types) {
+    return 'このデバイスのテレメトリには環境センサーが含まれていません。\n報告内容: $types。\n(BME280 には MeshCore センサーファームウェア／環境テレメトリの有効化が必要です。)';
+  }
+
+  @override
   String weatherReporting(int count) {
     return '$count 件が報告中';
   }

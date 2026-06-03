@@ -1380,6 +1380,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'No nodes are reporting environment data yet.\nReadings appear as sensor-equipped nodes are polled — enable \"Gather node telemetry\" in App settings.';
 
   @override
+  String get weatherSelfNoTelemetry =>
+      'This device hasn\'t returned telemetry yet. Make sure you\'re connected, then reopen this view.';
+
+  @override
+  String weatherSelfNoEnv(String types) {
+    return 'This device\'s telemetry carries no environment sensor.\nIt reported: $types.\n(A BME280 needs the MeshCore sensor firmware / environment telemetry enabled.)';
+  }
+
+  @override
   String weatherReporting(int count) {
     return '$count reporting';
   }

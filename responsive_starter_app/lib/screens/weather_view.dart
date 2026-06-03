@@ -17,10 +17,28 @@ import 'node_detail_sheet.dart';
 /// Data is whatever telemetry we already hold (self + any polled or
 /// overheard contact) — the background poller fills this in over time.
 /// Empty until at least one node reports a sensor reading.
-class WeatherView extends StatelessWidget {
+class WeatherView extends StatefulWidget {
   const WeatherView({super.key, this.filteredNodes});
 
   final List<DiscoveredNode>? filteredNodes;
+
+  @override
+  State<WeatherView> createState() => _WeatherViewState();
+}
+
+class _WeatherViewState extends State<WeatherView> {
+  @override
+  void initState() {
+    super.initState();
+    // Refetch our own telemetry on open so self environment (if the
+    // device reports it) is current. Peer readings come from the
+    // background poller.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final MeshcoreController mc = context.read<MeshcoreController>();
+      if (mc.isReady) mc.requestSelfTelemetry();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +49,7 @@ class WeatherView extends StatelessWidget {
     // Build (node, telemetry) pairs that actually report environment.
     final List<_Reading> readings = <_Reading>[];
     final String? ownHex = mc.ownPubKeyHex;
-    final List<DiscoveredNode> source = filteredNodes ?? mc.nodes;
+    final List<DiscoveredNode> source = widget.filteredNodes ?? mc.nodes;
     for (final DiscoveredNode n in source) {
       final NodeTelemetry? t = mc.telemetryFor(n.pubKeyHex);
       if (t != null && t.hasEnvironment) {
@@ -52,12 +70,37 @@ class WeatherView extends StatelessWidget {
     }
 
     if (readings.isEmpty) {
+      // Diagnostic: distinguish "no self telemetry received at all"
+      // from "received, but the device reports no environment sensor".
+      final NodeTelemetry? selfT = mc.selfTelemetry;
+      final String selfDiag = selfT == null
+          ? l.weatherSelfNoTelemetry
+          : l.weatherSelfNoEnv(selfT.entries.isEmpty
+              ? '—'
+              : selfT.entries
+                  .map((e) => '0x${e.type.toRadixString(16)}')
+                  .join(', '));
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(28),
-          child: Text(l.weatherEmpty,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: cs.onSurfaceVariant, height: 1.4)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(Icons.thermostat, size: 40, color: cs.onSurfaceVariant),
+              const SizedBox(height: 14),
+              Text(l.weatherEmpty,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: cs.onSurfaceVariant, height: 1.4)),
+              const SizedBox(height: 12),
+              Text(selfDiag,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: cs.onSurfaceVariant.withValues(alpha: .8),
+                      fontSize: 12,
+                      fontFamily: 'monospace',
+                      height: 1.4)),
+            ],
+          ),
         ),
       );
     }

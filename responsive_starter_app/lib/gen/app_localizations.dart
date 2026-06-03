@@ -2438,6 +2438,18 @@ abstract class AppLocalizations {
   /// **'No nodes are reporting environment data yet.\nReadings appear as sensor-equipped nodes are polled — enable \"Gather node telemetry\" in App settings.'**
   String get weatherEmpty;
 
+  /// No description provided for @weatherSelfNoTelemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'This device hasn\'t returned telemetry yet. Make sure you\'re connected, then reopen this view.'**
+  String get weatherSelfNoTelemetry;
+
+  /// No description provided for @weatherSelfNoEnv.
+  ///
+  /// In en, this message translates to:
+  /// **'This device\'s telemetry carries no environment sensor.\nIt reported: {types}.\n(A BME280 needs the MeshCore sensor firmware / environment telemetry enabled.)'**
+  String weatherSelfNoEnv(String types);
+
   /// No description provided for @weatherReporting.
   ///
   /// In en, this message translates to:
