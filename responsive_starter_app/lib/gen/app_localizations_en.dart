@@ -1367,6 +1367,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gridViewSnsCellsShort => 'SNS';
 
   @override
+  String get gridViewWeather => 'Weather (environment)';
+
+  @override
+  String get gridViewWeatherShort => 'WX';
+
+  @override
+  String get weatherSelf => 'This device';
+
+  @override
+  String get weatherEmpty =>
+      'No nodes are reporting environment data yet.\nReadings appear as sensor-equipped nodes are polled — enable \"Gather node telemetry\" in App settings.';
+
+  @override
+  String weatherReporting(int count) {
+    return '$count reporting';
+  }
+
+  @override
+  String get weatherMin => 'MIN';
+
+  @override
+  String get weatherAvg => 'AVG';
+
+  @override
+  String get weatherMax => 'MAX';
+
+  @override
+  String weatherAgoSeconds(int s) {
+    return '${s}s ago';
+  }
+
+  @override
+  String weatherAgoMinutes(int m) {
+    return '${m}m ago';
+  }
+
+  @override
+  String weatherAgoHours(int h) {
+    return '${h}h ago';
+  }
+
+  @override
   String get snsCellsAwaitingFix =>
       'Waiting for a location fix — the heat map centres on you.';
 

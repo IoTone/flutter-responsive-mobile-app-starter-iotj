@@ -1305,6 +1305,48 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridViewSnsCellsShort => 'SNS';
 
   @override
+  String get gridViewWeather => '気象（環境）';
+
+  @override
+  String get gridViewWeatherShort => 'WX';
+
+  @override
+  String get weatherSelf => 'このデバイス';
+
+  @override
+  String get weatherEmpty =>
+      '環境データを報告しているノードはまだありません。\nセンサー搭載ノードが照会されると表示されます — アプリ設定で「ノードのテレメトリを収集」を有効にしてください。';
+
+  @override
+  String weatherReporting(int count) {
+    return '$count 件が報告中';
+  }
+
+  @override
+  String get weatherMin => '最低';
+
+  @override
+  String get weatherAvg => '平均';
+
+  @override
+  String get weatherMax => '最高';
+
+  @override
+  String weatherAgoSeconds(int s) {
+    return '$s秒前';
+  }
+
+  @override
+  String weatherAgoMinutes(int m) {
+    return '$m分前';
+  }
+
+  @override
+  String weatherAgoHours(int h) {
+    return '$h時間前';
+  }
+
+  @override
   String get snsCellsAwaitingFix => '位置情報を待機中 — ヒートマップは自分を中心に表示されます。';
 
   @override

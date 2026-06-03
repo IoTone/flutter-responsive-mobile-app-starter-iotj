@@ -23,6 +23,7 @@ import 'mesh_tree_view.dart';
 import 'node_detail_sheet.dart';
 import 'sns_cells_view.dart';
 import 'street_map_view.dart';
+import 'weather_view.dart';
 
 /// R27 — three map views in the /grid picker:
 /// `radial` (R18, default) + `globe` (R27) + `equalGrid` (R25) +
@@ -40,6 +41,7 @@ enum _GridViewMode {
   elevation,
   tree,
   snsCells,
+  weather,
 }
 
 /// R18 / U9 — the hyperlocal grid: a radial range-ring view of the
@@ -215,6 +217,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.elevation => Icons.terrain,
         _GridViewMode.tree => Icons.account_tree,
         _GridViewMode.snsCells => Icons.local_fire_department,
+        _GridViewMode.weather => Icons.thermostat,
       };
 
   /// 4–5 character all-caps label for the picker button + menu. Keep
@@ -230,6 +233,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.elevation => l.gridViewElevationShort,
         _GridViewMode.tree => l.gridViewTreeShort,
         _GridViewMode.snsCells => l.gridViewSnsCellsShort,
+        _GridViewMode.weather => l.gridViewWeatherShort,
       };
 
   static String _longLabel(_GridViewMode m, AppLocalizations l) =>
@@ -242,6 +246,7 @@ class _GridScreenState extends State<GridScreen>
         _GridViewMode.elevation => l.gridViewElevation,
         _GridViewMode.tree => l.gridViewTree,
         _GridViewMode.snsCells => l.gridViewSnsCells,
+        _GridViewMode.weather => l.gridViewWeather,
       };
 
 
@@ -614,6 +619,7 @@ class _GridScreenState extends State<GridScreen>
                 ),
             ],
           ),
+        _GridViewMode.weather => WeatherView(filteredNodes: visible),
         _GridViewMode.radial => Column(
         children: <Widget>[
           Padding(

@@ -2414,6 +2414,72 @@ abstract class AppLocalizations {
   /// **'SNS'**
   String get gridViewSnsCellsShort;
 
+  /// No description provided for @gridViewWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather (environment)'**
+  String get gridViewWeather;
+
+  /// No description provided for @gridViewWeatherShort.
+  ///
+  /// In en, this message translates to:
+  /// **'WX'**
+  String get gridViewWeatherShort;
+
+  /// No description provided for @weatherSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get weatherSelf;
+
+  /// No description provided for @weatherEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No nodes are reporting environment data yet.\nReadings appear as sensor-equipped nodes are polled — enable \"Gather node telemetry\" in App settings.'**
+  String get weatherEmpty;
+
+  /// No description provided for @weatherReporting.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} reporting'**
+  String weatherReporting(int count);
+
+  /// No description provided for @weatherMin.
+  ///
+  /// In en, this message translates to:
+  /// **'MIN'**
+  String get weatherMin;
+
+  /// No description provided for @weatherAvg.
+  ///
+  /// In en, this message translates to:
+  /// **'AVG'**
+  String get weatherAvg;
+
+  /// No description provided for @weatherMax.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX'**
+  String get weatherMax;
+
+  /// No description provided for @weatherAgoSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{s}s ago'**
+  String weatherAgoSeconds(int s);
+
+  /// No description provided for @weatherAgoMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{m}m ago'**
+  String weatherAgoMinutes(int m);
+
+  /// No description provided for @weatherAgoHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{h}h ago'**
+  String weatherAgoHours(int h);
+
   /// No description provided for @snsCellsAwaitingFix.
   ///
   /// In en, this message translates to:
