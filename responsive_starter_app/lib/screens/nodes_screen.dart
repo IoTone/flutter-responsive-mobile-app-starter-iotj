@@ -512,6 +512,7 @@ class _NodesScreenState extends State<NodesScreen> {
                         // row stays compact for untagged nodes.
                         final List<String> tags =
                             mc.tagsFor(n.pubKeyHex);
+                        final telem = mc.telemetryFor(n.pubKeyHex);
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
@@ -526,6 +527,36 @@ class _NodesScreenState extends State<NodesScreen> {
                             ].join(' · '),
                                 style: TextStyle(
                                     color: cs.onSurfaceVariant)),
+                            if (telem?.temperatureC != null) ...<Widget>[
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: cs.tertiaryContainer,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    Icon(Icons.thermostat,
+                                        size: 11,
+                                        color: cs.onTertiaryContainer),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      <String>[
+                                        '${telem!.temperatureC!.toStringAsFixed(1)}°C',
+                                        if (telem.humidityPct != null)
+                                          '${telem.humidityPct!.toStringAsFixed(0)}%',
+                                      ].join(' · '),
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          color: cs.onTertiaryContainer),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                             if (tags.isNotEmpty) ...<Widget>[
                               const SizedBox(height: 4),
                               Wrap(
