@@ -1438,6 +1438,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodeDetailAltitudeUnknown => '不明';
 
   @override
+  String get nodeDetailTempKv => '温度';
+
+  @override
+  String nodeDetailTempValue(String c) {
+    return '$c °C';
+  }
+
+  @override
+  String get nodeDetailHumidityKv => '湿度';
+
+  @override
+  String nodeDetailHumidityValue(String p) {
+    return '$p%';
+  }
+
+  @override
+  String get nodeDetailPressureKv => '気圧';
+
+  @override
+  String nodeDetailPressureValue(String hpa) {
+    return '$hpa hPa';
+  }
+
+  @override
   String get nodeDetailQueryTelemetry => 'テレメトリを取得';
 
   @override

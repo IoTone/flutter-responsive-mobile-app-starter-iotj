@@ -2648,6 +2648,42 @@ abstract class AppLocalizations {
   /// **'unknown'**
   String get nodeDetailAltitudeUnknown;
 
+  /// No description provided for @nodeDetailTempKv.
+  ///
+  /// In en, this message translates to:
+  /// **'temperature'**
+  String get nodeDetailTempKv;
+
+  /// No description provided for @nodeDetailTempValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{c} °C'**
+  String nodeDetailTempValue(String c);
+
+  /// No description provided for @nodeDetailHumidityKv.
+  ///
+  /// In en, this message translates to:
+  /// **'humidity'**
+  String get nodeDetailHumidityKv;
+
+  /// No description provided for @nodeDetailHumidityValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{p}%'**
+  String nodeDetailHumidityValue(String p);
+
+  /// No description provided for @nodeDetailPressureKv.
+  ///
+  /// In en, this message translates to:
+  /// **'pressure'**
+  String get nodeDetailPressureKv;
+
+  /// No description provided for @nodeDetailPressureValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{hpa} hPa'**
+  String nodeDetailPressureValue(String hpa);
+
   /// No description provided for @nodeDetailQueryTelemetry.
   ///
   /// In en, this message translates to:

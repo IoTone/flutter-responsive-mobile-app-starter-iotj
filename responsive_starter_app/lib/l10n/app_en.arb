@@ -654,6 +654,21 @@
     "placeholders": {"m": {"type": "String"}}
   },
   "nodeDetailAltitudeUnknown": "unknown",
+  "nodeDetailTempKv": "temperature",
+  "nodeDetailTempValue": "{c} °C",
+  "@nodeDetailTempValue": {
+    "placeholders": {"c": {"type": "String"}}
+  },
+  "nodeDetailHumidityKv": "humidity",
+  "nodeDetailHumidityValue": "{p}%",
+  "@nodeDetailHumidityValue": {
+    "placeholders": {"p": {"type": "String"}}
+  },
+  "nodeDetailPressureKv": "pressure",
+  "nodeDetailPressureValue": "{hpa} hPa",
+  "@nodeDetailPressureValue": {
+    "placeholders": {"hpa": {"type": "String"}}
+  },
   "nodeDetailQueryTelemetry": "Query telemetry",
   "nodeDetailRefreshTelemetry": "Refresh telemetry",
   "nodeDetailTelemetryQuerying": "querying peer over the air…",

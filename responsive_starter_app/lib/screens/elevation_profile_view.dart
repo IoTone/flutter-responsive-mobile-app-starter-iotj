@@ -117,6 +117,7 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     }
 
     final double? selfAlt = mc.ownLocation?.altitudeMeters;
+    final double? selfTemp = mc.selfTelemetry?.temperatureC;
 
     return Stack(
       children: <Widget>[
@@ -213,6 +214,8 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
                       Text(selfAlt != null
                           ? 'alt: ${selfAlt.toStringAsFixed(0)} m'
                           : 'alt: —'),
+                      if (selfTemp != null)
+                        Text('temp: ${selfTemp.toStringAsFixed(1)} °C'),
                       Text(_polling ? 'polling…' : 'tap to update'),
                     ],
                   ),

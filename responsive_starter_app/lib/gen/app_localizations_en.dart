@@ -1511,6 +1511,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nodeDetailAltitudeUnknown => 'unknown';
 
   @override
+  String get nodeDetailTempKv => 'temperature';
+
+  @override
+  String nodeDetailTempValue(String c) {
+    return '$c °C';
+  }
+
+  @override
+  String get nodeDetailHumidityKv => 'humidity';
+
+  @override
+  String nodeDetailHumidityValue(String p) {
+    return '$p%';
+  }
+
+  @override
+  String get nodeDetailPressureKv => 'pressure';
+
+  @override
+  String nodeDetailPressureValue(String hpa) {
+    return '$hpa hPa';
+  }
+
+  @override
   String get nodeDetailQueryTelemetry => 'Query telemetry';
 
   @override

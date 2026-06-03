@@ -654,6 +654,21 @@
     "placeholders": {"m": {"type": "String"}}
   },
   "nodeDetailAltitudeUnknown": "不明",
+  "nodeDetailTempKv": "温度",
+  "nodeDetailTempValue": "{c} °C",
+  "@nodeDetailTempValue": {
+    "placeholders": {"c": {"type": "String"}}
+  },
+  "nodeDetailHumidityKv": "湿度",
+  "nodeDetailHumidityValue": "{p}%",
+  "@nodeDetailHumidityValue": {
+    "placeholders": {"p": {"type": "String"}}
+  },
+  "nodeDetailPressureKv": "気圧",
+  "nodeDetailPressureValue": "{hpa} hPa",
+  "@nodeDetailPressureValue": {
+    "placeholders": {"hpa": {"type": "String"}}
+  },
   "nodeDetailQueryTelemetry": "テレメトリを取得",
   "nodeDetailRefreshTelemetry": "テレメトリを更新",
   "nodeDetailTelemetryQuerying": "電波経由でピアに問い合わせ中…",

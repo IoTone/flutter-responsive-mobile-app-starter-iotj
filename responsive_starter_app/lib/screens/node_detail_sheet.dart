@@ -492,6 +492,21 @@ class _TelemetrySection extends StatelessWidget {
               t!.altitudeMeters!.toStringAsFixed(1))));
     }
 
+    // Environment sensors (BME280 etc.) — present only when the node
+    // reports them in its telemetry.
+    if (t?.temperatureC != null) {
+      children.add(kv(l.nodeDetailTempKv,
+          l.nodeDetailTempValue(t!.temperatureC!.toStringAsFixed(1))));
+    }
+    if (t?.humidityPct != null) {
+      children.add(kv(l.nodeDetailHumidityKv,
+          l.nodeDetailHumidityValue(t!.humidityPct!.toStringAsFixed(0))));
+    }
+    if (t?.pressureHpa != null) {
+      children.add(kv(l.nodeDetailPressureKv,
+          l.nodeDetailPressureValue(t!.pressureHpa!.toStringAsFixed(0))));
+    }
+
     if (t != null) {
       children.add(Padding(
         padding: const EdgeInsets.only(top: 2, bottom: 4),
