@@ -975,6 +975,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gridOrientHeadingUp => 'Heading-up';
 
   @override
+  String get gridHeadingHud => 'HEADING';
+
+  @override
   String get voiceSettingsTitle => 'Voice (TTS quality)';
 
   @override

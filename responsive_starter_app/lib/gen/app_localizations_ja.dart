@@ -926,6 +926,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridOrientHeadingUp => '進行方向を上';
 
   @override
+  String get gridHeadingHud => '方位';
+
+  @override
   String get voiceSettingsTitle => '音声 (TTS 品質)';
 
   @override

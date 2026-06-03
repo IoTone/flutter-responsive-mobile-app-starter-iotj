@@ -409,6 +409,7 @@
   "gridHeadingCalibrate": "Compass needs calibration — wave the phone in a figure 8.",
   "gridOrientNorthUp": "North-up",
   "gridOrientHeadingUp": "Heading-up",
+  "gridHeadingHud": "HEADING",
   "@gridFooter": {
     "placeholders": {
       "label": {"type": "String"},

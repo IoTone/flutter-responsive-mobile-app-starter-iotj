@@ -1748,6 +1748,12 @@ abstract class AppLocalizations {
   /// **'Heading-up'**
   String get gridOrientHeadingUp;
 
+  /// No description provided for @gridHeadingHud.
+  ///
+  /// In en, this message translates to:
+  /// **'HEADING'**
+  String get gridHeadingHud;
+
   /// No description provided for @voiceSettingsTitle.
   ///
   /// In en, this message translates to:

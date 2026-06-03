@@ -676,7 +676,10 @@ class _GridScreenState extends State<GridScreen>
             _GridLegend(cs: cs, scaleKm: scaleKm, l: l),
           const Divider(height: 1),
           Expanded(
-            child: visible.isEmpty
+            child: Stack(
+              children: <Widget>[
+                Positioned.fill(
+                  child: visible.isEmpty
                 ? Center(
                     child: Padding(
                       padding: const EdgeInsets.all(28),
@@ -744,6 +747,16 @@ class _GridScreenState extends State<GridScreen>
                       );
                     },
                   ),
+                ),
+                if (_headingDeg != null && visible.isNotEmpty)
+                  Positioned(
+                    top: 10,
+                    left: 0,
+                    right: 0,
+                    child: Center(child: _headingHud(cs, l)),
+                  ),
+              ],
+            ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
@@ -756,58 +769,9 @@ class _GridScreenState extends State<GridScreen>
                         color: cs.onSurfaceVariant, fontSize: 11),
                   ),
                 ),
-                if (_headingDeg != null) ...<Widget>[
-                  Text(
-                    l.gridHeading(_headingDeg!.round(),
-                        _cardinal(_headingDeg!)),
-                    style: TextStyle(
-                        color: cs.onSurfaceVariant,
-                        fontSize: 11,
-                        fontFamily: 'monospace'),
-                  ),
-                  // North-up / heading-up toggle. Default north-up; the
-                  // icon shows the current mode and the tooltip what a
-                  // tap switches to.
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    iconSize: 18,
-                    padding: const EdgeInsets.only(left: 8),
-                    constraints: const BoxConstraints(),
-                    tooltip: _northUp
-                        ? l.gridOrientHeadingUp
-                        : l.gridOrientNorthUp,
-                    icon: Icon(
-                      _northUp
-                          ? Icons.explore_outlined
-                          : Icons.navigation,
-                      color: cs.primary,
-                    ),
-                    onPressed: () =>
-                        setState(() => _northUp = !_northUp),
-                  ),
-                ],
               ],
             ),
           ),
-          if (_headingAccuracyDeg != null &&
-              _headingAccuracyDeg! > 25)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Row(
-                children: <Widget>[
-                  Icon(Icons.explore_off,
-                      size: 12, color: cs.tertiary),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      l.gridHeadingCalibrate,
-                      style: TextStyle(
-                          color: cs.tertiary, fontSize: 11),
-                    ),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
       },
@@ -826,6 +790,99 @@ class _GridScreenState extends State<GridScreen>
     ];
     final int idx = ((n + 11.25) ~/ 22.5) % 16;
     return winds[idx];
+  }
+
+  /// Prominent heading HUD pinned to the top of the radar — a large,
+  /// monospace, HUD-style readout of the compass heading with the
+  /// north-up / heading-up toggle. Replaces the tiny footer text.
+  Widget _headingHud(ColorScheme cs, AppLocalizations l) {
+    final int deg = _headingDeg!.round();
+    final String card = _cardinal(_headingDeg!);
+    final bool poorAccuracy =
+        _headingAccuracyDeg != null && _headingAccuracyDeg! > 25;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 6, 8, 8),
+      decoration: BoxDecoration(
+        color: cs.surface.withValues(alpha: .55),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: cs.primary.withValues(alpha: .35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                '◊ ${l.gridHeadingHud}',
+                style: TextStyle(
+                    color: cs.primary.withValues(alpha: .7),
+                    fontSize: 9,
+                    letterSpacing: 5,
+                    fontFamily: 'monospace'),
+              ),
+              const SizedBox(height: 1),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: <Widget>[
+                  Text(
+                    deg.toString().padLeft(3, '0'),
+                    style: TextStyle(
+                        color: cs.primary,
+                        fontSize: 38,
+                        height: 1,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'monospace',
+                        letterSpacing: 2),
+                  ),
+                  Text('°',
+                      style: TextStyle(
+                          color: cs.primary.withValues(alpha: .7),
+                          fontSize: 22,
+                          fontFamily: 'monospace')),
+                  const SizedBox(width: 10),
+                  Text(card,
+                      style: TextStyle(
+                          color: cs.tertiary,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'monospace',
+                          letterSpacing: 3)),
+                ],
+              ),
+              if (poorAccuracy)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(Icons.explore_off, size: 11, color: cs.tertiary),
+                      const SizedBox(width: 4),
+                      Text(l.gridHeadingCalibrate,
+                          style:
+                              TextStyle(color: cs.tertiary, fontSize: 9)),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 6),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            iconSize: 22,
+            tooltip:
+                _northUp ? l.gridOrientHeadingUp : l.gridOrientNorthUp,
+            icon: Icon(
+              _northUp ? Icons.explore_outlined : Icons.navigation,
+              color: cs.primary,
+            ),
+            onPressed: () => setState(() => _northUp = !_northUp),
+          ),
+        ],
+      ),
+    );
   }
 }
 
