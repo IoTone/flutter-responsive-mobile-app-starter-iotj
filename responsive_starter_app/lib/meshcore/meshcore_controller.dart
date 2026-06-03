@@ -2211,13 +2211,32 @@ class MeshcoreController extends ChangeNotifier {
     for (final int b in f.pubKeyPrefix) {
       hex.write(b.toRadixString(16).padLeft(2, '0'));
     }
-    final String pub6 = hex.toString();
+    String pub6 = hex.toString();
+    // A self-telemetry reply may echo the *request's* all-zero pubkey
+    // instead of the device's own prefix, landing under a zero key
+    // where selfTelemetry / telemetryFor(self) can't find it. Re-key
+    // it to our own prefix so every consumer sees self telemetry.
+    final String? ownHex = ownPubKeyHex;
+    final String? ownPub6 =
+        (ownHex != null && ownHex.length >= kPubKeyPrefixSize * 2)
+            ? ownHex.substring(0, kPubKeyPrefixSize * 2)
+            : null;
+    if (pub6 == '0' * (kPubKeyPrefixSize * 2) && ownPub6 != null) {
+      pub6 = ownPub6;
+    }
     final List<LppEntry> entries = decodeCayenneLpp(f.lppPayload);
-    _telemetry[pub6] = NodeTelemetry.fromFrame(
+    final NodeTelemetry nt = NodeTelemetry.fromFrame(
       pubKeyPrefixHex: pub6,
       receivedAt: DateTime.now(),
       entries: entries,
     );
+    // Diagnostic so we can see exactly what a node reports (run
+    // `flutter logs`): which LPP types arrived + the decoded env/alt.
+    debugPrint('[telem] key=$pub6 '
+        'types=${entries.map((LppEntry e) => '0x${e.type.toRadixString(16)}').join(',')} '
+        'temp=${nt.temperatureC} hum=${nt.humidityPct} '
+        'press=${nt.pressureHpa} alt=${nt.altitudeMeters}');
+    _telemetry[pub6] = nt;
     _telemetryInflight.remove(pub6);
     // Reset the per-peer attempt cap on a successful receipt — a
     // peer that just answered is fair game for periodic refresh
