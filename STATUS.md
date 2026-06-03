@@ -1,6 +1,6 @@
 # Meshmore SNS — project status
 
-_Snapshot as of v1.0.120+1 (branch `meshmore-sns`)._
+_Snapshot as of v1.0.122+1 (branch `meshmore-sns`)._
 
 An offline-first Flutter companion app for MeshCore LoRa mesh radios
 over BLE. Mesh-first, no backend. Sibling branch `responsive-iot-2026`
@@ -13,7 +13,7 @@ codebase.
   facade over the BLE link + MeshCore companion protocol. Owns nodes,
   chat/DM, channels, telemetry, battery, location, delivery tracking.
   Transport is injectable, so the whole controller is `flutter test`-
-  covered with a fake (75 controller tests; ~294 app-wide).
+  covered with a fake (~296 app-wide tests).
 - **`packages/meshcore`** — pure-Dart protocol codec (frames/opcodes,
   CayenneLPP, channel/identity crypto). No Flutter deps.
 - UI: `provider` + `go_router`; token-based themes; ARB + `gen-l10n`
@@ -42,11 +42,15 @@ codebase.
   / unknown), per-node telemetry (altitude + **temp/humidity/pressure**),
   on-tap telemetry query (contacts only).
 
-**Hyperlocal grid (R18/R25/R27) — 8 view modes**
+**Hyperlocal grid (R18/R25/R27) — 9 view modes**
 - **Radial "radar"** — range rings (Room…Wide…**City…Region**, Region
   auto-frames the known extent), signal/bearing placement, compass rose
   + heading needle, **north-up/heading-up toggle**, prominent top
   **heading HUD**.
+- **Weather (WX)** — environment telemetry at a glance: summary band
+  (nodes reporting + min/avg/max temperature on a cold→hot ramp) + a
+  warmest-first list of reporting nodes with temp/humidity/pressure +
+  freshness; tap → node detail.
 - Globe, equal-grid (OSM tiles), street map, fabric survey, mesh tree
   (force-directed, hop slider, Flood as first-class), sns-cells social
   heat map, **Fuji-san** elevation profile.
@@ -54,7 +58,12 @@ codebase.
 **Telemetry & sensors**
 - Self + peer telemetry via `CMD_SEND_TELEMETRY_REQ` / `0x8B`.
 - Decodes GPS (alt) + **environment (temperature/humidity/pressure)**;
-  surfaced in node detail, Nodes rows, and the Fuji-san self chip.
+  surfaced in node detail, Nodes rows, the Fuji-san self chip, and the
+  Weather view.
+- **Background telemetry poller** (opt-in, App settings → "Gather node
+  telemetry", default on): politely cycles synced contacts (one req per
+  ~10 s, hop/distance-tiered, 3 attempts/contact, 15-min refresh, then
+  quiet). Off = no telemetry traffic from us.
 - Self-telemetry zero-prefix replies normalized to our own key; a
   `[telem]` diag log dumps received LPP types.
 - Fuji-san polls **self** telemetry on load / on UPDATE (+ a phone-GPS
@@ -79,17 +88,29 @@ codebase.
   to be reported; standard companion firmware often sends only
   battery/GPS. The `[telem]` log confirms what a node actually sends.
   BME280 reads a few degrees warm (sits by the electronics).
-- Peer telemetry is **contact-only + on-demand**; the bulk
-  auto-gathering loop was removed pending lobospeak.
+- Peer telemetry is **contact-only** (firmware drops requests for
+  advert-only nodes); the background poller respects that.
+- **The whole temperature chain (poller → decode → Weather view) is
+  unverified on hardware** — it only shows data if a node's firmware
+  actually transmits environment telemetry. Confirm via the WX view /
+  `[telem]` logs before relying on it.
 - The PUSH_CODE_ACK (0x82) wire format isn't in firmware docs we hold;
   decoded as the documented u32 tag, degrades to "sent" if a device
   differs.
 
+## In progress / next
+
+- **Telemetry & weather thrust:** Phase 1 (background poller) ✅ and
+  Phase 2 (Weather view) ✅ shipped. **Phase 3 (per-node temperature
+  trends / history + sparkline) is paused** until temperature is
+  confirmed flowing on hardware — building history on an unverified
+  source is premature. Fallback if temp isn't sent: a sensor-firmware
+  detection/hint instead.
+
 ## Backlog (flagged, not started)
 
 - **lobospeak** — closed-network robot control plane over MeshCore
-  binary req/resp (design doc exists in `meshmore-sns/`). The big one;
-  peer-telemetry gathering is intentionally deferred behind it.
+  binary req/resp (design doc exists in `meshmore-sns/`). The big one.
 - **F2** — map alternatives. **F3** — AI integrations. (Both flagged
   only; need specifics before design.)
 - `responsive-iot-2026` generic starter branch — complete & local-only;
