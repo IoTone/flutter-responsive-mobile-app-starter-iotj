@@ -1076,6 +1076,18 @@ abstract class AppLocalizations {
   /// **'Wide'**
   String get gridRangeWide;
 
+  /// No description provided for @gridRangeCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get gridRangeCity;
+
+  /// No description provided for @gridRangeRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Region'**
+  String get gridRangeRegion;
+
   /// No description provided for @gridLegend.
   ///
   /// In en, this message translates to:

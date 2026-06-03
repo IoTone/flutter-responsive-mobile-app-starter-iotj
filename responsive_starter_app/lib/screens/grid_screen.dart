@@ -66,9 +66,11 @@ class GridScreen extends StatefulWidget {
   static const double defaultRangeKm = 5.0;
 
   /// Discrete stops for the **Range** slider. Index 0 = literally
-  /// "the same room", up to wide-area at 5 km (about the practical
-  /// LoRa SF7-12 outdoor envelope). Render with `_scaleIndex` as
-  /// the slider value.
+  /// "the same room", through wide-area at 5 km (the practical LoRa
+  /// SF7-12 outdoor envelope), then City (~metro) and Region. The
+  /// **Region** stop is special: its scale is computed at runtime to
+  /// frame the farthest known node (see `_effectiveScaleKm`); the km
+  /// here is only a fallback when no located nodes are visible.
   static const List<({String label, double km})> rangeStops =
       <({String label, double km})>[
     (label: 'Room', km: 0.025),
@@ -77,6 +79,8 @@ class GridScreen extends StatefulWidget {
     (label: 'Neighborhood', km: 1.0),
     (label: 'Area', km: 2.0),
     (label: 'Wide', km: 5.0),
+    (label: 'City', km: 25.0),
+    (label: 'Region', km: 300.0),
   ];
 
   /// Selectable cadences for the **Play** refresh timer. Pause is
@@ -133,7 +137,10 @@ class _GridScreenState extends State<GridScreen>
   Timer? _refreshTimer;
 
   /// Index into [GridScreen.rangeStops] for the outer-ring scale.
-  int _scaleIndex = GridScreen.rangeStops.length - 1; // Wide (5 km)
+  /// Default stays at **Wide** (5 km) even though City/Region sit
+  /// beyond it on the slider.
+  int _scaleIndex =
+      GridScreen.rangeStops.indexWhere((s) => s.label == 'Wide');
 
   /// Live phone compass heading in degrees from magnetic north
   /// (0=N, 90=E, 180=S, 270=W). Null when no sensor data has
@@ -281,8 +288,33 @@ class _GridScreenState extends State<GridScreen>
       2 => l.gridRangeBlock,
       3 => l.gridRangeNeighborhood,
       4 => l.gridRangeArea,
-      _ => l.gridRangeWide,
+      5 => l.gridRangeWide,
+      6 => l.gridRangeCity,
+      _ => l.gridRangeRegion,
     };
+  }
+
+  /// The outer-ring scale in km for the current stop. Most stops use
+  /// their fixed km; the **Region** stop (the last) instead frames the
+  /// farthest located node so it shows the whole known mesh extent,
+  /// falling back to the stop's km when no node has a location.
+  double _effectiveScaleKm(
+      double? selfLat, double? selfLon, List<DiscoveredNode> visible) {
+    final double base = GridScreen.rangeStops[_scaleIndex].km;
+    final bool isRegion = _scaleIndex == GridScreen.rangeStops.length - 1;
+    if (!isRegion || selfLat == null || selfLon == null) return base;
+    double maxKm = 0;
+    for (final DiscoveredNode n in visible) {
+      if (!n.hasLocation) continue;
+      final double km = geo.haversineMeters(
+              selfLat, selfLon, n.latitude!, n.longitude!) /
+          1000.0;
+      if (km > maxKm) maxKm = km;
+    }
+    if (maxKm <= 0) return base;
+    // Pad 10% so the farthest node sits just inside the rim; clamp to
+    // a sane window.
+    return (maxKm * 1.1).clamp(50.0, 2000.0);
   }
 
   /// Pretty distance label for a scale stop (e.g. "25 m" / "5 km").
@@ -318,6 +350,7 @@ class _GridScreenState extends State<GridScreen>
     final Offset center = Offset(area.width / 2, area.height / 2);
     final double maxR = math.min(area.width, area.height) / 2 - 24;
     if (maxR <= 0) return null;
+    final double scaleKm = _effectiveScaleKm(selfLat, selfLon, visible);
     DiscoveredNode? best;
     double bestDist = double.infinity;
     for (final DiscoveredNode n in visible) {
@@ -327,7 +360,7 @@ class _GridScreenState extends State<GridScreen>
         maxR: maxR,
         selfLat: selfLat,
         selfLon: selfLon,
-        scaleKm: GridScreen.rangeStops[_scaleIndex].km,
+        scaleKm: scaleKm,
         rotationRad: rotationRad,
       );
       final double d = (p - tap).distance;
@@ -399,7 +432,8 @@ class _GridScreenState extends State<GridScreen>
           n
     ];
 
-    final double scaleKm = GridScreen.rangeStops[_scaleIndex].km;
+    final double scaleKm = _effectiveScaleKm(
+        mc.selfInfo?.latitude, mc.selfInfo?.longitude, visible);
     final AppLocalizations l = AppLocalizations.of(context);
     final String scaleLabel = _rangeLabel(l, _scaleIndex);
     final String scaleValue = _rangeValue(scaleKm);

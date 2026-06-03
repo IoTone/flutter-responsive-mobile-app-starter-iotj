@@ -538,6 +538,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridRangeWide => '広域';
 
   @override
+  String get gridRangeCity => '市';
+
+  @override
+  String get gridRangeRegion => '地域';
+
+  @override
   String get gridLegend => '凡例';
 
   @override

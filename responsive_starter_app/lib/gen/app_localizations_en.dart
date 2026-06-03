@@ -567,6 +567,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gridRangeWide => 'Wide';
 
   @override
+  String get gridRangeCity => 'City';
+
+  @override
+  String get gridRangeRegion => 'Region';
+
+  @override
   String get gridLegend => 'LEGEND';
 
   @override

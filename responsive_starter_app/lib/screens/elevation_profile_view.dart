@@ -1,5 +1,6 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -72,6 +73,12 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
   void _refreshSelfTelemetry() {
     final MeshcoreController mc = context.read<MeshcoreController>();
     if (mc.isReady) mc.requestSelfTelemetry();
+    // The MeshCore SelfInfo carries lat/lon but never altitude, and a
+    // device's self-telemetry often omits a GPS triplet — so the phone
+    // GPS is usually our only altitude source. Grab a one-shot fix;
+    // the cached result then surfaces the ME altitude here AND on every
+    // other interface (dashboard, etc.) via ownLocation.
+    unawaited(mc.requestPhoneLocationFix());
     // Always flash the polling indicator so the tap has visible
     // feedback even when the altitude comes back unchanged.
     setState(() => _polling = true);

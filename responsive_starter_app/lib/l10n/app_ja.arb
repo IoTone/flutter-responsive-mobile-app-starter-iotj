@@ -222,6 +222,8 @@
   "gridRangeNeighborhood": "近隣",
   "gridRangeArea": "エリア",
   "gridRangeWide": "広域",
+  "gridRangeCity": "市",
+  "gridRangeRegion": "地域",
   "gridLegend": "凡例",
   "gridLegendRings": "同心円 3 本 = 距離帯。両端に GPS がある場合、外側のリングは上の「範囲」スケール (現在 ~{value})。GPS がない場合は RSSI 帯 (近 / 中 / 遠)。",
   "@gridLegendRings": {

@@ -222,6 +222,8 @@
   "gridRangeNeighborhood": "Neighborhood",
   "gridRangeArea": "Area",
   "gridRangeWide": "Wide",
+  "gridRangeCity": "City",
+  "gridRangeRegion": "Region",
   "gridLegend": "LEGEND",
   "gridLegendRings": "Three concentric rings = distance bands. With GPS on both ends, the outer ring is the **Range** scale above (~{value} right now). Without GPS, rings are RSSI bands (near / mid / far).",
   "@gridLegendRings": {
