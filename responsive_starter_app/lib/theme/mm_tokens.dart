@@ -223,5 +223,35 @@ ThemeData buildMmTheme(MmTokens t) {
       thumbColor: t.accent,
       inactiveTrackColor: t.line,
     ),
+    // The M3 default fills the selected segment with `secondaryContainer`
+    // (here a near-surface tone) — too subtle to read at a glance. Use a
+    // solid accent fill + dark text for the selected segment so the
+    // active choice reads unambiguously across every settings toggle.
+    segmentedButtonTheme: SegmentedButtonThemeData(
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith((Set<WidgetState> s) =>
+            s.contains(WidgetState.selected) ? t.accent : Colors.transparent),
+        foregroundColor: WidgetStateProperty.resolveWith((Set<WidgetState> s) =>
+            s.contains(WidgetState.selected) ? t.base : t.fgMuted),
+        iconColor: WidgetStateProperty.resolveWith((Set<WidgetState> s) =>
+            s.contains(WidgetState.selected) ? t.base : t.fgMuted),
+        overlayColor: WidgetStateProperty.all(t.accent.withValues(alpha: .12)),
+        side: WidgetStateProperty.all(BorderSide(color: t.line)),
+        textStyle: WidgetStateProperty.all(
+            const TextStyle(fontWeight: FontWeight.w600)),
+      ),
+    ),
+    // ChoiceChip (chat channel selector): same idea — solid accent fill
+    // with dark label + checkmark when selected, so the active chip
+    // stands out rather than blending into the unselected row.
+    chipTheme: ChipThemeData(
+      backgroundColor: Colors.transparent,
+      selectedColor: t.accent,
+      checkmarkColor: t.base,
+      side: BorderSide(color: t.line),
+      labelStyle: TextStyle(color: t.fg),
+      secondaryLabelStyle: TextStyle(color: t.base),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    ),
   );
 }

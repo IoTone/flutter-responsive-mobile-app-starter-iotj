@@ -274,6 +274,14 @@ class _ChatScreenState extends State<ChatScreen>
                     child: ChoiceChip(
                       label: Text(ch.value),
                       selected: ch.key == active,
+                      labelStyle: TextStyle(
+                        color: ch.key == active
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.onSurface,
+                        fontWeight: ch.key == active
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
                       onSelected: (_) => mc.setActiveChannel(ch.key),
                     ),
                   ),
