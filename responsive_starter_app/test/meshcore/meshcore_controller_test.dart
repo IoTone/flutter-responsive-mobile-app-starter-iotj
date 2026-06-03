@@ -289,6 +289,56 @@ void main() {
       return f;
     }
 
+    test('background telemetry poller queries an eligible contact when '
+        'enabled; sends nothing when disabled', () async {
+      SharedPreferences.setMockInitialValues(
+          <String, Object>{'mm.telemetryPoll': true});
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+        telemetryPollInterval: const Duration(milliseconds: 20),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame()); // → ready (self-telemetry 0x27 fires)
+      await Future<void>.delayed(Duration.zero);
+      // A direct contact (outPath []) → tier 0, no telemetry → eligible.
+      fake.emit(contactFrame(firstByte: 0xAA, type: 1, outPath: <int>[]));
+      await Future<void>.delayed(Duration.zero);
+
+      fake.sent.clear(); // drop the on-ready self request
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x27), isTrue,
+          reason: 'poller should send a peer telemetry request (0x27)');
+      ctrl.dispose();
+    });
+
+    test('background telemetry poller is silent when disabled', () async {
+      SharedPreferences.setMockInitialValues(
+          <String, Object>{'mm.telemetryPoll': false});
+      final FakeMeshcoreTransport fake =
+          FakeMeshcoreTransport(connected: true);
+      final MeshcoreController ctrl = MeshcoreController(
+        transportFactory: () async => fake,
+        connection: MeshcoreConnection(
+            handshakeTimeout: const Duration(seconds: 5)),
+        telemetryPollInterval: const Duration(milliseconds: 20),
+      );
+      await ctrl.connect();
+      fake.emit(selfInfoFrame());
+      await Future<void>.delayed(Duration.zero);
+      // Let the pref load resolve (disables the poller).
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      fake.emit(contactFrame(firstByte: 0xBB, type: 1, outPath: <int>[]));
+      fake.sent.clear();
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      expect(fake.sent.any((f) => f.isNotEmpty && f[0] == 0x27), isFalse,
+          reason: 'no telemetry requests when polling is off');
+      ctrl.dispose();
+    });
+
     test('contact-synced peer with 0 hops → empty chain (direct '
         'neighbour, solid line)', () async {
       final FakeMeshcoreTransport fake =

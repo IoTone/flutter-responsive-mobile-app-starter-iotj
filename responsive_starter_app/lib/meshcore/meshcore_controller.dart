@@ -47,7 +47,9 @@ class MeshcoreController extends ChangeNotifier {
     BackgroundKeepalive? backgroundKeepalive,
     LocationService? locationService,
     Duration? deliveryTimeoutOverride,
+    Duration? telemetryPollInterval,
   })  : _deliveryTimeoutOverride = deliveryTimeoutOverride,
+        _telemPollIntervalOverride = telemetryPollInterval,
         _transportFactory =
             transportFactory ?? BleConnector.autoConnect,
         _keepalive =
@@ -98,6 +100,9 @@ class MeshcoreController extends ChangeNotifier {
         // always available and returns immediately for the self case.
         // Used to populate altitude in ownLocation.
         requestSelfTelemetry();
+        // Begin politely polling contacts for telemetry (opt-in) so
+        // temperature / altitude populate across the fabric.
+        _startTelemetryPolling();
         // Drain anything the device queued before/while we connected
         // (heard contacts/adverts + received messages).
         _drainStart();
@@ -157,6 +162,7 @@ class MeshcoreController extends ChangeNotifier {
     _loadCoverage();
     _loadBatteryHistory();
     _loadPowerSpecs();
+    _loadTelemetryPollPref();
     unawaited(_dmReadStore.load().then((_) {
       // Notify so any UI watching unread counts (Nodes badge, etc.)
       // re-renders once the persisted last-read timestamps are in.
@@ -2205,6 +2211,112 @@ class MeshcoreController extends ChangeNotifier {
   final Set<String> _telemetryInflight = <String>{};
   final Map<String, int> _telemetryAttempts = <String, int>{};
 
+  // --- Background peer-telemetry poller (opt-in, airtime-conscious) ---
+  //
+  // Politely cycles through synced *contacts*, requesting telemetry one
+  // at a time so temperature / altitude populate across the fabric
+  // without the user tapping each node. Rate-limited (one request per
+  // interval), tiered by hop/distance, and attempt-capped — once every
+  // eligible contact has answered or hit its cap, it goes quiet (and
+  // re-polls only after the refresh window). Off → no OTA traffic.
+
+  Timer? _telemPollTimer;
+  bool _telemPollEnabled = true;
+  final Duration? _telemPollIntervalOverride; // test seam
+  static const Duration _telemPollInterval = Duration(seconds: 10);
+  static const int _telemPollMaxAttempts = 3;
+  static const Duration _telemPollRefreshAfter = Duration(minutes: 15);
+  static const int _telemPollMaxHopsAlways = 1;
+  static const int _telemPollMaxHopsWithDistance = 2;
+  static const double _telemPollMaxDistanceMeters = 100000; // 100 km
+
+  /// Whether background telemetry polling is enabled (App settings).
+  bool get telemetryPollEnabled => _telemPollEnabled;
+
+  Future<void> _loadTelemetryPollPref() async {
+    _telemPollEnabled = await TelemetryPollPrefs.enabled();
+    if (_telemPollEnabled) {
+      if (isReady) _startTelemetryPolling();
+    } else {
+      _telemPollTimer?.cancel();
+      _telemPollTimer = null;
+    }
+    notifyListeners();
+  }
+
+  Future<void> setTelemetryPollEnabled(bool v) async {
+    if (v == _telemPollEnabled) return;
+    _telemPollEnabled = v;
+    notifyListeners();
+    await TelemetryPollPrefs.setEnabled(v);
+    if (v) {
+      if (isReady) _startTelemetryPolling();
+    } else {
+      _telemPollTimer?.cancel();
+      _telemPollTimer = null;
+    }
+  }
+
+  void _startTelemetryPolling() {
+    _telemPollTimer?.cancel();
+    if (!_telemPollEnabled) return;
+    _telemPollTimer = Timer.periodic(
+        _telemPollIntervalOverride ?? _telemPollInterval,
+        (_) => _stepTelemetryPoll());
+  }
+
+  /// Query tier for the poller (mirrors the elevation view's old loop):
+  /// 0 = direct, 1 = 1-hop, 2 = 2-hop within 100 km, -1 = skip
+  /// (advert-only / no path / too far / too many hops).
+  int _telemPollTierFor(DiscoveredNode n) {
+    final List<int>? hops = n.outPathHashes;
+    if (hops == null) return -1;
+    final int hopCount = hops.length;
+    if (hopCount == 0) return 0;
+    if (hopCount <= _telemPollMaxHopsAlways) return 1;
+    if (hopCount <= _telemPollMaxHopsWithDistance && n.hasLocation) {
+      final double? d = distanceMetersTo(n.latitude!, n.longitude!);
+      if (d != null && d < _telemPollMaxDistanceMeters) return 2;
+    }
+    return -1;
+  }
+
+  void _stepTelemetryPoll() {
+    if (!isReady || !_telemPollEnabled) return;
+    final String? own = ownPubKeyHex;
+    final int nowMs = DateTime.now().millisecondsSinceEpoch;
+    DiscoveredNode? target;
+    int bestTier = 99;
+    for (final DiscoveredNode n in _nodes.values) {
+      if (n.pubKeyHex == own) continue;
+      if (isQueryingTelemetry(n.pubKeyHex)) continue;
+      if (telemetryAttemptsFor(n.pubKeyHex) >= _telemPollMaxAttempts) {
+        continue;
+      }
+      final int tier = _telemPollTierFor(n);
+      if (tier < 0) continue;
+      // Need telemetry if we have none, or it's older than the refresh
+      // window. (A successful receipt clears the attempt cap, so a
+      // refreshed peer becomes eligible again here.)
+      final NodeTelemetry? t = telemetryFor(n.pubKeyHex);
+      final bool needs = t == null ||
+          (nowMs - t.receivedAt.millisecondsSinceEpoch) >
+              _telemPollRefreshAfter.inMilliseconds;
+      if (!needs) continue;
+      // Prefer the cheapest tier; tie-break on most-recently-heard.
+      if (tier < bestTier ||
+          (tier == bestTier &&
+              target != null &&
+              n.lastHeardUnix > target.lastHeardUnix)) {
+        bestTier = tier;
+        target = n;
+      }
+    }
+    if (target == null) return;
+    unawaited(requestPeerTelemetry(target.pubKeyHex,
+        maxAttempts: _telemPollMaxAttempts));
+  }
+
   void _trackTelemetry(MeshcoreInbound f) {
     if (f is! TelemetryResponseFrame) return;
     final StringBuffer hex = StringBuffer();
@@ -2522,6 +2634,7 @@ class MeshcoreController extends ChangeNotifier {
     _reconnectGen++; // cancel any pending scheduled retry
     _battTimer?.cancel();
     _selfInfoTimer?.cancel();
+    _telemPollTimer?.cancel();
     unawaited(_keepalive.stop());
     await _transport?.close();
     _transport = null;
@@ -2664,6 +2777,7 @@ class MeshcoreController extends ChangeNotifier {
     _battTimer?.cancel();
     _selfInfoTimer?.cancel();
     _battHistorySaveTimer?.cancel();
+    _telemPollTimer?.cancel();
     for (final Timer t in _deliveryTimers.values) {
       t.cancel();
     }

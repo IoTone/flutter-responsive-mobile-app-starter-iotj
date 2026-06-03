@@ -19,3 +19,23 @@ abstract final class BackgroundKeepalivePrefs {
     await p.setBool(_kEnabled, v);
   }
 }
+
+/// Persisted opt-in for the background peer-telemetry poller — the
+/// controller politely cycles through synced contacts requesting
+/// telemetry so temperature / altitude populate across the fabric
+/// without the user tapping each node. Default **on** but
+/// airtime-conscious (one request per ~10 s, capped attempts, then
+/// quiet). Toggle in App settings.
+abstract final class TelemetryPollPrefs {
+  static const String _kEnabled = 'mm.telemetryPoll';
+
+  static Future<bool> enabled() async {
+    final SharedPreferences p = await SharedPreferences.getInstance();
+    return p.getBool(_kEnabled) ?? true;
+  }
+
+  static Future<void> setEnabled(bool v) async {
+    final SharedPreferences p = await SharedPreferences.getInstance();
+    await p.setBool(_kEnabled, v);
+  }
+}

@@ -210,6 +210,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Messages still arrive when you reopen the app (radio buffers them); no background notification';
 
   @override
+  String get settingsTelemetryPoll => 'Gather node telemetry';
+
+  @override
+  String get settingsTelemetryPollOn =>
+      'Politely polls contacts for temperature / altitude (a little OTA airtime)';
+
+  @override
+  String get settingsTelemetryPollOff =>
+      'No telemetry requests sent; query a node manually from its detail';
+
+  @override
   String get settingsLanguage => 'LANGUAGE';
 
   @override

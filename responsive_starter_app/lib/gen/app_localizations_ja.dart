@@ -201,6 +201,15 @@ class AppLocalizationsJa extends AppLocalizations {
       'アプリ再表示時にメッセージ受信 (ラジオがバッファ); バックグラウンド通知なし';
 
   @override
+  String get settingsTelemetryPoll => 'ノードのテレメトリを収集';
+
+  @override
+  String get settingsTelemetryPollOn => 'コンタクトに温度・標高を控えめに問い合わせ (少量の電波使用)';
+
+  @override
+  String get settingsTelemetryPollOff => 'テレメトリ要求は送信しません; 各ノードの詳細から手動で取得';
+
+  @override
   String get settingsLanguage => '言語';
 
   @override

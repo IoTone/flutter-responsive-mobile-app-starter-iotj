@@ -150,6 +150,24 @@ class AppSettingsScreen extends StatelessWidget {
             value: mc.backgroundKeepaliveEnabled,
             onChanged: (bool v) => _onBgToggle(context, mc, v),
           ),
+          // Background peer-telemetry polling — politely cycles
+          // contacts so temperature / altitude populate across the
+          // fabric. Costs a little OTA airtime; off = no telemetry
+          // traffic from us.
+          SwitchListTile(
+            title: Text(l.settingsTelemetryPoll),
+            subtitle: Text(
+              mc.telemetryPollEnabled
+                  ? l.settingsTelemetryPollOn
+                  : l.settingsTelemetryPollOff,
+              style: TextStyle(color: cs.onSurface.withValues(alpha: .6)),
+            ),
+            secondary: Icon(mc.telemetryPollEnabled
+                ? Icons.thermostat
+                : Icons.thermostat_auto),
+            value: mc.telemetryPollEnabled,
+            onChanged: (bool v) => mc.setTelemetryPollEnabled(v),
+          ),
           // R4 — language picker. Tap-to-open bottom sheet with
           // System / English / 日本語; the choice is persisted by
           // LocaleController and re-skins the whole tree live.

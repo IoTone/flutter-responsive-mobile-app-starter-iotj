@@ -452,6 +452,24 @@ abstract class AppLocalizations {
   /// **'Messages still arrive when you reopen the app (radio buffers them); no background notification'**
   String get settingsBackgroundOff;
 
+  /// No description provided for @settingsTelemetryPoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Gather node telemetry'**
+  String get settingsTelemetryPoll;
+
+  /// No description provided for @settingsTelemetryPollOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Politely polls contacts for temperature / altitude (a little OTA airtime)'**
+  String get settingsTelemetryPollOn;
+
+  /// No description provided for @settingsTelemetryPollOff.
+  ///
+  /// In en, this message translates to:
+  /// **'No telemetry requests sent; query a node manually from its detail'**
+  String get settingsTelemetryPollOff;
+
   /// No description provided for @settingsLanguage.
   ///
   /// In en, this message translates to:
