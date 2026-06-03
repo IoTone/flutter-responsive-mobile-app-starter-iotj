@@ -1,6 +1,6 @@
 # Meshmore SNS — project status
 
-_Snapshot as of v1.0.122+1 (branch `meshmore-sns`)._
+_Snapshot as of v1.0.125+1 (branch `meshmore-sns`)._
 
 An offline-first Flutter companion app for MeshCore LoRa mesh radios
 over BLE. Mesh-first, no backend. Sibling branch `responsive-iot-2026`
@@ -83,11 +83,22 @@ codebase.
 
 - Most recent UI/paint changes are **verified by `flutter analyze` +
   the test suite, not a device render** — eyeball on hardware.
-- **Environment/altitude telemetry depends on device firmware emitting
-  it.** The T1000-E's BME280 needs the MeshCore *sensor firmware* build
-  to be reported; standard companion firmware often sends only
-  battery/GPS. The `[telem]` log confirms what a node actually sends.
-  BME280 reads a few degrees warm (sits by the electronics).
+- **Environment telemetry is NOT available on the test device's current
+  firmware (confirmed 2026-06-03 on hardware).** The T1000-E's BME280
+  needs the MeshCore *sensor firmware* build; standard companion firmware
+  sends only battery/GPS. Two independent signals confirmed this:
+  1. Self-telemetry replies carry an **empty** CayenneLPP payload
+     (`[telem] … types=` blank — no `0x67`/`0x68`/`0x73`).
+  2. Writing a non-zero **Environment** value in device config
+     (`SET_OTHER_PARAMS`) does not stick — the device **clamps the env
+     bits back to 0** and echoes a `SelfInfo` with env=0. A firmware
+     with the sensor in its telemetry path would accept the class.
+  The app's encode (byte position, no clobber of base/loc) and decode
+  (env at SelfInfo byte 46) were both verified correct — this is purely
+  a device-side limitation, not an app bug. Resolution is to flash a
+  MeshCore sensor firmware build; **no app change can surface data the
+  radio never emits.** (BME280 also reads a few °C warm — sits by the
+  electronics.) Further firmware investigation is the user's to pursue.
 - Peer telemetry is **contact-only** (firmware drops requests for
   advert-only nodes); the background poller respects that.
 - **The whole temperature chain (poller → decode → Weather view) is
@@ -102,10 +113,14 @@ codebase.
 
 - **Telemetry & weather thrust:** Phase 1 (background poller) ✅ and
   Phase 2 (Weather view) ✅ shipped. **Phase 3 (per-node temperature
-  trends / history + sparkline) is paused** until temperature is
-  confirmed flowing on hardware — building history on an unverified
-  source is premature. Fallback if temp isn't sent: a sensor-firmware
-  detection/hint instead.
+  trends / history + sparkline) is shelved** — the test device's
+  firmware emits no environment telemetry (see constraints above), so
+  there is no source to build history on. The decode/poller/WX chain is
+  complete and will light up automatically if a sensor-firmware node
+  joins the fabric. Re-open Phase 3 only once a node is confirmed
+  transmitting `0x67`-class telemetry.
+- **Settings toggle contrast** ✅ (v1.0.125+1) — `segmentedButtonTheme`
+  + `chipTheme` give selected controls a solid-accent fill app-wide.
 
 ## Backlog (flagged, not started)
 
