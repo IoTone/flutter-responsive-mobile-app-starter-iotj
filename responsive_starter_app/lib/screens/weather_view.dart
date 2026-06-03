@@ -92,13 +92,21 @@ class _WeatherViewState extends State<WeatherView> {
                   textAlign: TextAlign.center,
                   style: TextStyle(color: cs.onSurfaceVariant, height: 1.4)),
               const SizedBox(height: 12),
-              Text(selfDiag,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: cs.onSurfaceVariant.withValues(alpha: .8),
-                      fontSize: 12,
-                      fontFamily: 'monospace',
-                      height: 1.4)),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest.withValues(alpha: .35),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: cs.outline.withValues(alpha: .3)),
+                ),
+                child: Text(selfDiag,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontSize: 13,
+                        height: 1.45)),
+              ),
             ],
           ),
         ),

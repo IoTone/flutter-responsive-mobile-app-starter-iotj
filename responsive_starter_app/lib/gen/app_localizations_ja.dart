@@ -1323,7 +1323,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String weatherSelfNoEnv(String types) {
-    return 'このデバイスのテレメトリには環境センサーが含まれていません。\n報告内容: $types。\n(BME280 には MeshCore センサーファームウェア／環境テレメトリの有効化が必要です。)';
+    return 'このデバイスのファームウェアは環境テレメトリに対応していません。\n報告内容: $types。\nセンサー（例: T1000-E の BME280）には MeshCore センサーファームウェアが必要です。標準ビルドはバッテリー／GPS のみを送信し、環境モードを設定してもデバイス側でオフに戻されます。これはアプリの設定ではなくデバイス側の制限です。';
   }
 
   @override

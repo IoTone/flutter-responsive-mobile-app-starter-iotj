@@ -1385,7 +1385,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String weatherSelfNoEnv(String types) {
-    return 'This device\'s telemetry carries no environment sensor.\nIt reported: $types.\n(A BME280 needs the MeshCore sensor firmware / environment telemetry enabled.)';
+    return 'Environment telemetry isn\'t supported by this device\'s firmware.\nIt reported: $types.\nThe sensor (e.g. the T1000-E\'s BME280) needs a MeshCore sensor firmware build — the standard build sends only battery/GPS, and the device clamps the environment mode back to off. This is a device limitation, not an app setting.';
   }
 
   @override
