@@ -97,7 +97,7 @@ class MeshcoreController extends ChangeNotifier {
         // (CMD_SEND_TELEMETRY_REQ → PUSH_CODE_TELEMETRY_RESPONSE) is
         // always available and returns immediately for the self case.
         // Used to populate altitude in ownLocation.
-        _requestSelfTelemetry();
+        requestSelfTelemetry();
         // Drain anything the device queued before/while we connected
         // (heard contacts/adverts + received messages).
         _drainStart();
@@ -2094,8 +2094,10 @@ class MeshcoreController extends ChangeNotifier {
 
   /// Fire a one-shot self-telemetry request. The device replies
   /// immediately (no OTA) with a 0x8B push that lands on the inbound
-  /// stream and gets ingested by [_trackTelemetry].
-  void _requestSelfTelemetry() {
+  /// stream and gets ingested by [_trackTelemetry]. Public so views
+  /// (e.g. the elevation profile) can re-poll our own altitude on
+  /// demand.
+  void requestSelfTelemetry() {
     unawaited(send(MeshcoreFrameCodec.sendTelemetryReq()).catchError((_) {}));
   }
 

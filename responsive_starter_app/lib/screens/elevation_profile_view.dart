@@ -1,6 +1,5 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -49,134 +48,27 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     duration: const Duration(seconds: 4),
   )..repeat();
 
-  /// R45+1 — while the view is open, we passively walk through the
-  /// peer list and ask the device for each one's telemetry, one
-  /// every [_queryInterval]. Rate-limited so a fleet of N peers
-  /// takes ~5N seconds to fully populate, which keeps OTA airtime
-  /// well below the channel's saturation point.
-  ///
-  /// The controller dedupes against its own cache + inflight set —
-  /// repeated requestPeerTelemetry calls for the same peer are
-  /// cheap no-ops when fresh telemetry already exists.
-  Timer? _autoQueryTimer;
-  static const Duration _queryInterval = Duration(seconds: 5);
-
-  /// Stop hammering a peer after this many sends with no response.
-  /// Each send costs 1 OTA packet from us + 1 from them per hop; the
-  /// 3rd unanswered attempt is a strong signal the peer's telemetry
-  /// mode is off and no future attempt this session will help.
-  static const int _maxAttemptsPerPeer = 3;
-
-  /// Cap on hop count we'll auto-query. Direct (0) and 1-hop peers
-  /// are always queried. 2-hop only when distance is known and
-  /// reasonable. 3+ hops never auto-queried.
-  static const int _maxHopsAlways = 1;
-  static const int _maxHopsWithDistance = 2;
-  static const double _maxDistanceMeters = 100000; // 100 km
-
-  // Observability counters — purely for the status chip. The
-  // *authoritative* attempt-per-peer cap lives on the controller
-  // (`MeshcoreController.telemetryAttemptsFor`) so it persists
-  // when the user swaps view modes and returns to the elevation
-  // view. These two local ints just label what this view-instance
-  // has done since mount.
-  int _ticksWithNoEligible = 0;
-  String? _lastTargetPub;
-
   @override
   void initState() {
     super.initState();
+    // Poll our OWN telemetry once when the view opens so the ME line
+    // reflects a fresh altitude. Gathering other nodes' telemetry is
+    // deferred until lobospeak lands; press UPDATE to re-poll self.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      // Fire one immediately so the first peer doesn't have to wait
-      // the full 5 s; then periodic from there.
-      _stepAutoQuery();
-      _autoQueryTimer = Timer.periodic(_queryInterval, (_) {
-        _stepAutoQuery();
-      });
+      if (mounted) _refreshSelfTelemetry();
     });
   }
 
   @override
   void dispose() {
-    _autoQueryTimer?.cancel();
     _scan.dispose();
     super.dispose();
   }
 
-  /// Tier a peer for the auto-query loop:
-  /// - 0  → direct neighbour (always)
-  /// - 1  → 1-hop (always)
-  /// - 2  → 2-hop AND distance known and < 100 km
-  /// - -1 → skip (too far, too many hops, or no path info)
-  int _tierFor(DiscoveredNode n, MeshcoreController mc) {
-    final List<int>? hops = n.outPathHashes;
-    if (hops == null) return -1; // no path info → don't auto-query
-    final int hopCount = hops.length;
-    if (hopCount == 0) return 0;
-    if (hopCount <= _maxHopsAlways) return 1;
-    if (hopCount <= _maxHopsWithDistance && n.hasLocation) {
-      final double? d =
-          mc.distanceMetersTo(n.latitude!, n.longitude!);
-      if (d != null && d < _maxDistanceMeters) return 2;
-    }
-    return -1;
-  }
-
-  void _stepAutoQuery() {
-    if (!mounted) return;
+  void _refreshSelfTelemetry() {
     final MeshcoreController mc = context.read<MeshcoreController>();
-    if (!mc.isReady) {
-      debugPrint('[elev.auto] skip — not ready');
-      return;
-    }
-    final List<DiscoveredNode> source =
-        widget.filteredNodes ?? mc.nodes;
-    // Eligibility: no altitude resolved, not currently in flight,
-    // controller-side attempt count below the cap (persistent
-    // across view re-mounts), AND falls into one of the three
-    // query tiers.
-    final List<DiscoveredNode> eligible = <DiscoveredNode>[
-      for (final DiscoveredNode n in source)
-        if (n.pubKeyHex != mc.ownPubKeyHex &&
-            n.altitudeMeters == null &&
-            mc.telemetryFor(n.pubKeyHex)?.altitudeMeters == null &&
-            !mc.isQueryingTelemetry(n.pubKeyHex) &&
-            mc.telemetryAttemptsFor(n.pubKeyHex) <
-                _maxAttemptsPerPeer &&
-            _tierFor(n, mc) >= 0)
-          n,
-    ];
-    if (eligible.isEmpty) {
-      _ticksWithNoEligible++;
-      debugPrint('[elev.auto] no eligible peers '
-          '(${source.length} visible, '
-          'tick $_ticksWithNoEligible)');
-      if (mounted) setState(() {}); // refresh status chip
-      return;
-    }
-    // Sort by (tier asc, lastHeard desc) — lowest tier (cheapest
-    // OTA) first; within the same tier, the recently-heard peer
-    // goes first since they're likeliest to respond.
-    eligible.sort((DiscoveredNode a, DiscoveredNode b) {
-      final int t = _tierFor(a, mc).compareTo(_tierFor(b, mc));
-      if (t != 0) return t;
-      return b.lastHeardUnix.compareTo(a.lastHeardUnix);
-    });
-    final DiscoveredNode target = eligible.first;
-    final int tier = _tierFor(target, mc);
-    _lastTargetPub = target.pubKeyHex;
-    final int attemptBefore =
-        mc.telemetryAttemptsFor(target.pubKeyHex);
-    debugPrint('[elev.auto] sending telemetry req → ${target.name} '
-        '(tier $tier · hops ${target.hopCount ?? "?"} · '
-        'attempt ${attemptBefore + 1}/$_maxAttemptsPerPeer) — '
-        'session total ${mc.telemetrySendCount + 1}');
-    unawaited(mc.requestPeerTelemetry(
-      target.pubKeyHex,
-      maxAttempts: _maxAttemptsPerPeer,
-    ));
-    if (mounted) setState(() {}); // refresh status chip
+    if (mc.isReady) mc.requestSelfTelemetry();
+    if (mounted) setState(() {});
   }
 
   @override
@@ -209,29 +101,6 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
     }
 
     final double? selfAlt = mc.ownLocation?.altitudeMeters;
-
-    // Status counters for the observability chip. All sourced from
-    // the controller now so the counts persist across view re-mounts
-    // (you don't go back to "queries: 0" after swapping to another
-    // grid mode and back).
-    final int resolvedCount = peerAlt.length;
-    final int inflightCount = peers
-        .where((DiscoveredNode n) =>
-            mc.isQueryingTelemetry(n.pubKeyHex))
-        .length;
-    final int totalQueries = mc.telemetrySendCount;
-    final int gaveUpCount = peers
-        .where((DiscoveredNode n) =>
-            mc.telemetryAttemptsFor(n.pubKeyHex) >=
-                _maxAttemptsPerPeer &&
-            mc.telemetryFor(n.pubKeyHex)?.altitudeMeters == null)
-        .length;
-    final int skippedCount = peers
-        .where((DiscoveredNode n) =>
-            n.altitudeMeters == null &&
-            mc.telemetryFor(n.pubKeyHex)?.altitudeMeters == null &&
-            _tierFor(n, mc) < 0)
-        .length;
 
     return Stack(
       children: <Widget>[
@@ -276,25 +145,14 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
             );
           },
         ),
-        // Observability chip — moved up under the header band so it
-        // doesn't block the reference silhouettes. Tap it to restart
-        // the query loop (clears the per-peer attempt caps).
-        // The "last" line shows the target's last-4 pubkey chars,
-        // colour-coded: self = primary, favourite = tertiary,
-        // known = accent-dim, else default.
+        // Self-telemetry chip — polled once when the view opens; tap
+        // to re-poll our own altitude. Other-node telemetry is
+        // deferred until lobospeak.
         Positioned(
           left: 12,
           top: 56,
           child: GestureDetector(
-            onTap: () {
-              mc.resetTelemetryAttempts();
-              setState(() {
-                _ticksWithNoEligible = 0;
-                _lastTargetPub = null;
-              });
-              // Kick one immediately so the restart feels responsive.
-              _stepAutoQuery();
-            },
+            onTap: _refreshSelfTelemetry,
             child: Container(
               padding: const EdgeInsets.symmetric(
                   horizontal: 10, vertical: 6),
@@ -318,27 +176,17 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        const Text('AUTO-QUERY'),
+                        const Text('SELF TELEMETRY'),
                         const SizedBox(width: 4),
                         Icon(Icons.refresh,
                             size: 11, color: cs.onSurfaceVariant),
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Text('q:$totalQueries · fly:$inflightCount'),
-                    Text('ok:$resolvedCount/${peers.length} · '
-                        'skip:$skippedCount · x:$gaveUpCount'),
-                    if (_lastTargetPub != null)
-                      _lastTargetLine(cs),
-                    if (totalQueries >= 3 && resolvedCount == 0)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Text(
-                          'no responses — tap to retry',
-                          style: TextStyle(
-                              color: cs.tertiary, fontSize: 10),
-                        ),
-                      ),
+                    Text(selfAlt != null
+                        ? 'alt: ${selfAlt.toStringAsFixed(0)} m'
+                        : 'alt: — (tap to poll)'),
+                    const Text('tap to update'),
                   ],
                 ),
               ),
@@ -347,29 +195,6 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
         ),
       ],
     );
-  }
-
-  /// The "last: ABCD" line, colour-coded by the target's relationship
-  /// to us. Truncated to the last 4 pubkey-hex chars per the request.
-  Widget _lastTargetLine(ColorScheme cs) {
-    final MeshcoreController mc = context.read<MeshcoreController>();
-    final String pub = _lastTargetPub!;
-    final String tail =
-        pub.length >= 4 ? pub.substring(pub.length - 4) : pub;
-    Color colour = cs.onSurface;
-    String tag = '';
-    if (pub == mc.ownPubKeyHex) {
-      colour = cs.primary;
-      tag = ' (me)';
-    } else if (mc.favorites.contains(pub)) {
-      colour = cs.tertiary;
-      tag = ' ★';
-    } else if (mc.known.contains(pub)) {
-      colour = cs.primary.withValues(alpha: .7);
-      tag = ' ◍';
-    }
-    return Text('last: …$tail$tag',
-        style: TextStyle(color: colour, fontSize: 10));
   }
 }
 

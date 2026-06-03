@@ -864,9 +864,9 @@ class _GridPainter extends CustomPainter {
   final double scaleKm;
 
   /// Live phone compass heading (degrees from magnetic north,
-  /// 0=N / 90=E / 180=S / 270=W). When non-null, the painter
-  /// draws a small facing wedge from the centre pin so the user
-  /// can see which way they're pointed relative to the radar.
+  /// 0=N / 90=E / 180=S / 270=W). When non-null, the painter draws a
+  /// heading needle from the centre showing which way the user is
+  /// facing, paired with the north-up cardinal rose.
   final double? headingDeg;
 
   static bool _selfHasGpsStatic(double? lat, double? lon) =>
@@ -972,6 +972,11 @@ class _GridPainter extends CustomPainter {
     canvas.drawLine(Offset(center.dx, center.dy - maxR),
         Offset(center.dx, center.dy + maxR), cross);
 
+    // Compass rose — north-up cardinal markers + a tick ring so the
+    // radar reads like a real compass. North is always up (the grid
+    // frame is north-up); the needle below shows which way you face.
+    _drawCompassRose(canvas, center, maxR);
+
     // Self marker.
     canvas.drawCircle(center, 5, Paint()..color = accent);
     canvas.drawCircle(center, 9,
@@ -980,45 +985,12 @@ class _GridPainter extends CustomPainter {
           ..strokeWidth = 1.5
           ..color = accent.withValues(alpha: .6));
 
-    // Heading "facing wedge" — a small translucent triangle
-    // pointing in the user's compass-derived heading. North-up
-    // grid stays the stable frame; this only shows which way
-    // the user is **looking**, not where the radar is rotated.
+    // Heading needle — points in the user's compass heading (the way
+    // they're facing). The north-up frame stays the stable reference;
+    // needle + rose together read as a real compass.
     final double? hd = headingDeg;
     if (hd != null) {
-      // Convert compass heading (0=N, 90=E) to math angle (0=+X,
-      // 90=+Y down on screen). +X is right (east); -Y is up
-      // (north). So north = -90° in math angle.
-      final double rad = (hd - 90) * math.pi / 180;
-      // Wedge geometry — narrow base at the centre's edge, point
-      // 28 px out at the heading direction.
-      const double base = 8; // half-width at the base
-      const double len = 28;
-      final double cosA = math.cos(rad);
-      final double sinA = math.sin(rad);
-      final double perpCos = math.cos(rad + math.pi / 2);
-      final double perpSin = math.sin(rad + math.pi / 2);
-      final Offset tip = center +
-          Offset(cosA * (9 + len), sinA * (9 + len));
-      final Offset baseCentre =
-          center + Offset(cosA * 11, sinA * 11);
-      final Offset bL =
-          baseCentre + Offset(perpCos * base, perpSin * base);
-      final Offset bR =
-          baseCentre + Offset(-perpCos * base, -perpSin * base);
-      final Path wedge = Path()
-        ..moveTo(tip.dx, tip.dy)
-        ..lineTo(bL.dx, bL.dy)
-        ..lineTo(bR.dx, bR.dy)
-        ..close();
-      canvas.drawPath(
-          wedge, Paint()..color = accent.withValues(alpha: .55));
-      canvas.drawPath(
-          wedge,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1
-            ..color = accent);
+      _drawHeadingNeedle(canvas, center, maxR, hd);
     }
 
     // R18 anonymous-channel ripple: an incoming channel message is
@@ -1093,6 +1065,82 @@ class _GridPainter extends CustomPainter {
     }
   }
 
+  /// North-up compass rose: an 8-point tick ring + N/E/S/W letters
+  /// just outside the outer range ring. Always drawn (independent of
+  /// heading) so the radar is oriented like a real compass.
+  void _drawCompassRose(Canvas canvas, Offset center, double maxR) {
+    final Paint tick = Paint()
+      ..color = base.withValues(alpha: .6)
+      ..strokeWidth = 1.2;
+    for (int i = 0; i < 8; i++) {
+      final double a = i * math.pi / 4 - math.pi / 2; // 0 = N (up)
+      final bool cardinal = i.isEven;
+      final double inner = maxR - (cardinal ? 10 : 6);
+      canvas.drawLine(
+        center + Offset(math.cos(a) * inner, math.sin(a) * inner),
+        center + Offset(math.cos(a) * maxR, math.sin(a) * maxR),
+        tick,
+      );
+    }
+    final List<({String s, double ang, bool n})> marks =
+        <({String s, double ang, bool n})>[
+      (s: 'N', ang: -math.pi / 2, n: true),
+      (s: 'E', ang: 0, n: false),
+      (s: 'S', ang: math.pi / 2, n: false),
+      (s: 'W', ang: math.pi, n: false),
+    ];
+    final double lr = maxR + 12;
+    for (final ({String s, double ang, bool n}) m in marks) {
+      final TextPainter tp = TextPainter(
+        text: TextSpan(
+          text: m.s,
+          style: TextStyle(
+            color: m.n ? accent : base,
+            fontSize: m.n ? 13 : 11,
+            fontFamily: 'monospace',
+            fontWeight: m.n ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final Offset c =
+          center + Offset(math.cos(m.ang) * lr, math.sin(m.ang) * lr);
+      tp.paint(canvas, c - Offset(tp.width / 2, tp.height / 2));
+    }
+  }
+
+  /// Heading needle pointing in the user's facing direction. Compass
+  /// heading is 0 = N (up); screen-math north is -90°, hence the
+  /// offset. A short muted tail gives it a magnetic-needle feel.
+  void _drawHeadingNeedle(
+      Canvas canvas, Offset center, double maxR, double headingDeg) {
+    final double a = (headingDeg - 90) * math.pi / 180;
+    final double len = (maxR * 0.34).clamp(28.0, 80.0);
+    final double cosA = math.cos(a);
+    final double sinA = math.sin(a);
+    final Offset tip = center + Offset(cosA * len, sinA * len);
+    final double pCos = math.cos(a + math.pi / 2);
+    final double pSin = math.sin(a + math.pi / 2);
+    const double halfW = 6.0;
+    final Offset baseC = center + Offset(cosA * 12, sinA * 12);
+    final Offset bL = baseC + Offset(pCos * halfW, pSin * halfW);
+    final Offset bR = baseC - Offset(pCos * halfW, pSin * halfW);
+    final Path needle = Path()
+      ..moveTo(tip.dx, tip.dy)
+      ..lineTo(bL.dx, bL.dy)
+      ..lineTo(bR.dx, bR.dy)
+      ..close();
+    canvas.drawPath(needle, Paint()..color = accent);
+    // Muted tail opposite the facing direction.
+    canvas.drawLine(
+      center,
+      center - Offset(cosA * (len * 0.4), sinA * (len * 0.4)),
+      Paint()
+        ..color = base.withValues(alpha: .5)
+        ..strokeWidth = 2,
+    );
+  }
+
   @override
   bool shouldRepaint(covariant _GridPainter old) =>
       old.nodes != nodes ||
@@ -1101,7 +1149,8 @@ class _GridPainter extends CustomPainter {
       old.tick != tick ||
       old.reduceMotion != reduceMotion ||
       old.rippleAt != rippleAt ||
-      old.scaleKm != scaleKm;
+      old.scaleKm != scaleKm ||
+      old.headingDeg != headingDeg;
 }
 
 /// R50 — info-button legend specifically for the Mesh Tree view.
