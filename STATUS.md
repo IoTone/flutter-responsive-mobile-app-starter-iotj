@@ -139,17 +139,21 @@ codebase.
 
 ## Backlog (flagged, not started)
 
-- **R54 — message-derived place inference ("place echoes")** _(spec'd,
-  not started)._ Scan channel banter for place names/coords, match
-  against the region-scoped gazetteer, and plot ≥80%-confidence
+- **R54 — message-derived place inference ("place echoes")** _((a)
+  done; (b)+(c) pending)._ Scan channel banter for place names/coords,
+  match against the region-scoped gazetteer, and plot ≥80%-confidence
   inferred markers on the SNS grid; per-channel toggle, default on for
   public channel #1. **Ballpark placement model** (city-centre anchor +
   directional offset; informational, not geographic) ships on the
   existing cities15000 — no new dataset needed; a finer neighbourhood
   layer is optional later refinement. Fixes today's behaviour where
-  GPS-less banter all piles on home turf. Build order: (a) ballpark
-  placement engine (pure-Dart, test corpus) → (b) per-channel toggle →
-  (c) SNS ghost markers. See spec R54.
+  GPS-less banter all piles on home turf. Build order: **(a) ballpark
+  placement engine ✅** (`lib/sns/place_inference.dart` — pure-Dart,
+  injected gazetteer; cue extraction + anchor/direction resolution +
+  scoring + X→Y pairs + decimal/Maidenhead coords; 15-case test corpus)
+  → (b) per-channel toggle → (c) SNS ghost markers + a `CityLookup`-
+  backed gazetteer adapter (needs a forward name→places index). See
+  spec R54.
 
 
 - **lobospeak** — closed-network robot control plane over MeshCore
