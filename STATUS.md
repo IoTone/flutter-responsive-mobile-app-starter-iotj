@@ -141,12 +141,15 @@ codebase.
 
 - **R54 — message-derived place inference ("place echoes")** _(spec'd,
   not started)._ Scan channel banter for place names/coords, match
-  against a region-scoped gazetteer, and plot ≥80%-confidence inferred
-  markers on the SNS grid; per-channel toggle, default on for public
-  channel #1. **Blocked on a data gap:** the bundled gazetteer is
-  city-level (GeoNames cities15000); the target banter is sub-city
-  neighbourhoods ("West Seattle", "Burnside") — needs a finer
-  region-scoped place dataset first. See spec R54.
+  against the region-scoped gazetteer, and plot ≥80%-confidence
+  inferred markers on the SNS grid; per-channel toggle, default on for
+  public channel #1. **Ballpark placement model** (city-centre anchor +
+  directional offset; informational, not geographic) ships on the
+  existing cities15000 — no new dataset needed; a finer neighbourhood
+  layer is optional later refinement. Fixes today's behaviour where
+  GPS-less banter all piles on home turf. Build order: (a) ballpark
+  placement engine (pure-Dart, test corpus) → (b) per-channel toggle →
+  (c) SNS ghost markers. See spec R54.
 
 
 - **lobospeak** — closed-network robot control plane over MeshCore
