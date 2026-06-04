@@ -46,13 +46,17 @@ class City {
 /// bundled `assets/data/cities15000.bin` and builds the bucket
 /// index; subsequent calls return the same shared instance.
 class CityLookup {
-  CityLookup._(this._cities, this._buckets);
+  CityLookup._(this._cities, this._buckets, this._nameIndex);
 
   final List<City> _cities;
 
   /// Cities bucketed by (floor(lat), floor(lon)). Keyed as
   /// `lat * 1000 + lon` to avoid pair allocations.
   final Map<int, List<int>> _buckets;
+
+  /// Forward index: normalised (lowercased) city name → city indices.
+  /// Used by the R54 place-inference gazetteer for name→place lookups.
+  final Map<String, List<int>> _nameIndex;
 
   static const String _assetPath = 'assets/data/cities15000.bin';
   static const int _magic = 0x35315443; // 'CT15' LE
@@ -104,12 +108,14 @@ class CityLookup {
       off += 15 + nameLen;
     }
     final Map<int, List<int>> buckets = <int, List<int>>{};
+    final Map<String, List<int>> nameIndex = <String, List<int>>{};
     for (int i = 0; i < cities.length; i++) {
       final City c = cities[i];
       final int key = _bucketKey(c.latitude.floor(), c.longitude.floor());
       buckets.putIfAbsent(key, () => <int>[]).add(i);
+      nameIndex.putIfAbsent(c.name.toLowerCase(), () => <int>[]).add(i);
     }
-    final CityLookup inst = CityLookup._(cities, buckets);
+    final CityLookup inst = CityLookup._(cities, buckets, nameIndex);
     _cached = inst;
     return inst;
   }
@@ -168,6 +174,15 @@ class CityLookup {
 
   /// Total city count loaded — for diagnostics / "About" attribution.
   int get cityCount => _cities.length;
+
+  /// Forward lookup (R54): all cities whose name matches [name]
+  /// (case-insensitive, exact). Empty when none match. Callers scope by
+  /// distance to disambiguate same-named cities across the globe.
+  List<City> byName(String name) {
+    final List<int>? idx = _nameIndex[name.toLowerCase().trim()];
+    if (idx == null) return const <City>[];
+    return <City>[for (final int i in idx) _cities[i]];
+  }
 }
 
 /// Pre-warm the city lookup. Call once from app launch so first-

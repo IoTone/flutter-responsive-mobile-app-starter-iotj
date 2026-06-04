@@ -625,6 +625,22 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
                 ),
               ],
             ],
+            // R54 — per-channel place inference. Applied immediately
+            // (independent of the name/PSK save), default on for the
+            // public channel.
+            const Divider(height: 20),
+            Builder(builder: (BuildContext ctx) {
+              final MeshcoreController mc = ctx.watch<MeshcoreController>();
+              return SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                title: Text(l.channelsInferPlaces),
+                subtitle: Text(l.channelsInferPlacesSub),
+                value: mc.placeInferenceEnabled(widget.idx),
+                onChanged: (bool v) =>
+                    mc.setPlaceInferenceEnabled(widget.idx, v),
+              );
+            }),
             if (_error != null) ...<Widget>[
               const SizedBox(height: 8),
               Text(_error!,

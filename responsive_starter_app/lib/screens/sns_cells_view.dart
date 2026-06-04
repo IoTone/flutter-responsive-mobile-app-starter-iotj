@@ -13,6 +13,7 @@ import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../meshcore/message_heat.dart';
 import '../meshcore/own_location.dart';
+import '../sns/inferred_place_store.dart';
 
 /// R51 — sns-cells: a social-activity heat map. Built on the same
 /// geographic-cell idea as the hyperlocal grid, but instead of
@@ -145,6 +146,8 @@ class _SnsCellsViewState extends State<SnsCellsView>
     }
 
     final Map<String, double> heat = mc.messageHeatScores();
+    // R54 — inferred "place echoes" from channel banter.
+    final List<InferredMarker> inferred = mc.inferredPlaces();
     final List<DiscoveredNode> source =
         widget.filteredNodes ?? mc.nodes;
     final List<DiscoveredNode> nodes = <DiscoveredNode>[
@@ -173,6 +176,7 @@ class _SnsCellsViewState extends State<SnsCellsView>
                 selfLon: selfLon,
                 heat: heat,
                 nodes: nodes,
+                inferred: inferred,
                 toasts: _toasts,
                 flashPubKey: _flashPubKey,
                 nowMs: now,
@@ -182,6 +186,7 @@ class _SnsCellsViewState extends State<SnsCellsView>
                 cool: Colors.white,
                 node: cs.onSurfaceVariant,
                 flash: cs.tertiary,
+                infer: const Color(0xFF8A6CFF),
                 self: cs.primary,
                 label: cs.onSurface,
                 toastBg: cs.surface,
@@ -270,6 +275,7 @@ class _SnsCellsPainter extends CustomPainter {
     required this.selfLon,
     required this.heat,
     required this.nodes,
+    required this.inferred,
     required this.toasts,
     required this.flashPubKey,
     required this.nowMs,
@@ -279,6 +285,7 @@ class _SnsCellsPainter extends CustomPainter {
     required this.cool,
     required this.node,
     required this.flash,
+    required this.infer,
     required this.self,
     required this.label,
     required this.toastBg,
@@ -290,6 +297,7 @@ class _SnsCellsPainter extends CustomPainter {
   final double selfLon;
   final Map<String, double> heat;
   final List<DiscoveredNode> nodes;
+  final List<InferredMarker> inferred;
   final List<_Toast> toasts;
   final String? flashPubKey;
   final int nowMs;
@@ -299,6 +307,7 @@ class _SnsCellsPainter extends CustomPainter {
   final Color cool;
   final Color node;
   final Color flash;
+  final Color infer;
   final Color self;
   final Color label;
   final Color toastBg;
@@ -335,6 +344,9 @@ class _SnsCellsPainter extends CustomPainter {
     });
     for (final DiscoveredNode n in nodes) {
       considerLatLon(n.latitude!, n.longitude!);
+    }
+    for (final InferredMarker m in inferred) {
+      considerLatLon(m.place.latitude, m.place.longitude);
     }
     final double half = (maxOffset * 1.15).clamp(600.0, 20000.0);
     final double pxPerMeter =
@@ -540,6 +552,31 @@ class _SnsCellsPainter extends CustomPainter {
           Paint()..color = flashing ? flash : node);
     }
 
+    // --- Inferred "place echoes" (R54) ---
+    // Distinct ghost markers: a dashed ring + hollow diamond, clearly
+    // not a node dot. Confidence drives opacity. Drawn under the self
+    // pin so our own position always reads on top.
+    for (final InferredMarker m in inferred) {
+      final Offset p = project(m.place.latitude, m.place.longitude);
+      final double op = (0.40 + 0.55 * m.confidence).clamp(0.0, 1.0);
+      _drawDashedCircle(canvas, p, 9, infer.withValues(alpha: op * 0.85));
+      final Path diamond = Path()
+        ..moveTo(p.dx, p.dy - 5)
+        ..lineTo(p.dx + 5, p.dy)
+        ..lineTo(p.dx, p.dy + 5)
+        ..lineTo(p.dx - 5, p.dy)
+        ..close();
+      canvas.drawPath(
+          diamond, Paint()..color = infer.withValues(alpha: op * 0.45));
+      canvas.drawPath(
+          diamond,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.2
+            ..color = infer.withValues(alpha: op));
+      _drawInferLabel(canvas, p.translate(0, -13), m.place.displayName, op);
+    }
+
     // --- Self pin (crosshair) ---
     final Paint selfPaint = Paint()
       ..color = self
@@ -633,6 +670,44 @@ class _SnsCellsPainter extends CustomPainter {
             ..color = const Color(0xFF00FFE0).withValues(alpha: 0.14)
             ..blendMode = BlendMode.screen);
     }
+  }
+
+  /// A dashed ring — the "inferred / not a real node" signal.
+  void _drawDashedCircle(Canvas canvas, Offset c, double r, Color color) {
+    final Paint p = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..color = color;
+    const int dashes = 10;
+    final double seg = (2 * math.pi) / (dashes * 2);
+    for (int i = 0; i < dashes; i++) {
+      final double start = i * 2 * seg;
+      canvas.drawArc(
+          Rect.fromCircle(center: c, radius: r), start, seg, false, p);
+    }
+  }
+
+  /// Small place-name label above an inferred marker (no box — it's a
+  /// soft annotation, not a chat toast).
+  void _drawInferLabel(
+      Canvas canvas, Offset anchor, String text, double opacity) {
+    final String trimmed =
+        text.length > 22 ? '${text.substring(0, 22)}…' : text;
+    final TextPainter tp = TextPainter(
+      text: TextSpan(
+        text: trimmed,
+        style: TextStyle(
+          color: infer.withValues(alpha: opacity),
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          shadows: const <Shadow>[
+            Shadow(color: Color(0xCC000000), blurRadius: 2),
+          ],
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: 120);
+    tp.paint(canvas, Offset(anchor.dx - tp.width / 2, anchor.dy - tp.height));
   }
 
   void _drawToast(Canvas canvas, Offset anchor, String text,

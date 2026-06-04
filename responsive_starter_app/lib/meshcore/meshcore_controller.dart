@@ -31,6 +31,9 @@ import 'paired_device_history.dart';
 import 'paired_device_store.dart';
 import 'reconnect_policy.dart';
 import '../perms/location_service.dart';
+import '../sns/city_gazetteer.dart';
+import '../sns/inferred_place_store.dart';
+import '../sns/place_inference.dart';
 import '../util/geo.dart' as geo;
 
 /// App-facing facade over [MeshcoreConnection], exposed via Provider.
@@ -48,8 +51,11 @@ class MeshcoreController extends ChangeNotifier {
     LocationService? locationService,
     Duration? deliveryTimeoutOverride,
     Duration? telemetryPollInterval,
+    PlaceInferenceEngine? placeInferenceEngine,
   })  : _deliveryTimeoutOverride = deliveryTimeoutOverride,
         _telemPollIntervalOverride = telemetryPollInterval,
+        _placeEngine = placeInferenceEngine ??
+            PlaceInferenceEngine(gazetteer: const CityGazetteer()),
         _transportFactory =
             transportFactory ?? BleConnector.autoConnect,
         _keepalive =
@@ -142,6 +148,7 @@ class MeshcoreController extends ChangeNotifier {
       _ingestNode(f);
       _ingestChat(f);
       _trackMessageHeat(f);
+      _trackPlaceInference(f);
       _trackDelivery(f);
       _logEvent(f);
       notifyListeners();
@@ -163,6 +170,7 @@ class MeshcoreController extends ChangeNotifier {
     _loadBatteryHistory();
     _loadPowerSpecs();
     _loadTelemetryPollPref();
+    _loadPlaceInferPrefs();
     unawaited(_dmReadStore.load().then((_) {
       // Notify so any UI watching unread counts (Nodes badge, etc.)
       // re-renders once the persisted last-read timestamps are in.
@@ -1471,6 +1479,66 @@ class MeshcoreController extends ChangeNotifier {
   void clearMessageHeat() {
     _heat.clear();
     notifyListeners();
+  }
+
+  // -------------------------------------------------------------------
+  // R54 — message-derived place inference ("place echoes"). Incoming
+  // channel banter is scanned for place references and plotted as
+  // ephemeral ghost markers on the SNS grid, region-scoped to our known
+  // location. Per-channel opt-in (default on for the public channel).
+  // -------------------------------------------------------------------
+
+  final PlaceInferenceEngine _placeEngine;
+  final InferredPlaceStore _inferredStore = InferredPlaceStore();
+  Map<int, bool> _placeInferOverrides = <int, bool>{};
+
+  Future<void> _loadPlaceInferPrefs() async {
+    _placeInferOverrides = await PlaceInferencePrefs.overrides();
+    notifyListeners();
+  }
+
+  /// Whether place inference is enabled for [channelIdx] (explicit
+  /// override, else the default: on only for the public channel).
+  bool placeInferenceEnabled(int channelIdx) =>
+      _placeInferOverrides[channelIdx] ??
+      PlaceInferencePrefs.defaultFor(channelIdx);
+
+  Future<void> setPlaceInferenceEnabled(int channelIdx, bool enabled) async {
+    _placeInferOverrides = <int, bool>{
+      ..._placeInferOverrides,
+      channelIdx: enabled,
+    };
+    notifyListeners();
+    await PlaceInferencePrefs.save(_placeInferOverrides);
+  }
+
+  /// Live inferred-place markers for the SNS grid, strongest first.
+  List<InferredMarker> inferredPlaces() =>
+      _inferredStore.current(now: DateTime.now());
+
+  /// Clear all inferred places (SNS "clear" control).
+  void clearInferredPlaces() {
+    _inferredStore.clear();
+    notifyListeners();
+  }
+
+  void _trackPlaceInference(MeshcoreInbound f) {
+    if (f is! ChannelMessageFrame) return;
+    final ChannelMessage cm = f.message;
+    if (!placeInferenceEnabled(cm.channelIdx)) return;
+    final OwnLocation? own = ownLocation;
+    if (own == null) return; // region-scoping needs our location
+    final List<InferredPlace> hits = _placeEngine.infer(
+      cm.text,
+      originLat: own.latitude,
+      originLon: own.longitude,
+    );
+    if (hits.isEmpty) return;
+    final DateTime now = DateTime.now();
+    for (final InferredPlace p in hits) {
+      _inferredStore.add(p, now: now);
+    }
+    // The dispatch loop calls notifyListeners() after all trackers.
   }
 
   void _trackMessageHeat(MeshcoreInbound f) {

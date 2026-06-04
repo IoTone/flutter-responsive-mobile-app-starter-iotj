@@ -1541,6 +1541,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Channel messages carry the sender\'s name — they warm the sender\'s cell when we know their location, otherwise your own cell (the receive point).';
 
   @override
+  String get snsCellsLegendInferred =>
+      'Dashed ◇ markers are places inferred from message banter (\"hello from…\"), placed approximately. Toggle per channel in its settings.';
+
+  @override
   String get snsCellsLegendDecay =>
       'Only the last hour is tracked; nothing is stored.';
 
@@ -1764,6 +1768,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get channelsName => 'Channel name';
+
+  @override
+  String get channelsInferPlaces => 'Infer places from messages';
+
+  @override
+  String get channelsInferPlacesSub =>
+      'Scan this channel\'s banter for place names and plot them on the SNS grid.';
 
   @override
   String get channelsKeySource => 'Key source';

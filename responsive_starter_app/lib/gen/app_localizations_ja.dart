@@ -1474,6 +1474,10 @@ class AppLocalizationsJa extends AppLocalizations {
       'チャンネルメッセージは送信者名を含みます — 送信者の位置が分かればそのセルを、分からなければ自分のセル（受信地点）を温めます。';
 
   @override
+  String get snsCellsLegendInferred =>
+      '破線の ◇ マーカーは会話（「〜から」など）から推定した場所で、おおよその位置に表示されます。チャンネルごとに設定で切替できます。';
+
+  @override
   String get snsCellsLegendDecay => '直近1時間のみ追跡。保存はされません。';
 
   @override
@@ -1687,6 +1691,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get channelsName => 'チャンネル名';
+
+  @override
+  String get channelsInferPlaces => 'メッセージから場所を推定';
+
+  @override
+  String get channelsInferPlacesSub => 'このチャンネルの会話から地名を抽出し、SNS グリッドに表示します。';
 
   @override
   String get channelsKeySource => '鍵ソース';

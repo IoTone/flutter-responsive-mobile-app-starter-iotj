@@ -24,18 +24,22 @@ Future<MeshcoreController> _ready(FakeMeshcoreTransport fake) async {
   return ctrl;
 }
 
-Widget _host(MeshcoreController mc) => MaterialApp(
-      locale: const Locale('en'),
-      supportedLocales: LocaleController.supported,
-      localizationsDelegates: const <LocalizationsDelegate<Object>>[
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      home: ChangeNotifierProvider<MeshcoreController>.value(
-        value: mc,
-        child: const ChannelsScreen(),
+// Provider sits *above* MaterialApp so dialogs (mounted in the root
+// navigator) can also read the controller — matches the real app's
+// MultiProvider-over-MaterialApp structure.
+Widget _host(MeshcoreController mc) =>
+    ChangeNotifierProvider<MeshcoreController>.value(
+      value: mc,
+      child: MaterialApp(
+        locale: const Locale('en'),
+        supportedLocales: LocaleController.supported,
+        localizationsDelegates: const <LocalizationsDelegate<Object>>[
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        home: const ChannelsScreen(),
       ),
     );
 

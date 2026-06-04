@@ -664,6 +664,7 @@
   "snsCellsLegendCool": "Fading to white = quieting down; gone after ~1 h idle.",
   "snsCellsLegendToast": "New messages flash as a toast near their source, then vanish.",
   "snsCellsLegendChannel": "Channel messages carry the sender's name — they warm the sender's cell when we know their location, otherwise your own cell (the receive point).",
+  "snsCellsLegendInferred": "Dashed ◇ markers are places inferred from message banter (\"hello from…\"), placed approximately. Toggle per channel in its settings.",
   "snsCellsLegendDecay": "Only the last hour is tracked; nothing is stored.",
   "meshTreeEmpty": "Waiting for contact sync — the tree is built from each contact's outPath.",
   "meshTreeHopsDirect": "Direct",
@@ -772,6 +773,8 @@
     "placeholders": {"idx": {"type": "int"}}
   },
   "channelsName": "Channel name",
+  "channelsInferPlaces": "Infer places from messages",
+  "channelsInferPlacesSub": "Scan this channel's banter for place names and plot them on the SNS grid.",
   "channelsKeySource": "Key source",
   "channelsKeyPublic": "Public",
   "channelsKeyHashtag": "#tag",

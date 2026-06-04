@@ -664,6 +664,7 @@
   "snsCellsLegendCool": "白へ退色 = 沈静化。約1時間無活動で消滅。",
   "snsCellsLegendToast": "新着メッセージは発信元付近にトーストで点滅し、消えます。",
   "snsCellsLegendChannel": "チャンネルメッセージは送信者名を含みます — 送信者の位置が分かればそのセルを、分からなければ自分のセル（受信地点）を温めます。",
+  "snsCellsLegendInferred": "破線の ◇ マーカーは会話（「〜から」など）から推定した場所で、おおよその位置に表示されます。チャンネルごとに設定で切替できます。",
   "snsCellsLegendDecay": "直近1時間のみ追跡。保存はされません。",
   "meshTreeEmpty": "コンタクト同期を待機中 — ツリーは各コンタクトの outPath から構築されます。",
   "meshTreeHopsDirect": "直接",
@@ -772,6 +773,8 @@
     "placeholders": {"idx": {"type": "int"}}
   },
   "channelsName": "チャンネル名",
+  "channelsInferPlaces": "メッセージから場所を推定",
+  "channelsInferPlacesSub": "このチャンネルの会話から地名を抽出し、SNS グリッドに表示します。",
   "channelsKeySource": "鍵ソース",
   "channelsKeyPublic": "Public",
   "channelsKeyHashtag": "#タグ",

@@ -2690,6 +2690,12 @@ abstract class AppLocalizations {
   /// **'Channel messages carry the sender\'s name — they warm the sender\'s cell when we know their location, otherwise your own cell (the receive point).'**
   String get snsCellsLegendChannel;
 
+  /// No description provided for @snsCellsLegendInferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashed ◇ markers are places inferred from message banter (\"hello from…\"), placed approximately. Toggle per channel in its settings.'**
+  String get snsCellsLegendInferred;
+
   /// No description provided for @snsCellsLegendDecay.
   ///
   /// In en, this message translates to:
@@ -3043,6 +3049,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Channel name'**
   String get channelsName;
+
+  /// No description provided for @channelsInferPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Infer places from messages'**
+  String get channelsInferPlaces;
+
+  /// No description provided for @channelsInferPlacesSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan this channel\'s banter for place names and plot them on the SNS grid.'**
+  String get channelsInferPlacesSub;
 
   /// No description provided for @channelsKeySource.
   ///

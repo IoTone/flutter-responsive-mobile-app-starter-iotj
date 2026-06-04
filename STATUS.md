@@ -1,6 +1,6 @@
 # Meshmore SNS — project status
 
-_Snapshot as of v1.0.128+1 (branch `meshmore-sns`)._
+_Snapshot as of v1.0.132+1 (branch `meshmore-sns`)._
 
 An offline-first Flutter companion app for MeshCore LoRa mesh radios
 over BLE. Mesh-first, no backend. Sibling branch `responsive-iot-2026`
@@ -147,21 +147,18 @@ codebase.
   the real docs as a follow-up. (Docs tab now sits **after** Settings.)
 
 
-- **R54 — message-derived place inference ("place echoes")** _((a)
-  done; (b)+(c) pending)._ Scan channel banter for place names/coords,
-  match against the region-scoped gazetteer, and plot ≥80%-confidence
-  inferred markers on the SNS grid; per-channel toggle, default on for
-  public channel #1. **Ballpark placement model** (city-centre anchor +
-  directional offset; informational, not geographic) ships on the
-  existing cities15000 — no new dataset needed; a finer neighbourhood
-  layer is optional later refinement. Fixes today's behaviour where
-  GPS-less banter all piles on home turf. Build order: **(a) ballpark
-  placement engine ✅** (`lib/sns/place_inference.dart` — pure-Dart,
-  injected gazetteer; cue extraction + anchor/direction resolution +
-  scoring + X→Y pairs + decimal/Maidenhead coords; 15-case test corpus)
-  → (b) per-channel toggle → (c) SNS ghost markers + a `CityLookup`-
-  backed gazetteer adapter (needs a forward name→places index). See
-  spec R54.
+- **R54 — message-derived place inference ("place echoes")** — follow-
+  ups only. Scans channel banter for place names/coords, region-scoped
+  to the known location, and plots ≥80%-confidence ghost markers on the
+  SNS grid. **All three sub-tasks shipped:** (a) ballpark placement
+  engine (`lib/sns/place_inference.dart`), (b) per-channel toggle in the
+  channel-edit dialog (default on for public #1; `PlaceInferencePrefs`),
+  (c) `CityLookup` forward name index + `CityGazetteer` adapter +
+  `InferredPlaceStore` (TTL/reinforcement) + dashed-◇ markers on the
+  sns-cells painter. ~31 SNS tests. **Remaining follow-ups:** tap-a-
+  marker → source-snippet/dismiss UI; the X→Y connector line; and the
+  optional finer neighbourhood gazetteer (currently city-centre +
+  directional offset only). See spec R54.
 
 
 - **lobospeak** — closed-network robot control plane over MeshCore
