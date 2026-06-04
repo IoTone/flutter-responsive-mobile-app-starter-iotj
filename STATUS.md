@@ -139,6 +139,16 @@ codebase.
 
 ## Backlog (flagged, not started)
 
+- **R54 — message-derived place inference ("place echoes")** _(spec'd,
+  not started)._ Scan channel banter for place names/coords, match
+  against a region-scoped gazetteer, and plot ≥80%-confidence inferred
+  markers on the SNS grid; per-channel toggle, default on for public
+  channel #1. **Blocked on a data gap:** the bundled gazetteer is
+  city-level (GeoNames cities15000); the target banter is sub-city
+  neighbourhoods ("West Seattle", "Burnside") — needs a finer
+  region-scoped place dataset first. See spec R54.
+
+
 - **lobospeak** — closed-network robot control plane over MeshCore
   binary req/resp (design doc exists in `meshmore-sns/`). The big one.
 - **F2** — map alternatives. **F3** — AI integrations. (Both flagged
