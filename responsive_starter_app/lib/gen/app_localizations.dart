@@ -3845,7 +3845,7 @@ abstract class AppLocalizations {
   /// No description provided for @otherTelemetryModeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Telemetry mode (per class)'**
+  /// **'Telemetry sharing — who may request each kind'**
   String get otherTelemetryModeTitle;
 
   /// No description provided for @otherTelemetryBase.
@@ -3866,11 +3866,29 @@ abstract class AppLocalizations {
   /// **'Environment'**
   String get otherTelemetryEnv;
 
+  /// No description provided for @otherTelemetryDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get otherTelemetryDeny;
+
+  /// No description provided for @otherTelemetryFlags.
+  ///
+  /// In en, this message translates to:
+  /// **'Contacts'**
+  String get otherTelemetryFlags;
+
+  /// No description provided for @otherTelemetryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone'**
+  String get otherTelemetryAll;
+
   /// No description provided for @otherTelemetryModeHelp.
   ///
   /// In en, this message translates to:
-  /// **'Each class 0–3 (firmware-defined). If WX shows nothing, try other values and re-check. Raw byte: {raw}'**
-  String otherTelemetryModeHelp(String raw);
+  /// **'Controls who may request each kind of telemetry from this device — Base = battery, Location = GPS, Environment = temp/humidity/pressure. Off = deny all; Contacts = only your contacts (per their flags); Anyone = any node. This is a sharing permission, not whether the device has the sensor — a node with no environment sensor sends nothing even on \"Anyone\".'**
+  String get otherTelemetryModeHelp;
 
   /// No description provided for @otherMultiAcksLabel.
   ///

@@ -701,12 +701,26 @@ class _OtherParamsEditor extends StatefulWidget {
 
 class _OtherParamsEditorState extends State<_OtherParamsEditor> {
   // Telemetry mode is a packed byte: bits 0-1 = base, 2-3 = location,
-  // 4-5 = environment (each 0–3, meaning firmware-defined). Decompose
-  // it into three selectors so the user isn't editing a raw number.
-  late int _telBase = widget.si.telemetryModeRaw & 0x03;
-  late int _telLoc = (widget.si.telemetryModeRaw >> 2) & 0x03;
-  late int _telEnv = (widget.si.telemetryModeRaw >> 4) & 0x03;
+  // 4-5 = environment. Each is a MeshCore *permission* level (companion
+  // firmware NodePrefs.h): 0 = DENY, 1 = ALLOW_FLAGS (per-contact
+  // flags), 2 = ALLOW_ALL. 3 is undefined, so we clamp to [0, 2] both on
+  // read and write. This governs who may *request* each telemetry class
+  // from the device — not whether the device has the sensor.
+  late int _telBase = _telMode(widget.si.telemetryModeRaw);
+  late int _telLoc = _telMode(widget.si.telemetryModeRaw >> 2);
+  late int _telEnv = _telMode(widget.si.telemetryModeRaw >> 4);
   late int _multiAcks = widget.si.multiAcks;
+
+  static const int telemDeny = 0;
+  static const int telemFlags = 1;
+  static const int telemAll = 2;
+
+  /// Mask to the 2-bit field and clamp the undefined value 3 down to the
+  /// highest defined level (ALLOW_ALL).
+  static int _telMode(int raw) {
+    final int v = raw & 0x03;
+    return v > telemAll ? telemAll : v;
+  }
 
   int get _telPacked => _telBase | (_telLoc << 2) | (_telEnv << 4);
 
@@ -717,9 +731,9 @@ class _OtherParamsEditorState extends State<_OtherParamsEditor> {
     // value after a successful SET) — re-sync the local UI state to
     // match the truth.
     if (old.si.telemetryModeRaw != widget.si.telemetryModeRaw) {
-      _telBase = widget.si.telemetryModeRaw & 0x03;
-      _telLoc = (widget.si.telemetryModeRaw >> 2) & 0x03;
-      _telEnv = (widget.si.telemetryModeRaw >> 4) & 0x03;
+      _telBase = _telMode(widget.si.telemetryModeRaw);
+      _telLoc = _telMode(widget.si.telemetryModeRaw >> 2);
+      _telEnv = _telMode(widget.si.telemetryModeRaw >> 4);
     }
     if (old.si.multiAcks != widget.si.multiAcks) {
       _multiAcks = widget.si.multiAcks;
@@ -799,9 +813,9 @@ class _OtherParamsEditorState extends State<_OtherParamsEditor> {
             style:
                 TextStyle(color: cs.onSurfaceVariant, fontSize: 11)),
         const SizedBox(height: 10),
-        // Telemetry mode — base / location / environment, each 0–3.
-        // Packed into one byte (bits 0-1/2-3/4-5). Value meanings are
-        // firmware-defined; applied to the device on each change.
+        // Telemetry sharing — base / location / environment. Each is a
+        // permission level (Off / Contacts / Anyone) packed into one
+        // byte; applied to the device on each change.
         Text(l.otherTelemetryModeTitle,
             style: TextStyle(
                 color: cs.onSurfaceVariant,
@@ -835,11 +849,16 @@ class _OtherParamsEditorState extends State<_OtherParamsEditor> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: SegmentedButton<int>(
-                    segments: const <ButtonSegment<int>>[
-                      ButtonSegment<int>(value: 0, label: Text('0')),
-                      ButtonSegment<int>(value: 1, label: Text('1')),
-                      ButtonSegment<int>(value: 2, label: Text('2')),
-                      ButtonSegment<int>(value: 3, label: Text('3')),
+                    segments: <ButtonSegment<int>>[
+                      ButtonSegment<int>(
+                          value: telemDeny,
+                          label: Text(l.otherTelemetryDeny)),
+                      ButtonSegment<int>(
+                          value: telemFlags,
+                          label: Text(l.otherTelemetryFlags)),
+                      ButtonSegment<int>(
+                          value: telemAll,
+                          label: Text(l.otherTelemetryAll)),
                     ],
                     selected: <int>{row.$2},
                     showSelectedIcon: false,
@@ -855,7 +874,7 @@ class _OtherParamsEditorState extends State<_OtherParamsEditor> {
           ),
         const SizedBox(height: 4),
         Text(
-          l.otherTelemetryModeHelp('$_telPacked'),
+          l.otherTelemetryModeHelp,
           style: TextStyle(color: cs.onSurfaceVariant, fontSize: 11),
         ),
       ],

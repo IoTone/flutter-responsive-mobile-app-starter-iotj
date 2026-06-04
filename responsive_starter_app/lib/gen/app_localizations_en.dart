@@ -2205,7 +2205,8 @@ class AppLocalizationsEn extends AppLocalizations {
       '0 = off · semantics are firmware-defined.';
 
   @override
-  String get otherTelemetryModeTitle => 'Telemetry mode (per class)';
+  String get otherTelemetryModeTitle =>
+      'Telemetry sharing — who may request each kind';
 
   @override
   String get otherTelemetryBase => 'Base';
@@ -2217,9 +2218,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get otherTelemetryEnv => 'Environment';
 
   @override
-  String otherTelemetryModeHelp(String raw) {
-    return 'Each class 0–3 (firmware-defined). If WX shows nothing, try other values and re-check. Raw byte: $raw';
-  }
+  String get otherTelemetryDeny => 'Off';
+
+  @override
+  String get otherTelemetryFlags => 'Contacts';
+
+  @override
+  String get otherTelemetryAll => 'Anyone';
+
+  @override
+  String get otherTelemetryModeHelp =>
+      'Controls who may request each kind of telemetry from this device — Base = battery, Location = GPS, Environment = temp/humidity/pressure. Off = deny all; Contacts = only your contacts (per their flags); Anyone = any node. This is a sharing permission, not whether the device has the sensor — a node with no environment sensor sends nothing even on \"Anyone\".';
 
   @override
   String get otherMultiAcksLabel => 'Multi-acks (0–3)';

@@ -2115,7 +2115,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get otherTelemetryHelper => '0 = オフ · 意味はファームウェアに依存します。';
 
   @override
-  String get otherTelemetryModeTitle => 'テレメトリモード (クラス別)';
+  String get otherTelemetryModeTitle => 'テレメトリ共有 — 各種類を誰が要求できるか';
 
   @override
   String get otherTelemetryBase => '基本';
@@ -2127,9 +2127,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get otherTelemetryEnv => '環境';
 
   @override
-  String otherTelemetryModeHelp(String raw) {
-    return '各クラス 0〜3 (意味はファーム依存)。WX に何も出ない場合は値を変えて再確認。生バイト: $raw';
-  }
+  String get otherTelemetryDeny => 'オフ';
+
+  @override
+  String get otherTelemetryFlags => '連絡先';
+
+  @override
+  String get otherTelemetryAll => '全員';
+
+  @override
+  String get otherTelemetryModeHelp =>
+      'このデバイスの各種テレメトリを誰が要求できるかを設定します — 基本=バッテリー、位置=GPS、環境=温度/湿度/気圧。オフ=すべて拒否、連絡先=連絡先のみ（フラグに従う）、全員=任意のノード。これは共有の許可設定であり、センサーの有無とは無関係です（環境センサーがなければ「全員」でも何も送信しません）。';
 
   @override
   String get otherMultiAcksLabel => 'マルチ ACK (0–3)';
