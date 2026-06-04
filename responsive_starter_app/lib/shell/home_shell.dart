@@ -313,6 +313,24 @@ class _AboutView extends StatelessWidget {
                 style: TextStyle(
                     color: cs.onSurface.withValues(alpha: .4),
                     fontSize: 11)),
+            const SizedBox(height: 18),
+            OutlinedButton.icon(
+              onPressed: () => showLicensePage(
+                context: context,
+                applicationName: l.appName,
+                applicationVersion: l.aboutVersion(app.getAppVersion()),
+                applicationLegalese: l.aboutCopyright,
+              ),
+              icon: const Icon(Icons.description_outlined, size: 18),
+              label: Text(l.aboutLicensesButton),
+            ),
+            const SizedBox(height: 10),
+            Text(l.aboutAttributions,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: .45),
+                    fontSize: 10.5,
+                    height: 1.4)),
           ],
         ),
       ),

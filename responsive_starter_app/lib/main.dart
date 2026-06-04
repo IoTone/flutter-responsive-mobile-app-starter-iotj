@@ -15,6 +15,7 @@ import 'package:meshmore_sns_app/cue/cue_service.dart';
 import 'package:meshmore_sns_app/docs/docs_repository.dart';
 import 'package:meshmore_sns_app/gen/app_localizations.dart';
 import 'package:meshmore_sns_app/l10n/locale_controller.dart';
+import 'package:meshmore_sns_app/licenses/asset_licenses.dart';
 import 'package:meshmore_sns_app/meshcore/auto_publish_controller.dart';
 import 'package:meshmore_sns_app/meshcore/background_keepalive.dart';
 import 'package:meshmore_sns_app/meshcore/city_lookup.dart';
@@ -31,6 +32,10 @@ void main() {
   final WidgetsBinding widgetsBinding =
       WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
+  // Attribute the bundled non-code assets (docs, GeoNames, Natural
+  // Earth, OSM) in the standard license page.
+  registerAssetLicenses();
 
   // R25 Stage 2 — pre-warm the offline city DB so the equal-grid
   // view shows real labels on first paint. Fire-and-forget; failures

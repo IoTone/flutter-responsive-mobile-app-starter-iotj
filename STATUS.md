@@ -1,6 +1,6 @@
 # Meshmore SNS — project status
 
-_Snapshot as of v1.0.127+1 (branch `meshmore-sns`)._
+_Snapshot as of v1.0.128+1 (branch `meshmore-sns`)._
 
 An offline-first Flutter companion app for MeshCore LoRa mesh radios
 over BLE. Mesh-first, no backend. Sibling branch `responsive-iot-2026`
@@ -86,6 +86,10 @@ codebase.
   widgets in-app (images → alt text). Fetch seam is injectable/tested.
 
 **Platform / settings / a11y**
+- About → **Open-source licenses & attributions** (`showLicensePage`):
+  bundled-asset licenses registered with `LicenseRegistry` — MeshCore
+  docs (MIT), GeoNames cities (CC-BY 4.0), Natural Earth (public
+  domain), OpenStreetMap (ODbL) — alongside all package licenses.
 - Region presets (R39, baked-in), location settings, diagnostics +
   raw-frame log, personalization (themes, font scale, reduce-motion,
   high-contrast), voice/TTS (R5), per-theme audio cues (R12).

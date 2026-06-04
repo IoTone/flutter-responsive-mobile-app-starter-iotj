@@ -110,6 +110,8 @@
   "aboutMadeWith": "Made with ♥ in Fukuoka, Japan",
   "aboutTerms": "Terms & Conditions — wired in U5.",
   "aboutVersion": "v{version}",
+  "aboutLicensesButton": "Open-source licenses & attributions",
+  "aboutAttributions": "Includes MeshCore documentation (MIT), GeoNames cities (CC-BY 4.0), Natural Earth (public domain), and OpenStreetMap map data (ODbL).",
   "@aboutVersion": {
     "placeholders": {"version": {"type": "String"}}
   },

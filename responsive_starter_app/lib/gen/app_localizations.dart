@@ -620,6 +620,18 @@ abstract class AppLocalizations {
   /// **'v{version}'**
   String aboutVersion(String version);
 
+  /// No description provided for @aboutLicensesButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-source licenses & attributions'**
+  String get aboutLicensesButton;
+
+  /// No description provided for @aboutAttributions.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes MeshCore documentation (MIT), GeoNames cities (CC-BY 4.0), Natural Earth (public domain), and OpenStreetMap map data (ODbL).'**
+  String get aboutAttributions;
+
   /// No description provided for @personalizationHeading.
   ///
   /// In en, this message translates to:

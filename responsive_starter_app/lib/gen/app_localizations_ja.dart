@@ -288,6 +288,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get aboutLicensesButton => 'オープンソースライセンスと権利表示';
+
+  @override
+  String get aboutAttributions =>
+      'MeshCore ドキュメント（MIT）、GeoNames 都市データ（CC-BY 4.0）、Natural Earth（パブリックドメイン）、OpenStreetMap 地図データ（ODbL）を含みます。';
+
+  @override
   String get personalizationHeading => 'プロフィール & パーソナライズ';
 
   @override

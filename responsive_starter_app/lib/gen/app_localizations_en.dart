@@ -305,6 +305,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get aboutLicensesButton => 'Open-source licenses & attributions';
+
+  @override
+  String get aboutAttributions =>
+      'Includes MeshCore documentation (MIT), GeoNames cities (CC-BY 4.0), Natural Earth (public domain), and OpenStreetMap map data (ODbL).';
+
+  @override
   String get personalizationHeading => 'Profile & personalization';
 
   @override
