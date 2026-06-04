@@ -19,8 +19,8 @@ import '../screens/nodes_screen.dart';
 import '../theme/theme_controller.dart';
 
 /// The six primary views (R8 dashboard is the home / first page;
-/// R53 adds the Docs tab).
-enum MmView { dashboard, chat, nodes, docs, settings, about }
+/// R53 adds the Docs tab, sitting after Settings).
+enum MmView { dashboard, chat, nodes, settings, docs, about }
 
 extension on MmView {
   /// Localised tab label. Pass `AppLocalizations.of(context)` from the
@@ -201,8 +201,8 @@ class _HomeShellState extends State<HomeShell>
           DashboardScreen(),
           ChatScreen(),
           NodesScreen(),
-          DocsHubScreen(),
           _SettingsView(),
+          DocsHubScreen(),
           _AboutView(),
         ],
       ),

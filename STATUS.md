@@ -139,6 +139,14 @@ codebase.
 
 ## Backlog (flagged, not started)
 
+- **Real per-feature app docs ("online-help-md")** _(noted, not started)._
+  The Docs → App section currently points at `assets/docs/app.md`, a
+  single **summary** doc. Replace it with proper per-feature help —
+  a new `online-help-md` doc set **with screenshots** — documenting each
+  feature, not one overview page. Leave `app.md` in place for now; build
+  the real docs as a follow-up. (Docs tab now sits **after** Settings.)
+
+
 - **R54 — message-derived place inference ("place echoes")** _((a)
   done; (b)+(c) pending)._ Scan channel banter for place names/coords,
   match against the region-scoped gazetteer, and plot ≥80%-confidence
