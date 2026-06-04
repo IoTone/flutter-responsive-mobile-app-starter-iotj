@@ -1,6 +1,6 @@
 # Meshmore SNS — project status
 
-_Snapshot as of v1.0.125+1 (branch `meshmore-sns`)._
+_Snapshot as of v1.0.127+1 (branch `meshmore-sns`)._
 
 An offline-first Flutter companion app for MeshCore LoRa mesh radios
 over BLE. Mesh-first, no backend. Sibling branch `responsive-iot-2026`
@@ -73,6 +73,17 @@ codebase.
 - Voltage → SoC via per-device OCV curve; observed-drain regression +
   rated-capacity cross-check; time-to-empty + confidence; persisted
   voltage history; dedicated Battery screen + dashboard summary.
+
+**Docs (R53) — Docs tab (6th primary view)**
+- Offline reader for three sections: **Protocol** (MeshCore companion
+  radio protocol), **Firmware** (MeshCore README, matched to the
+  connected device's fw version), and **App** (self-authored).
+- Offline-first snapshots baked in (`assets/docs/`), refreshed
+  opportunistically from GitHub (`meshcore-dev/MeshCore`) and cached
+  (SharedPreferences); App section never hits the network.
+- Futuristic monospace rendering (tracked-caps headings + accent
+  rules); markdown parsed with the `markdown` package, rendered to
+  widgets in-app (images → alt text). Fetch seam is injectable/tested.
 
 **Platform / settings / a11y**
 - Region presets (R39, baked-in), location settings, diagnostics +

@@ -24,6 +24,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabNodes => 'Nodes';
 
   @override
+  String get tabDocs => 'Docs';
+
+  @override
   String get tabSettings => 'Settings';
 
   @override
@@ -1391,6 +1394,84 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String weatherReporting(int count) {
     return '$count reporting';
+  }
+
+  @override
+  String get docsHubTitle => 'Docs';
+
+  @override
+  String get docsHubSubtitle =>
+      'Read the MeshCore protocol, your device firmware, and this app — offline. Snapshots refresh from GitHub when you\'re online.';
+
+  @override
+  String get docsHubFooter =>
+      'Documentation is cached on-device for offline reading. Tap a doc, then ↻ to pull the latest. Upstream: meshcore-dev/MeshCore.';
+
+  @override
+  String get docsProtocolTitle => 'Protocol';
+
+  @override
+  String get docsProtocolSub =>
+      'MeshCore companion radio protocol — frames, opcodes, and flow.';
+
+  @override
+  String get docsFirmwareTitle => 'Firmware';
+
+  @override
+  String get docsFirmwareSub => 'MeshCore firmware overview (README).';
+
+  @override
+  String docsFirmwareSubVersion(String version) {
+    return 'MeshCore firmware — matched to $version.';
+  }
+
+  @override
+  String get docsAppTitle => 'App';
+
+  @override
+  String get docsAppSub => 'How Meshmore SNS works, and how it uses the mesh.';
+
+  @override
+  String get docsRefresh => 'Refresh from GitHub';
+
+  @override
+  String get docsUpdated => 'Updated to the latest version';
+
+  @override
+  String get docsUpToDate => 'Already up to date';
+
+  @override
+  String get docsOriginBundled => 'Bundled snapshot';
+
+  @override
+  String docsOriginUpdated(String when) {
+    return 'Updated $when';
+  }
+
+  @override
+  String docsFirmwareForVersion(String version) {
+    return 'device $version';
+  }
+
+  @override
+  String get docsFirmwareNoDevice => 'no device connected';
+
+  @override
+  String get docsAgoJustNow => 'just now';
+
+  @override
+  String docsAgoMinutes(int n) {
+    return '${n}m ago';
+  }
+
+  @override
+  String docsAgoHours(int n) {
+    return '${n}h ago';
+  }
+
+  @override
+  String docsAgoDays(int n) {
+    return '${n}d ago';
   }
 
   @override

@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'screens/app_settings_screen.dart';
 import 'screens/battery_screen.dart';
 import 'screens/channels_screen.dart';
+import 'docs/doc_section.dart';
 import 'screens/device_config_screen.dart';
+import 'screens/doc_reader_screen.dart';
 import 'screens/dm_screen.dart';
 import 'screens/grid_screen.dart';
 import 'screens/diagnostics_screen.dart';
@@ -58,6 +60,17 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/settings/battery',
       builder: (_, __) => const BatteryScreen(),
+    ),
+    // R53 — docs reader. `:section` is one of protocol / firmware / app;
+    // unknown values fall back to the app self-docs.
+    GoRoute(
+      path: '/docs/:section',
+      builder: (_, GoRouterState state) => DocReaderScreen(
+        section: DocSection.values.firstWhere(
+          (DocSection s) => s.name == state.pathParameters['section'],
+          orElse: () => DocSection.app,
+        ),
+      ),
     ),
   ],
 );

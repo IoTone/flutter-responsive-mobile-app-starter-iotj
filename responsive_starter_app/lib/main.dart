@@ -12,6 +12,7 @@ import 'package:meshmore_sns_app/app_router.dart';
 import 'package:meshmore_sns_app/app_state_model.dart';
 import 'package:meshmore_sns_app/cue/asset_audio_pack.dart';
 import 'package:meshmore_sns_app/cue/cue_service.dart';
+import 'package:meshmore_sns_app/docs/docs_repository.dart';
 import 'package:meshmore_sns_app/gen/app_localizations.dart';
 import 'package:meshmore_sns_app/l10n/locale_controller.dart';
 import 'package:meshmore_sns_app/meshcore/auto_publish_controller.dart';
@@ -70,6 +71,9 @@ void main() {
           Provider<PermissionsService>(
             create: (_) => const PlatformPermissionsService(),
           ),
+          // R53 — docs reader: loads bundled/cached markdown and
+          // refreshes from GitHub opportunistically. Stateless service.
+          Provider<DocsRepository>(create: (_) => DocsRepository()),
           ChangeNotifierProvider<FirstRunController>(
             create: (_) => FirstRunController()..load(),
           ),

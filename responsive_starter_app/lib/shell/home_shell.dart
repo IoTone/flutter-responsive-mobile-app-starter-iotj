@@ -14,11 +14,13 @@ import '../meshcore/meshcore_controller.dart';
 import '../screens/chat_screen.dart';
 import 'boot_overlay.dart';
 import '../screens/dashboard_screen.dart';
+import '../screens/docs_hub_screen.dart';
 import '../screens/nodes_screen.dart';
 import '../theme/theme_controller.dart';
 
-/// The five primary views (R8 dashboard is the home / first page).
-enum MmView { dashboard, chat, nodes, settings, about }
+/// The six primary views (R8 dashboard is the home / first page;
+/// R53 adds the Docs tab).
+enum MmView { dashboard, chat, nodes, docs, settings, about }
 
 extension on MmView {
   /// Localised tab label. Pass `AppLocalizations.of(context)` from the
@@ -28,6 +30,7 @@ extension on MmView {
         MmView.dashboard => l.tabDashboard,
         MmView.chat => l.tabChat,
         MmView.nodes => l.tabNodes,
+        MmView.docs => l.tabDocs,
         MmView.settings => l.tabSettings,
         MmView.about => l.tabAbout,
       };
@@ -35,6 +38,7 @@ extension on MmView {
         MmView.dashboard => Icons.dashboard_outlined,
         MmView.chat => Icons.chat_bubble_outline,
         MmView.nodes => Icons.hub_outlined,
+        MmView.docs => Icons.menu_book_outlined,
         MmView.settings => Icons.settings_outlined,
         MmView.about => Icons.info_outline,
       };
@@ -108,20 +112,22 @@ class _HomeShellState extends State<HomeShell>
       context: context,
       showDragHandle: true,
       builder: (BuildContext ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            for (final MmView v in MmView.values)
-              ListTile(
-                leading: Icon(v.icon),
-                title: Text(v.title(l)),
-                selected: v.index == _index,
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  _goTo(v.index, reduceMotion: reduceMotion);
-                },
-              ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              for (final MmView v in MmView.values)
+                ListTile(
+                  leading: Icon(v.icon),
+                  title: Text(v.title(l)),
+                  selected: v.index == _index,
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _goTo(v.index, reduceMotion: reduceMotion);
+                  },
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -195,6 +201,7 @@ class _HomeShellState extends State<HomeShell>
           DashboardScreen(),
           ChatScreen(),
           NodesScreen(),
+          DocsHubScreen(),
           _SettingsView(),
           _AboutView(),
         ],

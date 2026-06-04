@@ -128,6 +128,12 @@ abstract class AppLocalizations {
   /// **'Nodes'**
   String get tabNodes;
 
+  /// No description provided for @tabDocs.
+  ///
+  /// In en, this message translates to:
+  /// **'Docs'**
+  String get tabDocs;
+
   /// No description provided for @tabSettings.
   ///
   /// In en, this message translates to:
@@ -2455,6 +2461,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} reporting'**
   String weatherReporting(int count);
+
+  /// No description provided for @docsHubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Docs'**
+  String get docsHubTitle;
+
+  /// No description provided for @docsHubSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the MeshCore protocol, your device firmware, and this app — offline. Snapshots refresh from GitHub when you\'re online.'**
+  String get docsHubSubtitle;
+
+  /// No description provided for @docsHubFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Documentation is cached on-device for offline reading. Tap a doc, then ↻ to pull the latest. Upstream: meshcore-dev/MeshCore.'**
+  String get docsHubFooter;
+
+  /// No description provided for @docsProtocolTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Protocol'**
+  String get docsProtocolTitle;
+
+  /// No description provided for @docsProtocolSub.
+  ///
+  /// In en, this message translates to:
+  /// **'MeshCore companion radio protocol — frames, opcodes, and flow.'**
+  String get docsProtocolSub;
+
+  /// No description provided for @docsFirmwareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware'**
+  String get docsFirmwareTitle;
+
+  /// No description provided for @docsFirmwareSub.
+  ///
+  /// In en, this message translates to:
+  /// **'MeshCore firmware overview (README).'**
+  String get docsFirmwareSub;
+
+  /// No description provided for @docsFirmwareSubVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'MeshCore firmware — matched to {version}.'**
+  String docsFirmwareSubVersion(String version);
+
+  /// No description provided for @docsAppTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get docsAppTitle;
+
+  /// No description provided for @docsAppSub.
+  ///
+  /// In en, this message translates to:
+  /// **'How Meshmore SNS works, and how it uses the mesh.'**
+  String get docsAppSub;
+
+  /// No description provided for @docsRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh from GitHub'**
+  String get docsRefresh;
+
+  /// No description provided for @docsUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated to the latest version'**
+  String get docsUpdated;
+
+  /// No description provided for @docsUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Already up to date'**
+  String get docsUpToDate;
+
+  /// No description provided for @docsOriginBundled.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundled snapshot'**
+  String get docsOriginBundled;
+
+  /// No description provided for @docsOriginUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {when}'**
+  String docsOriginUpdated(String when);
+
+  /// No description provided for @docsFirmwareForVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'device {version}'**
+  String docsFirmwareForVersion(String version);
+
+  /// No description provided for @docsFirmwareNoDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'no device connected'**
+  String get docsFirmwareNoDevice;
+
+  /// No description provided for @docsAgoJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get docsAgoJustNow;
+
+  /// No description provided for @docsAgoMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}m ago'**
+  String docsAgoMinutes(int n);
+
+  /// No description provided for @docsAgoHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}h ago'**
+  String docsAgoHours(int n);
+
+  /// No description provided for @docsAgoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}d ago'**
+  String docsAgoDays(int n);
 
   /// No description provided for @weatherMin.
   ///

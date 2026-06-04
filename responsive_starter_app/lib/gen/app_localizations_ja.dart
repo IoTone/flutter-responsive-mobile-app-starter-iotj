@@ -24,6 +24,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get tabNodes => 'ノード';
 
   @override
+  String get tabDocs => 'ドキュメント';
+
+  @override
   String get tabSettings => '設定';
 
   @override
@@ -1329,6 +1332,83 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String weatherReporting(int count) {
     return '$count 件が報告中';
+  }
+
+  @override
+  String get docsHubTitle => 'ドキュメント';
+
+  @override
+  String get docsHubSubtitle =>
+      'MeshCore プロトコル、デバイスのファームウェア、本アプリの解説をオフラインで読めます。オンライン時に GitHub から最新版を取得します。';
+
+  @override
+  String get docsHubFooter =>
+      'ドキュメントはオフライン閲覧用に端末にキャッシュされます。項目を開いて ↻ で最新版を取得。出典: meshcore-dev/MeshCore。';
+
+  @override
+  String get docsProtocolTitle => 'プロトコル';
+
+  @override
+  String get docsProtocolSub => 'MeshCore コンパニオン無線プロトコル — フレーム、オペコード、フロー。';
+
+  @override
+  String get docsFirmwareTitle => 'ファームウェア';
+
+  @override
+  String get docsFirmwareSub => 'MeshCore ファームウェア概要（README）。';
+
+  @override
+  String docsFirmwareSubVersion(String version) {
+    return 'MeshCore ファームウェア — $version に対応。';
+  }
+
+  @override
+  String get docsAppTitle => 'アプリ';
+
+  @override
+  String get docsAppSub => 'Meshmore SNS の仕組みとメッシュの活用方法。';
+
+  @override
+  String get docsRefresh => 'GitHub から更新';
+
+  @override
+  String get docsUpdated => '最新版に更新しました';
+
+  @override
+  String get docsUpToDate => 'すでに最新です';
+
+  @override
+  String get docsOriginBundled => '同梱スナップショット';
+
+  @override
+  String docsOriginUpdated(String when) {
+    return '更新: $when';
+  }
+
+  @override
+  String docsFirmwareForVersion(String version) {
+    return 'デバイス $version';
+  }
+
+  @override
+  String get docsFirmwareNoDevice => 'デバイス未接続';
+
+  @override
+  String get docsAgoJustNow => 'たった今';
+
+  @override
+  String docsAgoMinutes(int n) {
+    return '$n分前';
+  }
+
+  @override
+  String docsAgoHours(int n) {
+    return '$n時間前';
+  }
+
+  @override
+  String docsAgoDays(int n) {
+    return '$n日前';
   }
 
   @override

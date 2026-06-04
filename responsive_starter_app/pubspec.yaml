@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.126+1
+version: 1.0.127+1
 
 environment:
   sdk: ^3.5.0
@@ -106,6 +106,14 @@ dependencies:
   flutter_map: ^7.0.2
   latlong2: ^0.9.1
 
+  # --- R53 Docs reader — pure-Dart Markdown → AST parser. We render
+  #     the AST to widgets ourselves (futuristic monospace styling),
+  #     so no rendering dependency is pulled in. Docs (firmware README,
+  #     companion-protocol wiki, this app) are baked in as offline
+  #     snapshots and refreshed opportunistically over HTTP. Fetch uses
+  #     dart:io behind an injectable seam; cache is SharedPreferences.
+  markdown: ^7.2.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -160,6 +168,12 @@ flutter:
       # baked into the binary like the region presets; bump the app
       # to refresh. Matched against DeviceInfo.manufacturer.
       - assets/data/device_power_specs.json
+      # R53 Docs reader — offline snapshots of the MeshCore firmware
+      # README + companion-radio-protocol wiki, plus this app's own
+      # self-documentation. Refreshed opportunistically from GitHub.
+      - assets/docs/firmware.md
+      - assets/docs/protocol.md
+      - assets/docs/app.md
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
