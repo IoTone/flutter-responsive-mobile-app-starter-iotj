@@ -662,6 +662,9 @@
   "snsPlacesTitle": "推定された場所（過去1時間）",
   "snsPlacesEmpty": "現在、推定された場所はありません。",
   "snsPlacesDismiss": "場所ではない — 削除",
+  "snsFrameMetro": "メトロ · 約20 km",
+  "snsFrameRegion": "地域 · 約300 km",
+  "snsFrameMesh": "メッシュ · 全体",
   "@snsCellsStatus": {
     "placeholders": {"active": {"type": "int"}, "hot": {"type": "int"}}
   },

@@ -14,6 +14,7 @@ import '../meshcore/meshcore_controller.dart';
 import '../meshcore/message_heat.dart';
 import '../meshcore/own_location.dart';
 import '../sns/inferred_place_store.dart';
+import '../sns/sns_frame.dart';
 
 /// R51 — sns-cells: a social-activity heat map. Built on the same
 /// geographic-cell idea as the hyperlocal grid, but instead of
@@ -65,6 +66,21 @@ class _SnsCellsViewState extends State<SnsCellsView>
   int _lastPingSeq = 0;
   String? _flashPubKey; // node to highlight (most recent located DM)
   int _flashUntilMs = 0;
+
+  /// Base scale stop. Default metro (tight local view); cycle out to
+  /// region / whole-mesh to see distant nodes (Seattle, Vancouver BC).
+  SnsFrame _frame = SnsFrame.metro;
+
+  void _cycleFrame() {
+    setState(() => _frame = _frame.next);
+    _resetView(); // re-centre on the new base scale
+  }
+
+  String _frameLabel(AppLocalizations l, SnsFrame f) => switch (f) {
+        SnsFrame.metro => l.snsFrameMetro,
+        SnsFrame.region => l.snsFrameRegion,
+        SnsFrame.mesh => l.snsFrameMesh,
+      };
 
   @override
   void initState() {
@@ -175,6 +191,7 @@ class _SnsCellsViewState extends State<SnsCellsView>
               painter: _SnsCellsPainter(
                 selfLat: selfLat,
                 selfLon: selfLon,
+                maxHalfMeters: _frame.maxHalfMeters,
                 heat: heat,
                 heatCounts: heatCounts,
                 nodes: nodes,
@@ -197,6 +214,18 @@ class _SnsCellsViewState extends State<SnsCellsView>
               ),
               child: const SizedBox.expand(),
             ),
+          ),
+        ),
+        // Scale stop — cycle metro → region → mesh so distant nodes
+        // (Seattle, Vancouver BC) can be framed instead of edge-pinned.
+        Positioned(
+          left: 12,
+          top: 12,
+          child: ActionChip(
+            avatar: const Icon(Icons.zoom_out_map, size: 16),
+            label: Text(_frameLabel(l, _frame)),
+            visualDensity: VisualDensity.compact,
+            onPressed: _cycleFrame,
           ),
         ),
         // Recenter — fades in when zoomed/panned away from the base
@@ -358,6 +387,7 @@ class _SnsCellsPainter extends CustomPainter {
   _SnsCellsPainter({
     required this.selfLat,
     required this.selfLon,
+    required this.maxHalfMeters,
     required this.heat,
     required this.heatCounts,
     required this.nodes,
@@ -381,6 +411,9 @@ class _SnsCellsPainter extends CustomPainter {
 
   final double selfLat;
   final double selfLon;
+
+  /// Cap on the view's half-extent (metres) — the active [SnsFrame].
+  final double maxHalfMeters;
   final Map<String, double> heat;
   final Map<String, int> heatCounts;
   final List<DiscoveredNode> nodes;
@@ -435,7 +468,7 @@ class _SnsCellsPainter extends CustomPainter {
     for (final InferredMarker m in inferred) {
       considerLatLon(m.place.latitude, m.place.longitude);
     }
-    final double half = (maxOffset * 1.15).clamp(600.0, 20000.0);
+    final double half = snsHalfExtentMeters(maxOffset, maxHalfMeters);
     final double pxPerMeter =
         (math.min(size.width, size.height) * 0.46) / half;
 

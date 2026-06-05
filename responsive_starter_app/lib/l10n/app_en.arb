@@ -662,6 +662,9 @@
   "snsPlacesTitle": "INFERRED PLACES (LAST HOUR)",
   "snsPlacesEmpty": "No inferred places right now.",
   "snsPlacesDismiss": "Not a place — dismiss",
+  "snsFrameMetro": "Metro · ~20 km",
+  "snsFrameRegion": "Region · ~300 km",
+  "snsFrameMesh": "Mesh · fit all",
   "@snsCellsStatus": {
     "placeholders": {"active": {"type": "int"}, "hot": {"type": "int"}}
   },

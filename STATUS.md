@@ -1,6 +1,6 @@
 # Meshmore SNS — project status
 
-_Snapshot as of v1.0.135+1 (branch `meshmore-sns`)._
+_Snapshot as of v1.0.136+1 (branch `meshmore-sns`)._
 
 An offline-first Flutter companion app for MeshCore LoRa mesh radios
 over BLE. Mesh-first, no backend. Sibling branch `responsive-iot-2026`
@@ -51,9 +51,15 @@ codebase.
   (nodes reporting + min/avg/max temperature on a cold→hot ramp) + a
   warmest-first list of reporting nodes with temp/humidity/pressure +
   freshness; tap → node detail.
+- **sns-cells** social heat map — time-decayed message density with
+  **last-hour counts** on each square; **place echoes** (R54 inferred-
+  place ◇ markers with last-hour ×count, edge-pinned when off-frame,
+  + a dismissible "Places" list); a **scale stop** chip (Metro ~20 km /
+  Region ~300 km / Mesh fit-all) so distant nodes (Seattle, Vancouver
+  BC) can be framed instead of edge-pinned.
 - Globe, equal-grid (OSM tiles), street map, fabric survey, mesh tree
-  (force-directed, hop slider, Flood as first-class), sns-cells social
-  heat map, **Fuji-san** elevation profile.
+  (force-directed, hop slider, Flood as first-class), **Fuji-san**
+  elevation profile.
 
 **Telemetry & sensors**
 - Self + peer telemetry via `CMD_SEND_TELEMETRY_REQ` / `0x8B`.

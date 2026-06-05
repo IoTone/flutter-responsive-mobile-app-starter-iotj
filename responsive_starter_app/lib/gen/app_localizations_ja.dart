@@ -1475,6 +1475,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get snsPlacesDismiss => '場所ではない — 削除';
 
   @override
+  String get snsFrameMetro => 'メトロ · 約20 km';
+
+  @override
+  String get snsFrameRegion => '地域 · 約300 km';
+
+  @override
+  String get snsFrameMesh => 'メッシュ · 全体';
+
+  @override
   String get snsCellsLegendTitle => 'SNS セル';
 
   @override

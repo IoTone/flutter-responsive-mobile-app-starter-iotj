@@ -1540,6 +1540,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get snsPlacesDismiss => 'Not a place — dismiss';
 
   @override
+  String get snsFrameMetro => 'Metro · ~20 km';
+
+  @override
+  String get snsFrameRegion => 'Region · ~300 km';
+
+  @override
+  String get snsFrameMesh => 'Mesh · fit all';
+
+  @override
   String get snsCellsLegendTitle => 'SNS CELLS';
 
   @override

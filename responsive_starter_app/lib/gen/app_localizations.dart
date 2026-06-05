@@ -2690,6 +2690,24 @@ abstract class AppLocalizations {
   /// **'Not a place — dismiss'**
   String get snsPlacesDismiss;
 
+  /// No description provided for @snsFrameMetro.
+  ///
+  /// In en, this message translates to:
+  /// **'Metro · ~20 km'**
+  String get snsFrameMetro;
+
+  /// No description provided for @snsFrameRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Region · ~300 km'**
+  String get snsFrameRegion;
+
+  /// No description provided for @snsFrameMesh.
+  ///
+  /// In en, this message translates to:
+  /// **'Mesh · fit all'**
+  String get snsFrameMesh;
+
   /// No description provided for @snsCellsLegendTitle.
   ///
   /// In en, this message translates to:
