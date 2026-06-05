@@ -1473,6 +1473,9 @@ class MeshcoreController extends ChangeNotifier {
   /// cellKey → hotness in [0, 1] over the last hour. Pruned on read.
   Map<String, double> messageHeatScores() => _heat.scores();
 
+  /// cellKey → raw message count over the last hour. Pruned on read.
+  Map<String, int> messageHeatCounts() => _heat.counts();
+
   /// Most recently observed message (drives the sns-cells toast).
   HeatPing? get lastHeatPing => _heat.lastPing;
 
@@ -1520,6 +1523,12 @@ class MeshcoreController extends ChangeNotifier {
   /// Clear all inferred places (SNS "clear" control).
   void clearInferredPlaces() {
     _inferredStore.clear();
+    notifyListeners();
+  }
+
+  /// Dismiss a single inferred place by its marker key ("not a place").
+  void dismissInferredPlace(String key) {
+    _inferredStore.dismiss(key);
     notifyListeners();
   }
 

@@ -2666,6 +2666,30 @@ abstract class AppLocalizations {
   /// **'{active} cells · {hot} hot'**
   String snsCellsStatus(int active, int hot);
 
+  /// No description provided for @snsPlacesButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Places ({count})'**
+  String snsPlacesButton(int count);
+
+  /// No description provided for @snsPlacesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'INFERRED PLACES (LAST HOUR)'**
+  String get snsPlacesTitle;
+
+  /// No description provided for @snsPlacesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No inferred places right now.'**
+  String get snsPlacesEmpty;
+
+  /// No description provided for @snsPlacesDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a place — dismiss'**
+  String get snsPlacesDismiss;
+
   /// No description provided for @snsCellsLegendTitle.
   ///
   /// In en, this message translates to:

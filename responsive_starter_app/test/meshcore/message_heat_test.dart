@@ -54,6 +54,19 @@ void main() {
       expect(t.activeCellCount, 0);
     });
 
+    test('counts() returns the raw last-hour message count per cell', () {
+      final t = MessageHeatTracker();
+      final int now = 1716800000;
+      for (int i = 0; i < 3; i++) {
+        t.record(text: 'm$i', atUnix: now, lat: lat, lon: lon);
+      }
+      // One message in the same cell but 2 hours ago — outside horizon.
+      t.record(text: 'old', atUnix: now - 2 * 3600, lat: lat, lon: lon);
+      final counts = t.counts(nowUnix: now);
+      expect(counts, hasLength(1));
+      expect(counts.values.first, 3); // old one pruned, 3 fresh remain
+    });
+
     test('messages without a location produce a ping but no heat', () {
       final t = MessageHeatTracker();
       final int now = 1716800000;

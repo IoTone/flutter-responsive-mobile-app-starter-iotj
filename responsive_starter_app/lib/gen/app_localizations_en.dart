@@ -1526,6 +1526,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String snsPlacesButton(int count) {
+    return 'Places ($count)';
+  }
+
+  @override
+  String get snsPlacesTitle => 'INFERRED PLACES (LAST HOUR)';
+
+  @override
+  String get snsPlacesEmpty => 'No inferred places right now.';
+
+  @override
+  String get snsPlacesDismiss => 'Not a place — dismiss';
+
+  @override
   String get snsCellsLegendTitle => 'SNS CELLS';
 
   @override

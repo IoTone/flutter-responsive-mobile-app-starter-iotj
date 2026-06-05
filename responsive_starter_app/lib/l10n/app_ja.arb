@@ -657,6 +657,11 @@
   "snsCellsAwaitingFix": "位置情報を待機中 — ヒートマップは自分を中心に表示されます。",
   "snsCellsClear": "クリア",
   "snsCellsStatus": "{active} セル · {hot} ホット",
+  "snsPlacesButton": "場所 ({count})",
+  "@snsPlacesButton": { "placeholders": { "count": { "type": "int" } } },
+  "snsPlacesTitle": "推定された場所（過去1時間）",
+  "snsPlacesEmpty": "現在、推定された場所はありません。",
+  "snsPlacesDismiss": "場所ではない — 削除",
   "@snsCellsStatus": {
     "placeholders": {"active": {"type": "int"}, "hot": {"type": "int"}}
   },

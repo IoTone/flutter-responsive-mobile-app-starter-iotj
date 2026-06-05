@@ -657,6 +657,11 @@
   "snsCellsAwaitingFix": "Waiting for a location fix — the heat map centres on you.",
   "snsCellsClear": "Clear",
   "snsCellsStatus": "{active} cells · {hot} hot",
+  "snsPlacesButton": "Places ({count})",
+  "@snsPlacesButton": { "placeholders": { "count": { "type": "int" } } },
+  "snsPlacesTitle": "INFERRED PLACES (LAST HOUR)",
+  "snsPlacesEmpty": "No inferred places right now.",
+  "snsPlacesDismiss": "Not a place — dismiss",
   "@snsCellsStatus": {
     "placeholders": {"active": {"type": "int"}, "hot": {"type": "int"}}
   },

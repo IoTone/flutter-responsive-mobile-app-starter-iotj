@@ -1461,6 +1461,20 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String snsPlacesButton(int count) {
+    return '場所 ($count)';
+  }
+
+  @override
+  String get snsPlacesTitle => '推定された場所（過去1時間）';
+
+  @override
+  String get snsPlacesEmpty => '現在、推定された場所はありません。';
+
+  @override
+  String get snsPlacesDismiss => '場所ではない — 削除';
+
+  @override
   String get snsCellsLegendTitle => 'SNS セル';
 
   @override

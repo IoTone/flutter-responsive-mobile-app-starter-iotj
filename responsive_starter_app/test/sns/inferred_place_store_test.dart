@@ -25,21 +25,23 @@ InferredPlace _p(
 void main() {
   final DateTime t0 = DateTime(2026, 6, 4, 12);
 
-  test('a new place is held and returned', () {
+  test('a new place is held with a last-hour count of 1', () {
     final InferredPlaceStore s = InferredPlaceStore();
     s.add(_p('Seattle'), now: t0);
     final List<InferredMarker> cur = s.current(now: t0);
     expect(cur, hasLength(1));
     expect(cur.first.place.anchorName, 'Seattle');
-    expect(cur.first.mentions, 1);
+    expect(cur.first.recentCount, 1);
   });
 
-  test('repeat mentions reinforce (mentions++, confidence up, TTL reset)', () {
+  test('repeat mentions raise the count and confidence', () {
     final InferredPlaceStore s = InferredPlaceStore();
     s.add(_p('Seattle', conf: 0.82), now: t0);
     s.add(_p('Seattle', conf: 0.82), now: t0.add(const Duration(minutes: 5)));
-    final InferredMarker m = s.current(now: t0).single;
-    expect(m.mentions, 2);
+    s.add(_p('Seattle', conf: 0.82), now: t0.add(const Duration(minutes: 9)));
+    final InferredMarker m = s.current(now: t0.add(const Duration(minutes: 9)))
+        .single;
+    expect(m.recentCount, 3);
     expect(m.confidence, greaterThan(0.82)); // reinforced
   });
 
@@ -50,21 +52,23 @@ void main() {
     expect(s.current(now: t0), hasLength(2));
   });
 
-  test('markers expire after the TTL with no new mention', () {
+  test('mentions outside the 1-hour window are not counted', () {
     final InferredPlaceStore s =
-        InferredPlaceStore(ttl: const Duration(minutes: 45));
+        InferredPlaceStore(window: const Duration(hours: 1));
     s.add(_p('Tacoma'), now: t0);
-    expect(s.current(now: t0.add(const Duration(minutes: 44))), hasLength(1));
-    expect(s.current(now: t0.add(const Duration(minutes: 46))), isEmpty);
+    s.add(_p('Tacoma'), now: t0.add(const Duration(minutes: 30)));
+    // 90 min after the first → only the 2nd (60 min ago) is in-window.
+    final List<InferredMarker> cur =
+        s.current(now: t0.add(const Duration(minutes: 90)));
+    expect(cur.single.recentCount, 1);
   });
 
-  test('a fresh mention keeps a marker alive past the original TTL', () {
+  test('a marker drops out once it has no mention in the window', () {
     final InferredPlaceStore s =
-        InferredPlaceStore(ttl: const Duration(minutes: 45));
+        InferredPlaceStore(window: const Duration(hours: 1));
     s.add(_p('Tacoma'), now: t0);
-    s.add(_p('Tacoma'), now: t0.add(const Duration(minutes: 40)));
-    // 50 min after t0 but only 10 min after the refresh → still live.
-    expect(s.current(now: t0.add(const Duration(minutes: 50))), hasLength(1));
+    expect(s.current(now: t0.add(const Duration(minutes: 59))), hasLength(1));
+    expect(s.current(now: t0.add(const Duration(minutes: 61))), isEmpty);
   });
 
   test('current() is sorted strongest-first', () {
@@ -72,6 +76,19 @@ void main() {
     s.add(_p('Olympia', conf: 0.81), now: t0);
     s.add(_p('Seattle', conf: 0.95), now: t0);
     expect(s.current(now: t0).first.place.anchorName, 'Seattle');
+  });
+
+  test('dismiss removes a single marker by key', () {
+    final InferredPlaceStore s = InferredPlaceStore();
+    s.add(_p('Seattle'), now: t0);
+    s.add(_p('Tacoma'), now: t0);
+    final InferredMarker seattle = s
+        .current(now: t0)
+        .firstWhere((InferredMarker m) => m.place.anchorName == 'Seattle');
+    s.dismiss(seattle.key);
+    final List<InferredMarker> left = s.current(now: t0);
+    expect(left, hasLength(1));
+    expect(left.single.place.anchorName, 'Tacoma');
   });
 
   test('clear empties the store', () {

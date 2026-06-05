@@ -148,6 +148,29 @@ class MessageHeatTracker {
     return out;
   }
 
+  /// cellKey → number of messages in the cell within [horizon] (the
+  /// last hour). Prunes old entries as a side effect, same as [scores].
+  /// Used to label each heat square with a raw count.
+  Map<String, int> counts({int? nowUnix}) {
+    final int now =
+        nowUnix ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final int horizonSec = horizon.inSeconds;
+    final Map<String, int> out = <String, int>{};
+    final List<String> dead = <String>[];
+    _cells.forEach((String key, List<int> times) {
+      times.removeWhere((int t) => now - t > horizonSec);
+      if (times.isEmpty) {
+        dead.add(key);
+        return;
+      }
+      out[key] = times.length;
+    });
+    for (final String k in dead) {
+      _cells.remove(k);
+    }
+    return out;
+  }
+
   /// Total cells currently carrying any heat (post-prune).
   int get activeCellCount => _cells.length;
 
