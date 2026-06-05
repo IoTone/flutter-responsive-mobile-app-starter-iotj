@@ -1,6 +1,6 @@
 # Meshmore SNS — project status
 
-_Snapshot as of v1.0.141+1 (branch `meshmore-sns`)._
+_Snapshot as of v1.0.142+1 (branch `meshmore-sns`)._
 
 An offline-first Flutter companion app for MeshCore LoRa mesh radios
 over BLE. Mesh-first, no backend. Sibling branch `responsive-iot-2026`
@@ -124,13 +124,18 @@ codebase.
      chamfered + scanline under NERV, flat/clean under SEELE; same code,
      reskinned by bundle.
   Switch live in Personalization.
-- **Visualisation painters follow the skin** via `VizPalette.of(skin)`
-  (hot→alert, cool→fg, node→fgMuted, self/inferred→accent, grid→line),
-  applied to the **sns-cells** painter (its heat + ◇ markers were
-  hardcoded hex). _Helper established; the other 8 viz painters adopt it
-  next._
-- _Migrated: Dashboard (fork), Nodes + Chat (component-driven), sns-cells
-  painter (palette). More screens + concepts B/C/E/F to follow._
+- **Visualisation painters follow the skin.** Audit finding: the 9 viz
+  painters were **already theme-driven** — they read `ColorScheme`
+  (which *is* the skin's tokens via `buildMmTheme`), with **zero**
+  hardcoded brand-colour literals. Only residuals fixed: the sns-cells
+  painter's heat/◇ literals → `VizPalette.of(skin)` (hot→alert,
+  cool→fg, self/inferred→accent, grid→line), and two legend swatches →
+  theme. Intentionally left theme-independent: the weather temperature
+  ramp (a physical cold→hot scale) and the white map-marker outlines
+  (cartographic contrast on full-colour OSM tiles).
+- _Migrated: Dashboard (fork), Nodes + Chat (component-driven); viz
+  painters confirmed skin-following. Next: more screens + concepts
+  B/C/E/F bundles._
 
 **Platform / settings / a11y**
 - About → **Open-source licenses & attributions** (`showLicensePage`):

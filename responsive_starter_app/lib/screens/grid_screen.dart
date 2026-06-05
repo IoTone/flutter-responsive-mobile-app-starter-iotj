@@ -1546,7 +1546,7 @@ class _SnsCellsLegend extends StatelessWidget {
                     color: cs.onSurface, fontSize: 12, height: 1.35)),
           ),
           row(Icons.local_fire_department, l.snsCellsLegendHot,
-              colour: const Color(0xFFFF3030)),
+              colour: cs.error),
           row(Icons.ac_unit, l.snsCellsLegendCool),
           row(Icons.chat_bubble_outline, l.snsCellsLegendToast,
               colour: cs.tertiary),
