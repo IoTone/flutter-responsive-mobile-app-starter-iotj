@@ -15,6 +15,8 @@ import '../meshcore/message_heat.dart';
 import '../meshcore/own_location.dart';
 import '../sns/inferred_place_store.dart';
 import '../sns/sns_frame.dart';
+import '../theme/mm_skin.dart';
+import '../theme/viz_palette.dart';
 
 /// R51 — sns-cells: a social-activity heat map. Built on the same
 /// geographic-cell idea as the hyperlocal grid, but instead of
@@ -161,6 +163,8 @@ class _SnsCellsViewState extends State<SnsCellsView>
       );
     }
 
+    // R55 — painter colours follow the active skin (was hardcoded hex).
+    final VizPalette viz = VizPalette.of(context.skin);
     final Map<String, double> heat = mc.messageHeatScores();
     final Map<String, int> heatCounts = mc.messageHeatCounts();
     // R54 — inferred "place echoes" from channel banter.
@@ -200,13 +204,13 @@ class _SnsCellsViewState extends State<SnsCellsView>
                 flashPubKey: _flashPubKey,
                 nowMs: now,
                 toastLifeMs: _toastLifeMs,
-                accent: cs.primary,
-                hot: const Color(0xFFFF3030),
-                cool: Colors.white,
-                node: cs.onSurfaceVariant,
+                accent: viz.accent,
+                hot: viz.hot,
+                cool: viz.cool,
+                node: viz.node,
                 flash: cs.tertiary,
-                infer: const Color(0xFF8A6CFF),
-                self: cs.primary,
+                infer: viz.inferred,
+                self: viz.self,
                 label: cs.onSurface,
                 toastBg: cs.surface,
                 toastBorder: cs.outline,

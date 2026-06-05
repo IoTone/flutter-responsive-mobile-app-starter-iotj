@@ -1553,7 +1553,7 @@ class _SnsCellsLegend extends StatelessWidget {
           row(Icons.lock_outline, l.snsCellsLegendChannel,
               colour: cs.primary),
           row(Icons.place_outlined, l.snsCellsLegendInferred,
-              colour: const Color(0xFF8A6CFF)),
+              colour: cs.primary),
           row(Icons.timelapse, l.snsCellsLegendDecay),
         ],
       ),
