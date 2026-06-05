@@ -135,9 +135,15 @@ codebase.
   theme. Intentionally left theme-independent: the weather temperature
   ramp (a physical cold→hot scale) and the white map-marker outlines
   (cartographic contrast on full-colour OSM tiles).
+- **NERV audio identity** (R12): the shared cue motifs read generic, so
+  NERV got a bespoke **"Mission Control"** set — terse 2-tone messageIn,
+  Geiger-counter **discovery ticks**, a descending **sawtooth klaxon**
+  (alert ×2 / link-lost), ascending square link-up. Two new synth modes
+  (`sweep`, `ticks`) added to `brand/_audio_pack.py` (pure-stdlib,
+  re-runnable); only NERV's 7 WAVs changed.
 - _Migrated: Dashboard (fork), Nodes + Chat (component-driven); viz
-  painters confirmed skin-following. Next: more screens + concepts
-  B/C/E/F bundles._
+  painters confirmed skin-following; fonts app-wide; NERV audio. Next:
+  more screens + concepts B/C/E/F bundles._
 
 **Platform / settings / a11y**
 - About → **Open-source licenses & attributions** (`showLicensePage`):
