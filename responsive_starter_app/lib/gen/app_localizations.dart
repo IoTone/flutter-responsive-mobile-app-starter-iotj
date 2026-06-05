@@ -665,7 +665,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutAttributions.
   ///
   /// In en, this message translates to:
-  /// **'Includes MeshCore documentation (MIT), GeoNames cities (CC-BY 4.0), Natural Earth (public domain), and OpenStreetMap map data (ODbL).'**
+  /// **'Includes MeshCore documentation (MIT), GeoNames cities (CC-BY 4.0), Natural Earth (public domain), OpenStreetMap map data (ODbL), and the Saira & JetBrains Mono fonts (OFL).'**
   String get aboutAttributions;
 
   /// No description provided for @personalizationHeading.

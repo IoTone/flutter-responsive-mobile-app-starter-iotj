@@ -76,5 +76,21 @@ void registerAssetLicenses() {
       '© OpenStreetMap contributors, available under the Open Database '
       'License (ODbL). See https://www.openstreetmap.org/copyright.',
     );
+
+    yield const LicenseEntryWithLineBreaks(
+      <String>['Meshmore SNS — Bundled fonts (Saira, JetBrains Mono)'],
+      'The bundled type faces — Saira and JetBrains Mono — are used under '
+      'the SIL Open Font License, Version 1.1.\n'
+      '\n'
+      'Saira © The Saira Project Authors '
+      '(https://github.com/Omnibus-Type/Saira).\n'
+      'JetBrains Mono © 2020 The JetBrains Mono Project Authors '
+      '(https://github.com/JetBrains/JetBrainsMono).\n'
+      '\n'
+      'This Font Software is licensed under the SIL Open Font License, '
+      'Version 1.1. This license is available with a FAQ at '
+      'https://scripts.sil.org/OFL. The fonts and derivatives, however, '
+      'cannot be released under any other type of license.',
+    );
   });
 }

@@ -33,5 +33,10 @@ void main() {
     expect(bodies['Meshmore SNS — GeoNames cities'], contains('CC BY 4.0'));
     expect(packages, contains('Meshmore SNS — Natural Earth'));
     expect(packages, contains('Meshmore SNS — OpenStreetMap'));
+    // Bundled OFL fonts.
+    final String fontsKey =
+        'Meshmore SNS — Bundled fonts (Saira, JetBrains Mono)';
+    expect(packages, contains(fontsKey));
+    expect(bodies[fontsKey], contains('Open Font License'));
   });
 }

@@ -22,6 +22,10 @@ void main() {
     expect(s.ornament.any, isTrue);
     expect(s.type.upperHeadings, isTrue);
     expect(s.color.accent, kMmPresets[MmThemePreset.nerv]!.accent);
+    // The brief's OSS type spine.
+    expect(s.type.headingFamily, 'Saira');
+    expect(s.type.monoFamily, 'JetBrains Mono');
+    expect(s.type.slashedZero, isTrue);
   });
 
   test('SEELE is the calm brutalist concept (sharp, no ornament)', () {

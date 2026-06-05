@@ -40,9 +40,10 @@ class NervDashboard extends StatelessWidget {
                 child: Text(
                   'MESHMORE // NERV',
                   style: TextStyle(
-                    fontFamily: skin.type.monoFamily,
+                    fontFamily:
+                        skin.type.headingFamily ?? skin.type.monoFamily,
                     color: skin.color.accent,
-                    fontSize: 13,
+                    fontSize: 15,
                     letterSpacing: 3,
                     fontWeight: FontWeight.w700,
                   ),

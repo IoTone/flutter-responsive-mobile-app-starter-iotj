@@ -34,6 +34,7 @@ class MmType {
     this.bodyFamily,
     this.upperHeadings = false,
     this.headingTracking = 1.0,
+    this.slashedZero = false,
   });
 
   final String? displayFamily;
@@ -46,6 +47,11 @@ class MmType {
 
   /// letterSpacing applied to section labels.
   final double headingTracking;
+
+  /// Request the font's slashed-zero feature on telemetry numerals (the
+  /// Evangelion "SOUND ONLY" motif). Applied by components via
+  /// `FontFeature.slashedZero()` when the face supports it.
+  final bool slashedZero;
 }
 
 /// Panel/edge treatment.
@@ -104,7 +110,16 @@ class MmSkin {
   final MmOrnament ornament;
 }
 
-const MmType _defaultType = MmType(headingTracking: 2.0, upperHeadings: false);
+// The brief's OSS type spine: Saira (Eurostile-class display) +
+// JetBrains Mono (telemetry, slashed-zero). Shared default until each
+// concept's faces are elaborated.
+const MmType _defaultType = MmType(
+  displayFamily: 'Saira',
+  headingFamily: 'Saira',
+  monoFamily: 'JetBrains Mono',
+  headingTracking: 2.0,
+  slashedZero: true,
+);
 const MmShape _defaultShape = MmShape(
     corner: MmCorner.rounded, cornerSize: 10, borderWidth: 1);
 const MmOrnament _calmOrnament = MmOrnament();
@@ -123,9 +138,12 @@ MmSkin mmSkinFor(MmThemePreset preset) {
         preset: preset,
         color: color,
         type: const MmType(
-          monoFamily: 'monospace',
+          displayFamily: 'Saira',
+          headingFamily: 'Saira',
+          monoFamily: 'JetBrains Mono',
           upperHeadings: true,
           headingTracking: 3.0,
+          slashedZero: true,
         ),
         shape: const MmShape(
             corner: MmCorner.chamfer, cornerSize: 12, borderWidth: 1.2),
@@ -142,7 +160,13 @@ MmSkin mmSkinFor(MmThemePreset preset) {
       return MmSkin(
         preset: preset,
         color: color,
-        type: const MmType(upperHeadings: true, headingTracking: 4.0),
+        type: const MmType(
+          displayFamily: 'Saira',
+          monoFamily: 'JetBrains Mono',
+          upperHeadings: true,
+          headingTracking: 4.0,
+          slashedZero: true,
+        ),
         shape: const MmShape(
             corner: MmCorner.sharp, cornerSize: 0, borderWidth: 1),
         ornament: _calmOrnament,

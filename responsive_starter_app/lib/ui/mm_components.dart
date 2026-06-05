@@ -156,6 +156,9 @@ class MmReadout extends StatelessWidget {
               fontSize: emphasize ? 18 : 13,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
+              fontFeatures: skin.type.slashedZero
+                  ? const <FontFeature>[FontFeature.slashedZero()]
+                  : null,
             ),
           ),
         ),

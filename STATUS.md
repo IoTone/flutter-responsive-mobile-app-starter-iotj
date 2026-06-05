@@ -1,6 +1,6 @@
 # Meshmore SNS — project status
 
-_Snapshot as of v1.0.138+1 (branch `meshmore-sns`)._
+_Snapshot as of v1.0.139+1 (branch `meshmore-sns`)._
 
 An offline-first Flutter companion app for MeshCore LoRa mesh radios
 over BLE. Mesh-first, no backend. Sibling branch `responsive-iot-2026`
@@ -103,6 +103,10 @@ codebase.
   `MmOrnament` (scanlines, corner brackets, hazard-stripe headers),
   resolved per preset via `mmSkinFor` and read through **`context.skin`**
   (high-contrast forces SEELE).
+- **Bundled OSS type spine** (the brief's faces): **Saira** (Eurostile-
+  class display) + **JetBrains Mono** (NERV telemetry, **slashed-zero**
+  via `FontFeature`) — variable fonts (~670 KB), OFL, attributed in
+  About. Flow through `MmType` into the components.
 - **Branded component library** (`lib/ui/`): `MmPanel`, `MmSectionHeader`,
   `MmReadout`, `MmStatusPill`, `MmListRow`, `MmScaffold` +
   `SkinChromePainter` (CRT scanlines + L brackets, suppressed under

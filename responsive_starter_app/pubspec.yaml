@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.138+1
+version: 1.0.139+1
 
 environment:
   sdk: ^3.5.0
@@ -174,6 +174,19 @@ flutter:
       - assets/docs/firmware.md
       - assets/docs/protocol.md
       - assets/docs/app.md
+
+  # R55 skin system — the UX brief's OSS type spine. Saira is the
+  # Eurostile-class display face (shared across concepts); JetBrains
+  # Mono is the NERV-concept telemetry/numeric face (slashed-zero via
+  # FontFeature). Both are *variable* fonts — fontWeight maps to the
+  # wght axis at runtime. OFL; attributed in About. ~670 KB total.
+  fonts:
+    - family: Saira
+      fonts:
+        - asset: assets/fonts/Saira.ttf
+    - family: JetBrains Mono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono.ttf
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
