@@ -12,7 +12,9 @@ import '../meshcore/chat_message.dart';
 import 'delivery_status_icon.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
+import '../theme/mm_skin.dart';
 import '../tts/tts_controller.dart';
+import '../ui/mm_scaffold.dart';
 
 /// R6 — the channel chat. A channel-selector chip strip on top
 /// (collapsible to reclaim vertical space), a scrollable message list
@@ -200,7 +202,8 @@ class _ChatScreenState extends State<ChatScreen>
     _autoScroll(msgs.length);
     final AppLocalizations l = AppLocalizations.of(context);
 
-    return Column(
+    return MmScaffold(
+      child: Column(
       children: <Widget>[
         // Header: active channel + per-channel TTS toggle + collapse.
         Padding(
@@ -364,6 +367,7 @@ class _ChatScreenState extends State<ChatScreen>
           ),
         ),
       ],
+      ),
     );
   }
 }
@@ -376,6 +380,8 @@ class _MessageRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final MmSkin skin = context.skin;
+    final String mono = skin.type.monoFamily;
     final String time = '${m.at.hour.toString().padLeft(2, '0')}:'
         '${m.at.minute.toString().padLeft(2, '0')}';
     final String tag = m.outgoing ? '»' : '«';
@@ -395,15 +401,17 @@ class _MessageRow extends StatelessWidget {
               child: Text('$time $tag',
                   style: TextStyle(
                       color:
-                          m.outgoing ? cs.primary : cs.onSurfaceVariant,
-                      fontFamily: 'monospace',
+                          m.outgoing ? skin.color.accent : skin.color.fgMuted,
+                      fontFamily: mono,
                       fontSize: 12)),
             ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(m.text, style: TextStyle(color: cs.onSurface)),
+                  Text(m.text,
+                      style: TextStyle(
+                          color: skin.color.fg, fontFamily: mono)),
                   if (meta.isNotEmpty || m.outgoing && m.delivery != null)
                     Row(
                       children: <Widget>[
