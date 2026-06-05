@@ -164,6 +164,81 @@ class MmReadout extends StatelessWidget {
   }
 }
 
+/// A list row whose container reskins with the active skin: loud
+/// concepts (NERV, chamfer/ornament) render each row as a framed
+/// **panel card**; calm ones (SEELE) render a flat row with a hairline
+/// rule — same content, different identity, no per-screen fork. Drop-in
+/// for `ListTile` (leading / title / subtitle / trailing / onTap).
+class MmListRow extends StatelessWidget {
+  const MmListRow({
+    super.key,
+    this.leading,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+  });
+
+  final Widget? leading;
+  final Widget title;
+  final Widget? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final MmSkin skin = context.skin;
+    final Widget content = Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        if (leading != null)
+          Padding(padding: const EdgeInsets.only(right: 12), child: leading!),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              DefaultTextStyle.merge(
+                style: TextStyle(color: skin.color.fg),
+                child: title,
+              ),
+              if (subtitle != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 3),
+                  child: subtitle!,
+                ),
+            ],
+          ),
+        ),
+        if (trailing != null)
+          Padding(padding: const EdgeInsets.only(left: 8), child: trailing!),
+      ],
+    );
+
+    final bool card =
+        skin.shape.corner != MmCorner.sharp || skin.ornament.any;
+    if (card) {
+      return MmPanel(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: InkWell(onTap: onTap, child: content),
+      );
+    }
+    // Calm/flat: a plain tappable row with a bottom hairline.
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: skin.color.line)),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: content,
+        ),
+      ),
+    );
+  }
+}
+
 /// A small status pill (app-bar / header chip) — dot + tracked label,
 /// inverting to the alert colour when [alert].
 class MmStatusPill extends StatelessWidget {

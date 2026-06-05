@@ -1,6 +1,6 @@
 # Meshmore SNS — project status
 
-_Snapshot as of v1.0.137+1 (branch `meshmore-sns`)._
+_Snapshot as of v1.0.138+1 (branch `meshmore-sns`)._
 
 An offline-first Flutter companion app for MeshCore LoRa mesh radios
 over BLE. Mesh-first, no backend. Sibling branch `responsive-iot-2026`
@@ -104,14 +104,22 @@ codebase.
   resolved per preset via `mmSkinFor` and read through **`context.skin`**
   (high-contrast forces SEELE).
 - **Branded component library** (`lib/ui/`): `MmPanel`, `MmSectionHeader`,
-  `MmReadout`, `MmStatusPill`, `MmScaffold` + `SkinChromePainter`
-  (CRT scanlines + L brackets, suppressed under reduce-motion). Screens
-  built from these reskin by bundle, not by edit.
-- **Per-skin layout** proven end-to-end: the Dashboard is hosted by
-  `DashboardHost`, which dispatches the **NERV Terminal** telemetry-grid
-  (chamfered HUD panels, hazard headers, scanline) vs the **SEELE
-  monolith** from one `DashboardModel` (slot data). Switch live in
-  Personalization. _First vertical slice; migrate more screens over time._
+  `MmReadout`, `MmStatusPill`, `MmListRow`, `MmScaffold` +
+  `SkinChromePainter` (CRT scanlines + L brackets, suppressed under
+  reduce-motion). `context.skin` falls back to SEELE when no
+  `ThemeController` is above it, so migrating a screen never forces its
+  test harness to wire one.
+- **Two migration mechanisms, both proven:**
+  1. **Per-skin layout fork** (for screens whose *metaphor* differs):
+     the Dashboard is hosted by `DashboardHost`, which dispatches the
+     **NERV Terminal** telemetry-grid vs the **SEELE monolith** from one
+     `DashboardModel` (slot data).
+  2. **Component-driven reskin** (one screen, all skins, no fork): the
+     **Nodes** view is wrapped in `MmScaffold` and renders rows via
+     `MmListRow` (chamfered panel cards + scanline under NERV, flat
+     hairline rows under SEELE) — same code, reskinned by bundle.
+  Switch live in Personalization. _Slice + first list migration; more
+  screens to follow._
 
 **Platform / settings / a11y**
 - About → **Open-source licenses & attributions** (`showLicensePage`):

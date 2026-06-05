@@ -8,6 +8,9 @@ import '../gen/app_localizations.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
+import '../theme/mm_skin.dart';
+import '../ui/mm_components.dart';
+import '../ui/mm_scaffold.dart';
 import '../util/geo.dart' as geo;
 import 'node_detail_sheet.dart';
 
@@ -145,6 +148,11 @@ class _NodesScreenState extends State<NodesScreen> {
   Widget build(BuildContext context) {
     final MeshcoreController mc = context.watch<MeshcoreController>();
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final MmSkin skin = context.skin;
+    // Loud skins (NERV: chamfer + ornament) render node rows as framed
+    // panel cards; calm skins (SEELE) keep flat hairline rows.
+    final bool cardRows =
+        skin.shape.corner != MmCorner.sharp || skin.ornament.any;
     final AppLocalizations l = AppLocalizations.of(context);
     final bool ready = mc.state == MeshcoreConnectionState.ready;
     final Set<String> favs = mc.favorites;
@@ -182,7 +190,8 @@ class _NodesScreenState extends State<NodesScreen> {
         ));
     }
 
-    return Column(
+    return MmScaffold(
+      child: Column(
       children: <Widget>[
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -404,11 +413,14 @@ class _NodesScreenState extends State<NodesScreen> {
                   ),
                 )
               : ListView.separated(
+                  padding: cardRows
+                      ? const EdgeInsets.fromLTRB(12, 8, 12, 12)
+                      : EdgeInsets.zero,
                   itemCount: nodes.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (_, __) => SizedBox(height: cardRows ? 8 : 0),
                   itemBuilder: (BuildContext c, int i) {
                     final DiscoveredNode n = nodes[i];
-                    return ListTile(
+                    return MmListRow(
                       onTap: () => _showDetail(mc, n),
                       leading: Builder(builder: (BuildContext _) {
                         final NodeProximity p = mc.proximityFor(n);
@@ -614,6 +626,7 @@ class _NodesScreenState extends State<NodesScreen> {
                 ),
         ),
       ],
+      ),
     );
   }
 }

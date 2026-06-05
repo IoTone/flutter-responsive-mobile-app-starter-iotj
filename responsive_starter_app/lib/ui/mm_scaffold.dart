@@ -19,8 +19,12 @@ class MmScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final MmSkin skin = context.skin;
-    final bool reduceMotion =
-        context.watch<ThemeController>().reduceMotion;
+    bool reduceMotion = false;
+    try {
+      reduceMotion = context.watch<ThemeController>().reduceMotion;
+    } on ProviderNotFoundException {
+      // No ThemeController above us (isolated test) — assume motion ok.
+    }
     final Widget body = padding == null
         ? child
         : Padding(padding: padding!, child: child);

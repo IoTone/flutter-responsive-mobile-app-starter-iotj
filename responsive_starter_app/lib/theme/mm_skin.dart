@@ -161,10 +161,21 @@ MmSkin mmSkinFor(MmThemePreset preset) {
 /// `context.skin` — the active skin bundle. Watches [ThemeController]
 /// so widgets rebuild when the preset (or high-contrast) changes.
 /// High-contrast forces the SEELE skin (the accessibility benchmark).
+///
+/// Tolerant of a missing [ThemeController] (e.g. an isolated widget
+/// test, or a component used before the provider tree is set up): it
+/// falls back to the default SEELE skin rather than throwing, so
+/// migrating a screen to the component library never forces its test
+/// harness to also wire a ThemeController.
 extension MmSkinContext on BuildContext {
   MmSkin get skin {
-    final ThemeController tc = watch<ThemeController>();
-    return mmSkinFor(
-        tc.highContrast ? MmThemePreset.seele : tc.preset);
+    MmThemePreset preset = MmThemePreset.seele;
+    try {
+      final ThemeController tc = watch<ThemeController>();
+      preset = tc.highContrast ? MmThemePreset.seele : tc.preset;
+    } on ProviderNotFoundException {
+      // No ThemeController above us — default skin.
+    }
+    return mmSkinFor(preset);
   }
 }
