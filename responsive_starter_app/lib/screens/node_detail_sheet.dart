@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:meshcore/meshcore.dart' show Contact;
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -265,6 +266,8 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
             // Self-telemetry already polled on every ready, so no
             // button needed there.
             _TelemetrySection(node: n, isSelf: widget.isSelf, kv: kv),
+            if (!widget.isSelf)
+              _ContactTelemetryShareSection(node: n),
             if (widget.isSelf) ...<Widget>[
               const SizedBox(height: 8),
               Text(l.nodeDetailSelf,
@@ -439,6 +442,61 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
         ),
       );
     }
+  }
+}
+
+/// R54 follow-on — grant this *contact* permission to read our
+/// telemetry. Only relevant when the device's telemetry mode is
+/// "Contacts" (ALLOW_FLAGS); writes the per-contact flag bits via
+/// ADD_UPDATE_CONTACT. Hidden for advert-only (non-contact) nodes,
+/// since telemetry is contact-only.
+class _ContactTelemetryShareSection extends StatelessWidget {
+  const _ContactTelemetryShareSection({required this.node});
+
+  final DiscoveredNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final MeshcoreController mc = context.watch<MeshcoreController>();
+    final AppLocalizations l = AppLocalizations.of(context);
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final Contact? c = mc.contactRecordFor(node.pubKeyHex);
+    if (c == null) return const SizedBox.shrink();
+
+    Widget row(String label, bool value, void Function(bool) onChanged) =>
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          visualDensity: VisualDensity.compact,
+          title: Text(label, style: const TextStyle(fontSize: 13)),
+          value: value,
+          onChanged: onChanged,
+        );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        const SizedBox(height: 10),
+        const Divider(height: 1),
+        const SizedBox(height: 8),
+        Text(l.nodeDetailShareTelemetryTitle,
+            style: TextStyle(
+                color: cs.onSurfaceVariant,
+                fontSize: 12,
+                letterSpacing: 1)),
+        Text(l.nodeDetailShareTelemetryHelp,
+            style: TextStyle(color: cs.onSurfaceVariant, fontSize: 11)),
+        row(l.otherTelemetryBase, c.allowsTelemBase,
+            (bool v) => mc.setContactTelemetryPermissions(node.pubKeyHex,
+                base: v)),
+        row(l.otherTelemetryLoc, c.allowsTelemLocation,
+            (bool v) => mc.setContactTelemetryPermissions(node.pubKeyHex,
+                location: v)),
+        row(l.otherTelemetryEnv, c.allowsTelemEnvironment,
+            (bool v) => mc.setContactTelemetryPermissions(node.pubKeyHex,
+                environment: v)),
+      ],
+    );
   }
 }
 

@@ -578,6 +578,8 @@
   "actionDelete": "削除",
 
   "nodeDetailSelf": "これはあなた自身のノードです — メッセージ / お気に入りは利用不可。",
+  "nodeDetailShareTelemetryTitle": "この連絡先と自分のテレメトリを共有",
+  "nodeDetailShareTelemetryHelp": "テレメトリモードが「連絡先」のとき、この連絡先が選択したテレメトリを取得できるようにします。基本がオフだと何も共有されません。",
   "nodeDetailRecentDms": "最近の DM",
   "nodeDetailMessage": "メッセージ",
   "nodeDetailFavourite": "お気に入り",

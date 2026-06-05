@@ -1292,6 +1292,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'This is your own node — no Message / Favourite.';
 
   @override
+  String get nodeDetailShareTelemetryTitle =>
+      'Share my telemetry with this contact';
+
+  @override
+  String get nodeDetailShareTelemetryHelp =>
+      'Lets this contact scan the chosen telemetry from your device when your telemetry mode is \"Contacts\". Base must be on for any of it to work.';
+
+  @override
   String get nodeDetailRecentDms => 'RECENT DMS';
 
   @override

@@ -578,6 +578,8 @@
   "actionDelete": "Delete",
 
   "nodeDetailSelf": "This is your own node — no Message / Favourite.",
+  "nodeDetailShareTelemetryTitle": "Share my telemetry with this contact",
+  "nodeDetailShareTelemetryHelp": "Lets this contact scan the chosen telemetry from your device when your telemetry mode is \"Contacts\". Base must be on for any of it to work.",
   "nodeDetailRecentDms": "RECENT DMS",
   "nodeDetailMessage": "Message",
   "nodeDetailFavourite": "Favourite",

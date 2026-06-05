@@ -1231,6 +1231,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodeDetailSelf => 'これはあなた自身のノードです — メッセージ / お気に入りは利用不可。';
 
   @override
+  String get nodeDetailShareTelemetryTitle => 'この連絡先と自分のテレメトリを共有';
+
+  @override
+  String get nodeDetailShareTelemetryHelp =>
+      'テレメトリモードが「連絡先」のとき、この連絡先が選択したテレメトリを取得できるようにします。基本がオフだと何も共有されません。';
+
+  @override
   String get nodeDetailRecentDms => '最近の DM';
 
   @override

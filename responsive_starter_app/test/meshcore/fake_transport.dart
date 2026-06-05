@@ -137,12 +137,13 @@ Uint8List contactFrame({
   required String name,
   int firstPubByte = 70,
   int lastAdvertTs = 1700000000,
+  int flags = 0,
 }) {
   final Contact c = Contact(
     publicKey: Uint8List.fromList(
         List<int>.generate(32, (int i) => (firstPubByte + i) & 0xFF)),
     type: 1,
-    flags: 0,
+    flags: flags,
     outPathLen: 0,
     outPath: Uint8List(64),
     name: name,

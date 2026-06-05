@@ -64,6 +64,37 @@ class Contact {
   Uint8List get activePath =>
       Uint8List.sublistView(outPath, 0, outPathLen.clamp(0, outPath.length));
 
+  // --- `flags` bit layout (MeshCore companion firmware) ---------------
+  // The firmware reads telemetry permission as `cp = flags >> 1`, then
+  // `cp & TELEM_PERM_{BASE=0x01,LOCATION=0x02,ENVIRONMENT=0x04}` — so the
+  // permission bits live one position up from the LSB favourite bit.
+  // (Source: examples/companion_radio/MyMesh.cpp onContactRequest +
+  // src/helpers/SensorManager.h.)
+  static const int flagFavourite = 0x01;
+  static const int flagTelemBase = 0x02;
+  static const int flagTelemLocation = 0x04;
+  static const int flagTelemEnvironment = 0x08;
+
+  /// This contact may request **base** (battery) telemetry from us when
+  /// the device telemetry mode is "Contacts" (ALLOW_FLAGS).
+  bool get allowsTelemBase => flags & flagTelemBase != 0;
+  bool get allowsTelemLocation => flags & flagTelemLocation != 0;
+  bool get allowsTelemEnvironment => flags & flagTelemEnvironment != 0;
+  bool get isDeviceFavourite => flags & flagFavourite != 0;
+
+  Contact copyWith({int? flags}) => Contact(
+        publicKey: publicKey,
+        type: type,
+        flags: flags ?? this.flags,
+        outPathLen: outPathLen,
+        outPath: outPath,
+        name: name,
+        lastAdvertTimestamp: lastAdvertTimestamp,
+        latitudeMicros: latitudeMicros,
+        longitudeMicros: longitudeMicros,
+        lastMod: lastMod,
+      );
+
   @override
   String toString() =>
       'Contact(name: $name, type: $type, pathLen: $outPathLen, '

@@ -1,6 +1,6 @@
 # Meshmore SNS — project status
 
-_Snapshot as of v1.0.132+1 (branch `meshmore-sns`)._
+_Snapshot as of v1.0.133+1 (branch `meshmore-sns`)._
 
 An offline-first Flutter companion app for MeshCore LoRa mesh radios
 over BLE. Mesh-first, no backend. Sibling branch `responsive-iot-2026`
@@ -68,6 +68,12 @@ codebase.
   `[telem]` diag log dumps received LPP types.
 - Fuji-san polls **self** telemetry on load / on UPDATE (+ a phone-GPS
   one-shot so altitude resolves even when the device omits GPS alt).
+- **Telemetry sharing** is a permission (Off/Contacts/Anyone per
+  base/loc/env); the radio firmware answers other nodes' scans itself
+  (`onContactRequest`, contact-only, base is the master gate). For
+  "Contacts" mode, the Node detail sheet grants **per-contact telemetry
+  permissions** (writes `contact.flags` via ADD_UPDATE_CONTACT) — the
+  only lever the app has on the responder side.
 
 **Battery (R16)**
 - Voltage → SoC via per-device OCV curve; observed-drain regression +

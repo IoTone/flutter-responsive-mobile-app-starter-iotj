@@ -2550,6 +2550,10 @@ class MeshcoreController extends ChangeNotifier {
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     if (f is ContactFrame) {
       final Contact c = f.contact;
+      // Retain the raw contact record (path, flags, lastMod) so we can
+      // re-send it byte-exactly via ADD_UPDATE_CONTACT when changing
+      // per-contact telemetry permissions (R54 follow-on).
+      _contacts[_hex(c.publicKey)] = c;
       final int adv = c.lastAdvertTimestamp;
       // `adv` is in the device clock; translate via the learned
       // offset (0 until CURR_TIME, re-derived in _trackDeviceClock).
@@ -2635,6 +2639,54 @@ class MeshcoreController extends ChangeNotifier {
   /// Ask the radio for its synced contact list (`CMD_GET_CONTACTS`).
   Future<void> requestContacts() =>
       send(MeshcoreFrameCodec.getContacts());
+
+  // -------------------------------------------------------------------
+  // Per-contact telemetry permissions (R54 follow-on). The radio answers
+  // another node's telemetry scan itself (firmware `onContactRequest`);
+  // when our telemetry mode is "Contacts" (ALLOW_FLAGS) it only replies
+  // if that contact's flag bits grant it. We're the only place that can
+  // set those bits, by re-sending the contact via ADD_UPDATE_CONTACT.
+  // -------------------------------------------------------------------
+
+  /// Raw synced contact records, keyed by pub-key hex. Populated as the
+  /// device streams its contact list.
+  final Map<String, Contact> _contacts = <String, Contact>{};
+
+  /// The raw synced [Contact] for [pubKeyHex], or null if the node is
+  /// only advert-heard (not a synced contact on the device).
+  Contact? contactRecordFor(String pubKeyHex) => _contacts[pubKeyHex];
+
+  /// True when the node is a synced contact — a prerequisite for any
+  /// telemetry exchange (telemetry is contact-only).
+  bool isSyncedContact(String pubKeyHex) => _contacts.containsKey(pubKeyHex);
+
+  /// Grant/revoke this contact's permission to request each telemetry
+  /// class from us (used by the "Contacts" telemetry mode). Preserves
+  /// the favourite bit and any bits we don't manage. No-op if the node
+  /// isn't a synced contact or we aren't ready.
+  Future<void> setContactTelemetryPermissions(
+    String pubKeyHex, {
+    bool? base,
+    bool? location,
+    bool? environment,
+  }) async {
+    final Contact? c = _contacts[pubKeyHex];
+    if (c == null || !isReady) return;
+    int flags = c.flags;
+    int set(int flags, int bit, bool? on) {
+      if (on == null) return flags;
+      return on ? (flags | bit) : (flags & ~bit);
+    }
+
+    flags = set(flags, Contact.flagTelemBase, base);
+    flags = set(flags, Contact.flagTelemLocation, location);
+    flags = set(flags, Contact.flagTelemEnvironment, environment);
+    if (flags == c.flags) return;
+    final Contact updated = c.copyWith(flags: flags);
+    _contacts[pubKeyHex] = updated; // optimistic
+    notifyListeners();
+    await send(MeshcoreFrameCodec.addUpdateContact(updated));
+  }
 
   /// Broadcast our own advert so neighbours discover us.
   Future<void> sendSelfAdvert({bool flood = true}) =>

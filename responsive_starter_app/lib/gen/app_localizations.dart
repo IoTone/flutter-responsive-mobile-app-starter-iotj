@@ -2264,6 +2264,18 @@ abstract class AppLocalizations {
   /// **'This is your own node — no Message / Favourite.'**
   String get nodeDetailSelf;
 
+  /// No description provided for @nodeDetailShareTelemetryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share my telemetry with this contact'**
+  String get nodeDetailShareTelemetryTitle;
+
+  /// No description provided for @nodeDetailShareTelemetryHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Lets this contact scan the chosen telemetry from your device when your telemetry mode is \"Contacts\". Base must be on for any of it to work.'**
+  String get nodeDetailShareTelemetryHelp;
+
   /// No description provided for @nodeDetailRecentDms.
   ///
   /// In en, this message translates to:
