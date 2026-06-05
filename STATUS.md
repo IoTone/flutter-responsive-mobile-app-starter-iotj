@@ -1,6 +1,6 @@
 # Meshmore SNS — project status
 
-_Snapshot as of v1.0.143+1 (branch `meshmore-sns`)._
+_Snapshot as of v1.0.145+1 (branch `meshmore-sns`)._
 
 An offline-first Flutter companion app for MeshCore LoRa mesh radios
 over BLE. Mesh-first, no backend. Sibling branch `responsive-iot-2026`
@@ -141,9 +141,10 @@ codebase.
   (alert ×2 / link-lost), ascending square link-up. Two new synth modes
   (`sweep`, `ticks`) added to `brand/_audio_pack.py` (pure-stdlib,
   re-runnable); only NERV's 7 WAVs changed.
-- _Migrated: Dashboard (fork), Nodes + Chat (component-driven); viz
-  painters confirmed skin-following; fonts app-wide; NERV audio. Next:
-  more screens + concepts B/C/E/F bundles._
+- _Migrated onto the components: Dashboard (fork), Nodes, Chat, **DM**,
+  **Settings hub**, **About** (component-driven). Viz painters
+  skin-following; fonts app-wide; NERV audio. Next: settings sub-screens
+  + Docs/Battery, then concepts B/C/E/F bundles._
 
 **Platform / settings / a11y**
 - About → **Open-source licenses & attributions** (`showLicensePage`):

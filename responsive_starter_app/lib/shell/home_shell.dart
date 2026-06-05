@@ -16,7 +16,10 @@ import 'boot_overlay.dart';
 import '../screens/dashboards/dashboard_host.dart';
 import '../screens/docs_hub_screen.dart';
 import '../screens/nodes_screen.dart';
+import '../theme/mm_skin.dart';
 import '../theme/theme_controller.dart';
+import '../ui/mm_components.dart';
+import '../ui/mm_scaffold.dart';
 
 /// The six primary views (R8 dashboard is the home / first page;
 /// R53 adds the Docs tab, sitting after Settings).
@@ -219,44 +222,41 @@ class _SettingsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l = AppLocalizations.of(context);
-    return ListView(
-      children: <Widget>[
-        ListTile(
-          leading: const Icon(Icons.router_outlined),
-          title: Text(l.settingsHubDevice),
-          subtitle: Text(l.settingsHubDeviceSub),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.push('/settings/device'),
-        ),
-        ListTile(
-          leading: const Icon(Icons.tune),
-          title: Text(l.settingsHubApp),
-          subtitle: Text(l.settingsHubAppSub),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.push('/settings/app'),
-        ),
-        ListTile(
-          leading: const Icon(Icons.palette_outlined),
-          title: Text(l.settingsHubProfile),
-          subtitle: Text(l.settingsHubProfileSub),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.push('/settings/profile'),
-        ),
-        ListTile(
-          leading: const Icon(Icons.tag),
-          title: Text(l.settingsHubChannels),
-          subtitle: Text(l.settingsHubChannelsSub),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.push('/settings/channels'),
-        ),
-        ListTile(
-          leading: const Icon(Icons.bluetooth_searching),
-          title: Text(l.settingsHubDiagnostics),
-          subtitle: Text(l.settingsHubDiagnosticsSub),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.push('/settings/diagnostics'),
-        ),
-      ],
+    final MmSkin skin = context.skin;
+    final bool cardRows =
+        skin.shape.corner != MmCorner.sharp || skin.ornament.any;
+    final List<(IconData, String, String, String)> items =
+        <(IconData, String, String, String)>[
+      (Icons.router_outlined, l.settingsHubDevice, l.settingsHubDeviceSub,
+          '/settings/device'),
+      (Icons.tune, l.settingsHubApp, l.settingsHubAppSub, '/settings/app'),
+      (Icons.palette_outlined, l.settingsHubProfile, l.settingsHubProfileSub,
+          '/settings/profile'),
+      (Icons.tag, l.settingsHubChannels, l.settingsHubChannelsSub,
+          '/settings/channels'),
+      (Icons.bluetooth_searching, l.settingsHubDiagnostics,
+          l.settingsHubDiagnosticsSub, '/settings/diagnostics'),
+    ];
+    return MmScaffold(
+      child: ListView.separated(
+        padding: cardRows
+            ? const EdgeInsets.fromLTRB(12, 8, 12, 12)
+            : EdgeInsets.zero,
+        itemCount: items.length,
+        separatorBuilder: (_, __) => SizedBox(height: cardRows ? 8 : 0),
+        itemBuilder: (BuildContext context, int i) {
+          final (IconData, String, String, String) it = items[i];
+          return MmListRow(
+            leading: Icon(it.$1, color: skin.color.accent),
+            title: Text(it.$2),
+            subtitle: Text(it.$3,
+                style:
+                    TextStyle(color: skin.color.fgMuted, fontSize: 12)),
+            trailing: Icon(Icons.chevron_right, color: skin.color.fgMuted),
+            onTap: () => context.push(it.$4),
+          );
+        },
+      ),
     );
   }
 }
@@ -269,7 +269,8 @@ class _AboutView extends StatelessWidget {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final AppState app = context.watch<AppState>();
     final AppLocalizations l = AppLocalizations.of(context);
-    return Center(
+    return MmScaffold(
+      child: Center(
       child: Padding(
         padding: const EdgeInsets.all(28),
         child: Column(
@@ -333,6 +334,7 @@ class _AboutView extends StatelessWidget {
                     height: 1.4)),
           ],
         ),
+      ),
       ),
     );
   }

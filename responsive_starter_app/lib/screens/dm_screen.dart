@@ -12,6 +12,8 @@ import 'delivery_status_icon.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
+import '../theme/mm_skin.dart';
+import '../ui/mm_scaffold.dart';
 import 'node_detail_sheet.dart';
 
 /// 1:1 direct-message thread with a peer (P2P). The MeshCore
@@ -193,7 +195,8 @@ class _DmScreenState extends State<DmScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: MmScaffold(
+        child: Column(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
@@ -254,6 +257,7 @@ class _DmScreenState extends State<DmScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -267,6 +271,8 @@ class _DmRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final MmSkin skin = context.skin;
+    final String mono = skin.type.monoFamily;
     final String time = '${m.at.hour.toString().padLeft(2, '0')}:'
         '${m.at.minute.toString().padLeft(2, '0')}';
     final String tag = m.outgoing ? '»' : '«';
@@ -286,15 +292,16 @@ class _DmRow extends StatelessWidget {
               child: Text('$time $tag',
                   style: TextStyle(
                       color:
-                          m.outgoing ? cs.primary : cs.onSurfaceVariant,
-                      fontFamily: 'JetBrains Mono',
+                          m.outgoing ? skin.color.accent : skin.color.fgMuted,
+                      fontFamily: mono,
                       fontSize: 12)),
             ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(m.text, style: TextStyle(color: cs.onSurface)),
+                  Text(m.text,
+                      style: TextStyle(color: skin.color.fg, fontFamily: mono)),
                   if (meta.isNotEmpty || m.outgoing && m.delivery != null)
                     Row(
                       children: <Widget>[
