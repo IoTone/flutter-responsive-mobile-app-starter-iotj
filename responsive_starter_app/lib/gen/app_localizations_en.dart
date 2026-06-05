@@ -51,6 +51,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardRadio => 'RADIO';
 
   @override
+  String get dashNervLink => 'Link';
+
+  @override
+  String get dashNervNode => 'Node';
+
+  @override
+  String get dashNervRegion => 'Region';
+
+  @override
+  String get dashNervMesh => 'Mesh';
+
+  @override
+  String get dashNervKnown => 'Known';
+
+  @override
+  String get dashNervEvents => 'Events';
+
+  @override
   String get dashboardLocation => 'LOCATION';
 
   @override

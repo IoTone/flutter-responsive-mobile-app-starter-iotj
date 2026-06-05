@@ -44,6 +44,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dashboardRadio => 'ラジオ';
 
   @override
+  String get dashNervLink => 'リンク';
+
+  @override
+  String get dashNervNode => 'ノード';
+
+  @override
+  String get dashNervRegion => '地域';
+
+  @override
+  String get dashNervMesh => 'メッシュ';
+
+  @override
+  String get dashNervKnown => '既知';
+
+  @override
+  String get dashNervEvents => 'イベント';
+
+  @override
   String get dashboardLocation => '現在地';
 
   @override

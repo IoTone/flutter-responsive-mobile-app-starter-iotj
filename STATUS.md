@@ -1,6 +1,6 @@
 # Meshmore SNS — project status
 
-_Snapshot as of v1.0.136+1 (branch `meshmore-sns`)._
+_Snapshot as of v1.0.137+1 (branch `meshmore-sns`)._
 
 An offline-first Flutter companion app for MeshCore LoRa mesh radios
 over BLE. Mesh-first, no backend. Sibling branch `responsive-iot-2026`
@@ -96,6 +96,22 @@ codebase.
 - Futuristic monospace rendering (tracked-caps headings + accent
   rules); markdown parsed with the `markdown` package, rendered to
   widgets in-app (images → alt text). Fetch seam is injectable/tested.
+
+**Skin system (R55) — design-system foundation**
+- A **skin is a bundle**, not just a palette: `MmSkin` = colour
+  (`MmTokens`) + `MmType` + `MmShape` (sharp/rounded/**chamfer**) +
+  `MmOrnament` (scanlines, corner brackets, hazard-stripe headers),
+  resolved per preset via `mmSkinFor` and read through **`context.skin`**
+  (high-contrast forces SEELE).
+- **Branded component library** (`lib/ui/`): `MmPanel`, `MmSectionHeader`,
+  `MmReadout`, `MmStatusPill`, `MmScaffold` + `SkinChromePainter`
+  (CRT scanlines + L brackets, suppressed under reduce-motion). Screens
+  built from these reskin by bundle, not by edit.
+- **Per-skin layout** proven end-to-end: the Dashboard is hosted by
+  `DashboardHost`, which dispatches the **NERV Terminal** telemetry-grid
+  (chamfered HUD panels, hazard headers, scanline) vs the **SEELE
+  monolith** from one `DashboardModel` (slot data). Switch live in
+  Personalization. _First vertical slice; migrate more screens over time._
 
 **Platform / settings / a11y**
 - About → **Open-source licenses & attributions** (`showLicensePage`):

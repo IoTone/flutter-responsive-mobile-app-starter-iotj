@@ -13,7 +13,7 @@ import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../screens/chat_screen.dart';
 import 'boot_overlay.dart';
-import '../screens/dashboard_screen.dart';
+import '../screens/dashboards/dashboard_host.dart';
 import '../screens/docs_hub_screen.dart';
 import '../screens/nodes_screen.dart';
 import '../theme/theme_controller.dart';
@@ -198,7 +198,7 @@ class _HomeShellState extends State<HomeShell>
         controller: _pc,
         onPageChanged: (int i) => setState(() => _index = i),
         children: const <Widget>[
-          DashboardScreen(),
+          DashboardHost(),
           ChatScreen(),
           NodesScreen(),
           _SettingsView(),

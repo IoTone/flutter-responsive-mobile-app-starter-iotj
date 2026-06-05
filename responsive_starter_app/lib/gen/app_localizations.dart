@@ -164,6 +164,42 @@ abstract class AppLocalizations {
   /// **'RADIO'**
   String get dashboardRadio;
 
+  /// No description provided for @dashNervLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get dashNervLink;
+
+  /// No description provided for @dashNervNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Node'**
+  String get dashNervNode;
+
+  /// No description provided for @dashNervRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Region'**
+  String get dashNervRegion;
+
+  /// No description provided for @dashNervMesh.
+  ///
+  /// In en, this message translates to:
+  /// **'Mesh'**
+  String get dashNervMesh;
+
+  /// No description provided for @dashNervKnown.
+  ///
+  /// In en, this message translates to:
+  /// **'Known'**
+  String get dashNervKnown;
+
+  /// No description provided for @dashNervEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get dashNervEvents;
+
   /// No description provided for @dashboardLocation.
   ///
   /// In en, this message translates to:

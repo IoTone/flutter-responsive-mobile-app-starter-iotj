@@ -17,6 +17,12 @@
     "placeholders": {"n": {"type": "int"}}
   },
   "dashboardRadio": "RADIO",
+  "dashNervLink": "Link",
+  "dashNervNode": "Node",
+  "dashNervRegion": "Region",
+  "dashNervMesh": "Mesh",
+  "dashNervKnown": "Known",
+  "dashNervEvents": "Events",
   "dashboardLocation": "LOCATION",
   "dashboardBattery": "BATTERY",
   "dashboardRecent": "RECENT",

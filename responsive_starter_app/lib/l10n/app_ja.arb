@@ -17,6 +17,12 @@
     "placeholders": {"n": {"type": "int"}}
   },
   "dashboardRadio": "ラジオ",
+  "dashNervLink": "リンク",
+  "dashNervNode": "ノード",
+  "dashNervRegion": "地域",
+  "dashNervMesh": "メッシュ",
+  "dashNervKnown": "既知",
+  "dashNervEvents": "イベント",
   "dashboardLocation": "現在地",
   "dashboardBattery": "バッテリー",
   "dashboardRecent": "最近のアクティビティ",
