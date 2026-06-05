@@ -11,6 +11,7 @@ import 'background_keepalive.dart';
 import 'background_prefs.dart';
 import 'battery_history_store.dart';
 import 'battery_model.dart';
+import 'city_lookup.dart';
 import 'default_channel_store.dart';
 import 'device_power_specs.dart';
 import 'ble_connector.dart';
@@ -1525,14 +1526,25 @@ class MeshcoreController extends ChangeNotifier {
   void _trackPlaceInference(MeshcoreInbound f) {
     if (f is! ChannelMessageFrame) return;
     final ChannelMessage cm = f.message;
-    if (!placeInferenceEnabled(cm.channelIdx)) return;
+    final bool enabled = placeInferenceEnabled(cm.channelIdx);
     final OwnLocation? own = ownLocation;
-    if (own == null) return; // region-scoping needs our location
+    final int gaz = CityLookup.cachedOrNull?.cityCount ?? -1;
+    if (!enabled || own == null) {
+      // Diagnostic: why a channel message was skipped (gaz=-1 means the
+      // city gazetteer hasn't loaded yet).
+      debugPrint('[place] ch=${cm.channelIdx} enabled=$enabled '
+          'located=${own != null} gaz=$gaz — skipped');
+      return;
+    }
     final List<InferredPlace> hits = _placeEngine.infer(
       cm.text,
       originLat: own.latitude,
       originLon: own.longitude,
     );
+    debugPrint('[place] ch=${cm.channelIdx} gaz=$gaz '
+        'text="${cm.text}" → ${hits.length} hit(s)'
+        '${hits.map((InferredPlace h) => ' ${h.anchorName}'
+            '(${h.confidence.toStringAsFixed(2)})').join()}');
     if (hits.isEmpty) return;
     final DateTime now = DateTime.now();
     for (final InferredPlace p in hits) {

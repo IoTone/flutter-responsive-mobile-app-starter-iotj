@@ -236,7 +236,8 @@ class _SnsCellsViewState extends State<SnsCellsView>
                   Border.all(color: cs.outline.withValues(alpha: .55)),
             ),
             child: Text(
-              l.snsCellsStatus(heat.length, hotCells),
+              '${l.snsCellsStatus(heat.length, hotCells)}'
+              '${inferred.isNotEmpty ? '  ◇${inferred.length}' : ''}',
               style: TextStyle(
                 color: cs.onSurface,
                 fontSize: 10,
