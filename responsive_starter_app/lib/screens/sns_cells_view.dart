@@ -276,7 +276,7 @@ class _SnsCellsViewState extends State<SnsCellsView>
               style: TextStyle(
                 color: cs.onSurface,
                 fontSize: 10,
-                fontFamily: 'monospace',
+                fontFamily: 'JetBrains Mono',
                 letterSpacing: 1,
               ),
             ),
@@ -872,7 +872,7 @@ class _SnsCellsPainter extends CustomPainter {
           color: (onHot ? Colors.white : Colors.black).withValues(alpha: .85),
           fontSize: 10,
           fontWeight: FontWeight.w700,
-          fontFamily: 'monospace',
+          fontFamily: 'JetBrains Mono',
           shadows: <Shadow>[
             Shadow(
                 color: (onHot ? Colors.black : Colors.white)

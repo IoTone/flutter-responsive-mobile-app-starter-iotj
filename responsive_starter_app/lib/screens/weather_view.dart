@@ -192,7 +192,7 @@ class _SummaryCard extends StatelessWidget {
                     color: temperatureColor(c),
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    fontFamily: 'monospace')),
+                    fontFamily: 'JetBrains Mono')),
             Text(label,
                 style: TextStyle(color: cs.onSurfaceVariant, fontSize: 10)),
           ],
@@ -255,7 +255,7 @@ class _ReadingTile extends StatelessWidget {
           style: TextStyle(
               color: c != null ? temperatureColor(c) : cs.onSurfaceVariant,
               fontWeight: FontWeight.w700,
-              fontFamily: 'monospace'),
+              fontFamily: 'JetBrains Mono'),
         ),
       ),
       title: Row(

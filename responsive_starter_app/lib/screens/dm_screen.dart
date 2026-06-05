@@ -201,7 +201,7 @@ class _DmScreenState extends State<DmScreen> {
               l.dmPubkeyLabel(pubkeyDisplay),
               style: TextStyle(
                   color: cs.onSurfaceVariant,
-                  fontFamily: 'monospace',
+                  fontFamily: 'JetBrains Mono',
                   fontSize: 11),
             ),
           ),
@@ -287,7 +287,7 @@ class _DmRow extends StatelessWidget {
                   style: TextStyle(
                       color:
                           m.outgoing ? cs.primary : cs.onSurfaceVariant,
-                      fontFamily: 'monospace',
+                      fontFamily: 'JetBrains Mono',
                       fontSize: 12)),
             ),
             Expanded(

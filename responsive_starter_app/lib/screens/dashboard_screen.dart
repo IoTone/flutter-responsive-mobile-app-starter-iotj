@@ -155,7 +155,7 @@ class DashboardScreen extends StatelessWidget {
           Text(l.dashboardAwaitingDevice,
               style: TextStyle(
                   color: cs.onSurface,
-                  fontFamily: 'monospace',
+                  fontFamily: 'JetBrains Mono',
                   height: 1.5))
         else ...<Widget>[
           // R52 — the device name is editable right here. Tap to
@@ -178,7 +178,7 @@ class DashboardScreen extends StatelessWidget {
                           : selfInfo.name,
                       style: TextStyle(
                           color: cs.onSurface,
-                          fontFamily: 'monospace',
+                          fontFamily: 'JetBrains Mono',
                           fontWeight: FontWeight.w600,
                           fontSize: 16),
                     ),
@@ -199,7 +199,7 @@ class DashboardScreen extends StatelessWidget {
             '${selfInfo.txPowerDbm}dBm',
             style: TextStyle(
                 color: cs.onSurface,
-                fontFamily: 'monospace',
+                fontFamily: 'JetBrains Mono',
                 height: 1.5),
           ),
         ],
@@ -281,7 +281,7 @@ class DashboardScreen extends StatelessWidget {
                         color: mc.charging == true
                             ? cs.tertiary
                             : cs.onSurface,
-                        fontFamily: 'monospace'),
+                        fontFamily: 'JetBrains Mono'),
                   ),
                 ],
               ),
@@ -312,7 +312,7 @@ class DashboardScreen extends StatelessWidget {
                         '${e.at.second.toString().padLeft(2, '0')}',
                         style: TextStyle(
                             color: cs.onSurfaceVariant,
-                            fontFamily: 'monospace',
+                            fontFamily: 'JetBrains Mono',
                             fontSize: 12),
                       ),
                     ),
@@ -410,7 +410,7 @@ class _LocationTile extends StatelessWidget {
             '${l.dashboardLocationSourceLabel(loc.sourceLabel)}',
             style: TextStyle(
                 color: cs.onSurface,
-                fontFamily: 'monospace',
+                fontFamily: 'JetBrains Mono',
                 height: 1.5),
           ),
           // Diagnostic readout — shows the raw selfInfo lat/lon,
@@ -489,7 +489,7 @@ class _LocationDebugLine extends StatelessWidget {
       parts.join('\n'),
       style: TextStyle(
         color: cs.onSurfaceVariant.withValues(alpha: .7),
-        fontFamily: 'monospace',
+        fontFamily: 'JetBrains Mono',
         fontSize: 10,
         height: 1.35,
       ),

@@ -826,7 +826,7 @@ class _GridScreenState extends State<GridScreen>
                     color: cs.primary.withValues(alpha: .7),
                     fontSize: 9,
                     letterSpacing: 5,
-                    fontFamily: 'monospace'),
+                    fontFamily: 'JetBrains Mono'),
               ),
               const SizedBox(height: 1),
               Row(
@@ -840,21 +840,21 @@ class _GridScreenState extends State<GridScreen>
                         fontSize: 38,
                         height: 1,
                         fontWeight: FontWeight.w700,
-                        fontFamily: 'monospace',
+                        fontFamily: 'JetBrains Mono',
                         letterSpacing: 2),
                   ),
                   Text('°',
                       style: TextStyle(
                           color: cs.primary.withValues(alpha: .7),
                           fontSize: 22,
-                          fontFamily: 'monospace')),
+                          fontFamily: 'JetBrains Mono')),
                   const SizedBox(width: 10),
                   Text(card,
                       style: TextStyle(
                           color: cs.tertiary,
                           fontSize: 22,
                           fontWeight: FontWeight.w600,
-                          fontFamily: 'monospace',
+                          fontFamily: 'JetBrains Mono',
                           letterSpacing: 3)),
                 ],
               ),
@@ -1097,7 +1097,7 @@ class _GridPainter extends CustomPainter {
         text: TextSpan(
           text: label,
           style: TextStyle(
-              color: base, fontSize: 10, fontFamily: 'monospace'),
+              color: base, fontSize: 10, fontFamily: 'JetBrains Mono'),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
@@ -1245,7 +1245,7 @@ class _GridPainter extends CustomPainter {
           style: TextStyle(
             color: m.n ? accent : base,
             fontSize: m.n ? 13 : 11,
-            fontFamily: 'monospace',
+            fontFamily: 'JetBrains Mono',
             fontWeight: m.n ? FontWeight.w700 : FontWeight.w500,
           ),
         ),

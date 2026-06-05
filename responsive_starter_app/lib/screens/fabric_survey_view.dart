@@ -312,7 +312,7 @@ class _FabricSurveyViewState extends State<FabricSurveyView> {
                     color: cs.primary,
                     fontSize: 11,
                     letterSpacing: 1,
-                    fontFamily: 'monospace',
+                    fontFamily: 'JetBrains Mono',
                     fontWeight: FontWeight.w600),
               ),
             ),

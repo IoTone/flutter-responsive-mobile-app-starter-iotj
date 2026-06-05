@@ -26,7 +26,7 @@ class DocsHubScreen extends StatelessWidget {
         Text(
           l.docsHubTitle.toUpperCase(),
           style: TextStyle(
-              fontFamily: 'monospace',
+              fontFamily: 'JetBrains Mono',
               fontSize: 20,
               letterSpacing: 4,
               fontWeight: FontWeight.w700,
@@ -36,7 +36,7 @@ class DocsHubScreen extends StatelessWidget {
         Text(
           l.docsHubSubtitle,
           style: TextStyle(
-              fontFamily: 'monospace',
+              fontFamily: 'JetBrains Mono',
               fontSize: 12,
               height: 1.4,
               color: cs.onSurfaceVariant),
@@ -66,7 +66,7 @@ class DocsHubScreen extends StatelessWidget {
         Text(
           l.docsHubFooter,
           style: TextStyle(
-              fontFamily: 'monospace',
+              fontFamily: 'JetBrains Mono',
               fontSize: 10.5,
               height: 1.5,
               color: cs.onSurfaceVariant.withValues(alpha: .8)),
@@ -122,7 +122,7 @@ class _DocCard extends StatelessWidget {
                   children: <Widget>[
                     Text(title.toUpperCase(),
                         style: TextStyle(
-                            fontFamily: 'monospace',
+                            fontFamily: 'JetBrains Mono',
                             fontSize: 14,
                             letterSpacing: 1.5,
                             fontWeight: FontWeight.w700,
@@ -130,7 +130,7 @@ class _DocCard extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(subtitle,
                         style: TextStyle(
-                            fontFamily: 'monospace',
+                            fontFamily: 'JetBrains Mono',
                             fontSize: 11.5,
                             height: 1.35,
                             color: cs.onSurfaceVariant)),

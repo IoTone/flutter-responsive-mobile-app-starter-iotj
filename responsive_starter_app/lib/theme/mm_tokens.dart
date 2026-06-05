@@ -143,7 +143,7 @@ MmThemePreset presetFromId(String? id) => MmThemePreset.values.firstWhere(
 /// `ColorScheme.dark(...)` would otherwise leave at fixed defaults.
 /// Without this, switching presets only nudged a couple of accents
 /// (the "themes don't change" bug); now the whole UI re-skins.
-ThemeData buildMmTheme(MmTokens t) {
+ThemeData buildMmTheme(MmTokens t, {String? fontFamily}) {
   final ColorScheme scheme = ColorScheme(
     brightness: Brightness.dark,
     surface: t.base,
@@ -179,12 +179,20 @@ ThemeData buildMmTheme(MmTokens t) {
     inversePrimary: t.base,
     surfaceTint: t.accent,
   );
+  // R55 — the active skin's display face becomes the app-wide default,
+  // so every screen (not just the migrated components) reads in the
+  // brand type. Telemetry/mono text sets its own family explicitly.
   final TextTheme text = ThemeData(brightness: Brightness.dark)
       .textTheme
-      .apply(bodyColor: t.fg, displayColor: t.fg, decorationColor: t.fg);
+      .apply(
+          bodyColor: t.fg,
+          displayColor: t.fg,
+          decorationColor: t.fg,
+          fontFamily: fontFamily);
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
+    fontFamily: fontFamily,
     colorScheme: scheme,
     scaffoldBackgroundColor: t.base,
     canvasColor: t.base,

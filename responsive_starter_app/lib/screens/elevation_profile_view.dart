@@ -186,7 +186,7 @@ class _ElevationProfileViewState extends State<ElevationProfileView>
                   style: TextStyle(
                     color: cs.onSurface,
                     fontSize: 10,
-                    fontFamily: 'monospace',
+                    fontFamily: 'JetBrains Mono',
                     letterSpacing: 1,
                   ),
                   child: Column(
@@ -390,7 +390,7 @@ class _ElevationProfilePainter extends CustomPainter {
               color: warn,
               fontSize: 10,
               letterSpacing: 1,
-              fontFamily: 'monospace',
+              fontFamily: 'JetBrains Mono',
               fontWeight: FontWeight.w700),
         ),
         textDirection: TextDirection.ltr,
@@ -464,7 +464,7 @@ class _ElevationProfilePainter extends CustomPainter {
             color: accentDim,
             fontSize: 9,
             letterSpacing: 2,
-            fontFamily: 'monospace'),
+            fontFamily: 'JetBrains Mono'),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -501,7 +501,7 @@ class _ElevationProfilePainter extends CustomPainter {
             color: accent,
             fontSize: 11,
             letterSpacing: 3,
-            fontFamily: 'monospace',
+            fontFamily: 'JetBrains Mono',
             fontWeight: FontWeight.w700),
       ),
       textDirection: TextDirection.ltr,
@@ -534,7 +534,7 @@ class _ElevationProfilePainter extends CustomPainter {
             color: accentDim,
             fontSize: 9,
             letterSpacing: 2,
-            fontFamily: 'monospace'),
+            fontFamily: 'JetBrains Mono'),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -563,7 +563,7 @@ class _ElevationProfilePainter extends CustomPainter {
               color: accent,
               fontSize: 9,
               letterSpacing: 1,
-              fontFamily: 'monospace'),
+              fontFamily: 'JetBrains Mono'),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
@@ -584,7 +584,7 @@ class _ElevationProfilePainter extends CustomPainter {
             color: accent,
             fontSize: 9,
             letterSpacing: 1,
-            fontFamily: 'monospace'),
+            fontFamily: 'JetBrains Mono'),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -626,7 +626,7 @@ class _ElevationProfilePainter extends CustomPainter {
             color: accentDim,
             fontSize: 8,
             letterSpacing: 2,
-            fontFamily: 'monospace'),
+            fontFamily: 'JetBrains Mono'),
       ),
       textDirection: TextDirection.ltr,
     )..layout();

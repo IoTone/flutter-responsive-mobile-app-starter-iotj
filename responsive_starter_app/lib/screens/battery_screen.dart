@@ -151,7 +151,7 @@ class _GaugeRow extends StatelessWidget {
                 style: TextStyle(
                     color: cs.onSurface,
                     fontSize: 22,
-                    fontFamily: 'monospace'),
+                    fontFamily: 'JetBrains Mono'),
               ),
               const SizedBox(height: 12),
               if (est.charging == true)
@@ -253,7 +253,7 @@ class _EstimateCard extends StatelessWidget {
             Text(k, style: TextStyle(color: cs.onSurfaceVariant)),
             Text(v,
                 style: TextStyle(
-                    color: cs.onSurface, fontFamily: 'monospace')),
+                    color: cs.onSurface, fontFamily: 'JetBrains Mono')),
           ],
         ),
       );
@@ -339,7 +339,7 @@ class _SpecCard extends StatelessWidget {
                 '${spec.fullVolts.toStringAsFixed(2)}–'
                 '${spec.emptyVolts.toStringAsFixed(2)} V',
                 style: TextStyle(
-                    color: cs.onSurface, fontFamily: 'monospace')),
+                    color: cs.onSurface, fontFamily: 'JetBrains Mono')),
             if (rx != null)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
@@ -347,7 +347,7 @@ class _SpecCard extends StatelessWidget {
                     l.batterySpecDraw(rx.round()),
                     style: TextStyle(
                         color: cs.onSurfaceVariant,
-                        fontFamily: 'monospace')),
+                        fontFamily: 'JetBrains Mono')),
               ),
             if (spec.notes != null)
               Padding(

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'mm_skin.dart';
 import 'mm_tokens.dart';
 
 /// User-customizable appearance & accessibility (R14 / R12 / R13).
@@ -36,10 +37,13 @@ class ThemeController extends ChangeNotifier {
   MmTokens get tokens => kMmPresets[_preset]!;
 
   /// Forced to the high-contrast SEELE token set when [highContrast]
-  /// is on, regardless of the chosen preset.
-  ThemeData get theme => buildMmTheme(
-        _highContrast ? kMmPresets[MmThemePreset.seele]! : tokens,
-      );
+  /// is on, regardless of the chosen preset. The active skin's display
+  /// face is applied app-wide so every screen reads in the brand type.
+  ThemeData get theme {
+    final MmSkin skin =
+        mmSkinFor(_highContrast ? MmThemePreset.seele : _preset);
+    return buildMmTheme(skin.color, fontFamily: skin.type.displayFamily);
+  }
 
   /// Load persisted preferences. Safe to call once at startup.
   Future<void> load() async {

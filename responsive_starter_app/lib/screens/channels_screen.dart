@@ -607,7 +607,7 @@ class _EditChannelDialogState extends State<_EditChannelDialog> {
                           b.toRadixString(16).padLeft(2, '0'))
                       .join(),
                   style: const TextStyle(
-                      fontFamily: 'monospace', fontSize: 11),
+                      fontFamily: 'JetBrains Mono', fontSize: 11),
                 ),
               // QR-share — only meaningful for non-Public slots
               // (Public's key is world-known, no point sharing).
@@ -777,7 +777,7 @@ void _showQrShare(BuildContext outer, int idx, String name,
                 SelectableText(
                   payload,
                   style: const TextStyle(
-                      fontFamily: 'monospace',
+                      fontFamily: 'JetBrains Mono',
                       fontSize: 11,
                       height: 1.4),
                 ),
@@ -847,7 +847,7 @@ class _DiceRollPanel extends StatelessWidget {
                     hex,
                     style: TextStyle(
                         color: d.complete ? cs.onSurface : cs.onSurfaceVariant,
-                        fontFamily: 'monospace',
+                        fontFamily: 'JetBrains Mono',
                         fontSize: 12,
                         height: 1.4),
                   ),

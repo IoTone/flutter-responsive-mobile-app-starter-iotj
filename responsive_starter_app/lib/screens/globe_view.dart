@@ -498,7 +498,7 @@ class _GlobeViewState extends State<GlobeView> {
                       textAlign: TextAlign.end,
                       style: TextStyle(
                           color: cs.onSurface,
-                          fontFamily: 'monospace',
+                          fontFamily: 'JetBrains Mono',
                           fontSize: 10),
                     ),
                   ),
@@ -772,7 +772,7 @@ class _GlobePainter extends CustomPainter {
             style: TextStyle(
                 color: labelText,
                 fontSize: 10,
-                fontFamily: 'monospace'),
+                fontFamily: 'JetBrains Mono'),
           ),
           textDirection: ui.TextDirection.ltr,
         )..layout();
@@ -856,7 +856,7 @@ class _GlobePainter extends CustomPainter {
           style: TextStyle(
               color: regionLabel,
               fontSize: (10.0 * sphereScale).clamp(8.0, 14.0),
-              fontFamily: 'monospace',
+              fontFamily: 'JetBrains Mono',
               fontWeight: FontWeight.w600),
         ),
         textDirection: ui.TextDirection.ltr,

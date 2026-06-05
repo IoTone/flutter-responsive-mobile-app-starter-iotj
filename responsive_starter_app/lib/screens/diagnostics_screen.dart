@@ -272,7 +272,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                     color: cs.surfaceContainerHighest,
                     child: SelectableText(_exportJson!,
                         style: const TextStyle(
-                            fontFamily: 'monospace', fontSize: 11)),
+                            fontFamily: 'JetBrains Mono', fontSize: 11)),
                   ),
                 ],
               ),
@@ -342,7 +342,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                                 ? '${hex.substring(0, 64)}…'
                                 : hex,
                             style: const TextStyle(
-                                fontFamily: 'monospace',
+                                fontFamily: 'JetBrains Mono',
                                 fontSize: 10),
                           ),
                         );

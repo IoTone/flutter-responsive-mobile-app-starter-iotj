@@ -410,7 +410,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                   'CR${si.codingRate} ${si.txPowerDbm}dBm',
                   style: TextStyle(
                       color: cs.onSurfaceVariant,
-                      fontFamily: 'monospace',
+                      fontFamily: 'JetBrains Mono',
                       fontSize: 12)),
             ),
           num(l.deviceFrequency, _freq, 'e.g. 915.0'),
@@ -550,7 +550,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                     style: TextStyle(
                         color: cs.onSurfaceVariant,
                         fontSize: 11,
-                        fontFamily: 'monospace'),
+                        fontFamily: 'JetBrains Mono'),
                   ),
                 ),
               ],
@@ -632,7 +632,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
             Text(l.otherAwaitingDevice,
                 style: TextStyle(
                     color: cs.onSurface,
-                    fontFamily: 'monospace',
+                    fontFamily: 'JetBrains Mono',
                     height: 1.5))
           else
             _OtherParamsEditor(mc: mc, si: si, enabled: ready),
@@ -662,7 +662,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
                       'battery: $batt',
               style: TextStyle(
                   color: cs.onSurface,
-                  fontFamily: 'monospace',
+                  fontFamily: 'JetBrains Mono',
                   height: 1.5),
             );
           }),
@@ -1043,7 +1043,7 @@ class _CurrentRegionBanner extends StatelessWidget {
                     '${si!.txPowerDbm} dBm',
                     style: TextStyle(
                         color: cs.onSurfaceVariant,
-                        fontFamily: 'monospace',
+                        fontFamily: 'JetBrains Mono',
                         fontSize: 11),
                   ),
               ],

@@ -168,7 +168,7 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
             trailing: Text(tc.rate.toStringAsFixed(2),
                 style: TextStyle(
                     color: cs.onSurfaceVariant,
-                    fontFamily: 'monospace')),
+                    fontFamily: 'JetBrains Mono')),
           ),
           // Pitch.
           ListTile(
@@ -183,7 +183,7 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
             trailing: Text(tc.pitch.toStringAsFixed(2),
                 style: TextStyle(
                     color: cs.onSurfaceVariant,
-                    fontFamily: 'monospace')),
+                    fontFamily: 'JetBrains Mono')),
           ),
           const Divider(),
           // Voice picker.
@@ -207,7 +207,7 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
                     style: TextStyle(
                         color: cs.onSurfaceVariant,
                         fontSize: 11,
-                        fontFamily: 'monospace'),
+                        fontFamily: 'JetBrains Mono'),
                   ),
               ],
             ),

@@ -177,7 +177,7 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
                 child: Text(v,
                     style: TextStyle(
                         color: cs.onSurface,
-                        fontFamily: 'monospace',
+                        fontFamily: 'JetBrains Mono',
                         fontSize: 12,
                         height: 1.35)),
               ),
@@ -305,7 +305,7 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
                               color: m.outgoing
                                   ? cs.primary
                                   : cs.onSurfaceVariant,
-                              fontFamily: 'monospace',
+                              fontFamily: 'JetBrains Mono',
                               fontSize: 11),
                         ),
                       ),

@@ -147,7 +147,7 @@ class _ProvenanceStrip extends StatelessWidget {
             child: Text(
               bits.join('  ·  '),
               style: TextStyle(
-                  fontFamily: 'monospace',
+                  fontFamily: 'JetBrains Mono',
                   fontSize: 11,
                   letterSpacing: .5,
                   color: cs.onSurfaceVariant),

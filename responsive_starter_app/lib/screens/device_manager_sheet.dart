@@ -254,7 +254,7 @@ class _DeviceManagerSheetState extends State<DeviceManagerSheet> {
                       '${_relativeAgo(e.lastUsedUnix, l)}',
                       style: TextStyle(
                           color: cs.onSurfaceVariant,
-                          fontFamily: 'monospace',
+                          fontFamily: 'JetBrains Mono',
                           fontSize: 11),
                     ),
                     trailing: IconButton(
@@ -358,7 +358,7 @@ class _DeviceManagerSheetState extends State<DeviceManagerSheet> {
                       'RSSI ${r.rssi}',
                       style: TextStyle(
                           color: cs.onSurfaceVariant,
-                          fontFamily: 'monospace',
+                          fontFamily: 'JetBrains Mono',
                           fontSize: 11),
                     ),
                     trailing: const Icon(Icons.chevron_right),

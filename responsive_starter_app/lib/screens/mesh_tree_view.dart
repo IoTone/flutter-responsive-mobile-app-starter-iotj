@@ -356,7 +356,7 @@ class _MeshTreeViewState extends State<MeshTreeView>
                   style: TextStyle(
                     color: cs.onSurfaceVariant,
                     fontSize: 10,
-                    fontFamily: 'monospace',
+                    fontFamily: 'JetBrains Mono',
                   ),
                 ),
               ),
@@ -426,7 +426,7 @@ class _HopSlider extends StatelessWidget {
               style: TextStyle(
                 color: cs.onSurface,
                 fontSize: 11,
-                fontFamily: 'monospace',
+                fontFamily: 'JetBrains Mono',
                 letterSpacing: 1,
               ),
             ),
@@ -558,7 +558,7 @@ class _MeshTreePainter extends CustomPainter {
           style: TextStyle(
             color: label,
             fontSize: 10,
-            fontFamily: 'monospace',
+            fontFamily: 'JetBrains Mono',
             letterSpacing: 0.5,
           ),
         ),

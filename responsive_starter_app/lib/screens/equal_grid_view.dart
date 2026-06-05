@@ -418,7 +418,7 @@ class _EqualGridViewState extends State<EqualGridView> {
                               _formatMeters(cellMeters)),
                           style: TextStyle(
                               color: cs.onSurface,
-                              fontFamily: 'monospace',
+                              fontFamily: 'JetBrains Mono',
                               fontSize: 10,
                               letterSpacing: 1),
                         ),
@@ -715,7 +715,7 @@ class _NervStatsPanel extends StatelessWidget {
               Text('[ MESHMORE :: HYPERLOCAL :: TARGETING ]',
                   style: TextStyle(
                       color: accent,
-                      fontFamily: 'monospace',
+                      fontFamily: 'JetBrains Mono',
                       fontSize: 9,
                       letterSpacing: 2,
                       fontWeight: FontWeight.w700)),
@@ -731,7 +731,7 @@ class _NervStatsPanel extends StatelessWidget {
                 Text(b,
                     style: TextStyle(
                         color: accent,
-                        fontFamily: 'monospace',
+                        fontFamily: 'JetBrains Mono',
                         fontSize: 11,
                         height: 1.15,
                         letterSpacing: 1)),

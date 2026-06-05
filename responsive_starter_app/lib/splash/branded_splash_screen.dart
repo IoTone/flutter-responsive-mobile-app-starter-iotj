@@ -89,7 +89,7 @@ class _BrandedSplashScreenState extends State<BrandedSplashScreen>
                     label,
                     style: t.textTheme.labelSmall?.copyWith(
                       color: cs.onSurfaceVariant.withValues(alpha: .7),
-                      fontFamily: 'monospace',
+                      fontFamily: 'JetBrains Mono',
                       letterSpacing: 2,
                     ),
                   );

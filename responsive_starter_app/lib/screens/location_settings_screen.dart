@@ -122,7 +122,7 @@ class LocationSettingsScreen extends StatelessWidget {
                   ),
                   style: TextStyle(
                       color: cs.onSurface,
-                      fontFamily: 'monospace',
+                      fontFamily: 'JetBrains Mono',
                       fontSize: 12),
                 ),
               ),
