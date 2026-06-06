@@ -620,6 +620,17 @@
   "@nodeIdentityMoved": {
     "placeholders": { "name": { "type": "String" } }
   },
+  "nodeIdentityLinkAction": "キーが変わった？ 別のノードにリンク",
+  "nodeIdentityLinkTitle": "変更されたキーをリンク",
+  "nodeIdentityLinkHelp": "新しいキーで稼働している同じ連絡先のノードを選んでください。お気に入り・タグ・メッセージが現在のキーに移動し、古いキーは廃止されます。",
+  "nodeIdentityLinkEmpty": "リンクできる他のノードがありません — スキャンするか新しいキーのアドバートを待ってください。",
+  "nodeIdentityLinkConfirm": "お気に入り・タグ・メッセージを「{from}」から「{to}」へ移動し、古いキーを廃止しますか？",
+  "@nodeIdentityLinkConfirm": {
+    "placeholders": {
+      "from": { "type": "String" },
+      "to": { "type": "String" }
+    }
+  },
   "nodeDetailFavourite": "お気に入り",
   "nodeDetailContact": "コンタクト",
   "nodeDetailShowOnMap": "地図上に表示",

@@ -1375,6 +1375,12 @@ class MeshcoreController extends ChangeNotifier {
       dmHistoryFor(pk).isNotEmpty ||
       _contacts.containsKey(pk);
 
+  /// True if [pubKeyHex] holds user data worth preserving (favourite /
+  /// known / tags / DM history / synced contact). Drives the manual
+  /// key-link direction in NodeDetailSheet.
+  bool hasReconcileData(String pubKeyHex) =>
+      _hasMigratableIdentityData(pubKeyHex);
+
   /// If [pubKeyHex] participates in a likely "returning contact" pair —
   /// a same-name node where one key carries your data (a saved/synced
   /// contact) and the other is a different key — return the pair (else

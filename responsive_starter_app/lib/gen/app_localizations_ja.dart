@@ -1321,6 +1321,25 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get nodeIdentityLinkAction => 'キーが変わった？ 別のノードにリンク';
+
+  @override
+  String get nodeIdentityLinkTitle => '変更されたキーをリンク';
+
+  @override
+  String get nodeIdentityLinkHelp =>
+      '新しいキーで稼働している同じ連絡先のノードを選んでください。お気に入り・タグ・メッセージが現在のキーに移動し、古いキーは廃止されます。';
+
+  @override
+  String get nodeIdentityLinkEmpty =>
+      'リンクできる他のノードがありません — スキャンするか新しいキーのアドバートを待ってください。';
+
+  @override
+  String nodeIdentityLinkConfirm(String from, String to) {
+    return 'お気に入り・タグ・メッセージを「$from」から「$to」へ移動し、古いキーを廃止しますか？';
+  }
+
+  @override
   String get nodeDetailFavourite => 'お気に入り';
 
   @override

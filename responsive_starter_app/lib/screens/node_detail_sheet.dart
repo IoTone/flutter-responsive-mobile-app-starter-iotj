@@ -144,6 +144,83 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
     if (viewingStale) Navigator.of(context).maybePop();
   }
 
+  /// Manual key-change linking — the reliable path when auto-detect can't
+  /// (e.g. the saved contact name differs from the new advert's name).
+  /// Pick the node that is the same contact under a new key; data moves
+  /// from whichever side holds it to the other, and the old key retires.
+  Future<void> _promptLinkKey(
+      MeshcoreController mc, DiscoveredNode n, AppLocalizations l) async {
+    final String? selfPk = mc.ownPubKeyHex;
+    final List<DiscoveredNode> candidates = <DiscoveredNode>[
+      for (final DiscoveredNode c in mc.nodes)
+        if (c.pubKeyHex != n.pubKeyHex &&
+            c.pubKeyHex != selfPk &&
+            !mc.isSuperseded(c.pubKeyHex))
+          c
+    ];
+    final String name = n.name.trim().toLowerCase();
+    candidates.sort((DiscoveredNode a, DiscoveredNode b) {
+      final bool an = a.name.trim().toLowerCase() == name;
+      final bool bn = b.name.trim().toLowerCase() == name;
+      if (an != bn) return an ? -1 : 1; // same-name first
+      return b.lastHeardUnix.compareTo(a.lastHeardUnix); // then recent
+    });
+
+    final DiscoveredNode? picked = await showModalBottomSheet<DiscoveredNode>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (BuildContext _) => _LinkPicker(
+        candidates: candidates,
+        sameName: name,
+        ago: _ago,
+        l: l,
+      ),
+    );
+    if (picked == null || !mounted) return;
+
+    // Data flows from the side that holds it to the other (the live key).
+    final bool pickedHasData = mc.hasReconcileData(picked.pubKeyHex);
+    final bool selfHasData = mc.hasReconcileData(n.pubKeyHex);
+    final String fromPk =
+        (pickedHasData && !selfHasData) ? picked.pubKeyHex : n.pubKeyHex;
+    final String toPk =
+        fromPk == n.pubKeyHex ? picked.pubKeyHex : n.pubKeyHex;
+    final DiscoveredNode fromNode = fromPk == n.pubKeyHex ? n : picked;
+    final DiscoveredNode toNode = fromPk == n.pubKeyHex ? picked : n;
+
+    final bool ok = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext ctx) => AlertDialog(
+            title: Text(l.nodeIdentityLinkTitle),
+            content: Text(l.nodeIdentityLinkConfirm(
+                '${fromNode.name} …${fromNode.shortId.substring(0, 6)}',
+                '${toNode.name} …${toNode.shortId.substring(0, 6)}')),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l.actionCancel)),
+              FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l.nodeIdentityAction)),
+            ],
+          ),
+        ) ??
+        false;
+    if (!ok || !mounted) return;
+
+    await mc.reconcileIdentity(fromPubKeyHex: fromPk, toPubKeyHex: toPk);
+    if (!mounted) return;
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(
+        content: Text(l.nodeIdentityMoved(toNode.name)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+    // If the node we're viewing became the retired key, close the sheet.
+    if (mc.isSuperseded(n.pubKeyHex)) Navigator.of(context).maybePop();
+  }
+
   String _ago(int unixSec, AppLocalizations l) {
     final int delta =
         DateTime.now().millisecondsSinceEpoch ~/ 1000 - unixSec;
@@ -447,6 +524,15 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
                 );
               },
             ),
+            // R56 — manual escape hatch: if a contact came back under a
+            // new key (auto-detect can miss it when the saved name differs
+            // from the advert), let the user link the two explicitly.
+            if (!widget.isSelf)
+              TextButton.icon(
+                icon: const Icon(Icons.link, size: 16),
+                label: Text(l.nodeIdentityLinkAction),
+                onPressed: () => _promptLinkKey(mc, n, l),
+              ),
           ],
         ),
       ),
@@ -822,6 +908,78 @@ class _ReconcileCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Picker for the manual key-link flow: choose the node that is the same
+/// contact under a new key. Same-name candidates float to the top.
+class _LinkPicker extends StatelessWidget {
+  const _LinkPicker({
+    required this.candidates,
+    required this.sameName,
+    required this.ago,
+    required this.l,
+  });
+
+  final List<DiscoveredNode> candidates;
+  final String sameName;
+  final String Function(int, AppLocalizations) ago;
+  final AppLocalizations l;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(l.nodeIdentityLinkTitle,
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 4),
+            Text(l.nodeIdentityLinkHelp,
+                style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
+            const SizedBox(height: 12),
+            if (candidates.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(l.nodeIdentityLinkEmpty,
+                    style: TextStyle(color: cs.onSurfaceVariant)),
+              )
+            else
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: candidates.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (BuildContext _, int i) {
+                    final DiscoveredNode c = candidates[i];
+                    final bool same =
+                        c.name.trim().toLowerCase() == sameName;
+                    return ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                          same ? Icons.person_search : Icons.cell_tower,
+                          color: same ? cs.primary : cs.onSurfaceVariant),
+                      title: Text(c.name.isEmpty ? c.shortId : c.name,
+                          overflow: TextOverflow.ellipsis),
+                      subtitle: Text(
+                          '…${c.shortId.substring(0, 6)} · ${ago(c.lastHeardUnix, l)}',
+                          style: const TextStyle(
+                              fontFamily: 'JetBrains Mono', fontSize: 11)),
+                      onTap: () => Navigator.pop(context, c),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

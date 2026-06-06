@@ -2426,6 +2426,36 @@ abstract class AppLocalizations {
   /// **'Moved your data to “{name}”’s current key'**
   String nodeIdentityMoved(String name);
 
+  /// No description provided for @nodeIdentityLinkAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Key changed? Link to another node'**
+  String get nodeIdentityLinkAction;
+
+  /// No description provided for @nodeIdentityLinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a changed key'**
+  String get nodeIdentityLinkTitle;
+
+  /// No description provided for @nodeIdentityLinkHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the node that is this same contact under a new key. Your star, tags, and messages move to the live key; the old key is retired.'**
+  String get nodeIdentityLinkHelp;
+
+  /// No description provided for @nodeIdentityLinkEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No other nodes to link yet — scan or wait for the new key to advertise.'**
+  String get nodeIdentityLinkEmpty;
+
+  /// No description provided for @nodeIdentityLinkConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Move star, tags, and messages from “{from}” to “{to}”, and retire the old key?'**
+  String nodeIdentityLinkConfirm(String from, String to);
+
   /// No description provided for @nodeDetailFavourite.
   ///
   /// In en, this message translates to:

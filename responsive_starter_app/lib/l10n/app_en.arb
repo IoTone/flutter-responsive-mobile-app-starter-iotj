@@ -620,6 +620,17 @@
   "@nodeIdentityMoved": {
     "placeholders": { "name": { "type": "String" } }
   },
+  "nodeIdentityLinkAction": "Key changed? Link to another node",
+  "nodeIdentityLinkTitle": "Link a changed key",
+  "nodeIdentityLinkHelp": "Pick the node that is this same contact under a new key. Your star, tags, and messages move to the live key; the old key is retired.",
+  "nodeIdentityLinkEmpty": "No other nodes to link yet — scan or wait for the new key to advertise.",
+  "nodeIdentityLinkConfirm": "Move star, tags, and messages from “{from}” to “{to}”, and retire the old key?",
+  "@nodeIdentityLinkConfirm": {
+    "placeholders": {
+      "from": { "type": "String" },
+      "to": { "type": "String" }
+    }
+  },
   "nodeDetailFavourite": "Favourite",
   "nodeDetailContact": "Contact",
   "nodeDetailShowOnMap": "Show on geocoded map",

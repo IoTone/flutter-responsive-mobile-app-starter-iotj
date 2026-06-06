@@ -1383,6 +1383,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get nodeIdentityLinkAction => 'Key changed? Link to another node';
+
+  @override
+  String get nodeIdentityLinkTitle => 'Link a changed key';
+
+  @override
+  String get nodeIdentityLinkHelp =>
+      'Pick the node that is this same contact under a new key. Your star, tags, and messages move to the live key; the old key is retired.';
+
+  @override
+  String get nodeIdentityLinkEmpty =>
+      'No other nodes to link yet — scan or wait for the new key to advertise.';
+
+  @override
+  String nodeIdentityLinkConfirm(String from, String to) {
+    return 'Move star, tags, and messages from “$from” to “$to”, and retire the old key?';
+  }
+
+  @override
   String get nodeDetailFavourite => 'Favourite';
 
   @override
