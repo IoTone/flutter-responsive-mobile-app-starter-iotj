@@ -69,6 +69,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashNervEvents => 'Events';
 
   @override
+  String get dashHyperRadar => 'NODE RADAR';
+
+  @override
+  String get dashHyperEmpty => 'Listening for nodes…';
+
+  @override
+  String get dashHyperPeers => 'PEERS';
+
+  @override
+  String get dashHyperNear => 'NEAR';
+
+  @override
+  String get dashHyperFar => 'FAR';
+
+  @override
   String get dashboardLocation => 'LOCATION';
 
   @override

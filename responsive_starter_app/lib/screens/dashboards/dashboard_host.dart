@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import '../../theme/mm_skin.dart';
 import '../../theme/mm_tokens.dart';
 import '../dashboard_screen.dart';
+import 'hyperlocal_dashboard.dart';
 import 'nerv_dashboard.dart';
 
 /// R8 dashboard host — selects the **per-skin dashboard layout**. Most
@@ -19,6 +20,7 @@ class DashboardHost extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (context.skin.preset) {
       MmThemePreset.nerv => const NervDashboard(),
+      MmThemePreset.hyperlocal => const HyperlocalDashboard(),
       _ => const DashboardScreen(),
     };
   }

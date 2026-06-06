@@ -200,6 +200,36 @@ abstract class AppLocalizations {
   /// **'Events'**
   String get dashNervEvents;
 
+  /// No description provided for @dashHyperRadar.
+  ///
+  /// In en, this message translates to:
+  /// **'NODE RADAR'**
+  String get dashHyperRadar;
+
+  /// No description provided for @dashHyperEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening for nodes…'**
+  String get dashHyperEmpty;
+
+  /// No description provided for @dashHyperPeers.
+  ///
+  /// In en, this message translates to:
+  /// **'PEERS'**
+  String get dashHyperPeers;
+
+  /// No description provided for @dashHyperNear.
+  ///
+  /// In en, this message translates to:
+  /// **'NEAR'**
+  String get dashHyperNear;
+
+  /// No description provided for @dashHyperFar.
+  ///
+  /// In en, this message translates to:
+  /// **'FAR'**
+  String get dashHyperFar;
+
   /// No description provided for @dashboardLocation.
   ///
   /// In en, this message translates to:

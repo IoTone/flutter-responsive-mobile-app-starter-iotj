@@ -62,6 +62,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dashNervEvents => 'イベント';
 
   @override
+  String get dashHyperRadar => 'ノードレーダー';
+
+  @override
+  String get dashHyperEmpty => 'ノードを探索中…';
+
+  @override
+  String get dashHyperPeers => 'ピア';
+
+  @override
+  String get dashHyperNear => '近';
+
+  @override
+  String get dashHyperFar => '遠';
+
+  @override
   String get dashboardLocation => '現在地';
 
   @override

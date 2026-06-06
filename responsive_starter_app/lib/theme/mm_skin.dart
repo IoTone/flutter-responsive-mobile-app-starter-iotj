@@ -171,6 +171,26 @@ MmSkin mmSkinFor(MmThemePreset preset) {
             corner: MmCorner.sharp, cornerSize: 0, borderWidth: 1),
         ornament: _calmOrnament,
       );
+    // C — Hyperlocal Field: discovery-first, calm and field-legible.
+    // Lower visual noise than NERV (no scanlines/brackets/stripes — the
+    // node radar is the visual interest), soft rounded panels, Saira
+    // headers in mixed case (calmer than the terminal's tracked caps),
+    // mono for raw telemetry. AA+ contrast comes from the token set.
+    case MmThemePreset.hyperlocal:
+      return MmSkin(
+        preset: preset,
+        color: color,
+        type: const MmType(
+          displayFamily: 'Saira',
+          headingFamily: 'Saira',
+          monoFamily: 'JetBrains Mono',
+          headingTracking: 2.0,
+          slashedZero: true,
+        ),
+        shape: const MmShape(
+            corner: MmCorner.rounded, cornerSize: 14, borderWidth: 1),
+        ornament: _calmOrnament,
+      );
     default:
       return MmSkin(
         preset: preset,

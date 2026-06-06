@@ -69,4 +69,27 @@ void main() {
     expect(find.text('MESHMORE // NERV'), findsNothing);
     expect(find.text('PEERS IN RANGE'), findsOneWidget);
   });
+
+  testWidgets('host shows the Hyperlocal radar when selected',
+      (WidgetTester t) async {
+    final MeshcoreController mc = MeshcoreController(
+      transportFactory: () async => FakeMeshcoreTransport(connected: true),
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    final ThemeController tc = await _pump(t, mc);
+    // Reduce-motion stops the radar sweep so the tree can settle (the
+    // sweep is an infinite animation otherwise).
+    await tc.setReduceMotion(true);
+    await tc.setPreset(MmThemePreset.hyperlocal);
+    await t.pumpAndSettle();
+
+    // Radar dashboard: the empty-field prompt + the PEERS status rail,
+    // and none of the other skins' signatures.
+    expect(find.text('Listening for nodes…'), findsOneWidget);
+    expect(find.textContaining('PEERS', findRichText: true),
+        findsOneWidget); // status rail
+    expect(find.text('MESHMORE // NERV'), findsNothing);
+    expect(find.text('PEERS IN RANGE'), findsNothing);
+  });
 }
