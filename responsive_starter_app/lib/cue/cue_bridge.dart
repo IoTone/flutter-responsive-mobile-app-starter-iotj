@@ -59,7 +59,14 @@ class CueBridge {
     // mc.scan() + the scan-window timer.
     final bool nowScanning = _mc.isScanning;
     if (nowScanning != _wasScanning) {
-      _cue.play(nowScanning ? CueKind.scanStart : CueKind.taskOk);
+      // Scanning drone runs for the *whole* window: start the loop on the
+      // rising edge, stop it + chime taskOk on the falling edge.
+      if (nowScanning) {
+        _cue.startScanHum();
+      } else {
+        _cue.stopScanHum();
+        _cue.play(CueKind.taskOk);
+      }
       _wasScanning = nowScanning;
     }
   }
@@ -87,6 +94,7 @@ class CueBridge {
   void _onIncomingDm(ChatMessage _) => _cue.play(CueKind.dmIn);
 
   void dispose() {
+    _cue.stopScanHum(); // don't leave the drone looping if torn down mid-scan
     _mc.removeListener(_onChange);
     _msgSub?.cancel();
     _dmSub?.cancel();

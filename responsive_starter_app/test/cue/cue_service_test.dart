@@ -6,8 +6,14 @@ import 'package:meshmore_sns_app/theme/theme_controller.dart';
 
 class _FakeAudio implements AudioPack {
   final List<CueKind> calls = <CueKind>[];
+  final List<CueKind> loops = <CueKind>[];
+  int stopLoopCalls = 0;
   @override
   Future<void> play(CueKind k) async => calls.add(k);
+  @override
+  Future<void> startLoop(CueKind k) async => loops.add(k);
+  @override
+  Future<void> stopLoop() async => stopLoopCalls++;
 }
 
 class _FakeHaptic implements HapticBackend {
@@ -56,5 +62,38 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     expect(a.calls, isEmpty);
     expect(h.calls, <CueKind>[CueKind.messageIn]);
+  });
+
+  test('scan hum loops scanStart (gated like audio) and stops on demand',
+      () async {
+    final ThemeController tc = ThemeController();
+    await tc.setAudioMaster(true);
+    final _FakeAudio a = _FakeAudio();
+    final _FakeHaptic h = _FakeHaptic();
+    final CueService cue = CueService(theme: tc, audio: a, haptic: h);
+
+    await cue.startScanHum();
+    await Future<void>.delayed(Duration.zero);
+    expect(a.loops, <CueKind>[CueKind.scanStart]);
+    expect(h.calls, <CueKind>[CueKind.scanStart]); // haptic marks start
+
+    await cue.stopScanHum();
+    await Future<void>.delayed(Duration.zero);
+    expect(a.stopLoopCalls, 1);
+  });
+
+  test('scan hum: audio muted → no loop, but stop still safe', () async {
+    final ThemeController tc = ThemeController();
+    await tc.setAudioMaster(false);
+    final _FakeAudio a = _FakeAudio();
+    final _FakeHaptic h = _FakeHaptic();
+    final CueService cue = CueService(theme: tc, audio: a, haptic: h);
+
+    await cue.startScanHum();
+    await cue.stopScanHum();
+    await Future<void>.delayed(Duration.zero);
+    expect(a.loops, isEmpty);
+    expect(h.calls, <CueKind>[CueKind.scanStart]); // haptic always
+    expect(a.stopLoopCalls, 1); // idempotent stop
   });
 }

@@ -62,6 +62,14 @@ enum CueKind {
 /// plug in by implementing this interface once their assets exist.
 abstract class AudioPack {
   Future<void> play(CueKind kind);
+
+  /// Start a **looping** cue that sustains until [stopLoop] — used for
+  /// the scanning drone, which should run for the whole scan window, not
+  /// fire once. Packs that can't loop (system sounds) no-op.
+  Future<void> startLoop(CueKind kind);
+
+  /// Stop whatever [startLoop] started.
+  Future<void> stopLoop();
 }
 
 /// Pluggable haptic backend.
@@ -87,6 +95,13 @@ class SystemSoundAudioPack implements AudioPack {
       // No platform / no audio output — silent, by design.
     }
   }
+
+  // System sounds are one-shot — there's nothing to loop, so the
+  // scanning drone simply stays silent on this fallback pack.
+  @override
+  Future<void> startLoop(CueKind kind) async {}
+  @override
+  Future<void> stopLoop() async {}
 }
 
 /// Default haptic: `HapticFeedback` mapped per cue (system-respecting:
@@ -144,5 +159,21 @@ class CueService {
       unawaited(audio.play(kind));
     }
     unawaited(haptic.play(kind));
+  }
+
+  /// Begin the sustained scanning drone (loops [CueKind.scanStart] for
+  /// the duration of the scan). Audio honours the same gate as [play];
+  /// a single light haptic marks the start regardless.
+  Future<void> startScanHum() async {
+    if (theme.audioMaster && !theme.visualHapticOnly) {
+      unawaited(audio.startLoop(CueKind.scanStart));
+    }
+    unawaited(haptic.play(CueKind.scanStart));
+  }
+
+  /// End the scanning drone. Idempotent — safe to call even if no hum
+  /// is playing (e.g. audio was muted when the scan began).
+  Future<void> stopScanHum() async {
+    unawaited(audio.stopLoop());
   }
 }

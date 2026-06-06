@@ -22,13 +22,22 @@ class AssetAudioPack implements AudioPack {
   AssetAudioPack({
     required this.theme,
     AudioPlayer? player,
+    AudioPlayer? loopPlayer,
     AudioPack? fallback,
   })  : _player = player ?? AudioPlayer(),
+        _loopPlayer = loopPlayer ?? AudioPlayer(),
         _fallback = fallback ?? const SystemSoundAudioPack();
 
   final ThemeController theme;
   final AudioPlayer _player;
+  // Separate player for the sustained scanning drone, so a one-shot cue
+  // firing mid-scan (a node advert, say) doesn't cut the loop short.
+  final AudioPlayer _loopPlayer;
   final AudioPack _fallback;
+
+  /// Looped cues (the scan drone) play quieter than one-shots — they run
+  /// for seconds and shouldn't dominate. Lower gain per the field brief.
+  static const double _loopVolume = 0.45;
 
   /// Compose the asset path the same way the synth script lays it out.
   /// Visible for the unit test (and for anyone reading the call site).
@@ -52,7 +61,31 @@ class AssetAudioPack implements AudioPack {
     }
   }
 
+  @override
+  Future<void> startLoop(CueKind kind) async {
+    final String path = assetPathFor(theme.preset, kind);
+    try {
+      await _loopPlayer.stop();
+      await _loopPlayer.setReleaseMode(ReleaseMode.loop);
+      await _loopPlayer.setVolume(_loopVolume);
+      await _loopPlayer.play(AssetSource(path));
+    } catch (_) {
+      // Asset missing / platform error — the scan just runs silent.
+      // (No system-sound fallback: it can't loop.)
+    }
+  }
+
+  @override
+  Future<void> stopLoop() async {
+    try {
+      await _loopPlayer.stop();
+    } catch (_) {
+      // Already stopped / disposed — nothing to do.
+    }
+  }
+
   Future<void> dispose() async {
     await _player.dispose();
+    await _loopPlayer.dispose();
   }
 }
