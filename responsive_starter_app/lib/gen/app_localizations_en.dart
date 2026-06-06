@@ -84,6 +84,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashHyperFar => 'FAR';
 
   @override
+  String get dashAgHudSignal => 'SIGNAL';
+
+  @override
+  String get dashAgHudTraffic => 'ch traffic';
+
+  @override
+  String dashAgHudOfKnown(String count) {
+    return 'of $count known';
+  }
+
+  @override
   String get dashboardLocation => 'LOCATION';
 
   @override

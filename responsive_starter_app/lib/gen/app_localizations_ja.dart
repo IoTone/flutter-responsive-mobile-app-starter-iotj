@@ -77,6 +77,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dashHyperFar => '遠';
 
   @override
+  String get dashAgHudSignal => 'シグナル';
+
+  @override
+  String get dashAgHudTraffic => 'ch トラフィック';
+
+  @override
+  String dashAgHudOfKnown(String count) {
+    return '既知 $count 中';
+  }
+
+  @override
   String get dashboardLocation => '現在地';
 
   @override

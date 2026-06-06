@@ -28,6 +28,12 @@
   "dashHyperPeers": "PEERS",
   "dashHyperNear": "NEAR",
   "dashHyperFar": "FAR",
+  "dashAgHudSignal": "SIGNAL",
+  "dashAgHudTraffic": "ch traffic",
+  "dashAgHudOfKnown": "of {count} known",
+  "@dashAgHudOfKnown": {
+    "placeholders": { "count": { "type": "String" } }
+  },
   "dashboardLocation": "LOCATION",
   "dashboardBattery": "BATTERY",
   "dashboardRecent": "RECENT",

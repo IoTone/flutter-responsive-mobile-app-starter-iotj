@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import '../../theme/mm_skin.dart';
 import '../../theme/mm_tokens.dart';
 import '../dashboard_screen.dart';
+import 'aghud_dashboard.dart';
 import 'hyperlocal_dashboard.dart';
 import 'nerv_dashboard.dart';
 
@@ -21,6 +22,7 @@ class DashboardHost extends StatelessWidget {
     return switch (context.skin.preset) {
       MmThemePreset.nerv => const NervDashboard(),
       MmThemePreset.hyperlocal => const HyperlocalDashboard(),
+      MmThemePreset.agHud => const AgHudDashboard(),
       _ => const DashboardScreen(),
     };
   }

@@ -230,6 +230,24 @@ abstract class AppLocalizations {
   /// **'FAR'**
   String get dashHyperFar;
 
+  /// No description provided for @dashAgHudSignal.
+  ///
+  /// In en, this message translates to:
+  /// **'SIGNAL'**
+  String get dashAgHudSignal;
+
+  /// No description provided for @dashAgHudTraffic.
+  ///
+  /// In en, this message translates to:
+  /// **'ch traffic'**
+  String get dashAgHudTraffic;
+
+  /// No description provided for @dashAgHudOfKnown.
+  ///
+  /// In en, this message translates to:
+  /// **'of {count} known'**
+  String dashAgHudOfKnown(String count);
+
   /// No description provided for @dashboardLocation.
   ///
   /// In en, this message translates to:

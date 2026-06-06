@@ -28,6 +28,12 @@
   "dashHyperPeers": "ピア",
   "dashHyperNear": "近",
   "dashHyperFar": "遠",
+  "dashAgHudSignal": "シグナル",
+  "dashAgHudTraffic": "ch トラフィック",
+  "dashAgHudOfKnown": "既知 {count} 中",
+  "@dashAgHudOfKnown": {
+    "placeholders": { "count": { "type": "String" } }
+  },
   "dashboardLocation": "現在地",
   "dashboardBattery": "バッテリー",
   "dashboardRecent": "最近のアクティビティ",

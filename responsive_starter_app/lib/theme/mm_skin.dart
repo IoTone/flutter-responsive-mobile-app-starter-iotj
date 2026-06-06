@@ -171,6 +171,25 @@ MmSkin mmSkinFor(MmThemePreset preset) {
             corner: MmCorner.sharp, cornerSize: 0, borderWidth: 1),
         ornament: _calmOrnament,
       );
+    // B — AG Systems HUD: a Wipeout anti-grav cockpit. Big angular
+    // display metrics, soft *rounded* livery panels, cyan/magenta accents,
+    // minimal chrome (the radial gauges carry the motion, not scanlines).
+    case MmThemePreset.agHud:
+      return MmSkin(
+        preset: preset,
+        color: color,
+        type: const MmType(
+          displayFamily: 'Saira',
+          headingFamily: 'Saira',
+          monoFamily: 'JetBrains Mono',
+          upperHeadings: true,
+          headingTracking: 2.5,
+          slashedZero: true,
+        ),
+        shape: const MmShape(
+            corner: MmCorner.rounded, cornerSize: 18, borderWidth: 1.4),
+        ornament: _calmOrnament,
+      );
     // C — Hyperlocal Field: discovery-first, calm and field-legible.
     // Lower visual noise than NERV (no scanlines/brackets/stripes — the
     // node radar is the visual interest), soft rounded panels, Saira

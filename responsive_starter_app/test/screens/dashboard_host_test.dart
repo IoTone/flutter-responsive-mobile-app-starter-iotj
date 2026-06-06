@@ -92,4 +92,23 @@ void main() {
     expect(find.text('MESHMORE // NERV'), findsNothing);
     expect(find.text('PEERS IN RANGE'), findsNothing);
   });
+
+  testWidgets('host shows the AG-HUD gauges when selected',
+      (WidgetTester t) async {
+    final MeshcoreController mc = MeshcoreController(
+      transportFactory: () async => FakeMeshcoreTransport(connected: true),
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    final ThemeController tc = await _pump(t, mc);
+    // Reduce-motion stops the gauge sweep so the tree can settle.
+    await tc.setReduceMotion(true);
+    await tc.setPreset(MmThemePreset.agHud);
+    await t.pumpAndSettle();
+
+    // AG-HUD signature: the brand bar + the SIGNAL gauge label.
+    expect(find.text('MESHMORE // AG'), findsOneWidget);
+    expect(find.text('SIGNAL'), findsOneWidget);
+    expect(find.text('MESHMORE // NERV'), findsNothing);
+  });
 }
