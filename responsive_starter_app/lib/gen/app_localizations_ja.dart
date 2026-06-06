@@ -356,7 +356,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get personalizationAudioMasterDisabled => '「視覚 + 触覚のみ」により無効';
 
   @override
-  String get personalizationAudioMasterEnabled => '既定で OFF; 補助としてのみ';
+  String get personalizationAudioMasterEnabled => '既定で ON; 補助としてのみ';
+
+  @override
+  String get dashboardAudioMute => 'アラート音をミュート';
+
+  @override
+  String get dashboardAudioUnmute => 'アラート音のミュート解除';
 
   @override
   String get firstRunHeader => 'MESHMORE · ようこそ';

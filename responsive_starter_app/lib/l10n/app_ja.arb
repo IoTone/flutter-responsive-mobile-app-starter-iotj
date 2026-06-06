@@ -136,7 +136,9 @@
   "personalizationAudioAlerts": "音声アラート (R12)",
   "personalizationAudioMaster": "音声アラート",
   "personalizationAudioMasterDisabled": "「視覚 + 触覚のみ」により無効",
-  "personalizationAudioMasterEnabled": "既定で OFF; 補助としてのみ",
+  "personalizationAudioMasterEnabled": "既定で ON; 補助としてのみ",
+  "dashboardAudioMute": "アラート音をミュート",
+  "dashboardAudioUnmute": "アラート音のミュート解除",
 
   "firstRunHeader": "MESHMORE · ようこそ",
   "firstRunTitle": "アプリが必要とする権限について",

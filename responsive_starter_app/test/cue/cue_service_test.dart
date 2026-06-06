@@ -19,9 +19,9 @@ class _FakeHaptic implements HapticBackend {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('default (audioMaster off): no audio, haptic always plays',
-      () async {
-    final ThemeController tc = ThemeController(); // master=false
+  test('audioMaster off: no audio, haptic always plays', () async {
+    final ThemeController tc = ThemeController();
+    await tc.setAudioMaster(false); // explicit mute (default is now on)
     final _FakeAudio a = _FakeAudio();
     final _FakeHaptic h = _FakeHaptic();
     final CueService cue = CueService(theme: tc, audio: a, haptic: h);

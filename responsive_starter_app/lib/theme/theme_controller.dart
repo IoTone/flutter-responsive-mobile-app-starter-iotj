@@ -24,7 +24,8 @@ class ThemeController extends ChangeNotifier {
   double _fontScale = 1.0;
   bool _highContrast = false;
   bool _reduceMotion = false;
-  bool _audioMaster = false; // audio alerts off by default (R5/R12)
+  bool _audioMaster = true; // audible alerts ON by default; quick-mute
+  // available from the dashboard (was off by default pre-R12 revision).
   bool _visualHapticOnly = false;
 
   MmThemePreset get preset => _preset;
@@ -52,7 +53,7 @@ class ThemeController extends ChangeNotifier {
     _fontScale = (p.getDouble(_kFontScale) ?? 1.0).clamp(0.8, 1.6);
     _highContrast = p.getBool(_kHighContrast) ?? false;
     _reduceMotion = p.getBool(_kReduceMotion) ?? false;
-    _audioMaster = p.getBool(_kAudioMaster) ?? false;
+    _audioMaster = p.getBool(_kAudioMaster) ?? true;
     _visualHapticOnly = p.getBool(_kVisualHapticOnly) ?? false;
     notifyListeners();
   }

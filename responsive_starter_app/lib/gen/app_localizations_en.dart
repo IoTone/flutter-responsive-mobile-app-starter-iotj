@@ -377,7 +377,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get personalizationAudioMasterEnabled =>
-      'Off by default; augmentation only';
+      'On by default; augmentation only';
+
+  @override
+  String get dashboardAudioMute => 'Mute alert sounds';
+
+  @override
+  String get dashboardAudioUnmute => 'Unmute alert sounds';
 
   @override
   String get firstRunHeader => 'MESHMORE · WELCOME';

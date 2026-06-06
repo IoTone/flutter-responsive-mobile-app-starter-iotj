@@ -12,6 +12,7 @@ import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../meshcore/own_location.dart';
 import '../meshcore/region_presets.dart';
+import '../ui/mm_audio_toggle.dart';
 import 'device_manager_sheet.dart';
 
 /// R8 home — "SEELE Monolith" dashboard: one dominant numeral
@@ -141,6 +142,8 @@ class DashboardScreen extends StatelessWidget {
                     size: 20),
                 onPressed: () => DeviceManagerSheet.show(context),
               ),
+              // Quick mute/unmute for alert sounds (default on).
+              const MmAudioToggle(),
             ],
           ),
         ),

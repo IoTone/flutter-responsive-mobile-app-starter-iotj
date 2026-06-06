@@ -202,6 +202,9 @@ class _HomeShellState extends State<HomeShell>
       body: PageView(
         controller: _pc,
         onPageChanged: (int i) {
+          // Leaving a view with a focused text field (e.g. Chat) — drop
+          // the keyboard so it doesn't linger and shrink the next view.
+          FocusManager.instance.primaryFocus?.unfocus();
           // Swipe/nav cue — direction tells navNext (→) from navPrev (←).
           if (i != _index) {
             context
@@ -280,7 +283,17 @@ class _AboutView extends StatelessWidget {
     final AppState app = context.watch<AppState>();
     final AppLocalizations l = AppLocalizations.of(context);
     return MmScaffold(
-      child: Center(
+      // Centered when it fits; scrolls when the viewport is short (small
+      // screens, or a keyboard left open while swiping over from chat —
+      // otherwise the fixed-height Column overflows into warning stripes).
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints:
+                  BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Center(
       child: Padding(
         padding: const EdgeInsets.all(28),
         child: Column(
@@ -345,6 +358,11 @@ class _AboutView extends StatelessWidget {
           ],
         ),
       ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

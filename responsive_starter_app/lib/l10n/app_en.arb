@@ -136,7 +136,9 @@
   "personalizationAudioAlerts": "AUDIO ALERTS (R12)",
   "personalizationAudioMaster": "Audio alerts",
   "personalizationAudioMasterDisabled": "Disabled by \"visual + haptic only\"",
-  "personalizationAudioMasterEnabled": "Off by default; augmentation only",
+  "personalizationAudioMasterEnabled": "On by default; augmentation only",
+  "dashboardAudioMute": "Mute alert sounds",
+  "dashboardAudioUnmute": "Unmute alert sounds",
 
   "firstRunHeader": "MESHMORE · WELCOME",
   "firstRunTitle": "Quick heads-up on what we'll ask for",

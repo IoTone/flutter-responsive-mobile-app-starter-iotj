@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../gen/app_localizations.dart';
 import '../../meshcore/meshcore_controller.dart';
 import '../../theme/mm_skin.dart';
+import '../../ui/mm_audio_toggle.dart';
 import '../../ui/mm_components.dart';
 import '../../ui/mm_scaffold.dart';
 import '../device_manager_sheet.dart';
@@ -66,14 +67,22 @@ class NervDashboard extends StatelessWidget {
               children: <Widget>[
                 MmSectionHeader(
                   l.dashNervLink,
-                  trailing: IconButton(
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 28, minHeight: 28),
-                    icon: Icon(Icons.bluetooth,
-                        size: 18, color: skin.color.accent),
-                    onPressed: () => DeviceManagerSheet.show(context),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      // Quick mute/unmute for alert sounds (default on).
+                      MmAudioToggle(
+                          dense: true, size: 18, color: skin.color.accent),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                            minWidth: 28, minHeight: 28),
+                        icon: Icon(Icons.bluetooth,
+                            size: 18, color: skin.color.accent),
+                        onPressed: () => DeviceManagerSheet.show(context),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 8),

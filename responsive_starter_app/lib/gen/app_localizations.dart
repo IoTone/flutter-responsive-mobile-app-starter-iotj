@@ -755,8 +755,20 @@ abstract class AppLocalizations {
   /// No description provided for @personalizationAudioMasterEnabled.
   ///
   /// In en, this message translates to:
-  /// **'Off by default; augmentation only'**
+  /// **'On by default; augmentation only'**
   String get personalizationAudioMasterEnabled;
+
+  /// No description provided for @dashboardAudioMute.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute alert sounds'**
+  String get dashboardAudioMute;
+
+  /// No description provided for @dashboardAudioUnmute.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute alert sounds'**
+  String get dashboardAudioUnmute;
 
   /// No description provided for @firstRunHeader.
   ///

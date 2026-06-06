@@ -28,7 +28,8 @@ void main() {
     expect(c.preset, MmThemePreset.seele);
     await c.load();
     expect(c.preset, MmThemePreset.seele);
-    expect(c.audioMaster, isFalse, reason: 'audio off by default (R12/R5)');
+    expect(c.audioMaster, isTrue,
+        reason: 'audible alerts ON by default; dashboard offers quick-mute');
   });
 
   test('setPreset notifies and persists across reload', () async {
