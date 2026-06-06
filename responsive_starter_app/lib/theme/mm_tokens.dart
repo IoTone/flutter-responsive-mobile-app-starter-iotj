@@ -69,10 +69,10 @@ const Map<MmThemePreset, MmTokens> kMmPresets = <MmThemePreset, MmTokens>{
     surfaceAlt: Color(0xFF15140F),
     line: Color(0xFF2A2A26),
     fg: Color(0xFFEDE6D6),
-    fgMuted: Color(0xFF9A958A),
+    fgMuted: Color(0xFFBCB6A8),
     accent: Color(0xFFEDE6D6),
     alert: Color(0xFFC8102E),
-    ok: Color(0xFF9A958A),
+    ok: Color(0xFFBCB6A8),
   ),
   MmThemePreset.nerv: MmTokens(
     base: Color(0xFF0A0E1A),
@@ -80,7 +80,7 @@ const Map<MmThemePreset, MmTokens> kMmPresets = <MmThemePreset, MmTokens>{
     surfaceAlt: Color(0xFF1B2436),
     line: Color(0xFF243049),
     fg: Color(0xFFE6ECF5),
-    fgMuted: Color(0xFF7C8AA3),
+    fgMuted: Color(0xFFA6B2C8),
     accent: Color(0xFFFF7A00),
     alert: Color(0xFFE6005C),
     ok: Color(0xFF9CFF00),
@@ -91,7 +91,7 @@ const Map<MmThemePreset, MmTokens> kMmPresets = <MmThemePreset, MmTokens>{
     surfaceAlt: Color(0xFF161B2A),
     line: Color(0xFF20283B),
     fg: Color(0xFFDDF6FF),
-    fgMuted: Color(0xFF6F8196),
+    fgMuted: Color(0xFF9AACC0),
     accent: Color(0xFF22D3EE),
     alert: Color(0xFFFF2D78),
     ok: Color(0xFF22D3EE),
@@ -102,7 +102,7 @@ const Map<MmThemePreset, MmTokens> kMmPresets = <MmThemePreset, MmTokens>{
     surfaceAlt: Color(0xFF1E2533),
     line: Color(0xFF263041),
     fg: Color(0xFFDDE7EF),
-    fgMuted: Color(0xFF7C8AA3),
+    fgMuted: Color(0xFFA4B0C4),
     accent: Color(0xFF35E0F0),
     alert: Color(0xFFFF3B6B),
     ok: Color(0xFF7CFF6B),
@@ -113,7 +113,7 @@ const Map<MmThemePreset, MmTokens> kMmPresets = <MmThemePreset, MmTokens>{
     surfaceAlt: Color(0xFF24242E),
     line: Color(0xFF33333F),
     fg: Color(0xFFF2F0E6),
-    fgMuted: Color(0xFF8A8A9A),
+    fgMuted: Color(0xFFB0B0C0),
     accent: Color(0xFFFF2E88),
     alert: Color(0xFFFF2E88),
     ok: Color(0xFFD7FF00),
@@ -124,7 +124,7 @@ const Map<MmThemePreset, MmTokens> kMmPresets = <MmThemePreset, MmTokens>{
     surfaceAlt: Color(0xFF141414),
     line: Color(0xFF6E4E00),
     fg: Color(0xFFFFB000),
-    fgMuted: Color(0xFF6E4E00),
+    fgMuted: Color(0xFFC79433),
     accent: Color(0xFFFFB000),
     alert: Color(0xFFB3231F),
     ok: Color(0xFFFFB000),
@@ -182,13 +182,26 @@ ThemeData buildMmTheme(MmTokens t, {String? fontFamily}) {
   // R55 — the active skin's display face becomes the app-wide default,
   // so every screen (not just the migrated components) reads in the
   // brand type. Telemetry/mono text sets its own family explicitly.
-  final TextTheme text = ThemeData(brightness: Brightness.dark)
+  final TextTheme base = ThemeData(brightness: Brightness.dark)
       .textTheme
       .apply(
           bodyColor: t.fg,
           displayColor: t.fg,
           decorationColor: t.fg,
           fontFamily: fontFamily);
+  // The bundled display face (Saira) renders *light* at the regular
+  // weight, so non-bold body/label text read dim and thin on the dark
+  // grounds. Nudge the base weight up to medium for legibility (paired
+  // with the brighter `fgMuted` tokens for secondary text).
+  TextStyle? med(TextStyle? s) => s?.copyWith(fontWeight: FontWeight.w500);
+  final TextTheme text = base.copyWith(
+    bodyLarge: med(base.bodyLarge),
+    bodyMedium: med(base.bodyMedium),
+    bodySmall: med(base.bodySmall),
+    labelLarge: med(base.labelLarge),
+    labelMedium: med(base.labelMedium),
+    labelSmall: med(base.labelSmall),
+  );
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,

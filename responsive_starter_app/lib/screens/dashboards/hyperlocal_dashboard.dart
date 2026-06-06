@@ -101,7 +101,9 @@ class _HyperlocalDashboardState extends State<HyperlocalDashboard>
                   final double side =
                       math.min(c.maxWidth, c.maxHeight);
                   final Offset center = Offset(side / 2, side / 2);
-                  final double maxR = side / 2 * 0.84;
+                  // Leave a gutter outside the outer ring for the name
+                  // callouts (drawn beyond the rings, never over them).
+                  final double maxR = side / 2 * 0.68;
                   final ({DiscoveredNode? self, List<_PositionedBlip> blips})
                       laid = _layout(mc, skin, center, maxR);
                   return Center(
@@ -284,6 +286,14 @@ class _PositionedBlip {
   final bool inRange;
 }
 
+/// A name callout being laid out: [y] is mutated by the declutter pass.
+class _LabelSlot {
+  _LabelSlot({required this.blip, required this.y, required this.tp});
+  final _PositionedBlip blip;
+  double y;
+  final TextPainter tp;
+}
+
 class _RadarPainter extends CustomPainter {
   _RadarPainter({
     required this.center,
@@ -364,7 +374,8 @@ class _RadarPainter extends CustomPainter {
     _label(canvas, northLabel, Offset(center.dx, center.dy - maxR - 12),
         fgMuted, 10, center: true);
 
-    // Blips.
+    // Blips (dots only — in-range names are drawn as decluttered
+    // callouts in the gutter outside the rings, below).
     for (final _PositionedBlip b in blips) {
       if (b.inRange) {
         canvas.drawCircle(b.offset, 9,
@@ -372,11 +383,6 @@ class _RadarPainter extends CustomPainter {
       }
       canvas.drawCircle(b.offset, b.inRange ? 4.5 : 3.5,
           Paint()..color = b.color);
-      // Name only for in-range peers — keeps the field uncluttered.
-      if (b.inRange) {
-        _label(canvas, _short(b.node.name),
-            Offset(b.offset.dx + 8, b.offset.dy - 6), fg, 10);
-      }
     }
 
     // Self at the centre — a ringed accent pip.
@@ -388,9 +394,93 @@ class _RadarPainter extends CustomPainter {
             ..color = self.withValues(alpha: 0.8));
       canvas.drawCircle(center, 4, Paint()..color = self);
     }
+
+    _drawCallouts(canvas, size);
   }
 
-  String _short(String s) => s.length <= 12 ? s : '${s.substring(0, 11)}…';
+  /// In-range peer names, placed **outside** the outer ring with leader
+  /// lines back to their blips. Split into left/right columns and pushed
+  /// vertically apart so they never overlap each other or the radar.
+  void _drawCallouts(Canvas canvas, Size size) {
+    const double fontSize = 11.5;
+    const double minGap = 15;
+    final double top = 10, bottom = size.height - 10;
+    final double gutter = (size.width / 2 - maxR - 8).clamp(34, 96);
+
+    final List<_LabelSlot> left = <_LabelSlot>[];
+    final List<_LabelSlot> right = <_LabelSlot>[];
+    for (final _PositionedBlip b in blips) {
+      if (!b.inRange) continue;
+      final TextPainter tp = _textPainter(
+          _fit(b.node.name.isEmpty ? b.node.shortId : b.node.name,
+              gutter, fontSize),
+          fontSize);
+      final bool isRight = b.offset.dx >= center.dx;
+      (isRight ? right : left)
+          .add(_LabelSlot(blip: b, y: b.offset.dy, tp: tp));
+    }
+    _declutter(left, top, bottom, minGap);
+    _declutter(right, top, bottom, minGap);
+
+    final Paint leader = Paint()
+      ..strokeWidth = 1
+      ..color = fgMuted.withValues(alpha: 0.5);
+    for (final _LabelSlot s in right) {
+      final double lx = center.dx + maxR + 6;
+      canvas.drawLine(s.blip.offset, Offset(lx, s.y), leader);
+      s.tp.paint(canvas, Offset(lx + 3, s.y - s.tp.height / 2));
+    }
+    for (final _LabelSlot s in left) {
+      final double lx = center.dx - maxR - 6;
+      canvas.drawLine(s.blip.offset, Offset(lx, s.y), leader);
+      s.tp.paint(canvas, Offset(lx - 3 - s.tp.width, s.y - s.tp.height / 2));
+    }
+  }
+
+  /// Push a column of label slots apart so adjacent rows clear [minGap],
+  /// keeping the whole column within [top]..[bottom].
+  void _declutter(List<_LabelSlot> slots, double top, double bottom,
+      double minGap) {
+    if (slots.isEmpty) return;
+    slots.sort((_LabelSlot a, _LabelSlot b) => a.y.compareTo(b.y));
+    for (int i = 1; i < slots.length; i++) {
+      if (slots[i].y < slots[i - 1].y + minGap) {
+        slots[i].y = slots[i - 1].y + minGap;
+      }
+    }
+    if (slots.last.y > bottom) {
+      slots.last.y = bottom;
+      for (int i = slots.length - 2; i >= 0; i--) {
+        if (slots[i].y > slots[i + 1].y - minGap) {
+          slots[i].y = slots[i + 1].y - minGap;
+        }
+      }
+    }
+    for (final _LabelSlot s in slots) {
+      if (s.y < top) s.y = top;
+    }
+  }
+
+  /// Truncate [name] (with an ellipsis) to roughly fit [maxWidth] at the
+  /// mono face — cheap char-width estimate, no per-frame measuring loop.
+  String _fit(String name, double maxWidth, double fontSize) {
+    final int maxChars = (maxWidth / (fontSize * 0.62)).floor();
+    if (maxChars <= 1) return '…';
+    if (name.length <= maxChars) return name;
+    return '${name.substring(0, maxChars - 1)}…';
+  }
+
+  TextPainter _textPainter(String text, double size) => TextPainter(
+        text: TextSpan(
+          text: text,
+          style: TextStyle(
+              color: fg,
+              fontSize: size,
+              fontFamily: monoFamily,
+              fontWeight: FontWeight.w500),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
 
   void _label(Canvas canvas, String text, Offset at, Color color,
       double size,
@@ -427,21 +517,35 @@ class _TopBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 14, 8, 4),
       child: Row(
         children: <Widget>[
-          Text('MESHMORE',
-              style: TextStyle(
-                fontFamily: skin.type.headingFamily,
-                color: skin.color.fg,
-                fontSize: 16,
-                letterSpacing: 2,
-                fontWeight: FontWeight.w600,
-              )),
+          // Title + channel take the remaining space and ellipsize, so
+          // the fixed trailing controls never get squeezed into overflow.
+          Expanded(
+            child: Row(
+              children: <Widget>[
+                Flexible(
+                  child: Text('MESHMORE',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: skin.type.headingFamily,
+                        color: skin.color.fg,
+                        fontSize: 16,
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.w600,
+                      )),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text('◦ ${model.channelLabel}',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: skin.color.accent,
+                          fontFamily: skin.type.monoFamily,
+                          fontSize: 12)),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(width: 8),
-          Text('◦ ${model.channelLabel}',
-              style: TextStyle(
-                  color: skin.color.accent,
-                  fontFamily: skin.type.monoFamily,
-                  fontSize: 12)),
-          const Spacer(),
           Container(
             padding:
                 const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -451,6 +555,7 @@ class _TopBar extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(model.statusLabel,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     color: model.alert ? skin.color.alert : skin.color.ok,
                     fontFamily: skin.type.monoFamily,
