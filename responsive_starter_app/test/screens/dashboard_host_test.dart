@@ -111,4 +111,21 @@ void main() {
     expect(find.text('SIGNAL'), findsOneWidget);
     expect(find.text('MESHMORE // NERV'), findsNothing);
   });
+
+  testWidgets('host shows the DR Pop colour blocks when selected',
+      (WidgetTester t) async {
+    final MeshcoreController mc = MeshcoreController(
+      transportFactory: () async => FakeMeshcoreTransport(connected: true),
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    final ThemeController tc = await _pump(t, mc);
+    await tc.setPreset(MmThemePreset.drPop);
+    await t.pumpAndSettle();
+
+    // DR Pop signature: trademark brand bar + a PHASE code.
+    expect(find.text('MESHMORE™'), findsOneWidget);
+    expect(find.textContaining('PHASE_'), findsOneWidget);
+    expect(find.text('MESHMORE // AG'), findsNothing);
+  });
 }

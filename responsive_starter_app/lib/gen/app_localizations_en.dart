@@ -90,6 +90,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashAgHudTraffic => 'ch traffic';
 
   @override
+  String get dashDrPopLink => 'LINK';
+
+  @override
   String dashAgHudOfKnown(String count) {
     return 'of $count known';
   }

@@ -30,6 +30,7 @@
   "dashHyperFar": "FAR",
   "dashAgHudSignal": "SIGNAL",
   "dashAgHudTraffic": "ch traffic",
+  "dashDrPopLink": "LINK",
   "dashAgHudOfKnown": "of {count} known",
   "@dashAgHudOfKnown": {
     "placeholders": { "count": { "type": "String" } }

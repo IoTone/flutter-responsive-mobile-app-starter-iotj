@@ -242,6 +242,12 @@ abstract class AppLocalizations {
   /// **'ch traffic'**
   String get dashAgHudTraffic;
 
+  /// No description provided for @dashDrPopLink.
+  ///
+  /// In en, this message translates to:
+  /// **'LINK'**
+  String get dashDrPopLink;
+
   /// No description provided for @dashAgHudOfKnown.
   ///
   /// In en, this message translates to:

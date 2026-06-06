@@ -83,6 +83,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dashAgHudTraffic => 'ch トラフィック';
 
   @override
+  String get dashDrPopLink => 'リンク';
+
+  @override
   String dashAgHudOfKnown(String count) {
     return '既知 $count 中';
   }

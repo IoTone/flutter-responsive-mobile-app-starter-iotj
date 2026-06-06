@@ -210,6 +210,26 @@ MmSkin mmSkinFor(MmThemePreset preset) {
             corner: MmCorner.rounded, cornerSize: 14, borderWidth: 1),
         ornament: _calmOrnament,
       );
+    // E — DR Pop: Designers-Republic maximalism. Flat saturated colour
+    // blocks, bold numerals, katakana-as-graphics, fake per-channel
+    // sub-brands. Hard rectangles (sharp), heavy tracked caps; no CRT
+    // chrome — the colour blocking is the whole look.
+    case MmThemePreset.drPop:
+      return MmSkin(
+        preset: preset,
+        color: color,
+        type: const MmType(
+          displayFamily: 'Saira',
+          headingFamily: 'Saira',
+          monoFamily: 'JetBrains Mono',
+          upperHeadings: true,
+          headingTracking: 1.5,
+          slashedZero: true,
+        ),
+        shape: const MmShape(
+            corner: MmCorner.sharp, cornerSize: 0, borderWidth: 1),
+        ornament: _calmOrnament,
+      );
     default:
       return MmSkin(
         preset: preset,
