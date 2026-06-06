@@ -627,6 +627,10 @@
   "nodeIdentityLinkSearchHint": "Filter by name, or paste a public key",
   "nodeIdentityLinkNoMatch": "No nodes match — clear the search, or paste the full key to link directly.",
   "nodeIdentityLinkUseKey": "Link to this key",
+  "nodeDetailNotDeviceContact": "Your radio doesn't have this node as a contact, so direct messages may not reach it (channel messages still work). Add it to route DMs.",
+  "nodeDetailAddDeviceContact": "Add to device contacts",
+  "nodeDetailAddDeviceContactDone": "Added to your radio's contacts — DMs will route now.",
+  "nodeDetailAddDeviceContactFailed": "Couldn't add the contact — check the link and try again.",
   "nodeIdentityLinkConfirm": "Move star, tags, and messages from “{from}” to “{to}”, and retire the old key?",
   "@nodeIdentityLinkConfirm": {
     "placeholders": {

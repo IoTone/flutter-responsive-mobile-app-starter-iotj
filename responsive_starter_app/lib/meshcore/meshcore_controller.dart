@@ -1412,6 +1412,11 @@ class MeshcoreController extends ChangeNotifier {
       );
     }
     await reconcileIdentity(fromPubKeyHex: fromPubKeyHex, toPubKeyHex: to);
+    // Make the radio able to route DMs to the new key (channel already
+    // works without a contact; DMs don't). Best-effort, full keys only.
+    if (isReady && to.length == kPubKeySize * 2) {
+      await addNodeAsDeviceContact(to, name: name);
+    }
   }
 
   /// Clear ALL superseded-key suppressions — recovery if the prune logic
@@ -2928,6 +2933,55 @@ class MeshcoreController extends ChangeNotifier {
   /// True when the node is a synced contact — a prerequisite for any
   /// telemetry exchange (telemetry is contact-only).
   bool isSyncedContact(String pubKeyHex) => _contacts.containsKey(pubKeyHex);
+
+  /// Push a node onto the **radio's** contact list (`CMD_ADD_UPDATE_CONTACT`)
+  /// so DMs can route to it. The companion protocol only *pulls* contacts:
+  /// an advert-heard node (incl. a manually re-homed key) lives only in the
+  /// app's `_nodes` until we add it here, and the firmware can't address a
+  /// DM to a 6-byte prefix it has no contact for — so the DM silently fails
+  /// while *channel* messages (flooded, contact-free) still work. Uses a
+  /// **flood** path (`out_path_len = 0xFF`): reachable immediately like a
+  /// channel send; the device upgrades to a direct route once it learns
+  /// one. Needs the FULL 32-byte key (a bare prefix can't form a contact).
+  Future<bool> addNodeAsDeviceContact(String pubKeyHex,
+      {String? name, int? type}) async {
+    if (!isReady) return false;
+    final String hex = pubKeyHex.toLowerCase();
+    if (hex.length != kPubKeySize * 2) return false;
+    if (!RegExp(r'^[0-9a-f]+$').hasMatch(hex)) return false;
+    final DiscoveredNode? n = _nodes[hex];
+    final Uint8List pub = Uint8List.fromList(<int>[
+      for (int i = 0; i < hex.length; i += 2)
+        int.parse(hex.substring(i, i + 2), radix: 16),
+    ]);
+    String nm = (name ?? n?.name ?? hex.substring(0, 8)).trim();
+    if (nm.isEmpty) nm = hex.substring(0, 8);
+    if (nm.length > 31) nm = nm.substring(0, 31);
+    final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final Contact c = Contact(
+      publicKey: pub,
+      type: type ?? n?.type ?? 1,
+      flags: 0,
+      outPathLen: kPathLenFlood, // flood; the device learns a direct path
+      outPath: Uint8List(kMaxPathSize),
+      name: nm,
+      lastAdvertTimestamp: n?.deviceAdvertUnix ?? 0,
+      latitudeMicros:
+          n?.latitude != null ? (n!.latitude! * 1e6).round() : 0,
+      longitudeMicros:
+          n?.longitude != null ? (n!.longitude! * 1e6).round() : 0,
+      lastMod: now,
+    );
+    try {
+      await send(MeshcoreFrameCodec.addUpdateContact(c));
+      _contacts[hex] = c; // reflect locally; device confirms on next sync
+      notifyListeners();
+      return true;
+    } catch (_) {
+      _emitTaskError('addContact');
+      return false;
+    }
+  }
 
   /// Grant/revoke this contact's permission to request each telemetry
   /// class from us (used by the "Contacts" telemetry mode). Preserves

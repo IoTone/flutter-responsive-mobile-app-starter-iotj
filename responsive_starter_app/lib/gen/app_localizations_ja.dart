@@ -1345,6 +1345,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodeIdentityLinkUseKey => 'このキーにリンク';
 
   @override
+  String get nodeDetailNotDeviceContact =>
+      '無線機の連絡先にこのノードがないため、ダイレクトメッセージが届かない場合があります（チャンネルメッセージは引き続き機能します）。DM を届けるには追加してください。';
+
+  @override
+  String get nodeDetailAddDeviceContact => 'デバイスの連絡先に追加';
+
+  @override
+  String get nodeDetailAddDeviceContactDone =>
+      '無線機の連絡先に追加しました — DM が届くようになります。';
+
+  @override
+  String get nodeDetailAddDeviceContactFailed =>
+      '連絡先を追加できませんでした — リンクを確認して再試行してください。';
+
+  @override
   String nodeIdentityLinkConfirm(String from, String to) {
     return 'お気に入り・タグ・メッセージを「$from」から「$to」へ移動し、古いキーを廃止しますか？';
   }

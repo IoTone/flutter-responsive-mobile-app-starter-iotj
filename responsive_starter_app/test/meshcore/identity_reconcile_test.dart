@@ -189,6 +189,34 @@ void main() {
     mc.dispose();
   });
 
+  test('addNodeAsDeviceContact makes a heard node a device contact (DM routing)',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController mc = await ready(fake);
+
+    fake.emit(advertFrame(name: 'Hawkins', firstPubByte: 0xAA));
+    await Future<void>.delayed(Duration.zero);
+    final String pk = mc.nodes
+        .firstWhere((DiscoveredNode n) => n.pubKeyHex.startsWith('aa'))
+        .pubKeyHex;
+    expect(pk.length, 64); // full key
+    expect(mc.isSyncedContact(pk), isFalse);
+
+    final bool ok = await mc.addNodeAsDeviceContact(pk, name: 'Hawkins');
+    expect(ok, isTrue);
+    expect(mc.isSyncedContact(pk), isTrue);
+  });
+
+  test('addNodeAsDeviceContact rejects a bare prefix (needs full key)',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController mc = await ready(fake);
+    expect(await mc.addNodeAsDeviceContact('aabbccddeeff'), isFalse);
+    mc.dispose();
+  });
+
   test('identityMatchFor returns null when no side holds data', () async {
     final FakeMeshcoreTransport fake =
         FakeMeshcoreTransport(connected: true);

@@ -144,6 +144,21 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
     if (viewingStale) Navigator.of(context).maybePop();
   }
 
+  /// Push this node to the radio's contact list so DMs route to it.
+  Future<void> _addDeviceContact(
+      MeshcoreController mc, DiscoveredNode n, AppLocalizations l) async {
+    final bool ok = await mc.addNodeAsDeviceContact(n.pubKeyHex,
+        name: n.name.isEmpty ? null : n.name);
+    if (!mounted) return;
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(
+        content: Text(
+            ok ? l.nodeDetailAddDeviceContactDone : l.nodeDetailAddDeviceContactFailed),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   /// Manual key-change linking — the reliable path when auto-detect can't
   /// (e.g. the saved contact name differs from the new advert's name).
   /// Pick the node that is the same contact under a new key; data moves
@@ -502,6 +517,39 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
                 ),
               ],
             ),
+            // R57 — a node we've heard but the *radio* doesn't have as a
+            // contact can't be DM'd (channel works; DMs route via the
+            // device contact list). Offer to push it so DMs reach it.
+            if (!widget.isSelf &&
+                n.pubKeyHex.length == 64 &&
+                !mc.isSyncedContact(n.pubKeyHex)) ...<Widget>[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                decoration: BoxDecoration(
+                  color: cs.tertiary.withValues(alpha: .10),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: cs.tertiary.withValues(alpha: .4)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(l.nodeDetailNotDeviceContact,
+                        style: TextStyle(
+                            color: cs.onSurface, fontSize: 13, height: 1.35)),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: FilledButton.tonalIcon(
+                        icon: const Icon(Icons.person_add_alt, size: 18),
+                        label: Text(l.nodeDetailAddDeviceContact),
+                        onPressed: () => _addDeviceContact(mc, n, l),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             // "Show on map" — opens the platform's mapping app
             // (Apple Maps on iOS, Google Maps web URL elsewhere)
             // pinned at the node's lat/lon. Disabled if the node

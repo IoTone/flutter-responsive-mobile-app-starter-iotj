@@ -2468,6 +2468,30 @@ abstract class AppLocalizations {
   /// **'Link to this key'**
   String get nodeIdentityLinkUseKey;
 
+  /// No description provided for @nodeDetailNotDeviceContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Your radio doesn\'t have this node as a contact, so direct messages may not reach it (channel messages still work). Add it to route DMs.'**
+  String get nodeDetailNotDeviceContact;
+
+  /// No description provided for @nodeDetailAddDeviceContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to device contacts'**
+  String get nodeDetailAddDeviceContact;
+
+  /// No description provided for @nodeDetailAddDeviceContactDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to your radio\'s contacts — DMs will route now.'**
+  String get nodeDetailAddDeviceContactDone;
+
+  /// No description provided for @nodeDetailAddDeviceContactFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the contact — check the link and try again.'**
+  String get nodeDetailAddDeviceContactFailed;
+
   /// No description provided for @nodeIdentityLinkConfirm.
   ///
   /// In en, this message translates to:

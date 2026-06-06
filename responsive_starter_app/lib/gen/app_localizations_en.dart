@@ -1408,6 +1408,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nodeIdentityLinkUseKey => 'Link to this key';
 
   @override
+  String get nodeDetailNotDeviceContact =>
+      'Your radio doesn\'t have this node as a contact, so direct messages may not reach it (channel messages still work). Add it to route DMs.';
+
+  @override
+  String get nodeDetailAddDeviceContact => 'Add to device contacts';
+
+  @override
+  String get nodeDetailAddDeviceContactDone =>
+      'Added to your radio\'s contacts — DMs will route now.';
+
+  @override
+  String get nodeDetailAddDeviceContactFailed =>
+      'Couldn\'t add the contact — check the link and try again.';
+
+  @override
   String nodeIdentityLinkConfirm(String from, String to) {
     return 'Move star, tags, and messages from “$from” to “$to”, and retire the old key?';
   }
