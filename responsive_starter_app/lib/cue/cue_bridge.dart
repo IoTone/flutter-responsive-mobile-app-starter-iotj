@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import '../meshcore/chat_message.dart';
+import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import 'cue_service.dart';
@@ -15,6 +16,11 @@ class CueBridge {
   CueBridge(this._mc, this._cue) {
     _prev = _mc.state;
     _wasScanning = _mc.isScanning;
+    // Seed with the fabric we already know so only *newly* heard nodes
+    // ping the discovery cue (not the whole list on first build).
+    for (final DiscoveredNode n in _mc.nodes) {
+      _seenNodes.add(n.pubKeyHex);
+    }
     _mc.addListener(_onChange);
     _msgSub =
         _mc.incomingChannelMessages.listen(_onIncomingChannelMessage);
@@ -30,6 +36,7 @@ class CueBridge {
   StreamSubscription<String>? _errSub;
   late MeshcoreConnectionState _prev;
   late bool _wasScanning;
+  final Set<String> _seenNodes = <String>{};
 
   void _onChange() {
     final MeshcoreConnectionState s = _mc.state;
@@ -55,6 +62,15 @@ class CueBridge {
       _cue.play(nowScanning ? CueKind.scanStart : CueKind.taskOk);
       _wasScanning = nowScanning;
     }
+    // New node heard → discovery cue (NERV's Geiger tick). Suppressed
+    // during the post-connect contact-sync drain so the initial dump of
+    // synced contacts doesn't machine-gun it; a fresh advert heard live
+    // afterwards is the "a node decayed into view" ping we want.
+    bool newNode = false;
+    for (final DiscoveredNode n in _mc.nodes) {
+      if (_seenNodes.add(n.pubKeyHex)) newNode = true;
+    }
+    if (newNode && !_mc.isDraining) _cue.play(CueKind.discovery);
   }
 
   void _onIncomingChannelMessage(ChatMessage _) =>

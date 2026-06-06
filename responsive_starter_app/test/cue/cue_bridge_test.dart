@@ -60,6 +60,31 @@ void main() {
     ctrl.dispose();
   });
 
+  test('a newly heard node fires discovery (the Geiger tick)', () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController ctrl =
+        MeshcoreController(transportFactory: () async => fake);
+    final _RecordingCue cue = _RecordingCue(ThemeController());
+    final CueBridge bridge = CueBridge(ctrl, cue);
+
+    await ctrl.connect();
+    // A fresh advert → a brand-new node in mc.nodes → discovery cue.
+    fake.emit(advertFrame(name: 'NewNode', firstPubByte: 80));
+    await Future<void>.delayed(Duration.zero);
+
+    expect(cue.calls, contains(CueKind.discovery));
+
+    // A repeat advert from the same node does NOT re-fire discovery.
+    cue.calls.clear();
+    fake.emit(advertFrame(name: 'NewNode', firstPubByte: 80));
+    await Future<void>.delayed(Duration.zero);
+    expect(cue.calls, isNot(contains(CueKind.discovery)));
+
+    bridge.dispose();
+    ctrl.dispose();
+  });
+
   test('incoming channel message fires messageIn', () async {
     final FakeMeshcoreTransport fake =
         FakeMeshcoreTransport(connected: true);

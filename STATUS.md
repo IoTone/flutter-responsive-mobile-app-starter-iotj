@@ -1,6 +1,6 @@
 # Meshmore SNS — project status
 
-_Snapshot as of v1.0.145+1 (branch `meshmore-sns`)._
+_Snapshot as of v1.0.146+1 (branch `meshmore-sns`)._
 
 An offline-first Flutter companion app for MeshCore LoRa mesh radios
 over BLE. Mesh-first, no backend. Sibling branch `responsive-iot-2026`
@@ -136,11 +136,15 @@ codebase.
   ramp (a physical cold→hot scale) and the white map-marker outlines
   (cartographic contrast on full-colour OSM tiles).
 - **NERV audio identity** (R12): the shared cue motifs read generic, so
-  NERV got a bespoke **"Mission Control"** set — terse 2-tone messageIn,
-  Geiger-counter **discovery ticks**, a descending **sawtooth klaxon**
-  (alert ×2 / link-lost), ascending square link-up. Two new synth modes
-  (`sweep`, `ticks`) added to `brand/_audio_pack.py` (pure-stdlib,
-  re-runnable); only NERV's 7 WAVs changed.
+  NERV got a bespoke **"Mission Control"** set — crisp upper-register
+  messageIn blip, Geiger-counter **discovery ticks**, a descending
+  **sawtooth klaxon** (alert ×2 / link-lost), ascending square link-up.
+  Two new synth modes (`sweep`, `ticks`) in `brand/_audio_pack.py`
+  (pure-stdlib). **Bug fixed:** `CueKind.discovery` had no trigger —
+  now `CueBridge` fires it when a newly-heard node appears (suppressed
+  during the post-connect sync flood), so the most distinctive NERV cue
+  actually plays. (Verified the WAVs ship + audioplayers plays them, not
+  the system-sound fallback.)
 - _Migrated onto the components: Dashboard (fork), Nodes, Chat, **DM**,
   **Settings hub**, **About** (component-driven). Viz painters
   skin-following; fonts app-wide; NERV audio. Next: settings sub-screens
