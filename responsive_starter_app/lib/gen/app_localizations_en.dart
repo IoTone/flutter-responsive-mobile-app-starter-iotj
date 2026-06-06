@@ -93,6 +93,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashDrPopLink => 'LINK';
 
   @override
+  String get dashReconNoContacts => 'no contacts in range';
+
+  @override
   String dashAgHudOfKnown(String count) {
     return 'of $count known';
   }

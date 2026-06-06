@@ -128,4 +128,23 @@ void main() {
     expect(find.textContaining('PHASE_'), findsOneWidget);
     expect(find.text('MESHMORE // AG'), findsNothing);
   });
+
+  testWidgets('host shows the Recon codec readout when selected',
+      (WidgetTester t) async {
+    final MeshcoreController mc = MeshcoreController(
+      transportFactory: () async => FakeMeshcoreTransport(connected: true),
+      connection:
+          MeshcoreConnection(handshakeTimeout: const Duration(seconds: 5)),
+    );
+    final ThemeController tc = await _pump(t, mc);
+    // Reduce-motion stops the compass sweep so the tree can settle.
+    await tc.setReduceMotion(true);
+    await tc.setPreset(MmThemePreset.recon);
+    await t.pumpAndSettle();
+
+    // Recon signature: the codec header + the contacts band.
+    expect(find.text('MESHMORE · RECON'), findsOneWidget);
+    expect(find.textContaining('CONTACTS'), findsOneWidget);
+    expect(find.text('MESHMORE™'), findsNothing);
+  });
 }

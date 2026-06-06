@@ -110,24 +110,14 @@ class MmSkin {
   final MmOrnament ornament;
 }
 
-// The brief's OSS type spine: Saira (Eurostile-class display) +
-// JetBrains Mono (telemetry, slashed-zero). Shared default until each
-// concept's faces are elaborated.
-const MmType _defaultType = MmType(
-  displayFamily: 'Saira',
-  headingFamily: 'Saira',
-  monoFamily: 'JetBrains Mono',
-  headingTracking: 2.0,
-  slashedZero: true,
-);
-const MmShape _defaultShape = MmShape(
-    corner: MmCorner.rounded, cornerSize: 10, borderWidth: 1);
+// Shared calm chrome (no scanlines/brackets/stripes) — the loud concepts
+// (NERV) opt into ornament; the rest stay calm.
 const MmOrnament _calmOrnament = MmOrnament();
 
 /// Build the [MmSkin] bundle for a preset. Colour comes from the shared
-/// [kMmPresets]; type/shape/ornament are spec'd per concept (NERV and
-/// SEELE detailed here as the first migrated concepts; the rest take a
-/// sensible default until they're elaborated).
+/// [kMmPresets]; type/shape/ornament are spec'd per concept. All six
+/// brief concepts (A–F) are elaborated, so the switch is exhaustive — a
+/// new preset is a compile error until its bundle is defined.
 MmSkin mmSkinFor(MmThemePreset preset) {
   final MmTokens color = kMmPresets[preset]!;
   switch (preset) {
@@ -230,12 +220,23 @@ MmSkin mmSkinFor(MmThemePreset preset) {
             corner: MmCorner.sharp, cornerSize: 0, borderWidth: 1),
         ornament: _calmOrnament,
       );
-    default:
+    // F — Tactical Recon: night-ops codec. OLED-black, single amber
+    // phosphor hue, all-mono (Departure-Mono-class) terminal type, sharp
+    // edges, glare-/battery-aware (no scanline overdraw on the black).
+    case MmThemePreset.recon:
       return MmSkin(
         preset: preset,
         color: color,
-        type: _defaultType,
-        shape: _defaultShape,
+        type: const MmType(
+          displayFamily: 'JetBrains Mono',
+          headingFamily: 'JetBrains Mono',
+          monoFamily: 'JetBrains Mono',
+          upperHeadings: true,
+          headingTracking: 2.0,
+          slashedZero: true,
+        ),
+        shape: const MmShape(
+            corner: MmCorner.sharp, cornerSize: 0, borderWidth: 1),
         ornament: _calmOrnament,
       );
   }

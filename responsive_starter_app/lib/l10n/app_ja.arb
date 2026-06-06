@@ -31,6 +31,7 @@
   "dashAgHudSignal": "シグナル",
   "dashAgHudTraffic": "ch トラフィック",
   "dashDrPopLink": "リンク",
+  "dashReconNoContacts": "範囲内に連絡先なし",
   "dashAgHudOfKnown": "既知 {count} 中",
   "@dashAgHudOfKnown": {
     "placeholders": { "count": { "type": "String" } }

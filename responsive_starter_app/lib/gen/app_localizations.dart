@@ -248,6 +248,12 @@ abstract class AppLocalizations {
   /// **'LINK'**
   String get dashDrPopLink;
 
+  /// No description provided for @dashReconNoContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'no contacts in range'**
+  String get dashReconNoContacts;
+
   /// No description provided for @dashAgHudOfKnown.
   ///
   /// In en, this message translates to:

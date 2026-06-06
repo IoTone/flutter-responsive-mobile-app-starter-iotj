@@ -86,6 +86,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dashDrPopLink => 'リンク';
 
   @override
+  String get dashReconNoContacts => '範囲内に連絡先なし';
+
+  @override
   String dashAgHudOfKnown(String count) {
     return '既知 $count 中';
   }
