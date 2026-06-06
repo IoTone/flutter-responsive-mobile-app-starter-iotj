@@ -1433,6 +1433,47 @@ class AppLocalizationsJa extends AppLocalizations {
   String get weatherSelf => 'このデバイス';
 
   @override
+  String get weatherMeasuredHeader => '実測（センサー）';
+
+  @override
+  String get wxMicroclimateTitle => '微気候';
+
+  @override
+  String get wxAmbientEmpty => 'このチャンネルにはまだ天気の話題がありません。';
+
+  @override
+  String wxMentions(int count, int hours) {
+    return '$count 件の言及 · 直近 $hours 時間';
+  }
+
+  @override
+  String get wxCondClear => '晴れ';
+
+  @override
+  String get wxCondClouds => '曇り';
+
+  @override
+  String get wxCondFog => '霧';
+
+  @override
+  String get wxCondRain => '雨';
+
+  @override
+  String get wxCondSnow => '雪';
+
+  @override
+  String get wxCondWind => '風';
+
+  @override
+  String get wxCondStorm => '嵐';
+
+  @override
+  String get wxCondHeat => '暑い';
+
+  @override
+  String get wxCondCold => '寒い';
+
+  @override
   String get weatherEmpty =>
       '環境データを報告しているノードはまだありません。\nセンサー搭載ノードが照会されると表示されます — アプリ設定で「ノードのテレメトリを収集」を有効にしてください。';
 

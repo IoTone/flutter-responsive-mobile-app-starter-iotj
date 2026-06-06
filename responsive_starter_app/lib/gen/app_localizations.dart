@@ -2642,6 +2642,84 @@ abstract class AppLocalizations {
   /// **'This device'**
   String get weatherSelf;
 
+  /// No description provided for @weatherMeasuredHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'MEASURED (sensors)'**
+  String get weatherMeasuredHeader;
+
+  /// No description provided for @wxMicroclimateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MICROCLIMATE'**
+  String get wxMicroclimateTitle;
+
+  /// No description provided for @wxAmbientEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No weather chatter on this channel yet.'**
+  String get wxAmbientEmpty;
+
+  /// No description provided for @wxMentions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} mentions · last {hours}h'**
+  String wxMentions(int count, int hours);
+
+  /// No description provided for @wxCondClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get wxCondClear;
+
+  /// No description provided for @wxCondClouds.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloudy'**
+  String get wxCondClouds;
+
+  /// No description provided for @wxCondFog.
+  ///
+  /// In en, this message translates to:
+  /// **'Fog'**
+  String get wxCondFog;
+
+  /// No description provided for @wxCondRain.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain'**
+  String get wxCondRain;
+
+  /// No description provided for @wxCondSnow.
+  ///
+  /// In en, this message translates to:
+  /// **'Snow'**
+  String get wxCondSnow;
+
+  /// No description provided for @wxCondWind.
+  ///
+  /// In en, this message translates to:
+  /// **'Windy'**
+  String get wxCondWind;
+
+  /// No description provided for @wxCondStorm.
+  ///
+  /// In en, this message translates to:
+  /// **'Storm'**
+  String get wxCondStorm;
+
+  /// No description provided for @wxCondHeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Hot'**
+  String get wxCondHeat;
+
+  /// No description provided for @wxCondCold.
+  ///
+  /// In en, this message translates to:
+  /// **'Cold'**
+  String get wxCondCold;
+
   /// No description provided for @weatherEmpty.
   ///
   /// In en, this message translates to:

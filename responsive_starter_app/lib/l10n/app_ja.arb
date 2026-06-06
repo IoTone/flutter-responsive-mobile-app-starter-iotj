@@ -662,6 +662,25 @@
   "gridViewWeather": "気象（環境）",
   "gridViewWeatherShort": "WX",
   "weatherSelf": "このデバイス",
+  "weatherMeasuredHeader": "実測（センサー）",
+  "wxMicroclimateTitle": "微気候",
+  "wxAmbientEmpty": "このチャンネルにはまだ天気の話題がありません。",
+  "wxMentions": "{count} 件の言及 · 直近 {hours} 時間",
+  "@wxMentions": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "hours": { "type": "int" }
+    }
+  },
+  "wxCondClear": "晴れ",
+  "wxCondClouds": "曇り",
+  "wxCondFog": "霧",
+  "wxCondRain": "雨",
+  "wxCondSnow": "雪",
+  "wxCondWind": "風",
+  "wxCondStorm": "嵐",
+  "wxCondHeat": "暑い",
+  "wxCondCold": "寒い",
   "weatherEmpty": "環境データを報告しているノードはまだありません。\nセンサー搭載ノードが照会されると表示されます — アプリ設定で「ノードのテレメトリを収集」を有効にしてください。",
   "weatherSelfNoTelemetry": "このデバイスはまだテレメトリを返していません。接続を確認してから、この画面を開き直してください。",
   "weatherSelfNoEnv": "このデバイスのファームウェアは環境テレメトリに対応していません。\n報告内容: {types}。\nセンサー（例: T1000-E の BME280）には MeshCore センサーファームウェアが必要です。標準ビルドはバッテリー／GPS のみを送信し、環境モードを設定してもデバイス側でオフに戻されます。これはアプリの設定ではなくデバイス側の制限です。",

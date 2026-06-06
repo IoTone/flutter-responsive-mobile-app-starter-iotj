@@ -1497,6 +1497,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weatherSelf => 'This device';
 
   @override
+  String get weatherMeasuredHeader => 'MEASURED (sensors)';
+
+  @override
+  String get wxMicroclimateTitle => 'MICROCLIMATE';
+
+  @override
+  String get wxAmbientEmpty => 'No weather chatter on this channel yet.';
+
+  @override
+  String wxMentions(int count, int hours) {
+    return '$count mentions · last ${hours}h';
+  }
+
+  @override
+  String get wxCondClear => 'Clear';
+
+  @override
+  String get wxCondClouds => 'Cloudy';
+
+  @override
+  String get wxCondFog => 'Fog';
+
+  @override
+  String get wxCondRain => 'Rain';
+
+  @override
+  String get wxCondSnow => 'Snow';
+
+  @override
+  String get wxCondWind => 'Windy';
+
+  @override
+  String get wxCondStorm => 'Storm';
+
+  @override
+  String get wxCondHeat => 'Hot';
+
+  @override
+  String get wxCondCold => 'Cold';
+
+  @override
   String get weatherEmpty =>
       'No nodes are reporting environment data yet.\nReadings appear as sensor-equipped nodes are polled — enable \"Gather node telemetry\" in App settings.';
 

@@ -662,6 +662,25 @@
   "gridViewWeather": "Weather (environment)",
   "gridViewWeatherShort": "WX",
   "weatherSelf": "This device",
+  "weatherMeasuredHeader": "MEASURED (sensors)",
+  "wxMicroclimateTitle": "MICROCLIMATE",
+  "wxAmbientEmpty": "No weather chatter on this channel yet.",
+  "wxMentions": "{count} mentions · last {hours}h",
+  "@wxMentions": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "hours": { "type": "int" }
+    }
+  },
+  "wxCondClear": "Clear",
+  "wxCondClouds": "Cloudy",
+  "wxCondFog": "Fog",
+  "wxCondRain": "Rain",
+  "wxCondSnow": "Snow",
+  "wxCondWind": "Windy",
+  "wxCondStorm": "Storm",
+  "wxCondHeat": "Hot",
+  "wxCondCold": "Cold",
   "weatherEmpty": "No nodes are reporting environment data yet.\nReadings appear as sensor-equipped nodes are polled — enable \"Gather node telemetry\" in App settings.",
   "weatherSelfNoTelemetry": "This device hasn't returned telemetry yet. Make sure you're connected, then reopen this view.",
   "weatherSelfNoEnv": "Environment telemetry isn't supported by this device's firmware.\nIt reported: {types}.\nThe sensor (e.g. the T1000-E's BME280) needs a MeshCore sensor firmware build — the standard build sends only battery/GPS, and the device clamps the environment mode back to off. This is a device limitation, not an app setting.",

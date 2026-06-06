@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../gen/app_localizations.dart';
+import '../meshcore/chat_message.dart';
 import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../meshcore/node_telemetry.dart';
+import '../sns/weather_inference.dart';
+import '../sns/weather_lexicon.dart';
 import 'node_detail_sheet.dart';
 
 /// Mesh weather — a glanceable view of the environment telemetry
@@ -69,6 +72,27 @@ class _WeatherViewState extends State<WeatherView> {
           name: l.weatherSelf, isSelf: true, pubKeyHex: ownHex, t: self));
     }
 
+    // --- Microclimate: weather mined from chat on the selected channel
+    // (P1, no placement yet). This is the *only* weather signal when the
+    // firmware reports no environment telemetry, so it always shows.
+    final AmbientWx? ambient = _scanAmbient(mc, context);
+    final Widget micro = _MicroclimateStrip(
+      ambient: ambient,
+      channelLabel: 'CH${mc.activeChannel}',
+      windowHours: _wxWindow.inHours,
+      l: l,
+      cs: cs,
+    );
+
+    // Measured (sensor) telemetry section.
+    final List<double> temps = <double>[
+      for (final _Reading r in readings)
+        if (r.t.temperatureC != null) r.t.temperatureC!,
+    ];
+    readings.sort((_Reading a, _Reading b) =>
+        (b.t.temperatureC ?? -999).compareTo(a.t.temperatureC ?? -999));
+
+    final List<Widget> measured = <Widget>[];
     if (readings.isEmpty) {
       // Diagnostic: distinguish "no self telemetry received at all"
       // from "received, but the device reports no environment sensor".
@@ -80,63 +104,84 @@ class _WeatherViewState extends State<WeatherView> {
               : selfT.entries
                   .map((e) => '0x${e.type.toRadixString(16)}')
                   .join(', '));
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Icon(Icons.thermostat, size: 40, color: cs.onSurfaceVariant),
-              const SizedBox(height: 14),
-              Text(l.weatherEmpty,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: cs.onSurfaceVariant, height: 1.4)),
-              const SizedBox(height: 12),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: cs.surfaceContainerHighest.withValues(alpha: .35),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: cs.outline.withValues(alpha: .3)),
-                ),
-                child: Text(selfDiag,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: cs.onSurfaceVariant,
-                        fontSize: 13,
-                        height: 1.45)),
+      measured.add(Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          children: <Widget>[
+            Icon(Icons.thermostat, size: 36, color: cs.onSurfaceVariant),
+            const SizedBox(height: 10),
+            Text(l.weatherEmpty,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: cs.onSurfaceVariant, height: 1.4)),
+            const SizedBox(height: 10),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: cs.surfaceContainerHighest.withValues(alpha: .35),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: cs.outline.withValues(alpha: .3)),
               ),
-            ],
-          ),
+              child: Text(selfDiag,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: cs.onSurfaceVariant, fontSize: 13, height: 1.45)),
+            ),
+          ],
         ),
-      );
+      ));
+    } else {
+      if (temps.isNotEmpty) {
+        measured.add(_SummaryCard(
+          count: readings.length,
+          minC: temps.reduce((double a, double b) => a < b ? a : b),
+          maxC: temps.reduce((double a, double b) => a > b ? a : b),
+          avgC: temps.reduce((double a, double b) => a + b) / temps.length,
+          cs: cs,
+          l: l,
+        ));
+      }
+      measured.add(const SizedBox(height: 8));
+      for (final _Reading r in readings) {
+        measured.add(_ReadingTile(r: r, cs: cs, l: l));
+      }
     }
-
-    // Temperatures present → summary stats.
-    final List<double> temps = <double>[
-      for (final _Reading r in readings)
-        if (r.t.temperatureC != null) r.t.temperatureC!,
-    ];
-    readings.sort((_Reading a, _Reading b) =>
-        (b.t.temperatureC ?? -999).compareTo(a.t.temperatureC ?? -999));
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: <Widget>[
-        if (temps.isNotEmpty)
-          _SummaryCard(
-            count: readings.length,
-            minC: temps.reduce((double a, double b) => a < b ? a : b),
-            maxC: temps.reduce((double a, double b) => a > b ? a : b),
-            avgC: temps.reduce((double a, double b) => a + b) / temps.length,
-            cs: cs,
-            l: l,
-          ),
+        micro,
+        const SizedBox(height: 14),
+        Text(l.weatherMeasuredHeader,
+            style: TextStyle(
+                color: cs.onSurfaceVariant,
+                fontSize: 11,
+                letterSpacing: 2)),
         const SizedBox(height: 8),
-        for (final _Reading r in readings) _ReadingTile(r: r, cs: cs, l: l),
+        ...measured,
       ],
     );
+  }
+
+  static const Duration _wxWindow = Duration(hours: 2);
+
+  /// Scan the selected channel's recent chat for weather mentions and
+  /// roll them up. Pure logic lives in `weather_inference.dart`.
+  AmbientWx? _scanAmbient(MeshcoreController mc, BuildContext context) {
+    final String lang = Localizations.localeOf(context).languageCode;
+    final DateTime now = DateTime.now();
+    final List<WxObservation> obs = <WxObservation>[];
+    for (final ChatMessage m in mc.messagesFor(mc.activeChannel)) {
+      if (now.difference(m.at) > _wxWindow) continue;
+      final WxObservation? o = WeatherInferenceEngine.scan(
+        m.text,
+        languageCode: lang,
+        at: m.at,
+        sourceMsgId: m.id,
+      );
+      if (o != null && o.confidence >= 0.5) obs.add(o);
+    }
+    return aggregateAmbient(obs);
   }
 }
 
@@ -319,5 +364,131 @@ class _ReadingTile extends StatelessWidget {
     if (s < 60) return l.weatherAgoSeconds(s);
     if (s < 3600) return l.weatherAgoMinutes(s ~/ 60);
     return l.weatherAgoHours(s ~/ 3600);
+  }
+}
+
+/// Localized one-word label for a weather condition.
+String wxConditionLabel(WxCondition c, AppLocalizations l) => switch (c) {
+      WxCondition.clear => l.wxCondClear,
+      WxCondition.clouds => l.wxCondClouds,
+      WxCondition.fog => l.wxCondFog,
+      WxCondition.rain => l.wxCondRain,
+      WxCondition.snow => l.wxCondSnow,
+      WxCondition.wind => l.wxCondWind,
+      WxCondition.storm => l.wxCondStorm,
+      WxCondition.heat => l.wxCondHeat,
+      WxCondition.cold => l.wxCondCold,
+    };
+
+/// The chat-derived microclimate summary for the selected channel (P1):
+/// dominant condition glyph + label, temperature range, mention count.
+/// Renders a quiet "no chatter yet" hint when there's nothing.
+class _MicroclimateStrip extends StatelessWidget {
+  const _MicroclimateStrip({
+    required this.ambient,
+    required this.channelLabel,
+    required this.windowHours,
+    required this.l,
+    required this.cs,
+  });
+
+  final AmbientWx? ambient;
+  final String channelLabel;
+  final int windowHours;
+  final AppLocalizations l;
+  final ColorScheme cs;
+
+  String _tempLabel() {
+    final AmbientWx a = ambient!;
+    if (!a.hasTemp) return '';
+    final int lo = a.tempMinC!.round();
+    final int hi = a.tempMaxC!.round();
+    return lo == hi ? '$lo°C' : '$lo–$hi°C';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AmbientWx? a = ambient;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest.withValues(alpha: .35),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cs.outline.withValues(alpha: .3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(Icons.cloud_queue, size: 14, color: cs.primary),
+              const SizedBox(width: 6),
+              Text('${l.wxMicroclimateTitle} · $channelLabel',
+                  style: TextStyle(
+                      color: cs.primary,
+                      fontSize: 11,
+                      letterSpacing: 2,
+                      fontWeight: FontWeight.w600)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (a == null)
+            Text(l.wxAmbientEmpty,
+                style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13))
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Text(a.dominant != null ? wxGlyph(a.dominant!) : '🌡',
+                    style: const TextStyle(fontSize: 30)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          if (a.dominant != null)
+                            Text(wxConditionLabel(a.dominant!, l),
+                                style: TextStyle(
+                                    color: cs.onSurface,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600)),
+                          if (a.hasTemp) ...<Widget>[
+                            if (a.dominant != null) const SizedBox(width: 8),
+                            Text(_tempLabel(),
+                                style: TextStyle(
+                                    color: cs.onSurface,
+                                    fontFamily: 'JetBrains Mono',
+                                    fontSize: 16)),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(l.wxMentions(a.mentions, windowHours),
+                          style: TextStyle(
+                              color: cs.onSurfaceVariant, fontSize: 12)),
+                    ],
+                  ),
+                ),
+                // Secondary conditions as small glyph chips.
+                ..._others(a).map((WxCondition c) => Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Text(wxGlyph(c),
+                          style: const TextStyle(fontSize: 16)),
+                    )),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  List<WxCondition> _others(AmbientWx a) {
+    final List<WxCondition> cs = a.tally.keys
+        .where((WxCondition c) => c != a.dominant)
+        .toList(growable: false);
+    return cs.length <= 3 ? cs : cs.sublist(0, 3);
   }
 }
