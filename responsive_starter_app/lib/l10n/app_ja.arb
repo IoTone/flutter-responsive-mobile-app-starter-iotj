@@ -595,6 +595,23 @@
   "nodeDetailShareTelemetryHelp": "テレメトリモードが「連絡先」のとき、この連絡先が選択したテレメトリを取得できるようにします。基本がオフだと何も共有されません。",
   "nodeDetailRecentDms": "最近の DM",
   "nodeDetailMessage": "メッセージ",
+  "nodeIdentityTitle": "連絡先のキーが変更されました",
+  "nodeIdentityBody": "「{name}」は新しいキーで稼働中です — 相手の端末で削除・再追加された可能性があります。お気に入り・タグ・保存済みメッセージ {count} 件を現在のキーに移動しますか？",
+  "@nodeIdentityBody": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "nodeIdentityOldKey": "旧キー …{shortId}",
+  "@nodeIdentityOldKey": {
+    "placeholders": { "shortId": { "type": "String" } }
+  },
+  "nodeIdentityAction": "現在のキーに移動",
+  "nodeIdentityMoved": "データを「{name}」の現在のキーに移動しました",
+  "@nodeIdentityMoved": {
+    "placeholders": { "name": { "type": "String" } }
+  },
   "nodeDetailFavourite": "お気に入り",
   "nodeDetailContact": "コンタクト",
   "nodeDetailShowOnMap": "地図上に表示",

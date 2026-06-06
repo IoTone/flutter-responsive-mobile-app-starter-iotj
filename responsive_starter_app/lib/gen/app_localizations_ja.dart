@@ -1283,6 +1283,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodeDetailMessage => 'メッセージ';
 
   @override
+  String get nodeIdentityTitle => '連絡先のキーが変更されました';
+
+  @override
+  String nodeIdentityBody(String name, int count) {
+    return '「$name」は新しいキーで稼働中です — 相手の端末で削除・再追加された可能性があります。お気に入り・タグ・保存済みメッセージ $count 件を現在のキーに移動しますか？';
+  }
+
+  @override
+  String nodeIdentityOldKey(String shortId) {
+    return '旧キー …$shortId';
+  }
+
+  @override
+  String get nodeIdentityAction => '現在のキーに移動';
+
+  @override
+  String nodeIdentityMoved(String name) {
+    return 'データを「$name」の現在のキーに移動しました';
+  }
+
+  @override
   String get nodeDetailFavourite => 'お気に入り';
 
   @override

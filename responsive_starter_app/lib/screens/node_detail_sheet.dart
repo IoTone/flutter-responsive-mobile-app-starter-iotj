@@ -123,6 +123,27 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
     widget.onRemoveTag?.call(tag);
   }
 
+  /// Confirm + move the user's data from the stale key to the live key.
+  /// If we're currently viewing the stale (now-deleted) node, close the
+  /// sheet afterwards since it no longer exists in the fabric.
+  Future<void> _reconcile(
+      MeshcoreController mc, IdentityMatch match, AppLocalizations l) async {
+    final bool viewingStale =
+        widget.node.pubKeyHex == match.stale.pubKeyHex;
+    await mc.reconcileIdentity(
+      fromPubKeyHex: match.stale.pubKeyHex,
+      toPubKeyHex: match.fresh.pubKeyHex,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(
+        content: Text(l.nodeIdentityMoved(match.fresh.name)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+    if (viewingStale) Navigator.of(context).maybePop();
+  }
+
   String _ago(int unixSec, AppLocalizations l) {
     final int delta =
         DateTime.now().millisecondsSinceEpoch ~/ 1000 - unixSec;
@@ -139,7 +160,12 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
     final DiscoveredNode n = widget.node;
     final ColorScheme cs = Theme.of(context).colorScheme;
     final AppLocalizations l = AppLocalizations.of(context);
+    final MeshcoreController mc = context.watch<MeshcoreController>();
     final String name = n.name.isEmpty ? n.shortId : n.name;
+    // R56 — "returning contact": a same-name node whose key changed (peer
+    // deleted + re-added). Offer to move the user's data to the live key.
+    final IdentityMatch? idMatch =
+        widget.isSelf ? null : mc.identityMatchFor(n.pubKeyHex);
     final String? distance =
         geo.formatDistance(widget.distanceMeters);
 
@@ -231,6 +257,13 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
                   chip(Icons.star, l.nodeDetailContactBadge, cs.tertiary),
               ],
             ),
+            if (idMatch != null) ...<Widget>[
+              const SizedBox(height: 12),
+              _ReconcileCard(
+                match: idMatch,
+                onMove: () => _reconcile(mc, idMatch, l),
+              ),
+            ],
             const SizedBox(height: 14),
             kv(l.nodeDetailShortIdKv, n.shortId),
             kv(
@@ -728,6 +761,68 @@ class _AddTagDialogState extends State<_AddTagDialog> {
           child: Text(l.nodeDetailAddTagApply),
         ),
       ],
+    );
+  }
+}
+
+/// R56 — the "returning contact" reconcile prompt. Shown in the node
+/// sheet when a same-name node's key changed; moving is user-confirmed.
+class _ReconcileCard extends StatelessWidget {
+  const _ReconcileCard({required this.match, required this.onMove});
+
+  final IdentityMatch match;
+  final VoidCallback onMove;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final AppLocalizations l = AppLocalizations.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: cs.tertiary.withValues(alpha: .10),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: cs.tertiary.withValues(alpha: .45)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(Icons.sync_problem, size: 16, color: cs.tertiary),
+              const SizedBox(width: 6),
+              Text(l.nodeIdentityTitle,
+                  style: TextStyle(
+                      color: cs.tertiary,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l.nodeIdentityBody(match.fresh.name, match.messageCount),
+            style: TextStyle(color: cs.onSurface, height: 1.35, fontSize: 13),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l.nodeIdentityOldKey(match.stale.shortId),
+            style: TextStyle(
+                color: cs.onSurfaceVariant,
+                fontFamily: 'JetBrains Mono',
+                fontSize: 11),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton.tonalIcon(
+              onPressed: onMove,
+              icon: const Icon(Icons.move_up, size: 18),
+              label: Text(l.nodeIdentityAction),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

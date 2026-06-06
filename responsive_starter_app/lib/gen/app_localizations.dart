@@ -2366,6 +2366,36 @@ abstract class AppLocalizations {
   /// **'Message'**
   String get nodeDetailMessage;
 
+  /// No description provided for @nodeIdentityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact key changed'**
+  String get nodeIdentityTitle;
+
+  /// No description provided for @nodeIdentityBody.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” is active under a new key — likely deleted and re-added on their device. Move your star, tags, and {count} saved messages to the current key?'**
+  String nodeIdentityBody(String name, int count);
+
+  /// No description provided for @nodeIdentityOldKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Old key …{shortId}'**
+  String nodeIdentityOldKey(String shortId);
+
+  /// No description provided for @nodeIdentityAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to current key'**
+  String get nodeIdentityAction;
+
+  /// No description provided for @nodeIdentityMoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved your data to “{name}”’s current key'**
+  String nodeIdentityMoved(String name);
+
   /// No description provided for @nodeDetailFavourite.
   ///
   /// In en, this message translates to:

@@ -1338,6 +1338,132 @@ class MeshcoreController extends ChangeNotifier {
   int dmCountFor(String peerPubKeyHex) =>
       dmHistoryFor(peerPubKeyHex).length;
 
+  // --- Identity reconcile (R56): a contact deleted + re-added on the
+  // other device returns with a NEW pubkey but the SAME name. We never
+  // auto-migrate on a name match — names aren't unique, so that would let
+  // an impostor (or a coincidental same-name node) silently inherit your
+  // star/tags/DM history. Instead we *detect* the likely supersession and
+  // let the user confirm it (see NodeDetailSheet). Detection is
+  // deliberately conservative: same (non-trivial) name, the current key
+  // heard live, the old key clearly gone stale, and the old key actually
+  // holding data worth moving.
+
+  /// Seconds within which a node counts as "live" (heard just now).
+  static const int _identityFreshSec = 600;
+
+  /// The live key must be at least this much newer than the stale key —
+  /// stops two *simultaneously* live same-name nodes from being flagged.
+  static const int _identityStaleGapSec = 300;
+
+  bool _hasMigratableIdentityData(String pk) =>
+      _favorites.contains(pk) ||
+      _known.contains(pk) ||
+      (_tags[pk]?.isNotEmpty ?? false) ||
+      dmHistoryFor(pk).isNotEmpty;
+
+  /// If [pubKeyHex] participates in a likely "returning contact" pair —
+  /// a same-name node where one key is live and the other is a stale key
+  /// carrying your data — return the pair (else null). Works whether the
+  /// caller is looking at the old or the new key.
+  IdentityMatch? identityMatchFor(String pubKeyHex) {
+    final DiscoveredNode? a = _nodes[pubKeyHex];
+    if (a == null) return null;
+    final String name = a.name.trim().toLowerCase();
+    if (name.length < 2) return null; // too generic to match on
+    final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    for (final DiscoveredNode b in _nodes.values) {
+      if (b.pubKeyHex == a.pubKeyHex) continue;
+      if (b.name.trim().toLowerCase() != name) continue;
+      final DiscoveredNode fresh =
+          a.lastHeardUnix >= b.lastHeardUnix ? a : b;
+      final DiscoveredNode stale = identical(fresh, a) ? b : a;
+      if (!_hasMigratableIdentityData(stale.pubKeyHex)) continue;
+      if (now - fresh.lastHeardUnix > _identityFreshSec) continue;
+      if (fresh.lastHeardUnix - stale.lastHeardUnix < _identityStaleGapSec) {
+        continue;
+      }
+      return IdentityMatch(
+        stale: stale,
+        fresh: fresh,
+        messageCount: dmHistoryFor(stale.pubKeyHex).length,
+        hasStar: _favorites.contains(stale.pubKeyHex),
+        hasTags: _tags[stale.pubKeyHex]?.isNotEmpty ?? false,
+        hasKnown: _known.contains(stale.pubKeyHex),
+      );
+    }
+    return null;
+  }
+
+  /// Move all user metadata + DM history from a stale key to the live
+  /// key, then drop the stale node. User-confirmed (NEVER automatic).
+  Future<void> reconcileIdentity({
+    required String fromPubKeyHex,
+    required String toPubKeyHex,
+  }) async {
+    if (fromPubKeyHex == toPubKeyHex) return;
+
+    if (_favorites.remove(fromPubKeyHex)) {
+      _favorites.add(toPubKeyHex);
+      await FavoriteStore.save(_favorites);
+    }
+    if (_known.remove(fromPubKeyHex)) {
+      _known.add(toPubKeyHex);
+      await KnownStore.save(_known);
+    }
+    final List<String>? oldTags = _tags.remove(fromPubKeyHex);
+    if (oldTags != null && oldTags.isNotEmpty) {
+      final List<String> dst =
+          List<String>.from(_tags[toPubKeyHex] ?? const <String>[]);
+      for (final String t in oldTags) {
+        if (!dst.contains(t)) dst.add(t);
+      }
+      _tags[toPubKeyHex] = dst;
+      await NodeTagsStore.save(_tags);
+    }
+    final int readMs = _dmReadStore.lastReadAtMs(fromPubKeyHex);
+    if (readMs > 0) {
+      await _dmReadStore.markRead(toPubKeyHex,
+          at: DateTime.fromMillisecondsSinceEpoch(readMs));
+    }
+
+    // Re-point DM history (messages are immutable — rebuild the rows,
+    // preserving id/timestamps so ordering and per-row actions survive).
+    final String fromPrefix = fromPubKeyHex.length >= 12
+        ? fromPubKeyHex.substring(0, 12)
+        : fromPubKeyHex;
+    bool msgChanged = false;
+    for (int i = 0; i < _messages.length; i++) {
+      final ChatMessage m = _messages[i];
+      if (m.peerPubKeyHex != null &&
+          (m.peerPubKeyHex == fromPubKeyHex ||
+              m.peerPubKeyHex == fromPrefix)) {
+        _messages[i] = ChatMessage(
+          id: m.id,
+          channelIdx: m.channelIdx,
+          text: m.text,
+          outgoing: m.outgoing,
+          at: m.at,
+          snrDb: m.snrDb,
+          isFlood: m.isFlood,
+          peerPubKeyHex: toPubKeyHex,
+          delivery: m.delivery,
+          expectedAck: m.expectedAck,
+        );
+        msgChanged = true;
+      }
+    }
+    if (msgChanged) {
+      _invalidateMessagesCache();
+      _persistChat();
+    }
+
+    // The stale identity is dead — drop it so it stops cluttering the
+    // fabric and can't be messaged again.
+    _nodes.remove(fromPubKeyHex);
+    _contacts.remove(fromPubKeyHex);
+    notifyListeners();
+  }
+
   /// Count of **inbound** DMs from this peer that arrived after the
   /// last time we marked the thread read. Drives the unread state of
   /// the Nodes-row DM badge.

@@ -1345,6 +1345,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nodeDetailMessage => 'Message';
 
   @override
+  String get nodeIdentityTitle => 'Contact key changed';
+
+  @override
+  String nodeIdentityBody(String name, int count) {
+    return '“$name” is active under a new key — likely deleted and re-added on their device. Move your star, tags, and $count saved messages to the current key?';
+  }
+
+  @override
+  String nodeIdentityOldKey(String shortId) {
+    return 'Old key …$shortId';
+  }
+
+  @override
+  String get nodeIdentityAction => 'Move to current key';
+
+  @override
+  String nodeIdentityMoved(String name) {
+    return 'Moved your data to “$name”’s current key';
+  }
+
+  @override
   String get nodeDetailFavourite => 'Favourite';
 
   @override

@@ -154,3 +154,31 @@ class DiscoveredNode {
   String get shortId =>
       pubKeyHex.length >= 12 ? pubKeyHex.substring(0, 12) : pubKeyHex;
 }
+
+/// A detected "returning contact" — a same-name node where one key is
+/// live ([fresh]) and the other is a now-stale key ([stale]) that still
+/// holds the user's star / tags / known / DM history. Surfaced by
+/// `MeshcoreController.identityMatchFor` so the user can confirm moving
+/// their data to the live key (a delete+re-add on the peer regenerates
+/// its keypair). Never acted on automatically.
+class IdentityMatch {
+  const IdentityMatch({
+    required this.stale,
+    required this.fresh,
+    required this.messageCount,
+    required this.hasStar,
+    required this.hasTags,
+    required this.hasKnown,
+  });
+
+  /// The dead key carrying the user's data.
+  final DiscoveredNode stale;
+
+  /// The currently-live key the data should move to.
+  final DiscoveredNode fresh;
+
+  final int messageCount;
+  final bool hasStar;
+  final bool hasTags;
+  final bool hasKnown;
+}
