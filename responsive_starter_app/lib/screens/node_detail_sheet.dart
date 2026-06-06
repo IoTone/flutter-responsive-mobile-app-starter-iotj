@@ -187,7 +187,11 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
 
     return SafeArea(
       top: false,
-      child: Padding(
+      // The sheet content can exceed the sheet's height (e.g. a contact
+      // with telemetry + share toggles + tags) — scroll it so it never
+      // overflows the DraggableScrollableSheet.
+      child: SingleChildScrollView(
+        child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -412,6 +416,7 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
