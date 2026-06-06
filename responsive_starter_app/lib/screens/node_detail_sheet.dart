@@ -166,7 +166,7 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
       return b.lastHeardUnix.compareTo(a.lastHeardUnix); // then recent
     });
 
-    final DiscoveredNode? picked = await showModalBottomSheet<DiscoveredNode>(
+    final _LinkTarget? picked = await showModalBottomSheet<_LinkTarget>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
@@ -178,24 +178,27 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
       ),
     );
     if (picked == null || !mounted) return;
+    final String targetPk = picked.pubKeyHex.toLowerCase();
+    if (targetPk == n.pubKeyHex.toLowerCase()) return;
 
     // Data flows from the side that holds it to the other (the live key).
-    final bool pickedHasData = mc.hasReconcileData(picked.pubKeyHex);
+    // A typed/unknown key holds nothing, so data moves from the contact.
+    final bool targetHasData = mc.hasReconcileData(targetPk);
     final bool selfHasData = mc.hasReconcileData(n.pubKeyHex);
-    final String fromPk =
-        (pickedHasData && !selfHasData) ? picked.pubKeyHex : n.pubKeyHex;
-    final String toPk =
-        fromPk == n.pubKeyHex ? picked.pubKeyHex : n.pubKeyHex;
-    final DiscoveredNode fromNode = fromPk == n.pubKeyHex ? n : picked;
-    final DiscoveredNode toNode = fromPk == n.pubKeyHex ? picked : n;
+    final bool fromSelf = !(targetHasData && !selfHasData);
+    final String fromPk = fromSelf ? n.pubKeyHex : targetPk;
+    final String toPk = fromSelf ? targetPk : n.pubKeyHex;
+    final String fromName = fromSelf ? n.name : (picked.displayName ?? '');
+    final String toName = fromSelf ? (picked.displayName ?? n.name) : n.name;
+    String tail(String pk) =>
+        pk.length >= 6 ? pk.substring(0, 6) : pk;
 
     final bool ok = await showDialog<bool>(
           context: context,
           builder: (BuildContext ctx) => AlertDialog(
             title: Text(l.nodeIdentityLinkTitle),
             content: Text(l.nodeIdentityLinkConfirm(
-                '${fromNode.name} …${fromNode.shortId.substring(0, 6)}',
-                '${toNode.name} …${toNode.shortId.substring(0, 6)}')),
+                '$fromName …${tail(fromPk)}', '$toName …${tail(toPk)}')),
             actions: <Widget>[
               TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
@@ -209,11 +212,14 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
         false;
     if (!ok || !mounted) return;
 
-    await mc.reconcileIdentity(fromPubKeyHex: fromPk, toPubKeyHex: toPk);
+    await mc.linkIdentityToKey(
+        fromPubKeyHex: fromPk,
+        toPubKeyHex: toPk,
+        name: toName.isEmpty ? n.name : toName);
     if (!mounted) return;
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(
       SnackBar(
-        content: Text(l.nodeIdentityMoved(toNode.name)),
+        content: Text(l.nodeIdentityMoved(toName.isEmpty ? n.name : toName)),
         duration: const Duration(seconds: 3),
       ),
     );
@@ -950,11 +956,18 @@ class _LinkPickerState extends State<_LinkPicker> {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final String name = widget.contactName.trim().toLowerCase();
     final String query = _q.text.trim().toLowerCase();
+    // Hex-only form of the query, so a pasted key (with spaces/colons)
+    // still matches and can be linked directly.
+    final String queryHex = query.replaceAll(RegExp(r'[^0-9a-f]'), '');
+    final String? manualKey =
+        RegExp(r'^[0-9a-f]{12,64}$').hasMatch(queryHex) ? queryHex : null;
     final List<DiscoveredNode> filtered = <DiscoveredNode>[
       for (final DiscoveredNode c in widget.candidates)
         if (query.isEmpty ||
             c.name.toLowerCase().contains(query) ||
-            c.pubKeyHex.toLowerCase().contains(query))
+            c.pubKeyHex.toLowerCase().contains(query) ||
+            (queryHex.length >= 4 &&
+                c.pubKeyHex.toLowerCase().contains(queryHex)))
           c
     ];
 
@@ -990,7 +1003,24 @@ class _LinkPickerState extends State<_LinkPicker> {
               ),
             ),
             const SizedBox(height: 8),
-            if (filtered.isEmpty)
+            // Direct link to a typed/pasted public key — the reliable path
+            // when the new node isn't in the fabric (chat-only / unheard).
+            if (manualKey != null)
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.vpn_key, color: cs.primary),
+                title: Text(l.nodeIdentityLinkUseKey),
+                subtitle: Text(
+                    '…${manualKey.substring(0, manualKey.length < 16 ? manualKey.length : 16)}',
+                    style: const TextStyle(
+                        fontFamily: 'JetBrains Mono', fontSize: 11)),
+                onTap: () => Navigator.pop(
+                    context, _LinkTarget(pubKeyHex: manualKey)),
+              ),
+            if (manualKey != null && filtered.isNotEmpty)
+              const Divider(height: 1),
+            if (filtered.isEmpty && manualKey == null)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
@@ -999,7 +1029,7 @@ class _LinkPickerState extends State<_LinkPicker> {
                         : l.nodeIdentityLinkNoMatch,
                     style: TextStyle(color: cs.onSurfaceVariant)),
               )
-            else
+            else if (filtered.isNotEmpty)
               Flexible(
                 child: ListView.separated(
                   shrinkWrap: true,
@@ -1021,7 +1051,8 @@ class _LinkPickerState extends State<_LinkPicker> {
                           '…${c.shortId.substring(0, 6)} · ${widget.ago(c.lastHeardUnix, l)}',
                           style: const TextStyle(
                               fontFamily: 'JetBrains Mono', fontSize: 11)),
-                      onTap: () => Navigator.pop(context, c),
+                      onTap: () => Navigator.pop(context,
+                          _LinkTarget(pubKeyHex: c.pubKeyHex, displayName: c.name)),
                     );
                   },
                 ),
@@ -1031,4 +1062,11 @@ class _LinkPickerState extends State<_LinkPicker> {
       ),
     );
   }
+}
+
+/// Result of the link picker: a chosen node or a typed/pasted key.
+class _LinkTarget {
+  _LinkTarget({required this.pubKeyHex, this.displayName});
+  final String pubKeyHex;
+  final String? displayName;
 }

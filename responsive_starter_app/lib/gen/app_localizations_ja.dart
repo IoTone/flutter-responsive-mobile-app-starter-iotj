@@ -1328,17 +1328,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get nodeIdentityLinkHelp =>
-      '新しいキーで稼働している同じ連絡先のノードを選んでください。お気に入り・タグ・メッセージが現在のキーに移動し、古いキーは廃止されます。';
+      '新しいキーで稼働している同じ連絡先のノードを選ぶか、新しい公開鍵を貼り付けてください（相手の端末で確認できます）。お気に入り・タグ・メッセージが移動し、古いキーは廃止されます。';
 
   @override
   String get nodeIdentityLinkEmpty =>
-      'リンクできる他のノードがありません — スキャンするか新しいキーのアドバートを待ってください。';
+      'リンクできる他のノードがありません — スキャンするか、新しいキーのアドバートを待つか、上にキーを貼り付けてください。';
 
   @override
-  String get nodeIdentityLinkSearchHint => '名前またはキーで絞り込み';
+  String get nodeIdentityLinkSearchHint => '名前で絞り込み、または公開鍵を貼り付け';
 
   @override
-  String get nodeIdentityLinkNoMatch => '一致するノードがありません — 検索をクリアすると全件表示します。';
+  String get nodeIdentityLinkNoMatch =>
+      '一致するノードがありません — 検索をクリアするか、完全なキーを貼り付けて直接リンクしてください。';
+
+  @override
+  String get nodeIdentityLinkUseKey => 'このキーにリンク';
 
   @override
   String nodeIdentityLinkConfirm(String from, String to) {

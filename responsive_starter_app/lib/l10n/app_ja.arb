@@ -622,10 +622,11 @@
   },
   "nodeIdentityLinkAction": "キーが変わった？ 別のノードにリンク",
   "nodeIdentityLinkTitle": "変更されたキーをリンク",
-  "nodeIdentityLinkHelp": "新しいキーで稼働している同じ連絡先のノードを選んでください。お気に入り・タグ・メッセージが現在のキーに移動し、古いキーは廃止されます。",
-  "nodeIdentityLinkEmpty": "リンクできる他のノードがありません — スキャンするか新しいキーのアドバートを待ってください。",
-  "nodeIdentityLinkSearchHint": "名前またはキーで絞り込み",
-  "nodeIdentityLinkNoMatch": "一致するノードがありません — 検索をクリアすると全件表示します。",
+  "nodeIdentityLinkHelp": "新しいキーで稼働している同じ連絡先のノードを選ぶか、新しい公開鍵を貼り付けてください（相手の端末で確認できます）。お気に入り・タグ・メッセージが移動し、古いキーは廃止されます。",
+  "nodeIdentityLinkEmpty": "リンクできる他のノードがありません — スキャンするか、新しいキーのアドバートを待つか、上にキーを貼り付けてください。",
+  "nodeIdentityLinkSearchHint": "名前で絞り込み、または公開鍵を貼り付け",
+  "nodeIdentityLinkNoMatch": "一致するノードがありません — 検索をクリアするか、完全なキーを貼り付けて直接リンクしてください。",
+  "nodeIdentityLinkUseKey": "このキーにリンク",
   "nodeIdentityLinkConfirm": "お気に入り・タグ・メッセージを「{from}」から「{to}」へ移動し、古いキーを廃止しますか？",
   "@nodeIdentityLinkConfirm": {
     "placeholders": {

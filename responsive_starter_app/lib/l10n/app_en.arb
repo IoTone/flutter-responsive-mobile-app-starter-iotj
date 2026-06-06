@@ -622,10 +622,11 @@
   },
   "nodeIdentityLinkAction": "Key changed? Link to another node",
   "nodeIdentityLinkTitle": "Link a changed key",
-  "nodeIdentityLinkHelp": "Pick the node that is this same contact under a new key. Your star, tags, and messages move to the live key; the old key is retired.",
-  "nodeIdentityLinkEmpty": "No other nodes to link yet — scan or wait for the new key to advertise.",
-  "nodeIdentityLinkSearchHint": "Filter by name or key",
-  "nodeIdentityLinkNoMatch": "No nodes match — clear the search to see all.",
+  "nodeIdentityLinkHelp": "Pick the node that is this same contact under a new key — or paste the new public key (you can read it off the other device). Your star, tags, and messages move to it; the old key is retired.",
+  "nodeIdentityLinkEmpty": "No other nodes to link yet — scan, wait for the new key to advertise, or paste the key above.",
+  "nodeIdentityLinkSearchHint": "Filter by name, or paste a public key",
+  "nodeIdentityLinkNoMatch": "No nodes match — clear the search, or paste the full key to link directly.",
+  "nodeIdentityLinkUseKey": "Link to this key",
   "nodeIdentityLinkConfirm": "Move star, tags, and messages from “{from}” to “{to}”, and retire the old key?",
   "@nodeIdentityLinkConfirm": {
     "placeholders": {

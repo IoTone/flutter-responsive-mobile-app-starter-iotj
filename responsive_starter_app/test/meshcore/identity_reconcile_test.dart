@@ -133,6 +133,62 @@ void main() {
     mc.dispose();
   });
 
+  test('linkIdentityToKey re-homes a contact onto an UNHEARD key', () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController mc = await ready(fake);
+
+    fake.emit(advertFrame(name: 'Alice', firstPubByte: 0xAA));
+    await Future<void>.delayed(Duration.zero);
+    final String oldPk = mc.nodes
+        .firstWhere((DiscoveredNode n) => n.pubKeyHex.startsWith('aa'))
+        .pubKeyHex;
+    await mc.toggleFavorite(oldPk);
+    await mc.addTagTo(oldPk, 'home');
+
+    // A key the app has never heard (not in the fabric) — typed by the user.
+    final String newKey = 'bb' * 32; // 64 hex chars
+    await mc.linkIdentityToKey(
+        fromPubKeyHex: oldPk, toPubKeyHex: newKey, name: 'Alice');
+
+    expect(mc.nodes.any((DiscoveredNode n) => n.pubKeyHex == newKey), isTrue,
+        reason: 'a node entry is created so it is listable/messageable');
+    expect(mc.isFavorite(newKey), isTrue);
+    expect(mc.tagsFor(newKey), contains('home'));
+    expect(mc.nodes.any((DiscoveredNode n) => n.pubKeyHex == oldPk), isFalse);
+    expect(mc.isSuperseded(oldPk), isTrue);
+
+    mc.dispose();
+  });
+
+  test('linkIdentityToKey un-retires a wrongly-superseded key', () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController mc = await ready(fake);
+
+    fake.emit(advertFrame(name: 'Alice', firstPubByte: 0xAA));
+    fake.emit(advertFrame(name: 'Alice', firstPubByte: 0xBB));
+    await Future<void>.delayed(Duration.zero);
+    final String oldPk = mc.nodes
+        .firstWhere((DiscoveredNode n) => n.pubKeyHex.startsWith('aa'))
+        .pubKeyHex;
+    final String newPk = mc.nodes
+        .firstWhere((DiscoveredNode n) => n.pubKeyHex.startsWith('bb'))
+        .pubKeyHex;
+    await mc.toggleFavorite(oldPk);
+    // A wrong earlier reconcile retired the *new* key.
+    await mc.reconcileIdentity(fromPubKeyHex: newPk, toPubKeyHex: oldPk);
+    expect(mc.isSuperseded(newPk), isTrue);
+
+    // Re-linking onto it recovers it.
+    await mc.linkIdentityToKey(
+        fromPubKeyHex: oldPk, toPubKeyHex: newPk, name: 'Alice');
+    expect(mc.isSuperseded(newPk), isFalse);
+    expect(mc.nodes.any((DiscoveredNode n) => n.pubKeyHex == newPk), isTrue);
+
+    mc.dispose();
+  });
+
   test('identityMatchFor returns null when no side holds data', () async {
     final FakeMeshcoreTransport fake =
         FakeMeshcoreTransport(connected: true);

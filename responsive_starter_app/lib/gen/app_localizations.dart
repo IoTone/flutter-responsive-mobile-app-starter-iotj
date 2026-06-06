@@ -2441,26 +2441,32 @@ abstract class AppLocalizations {
   /// No description provided for @nodeIdentityLinkHelp.
   ///
   /// In en, this message translates to:
-  /// **'Pick the node that is this same contact under a new key. Your star, tags, and messages move to the live key; the old key is retired.'**
+  /// **'Pick the node that is this same contact under a new key — or paste the new public key (you can read it off the other device). Your star, tags, and messages move to it; the old key is retired.'**
   String get nodeIdentityLinkHelp;
 
   /// No description provided for @nodeIdentityLinkEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No other nodes to link yet — scan or wait for the new key to advertise.'**
+  /// **'No other nodes to link yet — scan, wait for the new key to advertise, or paste the key above.'**
   String get nodeIdentityLinkEmpty;
 
   /// No description provided for @nodeIdentityLinkSearchHint.
   ///
   /// In en, this message translates to:
-  /// **'Filter by name or key'**
+  /// **'Filter by name, or paste a public key'**
   String get nodeIdentityLinkSearchHint;
 
   /// No description provided for @nodeIdentityLinkNoMatch.
   ///
   /// In en, this message translates to:
-  /// **'No nodes match — clear the search to see all.'**
+  /// **'No nodes match — clear the search, or paste the full key to link directly.'**
   String get nodeIdentityLinkNoMatch;
+
+  /// No description provided for @nodeIdentityLinkUseKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to this key'**
+  String get nodeIdentityLinkUseKey;
 
   /// No description provided for @nodeIdentityLinkConfirm.
   ///

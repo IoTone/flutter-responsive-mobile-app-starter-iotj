@@ -1381,6 +1381,49 @@ class MeshcoreController extends ChangeNotifier {
   bool hasReconcileData(String pubKeyHex) =>
       _hasMigratableIdentityData(pubKeyHex);
 
+  /// Manual key-link: re-home a contact onto a key the user supplies (or
+  /// picks) — robust when the new key isn't in the fabric yet (chat-only,
+  /// out of range, or wrongly retired). Un-retires the target if it was
+  /// superseded, ensures a node entry exists for it (so it's listable +
+  /// messageable), then reconciles [fromPubKeyHex] → the target.
+  Future<void> linkIdentityToKey({
+    required String fromPubKeyHex,
+    required String toPubKeyHex,
+    String? name,
+  }) async {
+    final String to = toPubKeyHex.toLowerCase();
+    if (to == fromPubKeyHex.toLowerCase()) return;
+    // Recover a key a botched earlier reconcile may have retired.
+    if (_superseded.remove(to)) {
+      unawaited(SupersededStore.save(_superseded));
+    }
+    // Make sure the target is a first-class node, even if never heard, so
+    // it shows in lists and the DM/Message path can reach it.
+    if (!_nodes.containsKey(to)) {
+      final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      _nodes[to] = DiscoveredNode(
+        pubKeyHex: to,
+        name: (name == null || name.trim().isEmpty)
+            ? to.substring(0, to.length < 8 ? to.length : 8)
+            : name.trim(),
+        type: 1, // chat node
+        lastHeardUnix: now,
+        viaAdvert: false,
+      );
+    }
+    await reconcileIdentity(fromPubKeyHex: fromPubKeyHex, toPubKeyHex: to);
+  }
+
+  /// Clear ALL superseded-key suppressions — recovery if the prune logic
+  /// hid a key it shouldn't have. Heard adverts for those keys will then
+  /// surface normally again.
+  Future<void> clearSuperseded() async {
+    if (_superseded.isEmpty) return;
+    _superseded.clear();
+    await SupersededStore.save(_superseded);
+    notifyListeners();
+  }
+
   /// If [pubKeyHex] participates in a likely "returning contact" pair —
   /// a same-name node where one key carries your data (a saved/synced
   /// contact) and the other is a different key — return the pair (else

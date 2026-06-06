@@ -1390,18 +1390,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nodeIdentityLinkHelp =>
-      'Pick the node that is this same contact under a new key. Your star, tags, and messages move to the live key; the old key is retired.';
+      'Pick the node that is this same contact under a new key — or paste the new public key (you can read it off the other device). Your star, tags, and messages move to it; the old key is retired.';
 
   @override
   String get nodeIdentityLinkEmpty =>
-      'No other nodes to link yet — scan or wait for the new key to advertise.';
+      'No other nodes to link yet — scan, wait for the new key to advertise, or paste the key above.';
 
   @override
-  String get nodeIdentityLinkSearchHint => 'Filter by name or key';
+  String get nodeIdentityLinkSearchHint =>
+      'Filter by name, or paste a public key';
 
   @override
   String get nodeIdentityLinkNoMatch =>
-      'No nodes match — clear the search to see all.';
+      'No nodes match — clear the search, or paste the full key to link directly.';
+
+  @override
+  String get nodeIdentityLinkUseKey => 'Link to this key';
 
   @override
   String nodeIdentityLinkConfirm(String from, String to) {
