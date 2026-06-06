@@ -21,6 +21,7 @@ import 'discovered_node.dart';
 import 'dm_read_store.dart';
 import 'favorite_store.dart';
 import 'known_store.dart';
+import 'superseded_store.dart';
 import 'node_tags_store.dart';
 import 'mesh_event.dart';
 import 'meshcore_connection.dart';
@@ -166,6 +167,7 @@ class MeshcoreController extends ChangeNotifier {
     _loadDefaultChannel();
     _loadFavorites();
     _loadKnown();
+    _loadSuperseded();
     _loadTags();
     _loadCoverage();
     _loadBatteryHistory();
@@ -206,6 +208,27 @@ class MeshcoreController extends ChangeNotifier {
     _known
       ..clear()
       ..addAll(v);
+    notifyListeners();
+  }
+
+  // Keys the user reconciled away (a contact that returned under a new
+  // key). Pruned from the fabric on ingest so the radio's lingering old
+  // contact never reappears as a duplicate. See identityMatchFor / R56.
+  final Set<String> _superseded = <String>{};
+
+  bool isSuperseded(String pubKeyHex) => _superseded.contains(pubKeyHex);
+
+  Future<void> _loadSuperseded() async {
+    final Set<String> v = await SupersededStore.load();
+    if (v.isEmpty) return;
+    _superseded
+      ..clear()
+      ..addAll(v);
+    // Drop any that are currently in the fabric (re-synced before load).
+    for (final String k in v) {
+      _nodes.remove(k);
+      _contacts.remove(k);
+    }
     notifyListeners();
   }
 
@@ -1343,55 +1366,83 @@ class MeshcoreController extends ChangeNotifier {
   // auto-migrate on a name match — names aren't unique, so that would let
   // an impostor (or a coincidental same-name node) silently inherit your
   // star/tags/DM history. Instead we *detect* the likely supersession and
-  // let the user confirm it (see NodeDetailSheet). Detection is
-  // deliberately conservative: same (non-trivial) name, the current key
-  // heard live, the old key clearly gone stale, and the old key actually
-  // holding data worth moving.
-
-  /// Seconds within which a node counts as "live" (heard just now).
-  static const int _identityFreshSec = 600;
-
-  /// The live key must be at least this much newer than the stale key —
-  /// stops two *simultaneously* live same-name nodes from being flagged.
-  static const int _identityStaleGapSec = 300;
+  // let the user confirm it (see NodeDetailSheet).
 
   bool _hasMigratableIdentityData(String pk) =>
       _favorites.contains(pk) ||
       _known.contains(pk) ||
       (_tags[pk]?.isNotEmpty ?? false) ||
-      dmHistoryFor(pk).isNotEmpty;
+      dmHistoryFor(pk).isNotEmpty ||
+      _contacts.containsKey(pk);
 
   /// If [pubKeyHex] participates in a likely "returning contact" pair —
-  /// a same-name node where one key is live and the other is a stale key
-  /// carrying your data — return the pair (else null). Works whether the
-  /// caller is looking at the old or the new key.
+  /// a same-name node where one key carries your data (a saved/synced
+  /// contact) and the other is a different key — return the pair (else
+  /// null). Works whether you're looking at the old or the new key.
+  ///
+  /// Identity is keyed off **which side holds your data**, NOT timing: a
+  /// re-added peer's old key keeps getting refreshed by contact-sync, so
+  /// a "stale key is older" heuristic misses the real case. The data side
+  /// is the stale key; the other (the regenerated key) is the live one to
+  /// move to. Always user-confirmed — names aren't unique, so we only
+  /// *suggest*; the user decides.
   IdentityMatch? identityMatchFor(String pubKeyHex) {
     final DiscoveredNode? a = _nodes[pubKeyHex];
-    if (a == null) return null;
+    if (a == null || _superseded.contains(pubKeyHex)) return null;
     final String name = a.name.trim().toLowerCase();
     if (name.length < 2) return null; // too generic to match on
-    final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    for (final DiscoveredNode b in _nodes.values) {
-      if (b.pubKeyHex == a.pubKeyHex) continue;
-      if (b.name.trim().toLowerCase() != name) continue;
-      final DiscoveredNode fresh =
-          a.lastHeardUnix >= b.lastHeardUnix ? a : b;
-      final DiscoveredNode stale = identical(fresh, a) ? b : a;
-      if (!_hasMigratableIdentityData(stale.pubKeyHex)) continue;
-      if (now - fresh.lastHeardUnix > _identityFreshSec) continue;
-      if (fresh.lastHeardUnix - stale.lastHeardUnix < _identityStaleGapSec) {
-        continue;
+
+    final List<DiscoveredNode> sibs = <DiscoveredNode>[
+      for (final DiscoveredNode b in _nodes.values)
+        if (b.pubKeyHex != a.pubKeyHex &&
+            !_superseded.contains(b.pubKeyHex) &&
+            b.name.trim().toLowerCase() == name)
+          b
+    ];
+    if (sibs.isEmpty) return null;
+
+    DiscoveredNode? best(Iterable<DiscoveredNode> xs) {
+      DiscoveredNode? m;
+      for (final DiscoveredNode x in xs) {
+        if (m == null || x.lastHeardUnix > m.lastHeardUnix) m = x;
       }
-      return IdentityMatch(
-        stale: stale,
-        fresh: fresh,
-        messageCount: dmHistoryFor(stale.pubKeyHex).length,
-        hasStar: _favorites.contains(stale.pubKeyHex),
-        hasTags: _tags[stale.pubKeyHex]?.isNotEmpty ?? false,
-        hasKnown: _known.contains(stale.pubKeyHex),
-      );
+      return m;
     }
-    return null;
+
+    DiscoveredNode stale;
+    DiscoveredNode fresh;
+    if (_hasMigratableIdentityData(a.pubKeyHex)) {
+      // `a` is the saved contact → move it to the live (new) key. Prefer a
+      // sibling that *doesn't* already hold data (the fresh regenerated
+      // key); fall back to the most-recently-heard sibling.
+      final List<DiscoveredNode> noData = <DiscoveredNode>[
+        for (final DiscoveredNode b in sibs)
+          if (!_hasMigratableIdentityData(b.pubKeyHex)) b
+      ];
+      final DiscoveredNode? f = best(noData.isNotEmpty ? noData : sibs);
+      if (f == null) return null;
+      stale = a;
+      fresh = f;
+    } else {
+      // `a` has no data (likely the new key) → find the saved sibling.
+      final List<DiscoveredNode> withData = <DiscoveredNode>[
+        for (final DiscoveredNode b in sibs)
+          if (_hasMigratableIdentityData(b.pubKeyHex)) b
+      ];
+      final DiscoveredNode? s = best(withData);
+      if (s == null) return null; // nothing to migrate → no prompt
+      stale = s;
+      fresh = a;
+    }
+    if (stale.pubKeyHex == fresh.pubKeyHex) return null;
+    return IdentityMatch(
+      stale: stale,
+      fresh: fresh,
+      messageCount: dmHistoryFor(stale.pubKeyHex).length,
+      hasStar: _favorites.contains(stale.pubKeyHex),
+      hasTags: _tags[stale.pubKeyHex]?.isNotEmpty ?? false,
+      hasKnown: _known.contains(stale.pubKeyHex),
+    );
   }
 
   /// Move all user metadata + DM history from a stale key to the live
@@ -1458,9 +1509,13 @@ class MeshcoreController extends ChangeNotifier {
     }
 
     // The stale identity is dead — drop it so it stops cluttering the
-    // fabric and can't be messaged again.
+    // fabric and can't be messaged again. Remember it as superseded: the
+    // protocol has no delete-contact, so the radio will keep re-syncing
+    // the old contact; we prune it on every ingest from here on.
     _nodes.remove(fromPubKeyHex);
     _contacts.remove(fromPubKeyHex);
+    _superseded.add(fromPubKeyHex);
+    unawaited(SupersededStore.save(_superseded));
     notifyListeners();
   }
 
@@ -2707,6 +2762,10 @@ class MeshcoreController extends ChangeNotifier {
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     if (f is ContactFrame) {
       final Contact c = f.contact;
+      // R56 — a key the user reconciled away. The radio still syncs this
+      // dead contact (no delete-contact command); drop it on arrival so
+      // it never reappears as a duplicate of the live key.
+      if (_superseded.contains(_hex(c.publicKey))) return;
       // Retain the raw contact record (path, flags, lastMod) so we can
       // re-send it byte-exactly via ADD_UPDATE_CONTACT when changing
       // per-contact telemetry permissions (R54 follow-on).
@@ -2757,6 +2816,7 @@ class MeshcoreController extends ChangeNotifier {
   void _upsertAdvert(Advert a, {double? snr, int? rssi}) {
     final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final String k = _hex(a.publicKey);
+    if (_superseded.contains(k)) return; // R56 — reconciled-away key
     final DiscoveredNode? prev = _nodes[k];
     _nodes[k] = DiscoveredNode(
       pubKeyHex: k,
