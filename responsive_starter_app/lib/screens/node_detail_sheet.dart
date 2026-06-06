@@ -172,7 +172,7 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
       showDragHandle: true,
       builder: (BuildContext _) => _LinkPicker(
         candidates: candidates,
-        sameName: name,
+        contactName: n.name,
         ago: _ago,
         l: l,
       ),
@@ -914,27 +914,55 @@ class _ReconcileCard extends StatelessWidget {
 }
 
 /// Picker for the manual key-link flow: choose the node that is the same
-/// contact under a new key. Same-name candidates float to the top.
-class _LinkPicker extends StatelessWidget {
+/// contact under a new key. Pre-filtered by the contact's name (the list
+/// of all fabric nodes is otherwise too long); the search is editable, so
+/// clearing it broadens to everything.
+class _LinkPicker extends StatefulWidget {
   const _LinkPicker({
     required this.candidates,
-    required this.sameName,
+    required this.contactName,
     required this.ago,
     required this.l,
   });
 
   final List<DiscoveredNode> candidates;
-  final String sameName;
+  final String contactName;
   final String Function(int, AppLocalizations) ago;
   final AppLocalizations l;
 
   @override
+  State<_LinkPicker> createState() => _LinkPickerState();
+}
+
+class _LinkPickerState extends State<_LinkPicker> {
+  late final TextEditingController _q =
+      TextEditingController(text: widget.contactName.trim());
+
+  @override
+  void dispose() {
+    _q.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final AppLocalizations l = widget.l;
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final String name = widget.contactName.trim().toLowerCase();
+    final String query = _q.text.trim().toLowerCase();
+    final List<DiscoveredNode> filtered = <DiscoveredNode>[
+      for (final DiscoveredNode c in widget.candidates)
+        if (query.isEmpty ||
+            c.name.toLowerCase().contains(query) ||
+            c.pubKeyHex.toLowerCase().contains(query))
+          c
+    ];
+
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+        padding: EdgeInsets.fromLTRB(
+            20, 4, 20, 16 + MediaQuery.of(context).viewInsets.bottom),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -945,22 +973,42 @@ class _LinkPicker extends StatelessWidget {
             Text(l.nodeIdentityLinkHelp,
                 style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
             const SizedBox(height: 12),
-            if (candidates.isEmpty)
+            TextField(
+              controller: _q,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                isDense: true,
+                prefixIcon: const Icon(Icons.search, size: 20),
+                hintText: l.nodeIdentityLinkSearchHint,
+                border: const OutlineInputBorder(),
+                suffixIcon: _q.text.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () => setState(() => _q.clear()),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (filtered.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text(l.nodeIdentityLinkEmpty,
+                child: Text(
+                    widget.candidates.isEmpty
+                        ? l.nodeIdentityLinkEmpty
+                        : l.nodeIdentityLinkNoMatch,
                     style: TextStyle(color: cs.onSurfaceVariant)),
               )
             else
               Flexible(
                 child: ListView.separated(
                   shrinkWrap: true,
-                  itemCount: candidates.length,
+                  itemCount: filtered.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (BuildContext _, int i) {
-                    final DiscoveredNode c = candidates[i];
+                    final DiscoveredNode c = filtered[i];
                     final bool same =
-                        c.name.trim().toLowerCase() == sameName;
+                        c.name.trim().toLowerCase() == name && name.isNotEmpty;
                     return ListTile(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
@@ -970,7 +1018,7 @@ class _LinkPicker extends StatelessWidget {
                       title: Text(c.name.isEmpty ? c.shortId : c.name,
                           overflow: TextOverflow.ellipsis),
                       subtitle: Text(
-                          '…${c.shortId.substring(0, 6)} · ${ago(c.lastHeardUnix, l)}',
+                          '…${c.shortId.substring(0, 6)} · ${widget.ago(c.lastHeardUnix, l)}',
                           style: const TextStyle(
                               fontFamily: 'JetBrains Mono', fontSize: 11)),
                       onTap: () => Navigator.pop(context, c),

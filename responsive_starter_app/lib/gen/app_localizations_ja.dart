@@ -1335,6 +1335,12 @@ class AppLocalizationsJa extends AppLocalizations {
       'リンクできる他のノードがありません — スキャンするか新しいキーのアドバートを待ってください。';
 
   @override
+  String get nodeIdentityLinkSearchHint => '名前またはキーで絞り込み';
+
+  @override
+  String get nodeIdentityLinkNoMatch => '一致するノードがありません — 検索をクリアすると全件表示します。';
+
+  @override
   String nodeIdentityLinkConfirm(String from, String to) {
     return 'お気に入り・タグ・メッセージを「$from」から「$to」へ移動し、古いキーを廃止しますか？';
   }

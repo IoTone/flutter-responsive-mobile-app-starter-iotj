@@ -624,6 +624,8 @@
   "nodeIdentityLinkTitle": "変更されたキーをリンク",
   "nodeIdentityLinkHelp": "新しいキーで稼働している同じ連絡先のノードを選んでください。お気に入り・タグ・メッセージが現在のキーに移動し、古いキーは廃止されます。",
   "nodeIdentityLinkEmpty": "リンクできる他のノードがありません — スキャンするか新しいキーのアドバートを待ってください。",
+  "nodeIdentityLinkSearchHint": "名前またはキーで絞り込み",
+  "nodeIdentityLinkNoMatch": "一致するノードがありません — 検索をクリアすると全件表示します。",
   "nodeIdentityLinkConfirm": "お気に入り・タグ・メッセージを「{from}」から「{to}」へ移動し、古いキーを廃止しますか？",
   "@nodeIdentityLinkConfirm": {
     "placeholders": {

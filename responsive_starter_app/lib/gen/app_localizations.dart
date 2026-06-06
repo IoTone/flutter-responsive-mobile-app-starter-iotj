@@ -2450,6 +2450,18 @@ abstract class AppLocalizations {
   /// **'No other nodes to link yet — scan or wait for the new key to advertise.'**
   String get nodeIdentityLinkEmpty;
 
+  /// No description provided for @nodeIdentityLinkSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by name or key'**
+  String get nodeIdentityLinkSearchHint;
+
+  /// No description provided for @nodeIdentityLinkNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No nodes match — clear the search to see all.'**
+  String get nodeIdentityLinkNoMatch;
+
   /// No description provided for @nodeIdentityLinkConfirm.
   ///
   /// In en, this message translates to:

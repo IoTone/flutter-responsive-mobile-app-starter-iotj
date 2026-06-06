@@ -624,6 +624,8 @@
   "nodeIdentityLinkTitle": "Link a changed key",
   "nodeIdentityLinkHelp": "Pick the node that is this same contact under a new key. Your star, tags, and messages move to the live key; the old key is retired.",
   "nodeIdentityLinkEmpty": "No other nodes to link yet — scan or wait for the new key to advertise.",
+  "nodeIdentityLinkSearchHint": "Filter by name or key",
+  "nodeIdentityLinkNoMatch": "No nodes match — clear the search to see all.",
   "nodeIdentityLinkConfirm": "Move star, tags, and messages from “{from}” to “{to}”, and retire the old key?",
   "@nodeIdentityLinkConfirm": {
     "placeholders": {

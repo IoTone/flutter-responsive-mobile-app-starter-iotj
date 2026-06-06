@@ -1397,6 +1397,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'No other nodes to link yet — scan or wait for the new key to advertise.';
 
   @override
+  String get nodeIdentityLinkSearchHint => 'Filter by name or key';
+
+  @override
+  String get nodeIdentityLinkNoMatch =>
+      'No nodes match — clear the search to see all.';
+
+  @override
   String nodeIdentityLinkConfirm(String from, String to) {
     return 'Move star, tags, and messages from “$from” to “$to”, and retire the old key?';
   }
