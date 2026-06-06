@@ -956,18 +956,15 @@ class _LinkPickerState extends State<_LinkPicker> {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final String name = widget.contactName.trim().toLowerCase();
     final String query = _q.text.trim().toLowerCase();
-    // Hex-only form of the query, so a pasted key (with spaces/colons)
-    // still matches and can be linked directly.
-    final String queryHex = query.replaceAll(RegExp(r'[^0-9a-f]'), '');
-    final String? manualKey =
-        RegExp(r'^[0-9a-f]{12,64}$').hasMatch(queryHex) ? queryHex : null;
+    // A pasted public key (separators stripped, letters NEVER) — used both
+    // to match a fabric node by key and to offer a direct link.
+    final String? manualKey = parsePastedPubKey(_q.text);
     final List<DiscoveredNode> filtered = <DiscoveredNode>[
       for (final DiscoveredNode c in widget.candidates)
         if (query.isEmpty ||
             c.name.toLowerCase().contains(query) ||
-            c.pubKeyHex.toLowerCase().contains(query) ||
-            (queryHex.length >= 4 &&
-                c.pubKeyHex.toLowerCase().contains(queryHex)))
+            (manualKey != null &&
+                c.pubKeyHex.toLowerCase().contains(manualKey)))
           c
     ];
 
@@ -1069,4 +1066,15 @@ class _LinkTarget {
   _LinkTarget({required this.pubKeyHex, this.displayName});
   final String pubKeyHex;
   final String? displayName;
+}
+
+/// Extract a pasteable public key from the picker's search text. Strips
+/// only separators (space / colon / dash / underscore) — NEVER letters —
+/// so the seeded contact name can't pollute a pasted key (a name like
+/// "Davi1" must not contribute its hex letters). Accepts 12–64 hex chars;
+/// returns null otherwise (so a plain name search never reads as a key).
+String? parsePastedPubKey(String query) {
+  final String hex =
+      query.trim().toLowerCase().replaceAll(RegExp(r'[\s:_\-]'), '');
+  return RegExp(r'^[0-9a-f]{12,64}$').hasMatch(hex) ? hex : null;
 }
