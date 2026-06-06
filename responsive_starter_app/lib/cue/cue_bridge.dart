@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import '../meshcore/chat_message.dart';
-import '../meshcore/discovered_node.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import 'cue_service.dart';
@@ -16,17 +15,13 @@ class CueBridge {
   CueBridge(this._mc, this._cue) {
     _prev = _mc.state;
     _wasScanning = _mc.isScanning;
-    // Seed with the fabric we already know so only *newly* heard nodes
-    // ping the discovery cue (not the whole list on first build).
-    for (final DiscoveredNode n in _mc.nodes) {
-      _seenNodes.add(n.pubKeyHex);
-    }
     _mc.addListener(_onChange);
     _msgSub =
         _mc.incomingChannelMessages.listen(_onIncomingChannelMessage);
     _dmSub =
         _mc.incomingDirectMessages.listen(_onIncomingDm);
     _errSub = _mc.taskErrors.listen((_) => _cue.play(CueKind.taskError));
+    _advSub = _mc.incomingAdverts.listen(_onAdvert);
   }
 
   final MeshcoreController _mc;
@@ -34,9 +29,14 @@ class CueBridge {
   StreamSubscription<ChatMessage>? _msgSub;
   StreamSubscription<ChatMessage>? _dmSub;
   StreamSubscription<String>? _errSub;
+  StreamSubscription<bool>? _advSub;
   late MeshcoreConnectionState _prev;
   late bool _wasScanning;
-  final Set<String> _seenNodes = <String>{};
+
+  /// Re-adverts arrive far faster than they should be sounded on a busy
+  /// fabric; gate the ambient `advert` ping to at most one per window.
+  DateTime _lastAdvertCue = DateTime.fromMillisecondsSinceEpoch(0);
+  static const Duration _advertThrottle = Duration(milliseconds: 1500);
 
   void _onChange() {
     final MeshcoreConnectionState s = _mc.state;
@@ -62,15 +62,23 @@ class CueBridge {
       _cue.play(nowScanning ? CueKind.scanStart : CueKind.taskOk);
       _wasScanning = nowScanning;
     }
-    // New node heard → discovery cue (NERV's Geiger tick). Suppressed
-    // during the post-connect contact-sync drain so the initial dump of
-    // synced contacts doesn't machine-gun it; a fresh advert heard live
-    // afterwards is the "a node decayed into view" ping we want.
-    bool newNode = false;
-    for (final DiscoveredNode n in _mc.nodes) {
-      if (_seenNodes.add(n.pubKeyHex)) newNode = true;
+  }
+
+  /// A live advert was folded into the fabric. `isNew` is true for a
+  /// node we'd never heard (→ discovery, the Geiger tick) and false for
+  /// a re-advert from a known node (→ advert, the ambient ping). The
+  /// stream only fires for over-the-air adverts, so the post-connect
+  /// contact-sync dump never reaches here — no machine-gunning.
+  void _onAdvert(bool isNew) {
+    if (_mc.isDraining) return;
+    if (isNew) {
+      _cue.play(CueKind.discovery);
+      return;
     }
-    if (newNode && !_mc.isDraining) _cue.play(CueKind.discovery);
+    final DateTime now = DateTime.now();
+    if (now.difference(_lastAdvertCue) < _advertThrottle) return;
+    _lastAdvertCue = now;
+    _cue.play(CueKind.advert);
   }
 
   void _onIncomingChannelMessage(ChatMessage _) =>
@@ -83,5 +91,6 @@ class CueBridge {
     _msgSub?.cancel();
     _dmSub?.cancel();
     _errSub?.cancel();
+    _advSub?.cancel();
   }
 }

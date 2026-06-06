@@ -18,8 +18,22 @@ enum CueKind {
   /// A new node joined the fabric (advert / first contact).
   discovery,
 
+  /// A re-advert heard from a node we already knew — ambient mesh life,
+  /// distinct from `discovery` (a *new* node) and rate-limited so a busy
+  /// fabric doesn't machine-gun it.
+  advert,
+
   /// We sent something (send confirmation cue).
   send,
+
+  /// App came up — played once on the splash/boot as the shell mounts.
+  boot,
+
+  /// Swiped forward to the next top-level view (PageView, →).
+  navNext,
+
+  /// Swiped back to the previous top-level view (PageView, ←).
+  navPrev,
 
   /// The radio link came up (`ready`).
   linkUp,
@@ -90,12 +104,16 @@ class SystemHapticBackend implements HapticBackend {
         case CueKind.discovery:
         case CueKind.dmIn:
         case CueKind.taskOk:
+        case CueKind.boot:
           await HapticFeedback.mediumImpact();
         case CueKind.linkUp:
         case CueKind.linkDown:
         case CueKind.scanStart:
+        case CueKind.navNext:
+        case CueKind.navPrev:
           await HapticFeedback.selectionClick();
         case CueKind.messageIn:
+        case CueKind.advert:
           await HapticFeedback.lightImpact();
       }
     } catch (_) {

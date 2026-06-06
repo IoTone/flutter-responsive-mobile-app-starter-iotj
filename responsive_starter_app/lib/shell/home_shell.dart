@@ -78,6 +78,8 @@ class _HomeShellState extends State<HomeShell>
     // Owns splash teardown now (replaces the old demo home).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FlutterNativeSplash.remove();
+      // App-loading cue — the shell is mounted, the splash is gone.
+      context.read<CueService>().play(CueKind.boot);
     });
   }
 
@@ -199,7 +201,15 @@ class _HomeShellState extends State<HomeShell>
       ),
       body: PageView(
         controller: _pc,
-        onPageChanged: (int i) => setState(() => _index = i),
+        onPageChanged: (int i) {
+          // Swipe/nav cue — direction tells navNext (→) from navPrev (←).
+          if (i != _index) {
+            context
+                .read<CueService>()
+                .play(i > _index ? CueKind.navNext : CueKind.navPrev);
+          }
+          setState(() => _index = i);
+        },
         children: const <Widget>[
           DashboardHost(),
           ChatScreen(),

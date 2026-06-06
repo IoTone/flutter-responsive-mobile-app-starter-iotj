@@ -1129,6 +1129,16 @@ class MeshcoreController extends ChangeNotifier {
       StreamController<String>.broadcast();
   Stream<String> get taskErrors => _taskErrors.stream;
 
+  /// An advert was heard over the air (AdvertFrame / RF-log) and folded
+  /// into the fabric. The bool is `true` when it's a node we'd never
+  /// heard before (→ `CueKind.discovery`, the Geiger tick) and `false`
+  /// for a re-advert from a node we already knew (→ `CueKind.advert`,
+  /// the ambient mesh ping). Only fires for *live* adverts — the
+  /// post-connect contact-sync dump goes through a different path and
+  /// deliberately stays silent.
+  final StreamController<bool> _adverts = StreamController<bool>.broadcast();
+  Stream<bool> get incomingAdverts => _adverts.stream;
+
   /// Convenience for code paths that want to flag a failure without
   /// throwing into the void.
   void _emitTaskError(String op) {
@@ -2655,6 +2665,9 @@ class MeshcoreController extends ChangeNotifier {
     if (a.latitude != null && a.longitude != null) {
       _recordCoverage(a.latitude!, a.longitude!);
     }
+    // Cue signal — new node (Geiger) vs re-advert (ambient ping). Read
+    // `prev` (captured before the upsert above) for the new/known split.
+    if (!_adverts.isClosed) _adverts.add(prev == null);
   }
 
   /// Ask the radio for its synced contact list (`CMD_GET_CONTACTS`).
@@ -2932,6 +2945,7 @@ class MeshcoreController extends ChangeNotifier {
     unawaited(_incomingCh.close());
     unawaited(_incomingDm.close());
     unawaited(_taskErrors.close());
+    unawaited(_adverts.close());
     unawaited(_transport?.close());
     unawaited(_connection.dispose());
     super.dispose();

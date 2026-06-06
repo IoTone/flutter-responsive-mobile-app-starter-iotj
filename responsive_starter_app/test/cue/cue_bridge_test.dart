@@ -75,11 +75,13 @@ void main() {
 
     expect(cue.calls, contains(CueKind.discovery));
 
-    // A repeat advert from the same node does NOT re-fire discovery.
+    // A repeat advert from the same node does NOT re-fire discovery —
+    // it fires the ambient `advert` ping instead.
     cue.calls.clear();
     fake.emit(advertFrame(name: 'NewNode', firstPubByte: 80));
     await Future<void>.delayed(Duration.zero);
     expect(cue.calls, isNot(contains(CueKind.discovery)));
+    expect(cue.calls, contains(CueKind.advert));
 
     bridge.dispose();
     ctrl.dispose();
