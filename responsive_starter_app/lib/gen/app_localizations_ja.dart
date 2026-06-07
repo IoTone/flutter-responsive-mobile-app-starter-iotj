@@ -1401,6 +1401,27 @@ class AppLocalizationsJa extends AppLocalizations {
       '連絡先が必要なのはダイレクトメッセージを送るときだけです。チャンネルのメッセージは連絡先がなくても機能し、全員がチャンネルに表示されます。';
 
   @override
+  String get deviceContactsRemoveOutOfRange => '圏外を削除';
+
+  @override
+  String get deviceContactsOutOfRangeIntro =>
+      '現在地から遠い連絡先を削除します。お気に入りと GPS のない連絡先は保持されます。';
+
+  @override
+  String deviceContactsBeyondKm(int km) {
+    return '$km km 以上';
+  }
+
+  @override
+  String get deviceContactsNeedLocation =>
+      '距離の測定には現在地が必要です。位置（GPS または手動ピン）を設定して再試行してください。';
+
+  @override
+  String deviceContactsRemoveOutOfRangeDone(int count) {
+    return '遠方の連絡先を $count 件削除しました。';
+  }
+
+  @override
   String get deviceContactsRemoveAll => 'すべて削除';
 
   @override

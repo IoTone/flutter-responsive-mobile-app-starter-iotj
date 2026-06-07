@@ -3096,6 +3096,55 @@ class MeshcoreController extends ChangeNotifier {
     return n;
   }
 
+  /// Is a probed contact a candidate for an "out of range" scrub? True
+  /// only when it has a KNOWN location farther than [radiusKm] from us —
+  /// never for favourites/known (protected) and never for no-GPS contacts
+  /// (ambiguous: could be a local node that simply doesn't advertise GPS).
+  bool _isOutOfRange(Contact c, double radiusKm) {
+    final String hex = _hex(c.publicKey);
+    if (_favorites.contains(hex) || _known.contains(hex)) return false;
+    if (c.latitudeMicros == 0 && c.longitudeMicros == 0) return false;
+    final double? d = distanceMetersTo(
+        c.latitudeMicros / 1e6, c.longitudeMicros / 1e6);
+    return d != null && d > radiusKm * 1000;
+  }
+
+  /// How many probed contacts an out-of-range scrub at [radiusKm] would
+  /// remove (for a preview before confirming). Needs [ownLocation].
+  int outOfRangeContactCount(double radiusKm) =>
+      ownLocation == null
+          ? 0
+          : _probedContacts.where((Contact c) => _isOutOfRange(c, radiusKm)).length;
+
+  /// Remove every probed contact whose known location is beyond [radiusKm]
+  /// from us — keeping favourites/known and anything without GPS. Returns
+  /// the count removed (or -1 when we have no location to measure from).
+  Future<int> removeOutOfRangeContacts(double radiusKm) async {
+    if (!isReady) return 0;
+    if (ownLocation == null) return -1;
+    final List<Contact> targets = _probedContacts
+        .where((Contact c) => _isOutOfRange(c, radiusKm))
+        .toList(growable: false);
+    int n = 0;
+    for (final Contact c in targets) {
+      try {
+        await send(MeshcoreFrameCodec.removeContact(c.publicKey));
+        _contacts.remove(_hex(c.publicKey));
+        _probedContacts.remove(c);
+        n++;
+      } catch (_) {
+        _emitTaskError('removeContact');
+      }
+    }
+    if (n > 0) {
+      if (_deviceContactCount != null) {
+        _deviceContactCount = (_deviceContactCount! - n).clamp(0, 1 << 30);
+      }
+      notifyListeners();
+    }
+    return n;
+  }
+
   /// Grant/revoke this contact's permission to request each telemetry
   /// class from us (used by the "Contacts" telemetry mode). Preserves
   /// the favourite bit and any bits we don't manage. No-op if the node

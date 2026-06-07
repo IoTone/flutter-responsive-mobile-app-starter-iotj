@@ -651,6 +651,17 @@
   },
   "deviceContactsFullHelp": "The contact list is full. Adding a new contact (e.g. a re-homed key) fails until you remove some — DMs to a non-contact won't route. Delete entries you don't need below.",
   "deviceContactsChannelsNote": "You only need a contact to send a direct message. Channel messages work without contacts — you'll still see everyone on channels.",
+  "deviceContactsRemoveOutOfRange": "Remove out of range",
+  "deviceContactsOutOfRangeIntro": "Remove contacts whose location is far from you. Favourites and contacts without GPS are kept.",
+  "deviceContactsBeyondKm": "Beyond {km} km",
+  "@deviceContactsBeyondKm": {
+    "placeholders": { "km": { "type": "int" } }
+  },
+  "deviceContactsNeedLocation": "The app needs your location to measure distance. Set your position (GPS or a manual pin) and try again.",
+  "deviceContactsRemoveOutOfRangeDone": "Removed {count} far-away contacts.",
+  "@deviceContactsRemoveOutOfRangeDone": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "deviceContactsRemoveAll": "Remove all",
   "deviceContactsRemoveAllConfirm": "Remove all {count} contacts from the radio? You don't need contacts for channels — only to DM someone. Re-add anyone you want to message later.",
   "@deviceContactsRemoveAllConfirm": {

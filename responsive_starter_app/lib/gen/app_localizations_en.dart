@@ -1465,6 +1465,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'You only need a contact to send a direct message. Channel messages work without contacts — you\'ll still see everyone on channels.';
 
   @override
+  String get deviceContactsRemoveOutOfRange => 'Remove out of range';
+
+  @override
+  String get deviceContactsOutOfRangeIntro =>
+      'Remove contacts whose location is far from you. Favourites and contacts without GPS are kept.';
+
+  @override
+  String deviceContactsBeyondKm(int km) {
+    return 'Beyond $km km';
+  }
+
+  @override
+  String get deviceContactsNeedLocation =>
+      'The app needs your location to measure distance. Set your position (GPS or a manual pin) and try again.';
+
+  @override
+  String deviceContactsRemoveOutOfRangeDone(int count) {
+    return 'Removed $count far-away contacts.';
+  }
+
+  @override
   String get deviceContactsRemoveAll => 'Remove all';
 
   @override

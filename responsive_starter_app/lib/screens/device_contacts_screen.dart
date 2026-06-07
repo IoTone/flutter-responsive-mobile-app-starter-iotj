@@ -39,6 +39,66 @@ class _DeviceContactsScreenState extends State<DeviceContactsScreen> {
     return l.deviceContactsHops(c.outPathLen);
   }
 
+  Future<void> _removeOutOfRange(
+      MeshcoreController mc, AppLocalizations l) async {
+    final double? picked = await showDialog<double>(
+      context: context,
+      builder: (BuildContext ctx) {
+        final ColorScheme cs = Theme.of(ctx).colorScheme;
+        if (mc.ownLocation == null) {
+          return AlertDialog(
+            title: Text(l.deviceContactsRemoveOutOfRange),
+            content: Text(l.deviceContactsNeedLocation),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(l.actionCancel)),
+            ],
+          );
+        }
+        return AlertDialog(
+          title: Text(l.deviceContactsRemoveOutOfRange),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(l.deviceContactsOutOfRangeIntro,
+                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
+              const SizedBox(height: 8),
+              for (final double km in <double>[25, 50, 100])
+                ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l.deviceContactsBeyondKm(km.round())),
+                  trailing: Text('${mc.outOfRangeContactCount(km)}',
+                      style: TextStyle(
+                          color: cs.primary, fontWeight: FontWeight.w600)),
+                  enabled: mc.outOfRangeContactCount(km) > 0,
+                  onTap: mc.outOfRangeContactCount(km) > 0
+                      ? () => Navigator.pop(ctx, km)
+                      : null,
+                ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.actionCancel)),
+          ],
+        );
+      },
+    );
+    if (picked == null || !mounted) return;
+    final int n = await mc.removeOutOfRangeContacts(picked);
+    if (!mounted) return;
+    setState(_removed.clear);
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(
+          content: Text(l.deviceContactsRemoveOutOfRangeDone(n < 0 ? 0 : n)),
+          duration: const Duration(seconds: 3)),
+    );
+  }
+
   Future<void> _removeAll(
       MeshcoreController mc, int count, AppLocalizations l) async {
     final bool ok = await showDialog<bool>(
@@ -109,6 +169,13 @@ class _DeviceContactsScreenState extends State<DeviceContactsScreen> {
       appBar: AppBar(
         title: Text(l.deviceContactsTitle),
         actions: <Widget>[
+          IconButton(
+            tooltip: l.deviceContactsRemoveOutOfRange,
+            icon: const Icon(Icons.wrong_location_outlined),
+            onPressed: (mc.isReady && contacts.isNotEmpty)
+                ? () => _removeOutOfRange(mc, l)
+                : null,
+          ),
           IconButton(
             tooltip: l.deviceContactsRemoveAll,
             icon: const Icon(Icons.delete_sweep_outlined),

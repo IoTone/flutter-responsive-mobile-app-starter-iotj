@@ -2558,6 +2558,36 @@ abstract class AppLocalizations {
   /// **'You only need a contact to send a direct message. Channel messages work without contacts — you\'ll still see everyone on channels.'**
   String get deviceContactsChannelsNote;
 
+  /// No description provided for @deviceContactsRemoveOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove out of range'**
+  String get deviceContactsRemoveOutOfRange;
+
+  /// No description provided for @deviceContactsOutOfRangeIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove contacts whose location is far from you. Favourites and contacts without GPS are kept.'**
+  String get deviceContactsOutOfRangeIntro;
+
+  /// No description provided for @deviceContactsBeyondKm.
+  ///
+  /// In en, this message translates to:
+  /// **'Beyond {km} km'**
+  String deviceContactsBeyondKm(int km);
+
+  /// No description provided for @deviceContactsNeedLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'The app needs your location to measure distance. Set your position (GPS or a manual pin) and try again.'**
+  String get deviceContactsNeedLocation;
+
+  /// No description provided for @deviceContactsRemoveOutOfRangeDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed {count} far-away contacts.'**
+  String deviceContactsRemoveOutOfRangeDone(int count);
+
   /// No description provided for @deviceContactsRemoveAll.
   ///
   /// In en, this message translates to:
