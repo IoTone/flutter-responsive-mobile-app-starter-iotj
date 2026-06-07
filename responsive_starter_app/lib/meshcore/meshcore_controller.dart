@@ -3096,35 +3096,43 @@ class MeshcoreController extends ChangeNotifier {
     return n;
   }
 
-  /// Is a probed contact a candidate for an "out of range" scrub? True
-  /// only when it has a KNOWN location farther than [radiusKm] from us —
-  /// never for favourites/known (protected) and never for no-GPS contacts
-  /// (ambiguous: could be a local node that simply doesn't advertise GPS).
+  bool _isFavOrKnown(String hex) =>
+      _favorites.contains(hex) || _known.contains(hex);
+
+  /// Is a probed contact a candidate for an "out of range" scrub? Never
+  /// for favourites/known (protected). A contact **hiding its location**
+  /// (lat/lon 0,0 — no GPS) counts as out of range by policy; one with a
+  /// known location is out of range when it's farther than [radiusKm]
+  /// from us (which needs [ownLocation]).
   bool _isOutOfRange(Contact c, double radiusKm) {
-    final String hex = _hex(c.publicKey);
-    if (_favorites.contains(hex) || _known.contains(hex)) return false;
-    if (c.latitudeMicros == 0 && c.longitudeMicros == 0) return false;
+    if (_isFavOrKnown(_hex(c.publicKey))) return false;
+    if (c.latitudeMicros == 0 && c.longitudeMicros == 0) return true;
     final double? d = distanceMetersTo(
         c.latitudeMicros / 1e6, c.longitudeMicros / 1e6);
     return d != null && d > radiusKm * 1000;
   }
 
-  /// How many probed contacts an out-of-range scrub at [radiusKm] would
-  /// remove (for a preview before confirming). Needs [ownLocation].
-  int outOfRangeContactCount(double radiusKm) =>
-      ownLocation == null
-          ? 0
-          : _probedContacts.where((Contact c) => _isOutOfRange(c, radiusKm)).length;
+  /// Is a probed contact "stale" — not heard in [days]? Never for
+  /// favourites/known. A contact whose last-advert is unset (0) counts
+  /// as never-heard → stale.
+  bool _isStale(Contact c, int days) {
+    if (_isFavOrKnown(_hex(c.publicKey))) return false;
+    final int adv = c.lastAdvertTimestamp;
+    final int lastHeard = adv == 0 ? 0 : adv + _deviceClockOffsetSec;
+    final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    return (now - lastHeard) > days * 86400;
+  }
 
-  /// Remove every probed contact whose known location is beyond [radiusKm]
-  /// from us — keeping favourites/known and anything without GPS. Returns
-  /// the count removed (or -1 when we have no location to measure from).
-  Future<int> removeOutOfRangeContacts(double radiusKm) async {
-    if (!isReady) return 0;
-    if (ownLocation == null) return -1;
-    final List<Contact> targets = _probedContacts
-        .where((Contact c) => _isOutOfRange(c, radiusKm))
-        .toList(growable: false);
+  /// Preview counts for the scrub dialogs.
+  int outOfRangeContactCount(double radiusKm) =>
+      _probedContacts.where((Contact c) => _isOutOfRange(c, radiusKm)).length;
+  int staleContactCount(int days) =>
+      _probedContacts.where((Contact c) => _isStale(c, days)).length;
+
+  /// Remove a set of probed contacts from the radio's table; returns the
+  /// number removed. Shared by the out-of-range / stale / all scrubs.
+  Future<int> _removeContactBatch(List<Contact> targets) async {
+    if (!isReady || targets.isEmpty) return 0;
     int n = 0;
     for (final Contact c in targets) {
       try {
@@ -3144,6 +3152,18 @@ class MeshcoreController extends ChangeNotifier {
     }
     return n;
   }
+
+  /// Remove every out-of-range contact (far, or hiding its location).
+  Future<int> removeOutOfRangeContacts(double radiusKm) =>
+      _removeContactBatch(_probedContacts
+          .where((Contact c) => _isOutOfRange(c, radiusKm))
+          .toList(growable: false));
+
+  /// Remove every contact not heard in [days].
+  Future<int> removeStaleContacts(int days) =>
+      _removeContactBatch(_probedContacts
+          .where((Contact c) => _isStale(c, days))
+          .toList(growable: false));
 
   /// Grant/revoke this contact's permission to request each telemetry
   /// class from us (used by the "Contacts" telemetry mode). Preserves

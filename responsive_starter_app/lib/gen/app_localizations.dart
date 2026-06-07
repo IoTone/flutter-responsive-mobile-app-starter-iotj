@@ -2558,6 +2558,12 @@ abstract class AppLocalizations {
   /// **'You only need a contact to send a direct message. Channel messages work without contacts — you\'ll still see everyone on channels.'**
   String get deviceContactsChannelsNote;
 
+  /// No description provided for @deviceContactsScrub.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrub contacts'**
+  String get deviceContactsScrub;
+
   /// No description provided for @deviceContactsRemoveOutOfRange.
   ///
   /// In en, this message translates to:
@@ -2567,26 +2573,50 @@ abstract class AppLocalizations {
   /// No description provided for @deviceContactsOutOfRangeIntro.
   ///
   /// In en, this message translates to:
-  /// **'Remove contacts whose location is far from you. Favourites and contacts without GPS are kept.'**
+  /// **'Removes contacts that are far from you — or that hide their location (no GPS), which we treat as out of range. Favourites and known contacts are kept.'**
   String get deviceContactsOutOfRangeIntro;
 
   /// No description provided for @deviceContactsBeyondKm.
   ///
   /// In en, this message translates to:
-  /// **'Beyond {km} km'**
+  /// **'Beyond {km} km (+ location-hidden)'**
   String deviceContactsBeyondKm(int km);
 
   /// No description provided for @deviceContactsNeedLocation.
   ///
   /// In en, this message translates to:
-  /// **'The app needs your location to measure distance. Set your position (GPS or a manual pin) and try again.'**
+  /// **'No location set, so distance can\'t be measured — only location-hidden contacts are caught. Set your position (GPS or a manual pin) to also remove far-away GPS contacts.'**
   String get deviceContactsNeedLocation;
 
   /// No description provided for @deviceContactsRemoveOutOfRangeDone.
   ///
   /// In en, this message translates to:
-  /// **'Removed {count} far-away contacts.'**
+  /// **'Removed {count} out-of-range contacts.'**
   String deviceContactsRemoveOutOfRangeDone(int count);
+
+  /// No description provided for @deviceContactsRemoveStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove not heard recently'**
+  String get deviceContactsRemoveStale;
+
+  /// No description provided for @deviceContactsStaleIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes contacts you haven\'t heard from in a while. Favourites and known contacts are kept.'**
+  String get deviceContactsStaleIntro;
+
+  /// No description provided for @deviceContactsNotHeardDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Not heard in {days} days'**
+  String deviceContactsNotHeardDays(int days);
+
+  /// No description provided for @deviceContactsRemoveStaleDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed {count} stale contacts.'**
+  String deviceContactsRemoveStaleDone(int count);
 
   /// No description provided for @deviceContactsRemoveAll.
   ///

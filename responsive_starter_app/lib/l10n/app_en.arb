@@ -651,15 +651,26 @@
   },
   "deviceContactsFullHelp": "The contact list is full. Adding a new contact (e.g. a re-homed key) fails until you remove some — DMs to a non-contact won't route. Delete entries you don't need below.",
   "deviceContactsChannelsNote": "You only need a contact to send a direct message. Channel messages work without contacts — you'll still see everyone on channels.",
+  "deviceContactsScrub": "Scrub contacts",
   "deviceContactsRemoveOutOfRange": "Remove out of range",
-  "deviceContactsOutOfRangeIntro": "Remove contacts whose location is far from you. Favourites and contacts without GPS are kept.",
-  "deviceContactsBeyondKm": "Beyond {km} km",
+  "deviceContactsOutOfRangeIntro": "Removes contacts that are far from you — or that hide their location (no GPS), which we treat as out of range. Favourites and known contacts are kept.",
+  "deviceContactsBeyondKm": "Beyond {km} km (+ location-hidden)",
   "@deviceContactsBeyondKm": {
     "placeholders": { "km": { "type": "int" } }
   },
-  "deviceContactsNeedLocation": "The app needs your location to measure distance. Set your position (GPS or a manual pin) and try again.",
-  "deviceContactsRemoveOutOfRangeDone": "Removed {count} far-away contacts.",
+  "deviceContactsNeedLocation": "No location set, so distance can't be measured — only location-hidden contacts are caught. Set your position (GPS or a manual pin) to also remove far-away GPS contacts.",
+  "deviceContactsRemoveOutOfRangeDone": "Removed {count} out-of-range contacts.",
   "@deviceContactsRemoveOutOfRangeDone": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "deviceContactsRemoveStale": "Remove not heard recently",
+  "deviceContactsStaleIntro": "Removes contacts you haven't heard from in a while. Favourites and known contacts are kept.",
+  "deviceContactsNotHeardDays": "Not heard in {days} days",
+  "@deviceContactsNotHeardDays": {
+    "placeholders": { "days": { "type": "int" } }
+  },
+  "deviceContactsRemoveStaleDone": "Removed {count} stale contacts.",
+  "@deviceContactsRemoveStaleDone": {
     "placeholders": { "count": { "type": "int" } }
   },
   "deviceContactsRemoveAll": "Remove all",

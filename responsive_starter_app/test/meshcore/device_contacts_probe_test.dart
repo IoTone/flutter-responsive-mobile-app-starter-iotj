@@ -72,4 +72,38 @@ void main() {
 
     mc.dispose();
   });
+
+  test('scrub: location-hidden (no-GPS) non-favourites count as out of '
+      'range; favourites + known are protected; stale by last-advert',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController mc = await ready(fake);
+
+    // Two no-GPS contacts with an old last-advert (the helper default).
+    fake.emit(contactsStart(2));
+    fake.emit(contactFrame(name: 'A', firstPubByte: 0xAA));
+    fake.emit(contactFrame(name: 'B', firstPubByte: 0xBB));
+    fake.emit(endOfContacts());
+    await Future<void>.delayed(Duration.zero);
+    expect(mc.probedContacts.length, 2);
+
+    final String aKey = hex(mc.probedContacts
+        .firstWhere((Contact c) => c.name == 'A')
+        .publicKey);
+    await mc.toggleFavorite(aKey); // protect A
+
+    // No own location, but a no-GPS contact is out of range by policy.
+    expect(mc.ownLocation, isNull);
+    expect(mc.outOfRangeContactCount(50), 1); // B only (A is a favourite)
+    expect(mc.staleContactCount(30), 1); // B only
+
+    final int removed = await mc.removeOutOfRangeContacts(50);
+    expect(removed, 1);
+    expect(
+        mc.probedContacts.any((Contact c) => c.name == 'B'), isFalse);
+    expect(mc.probedContacts.any((Contact c) => c.name == 'A'), isTrue);
+
+    mc.dispose();
+  });
 }

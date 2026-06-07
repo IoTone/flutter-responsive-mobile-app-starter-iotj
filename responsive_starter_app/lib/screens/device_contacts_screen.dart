@@ -45,17 +45,6 @@ class _DeviceContactsScreenState extends State<DeviceContactsScreen> {
       context: context,
       builder: (BuildContext ctx) {
         final ColorScheme cs = Theme.of(ctx).colorScheme;
-        if (mc.ownLocation == null) {
-          return AlertDialog(
-            title: Text(l.deviceContactsRemoveOutOfRange),
-            content: Text(l.deviceContactsNeedLocation),
-            actions: <Widget>[
-              TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(l.actionCancel)),
-            ],
-          );
-        }
         return AlertDialog(
           title: Text(l.deviceContactsRemoveOutOfRange),
           content: Column(
@@ -64,6 +53,14 @@ class _DeviceContactsScreenState extends State<DeviceContactsScreen> {
             children: <Widget>[
               Text(l.deviceContactsOutOfRangeIntro,
                   style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
+              if (mc.ownLocation == null) ...<Widget>[
+                const SizedBox(height: 6),
+                Text(l.deviceContactsNeedLocation,
+                    style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic)),
+              ],
               const SizedBox(height: 8),
               for (final double km in <double>[25, 50, 100])
                 ListTile(
@@ -95,6 +92,55 @@ class _DeviceContactsScreenState extends State<DeviceContactsScreen> {
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(
       SnackBar(
           content: Text(l.deviceContactsRemoveOutOfRangeDone(n < 0 ? 0 : n)),
+          duration: const Duration(seconds: 3)),
+    );
+  }
+
+  Future<void> _removeStale(
+      MeshcoreController mc, AppLocalizations l) async {
+    final int? picked = await showDialog<int>(
+      context: context,
+      builder: (BuildContext ctx) {
+        final ColorScheme cs = Theme.of(ctx).colorScheme;
+        return AlertDialog(
+          title: Text(l.deviceContactsRemoveStale),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(l.deviceContactsStaleIntro,
+                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
+              const SizedBox(height: 8),
+              for (final int days in <int>[30, 90, 180])
+                ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l.deviceContactsNotHeardDays(days)),
+                  trailing: Text('${mc.staleContactCount(days)}',
+                      style: TextStyle(
+                          color: cs.primary, fontWeight: FontWeight.w600)),
+                  enabled: mc.staleContactCount(days) > 0,
+                  onTap: mc.staleContactCount(days) > 0
+                      ? () => Navigator.pop(ctx, days)
+                      : null,
+                ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l.actionCancel)),
+          ],
+        );
+      },
+    );
+    if (picked == null || !mounted) return;
+    final int n = await mc.removeStaleContacts(picked);
+    if (!mounted) return;
+    setState(_removed.clear);
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(
+          content: Text(l.deviceContactsRemoveStaleDone(n)),
           duration: const Duration(seconds: 3)),
     );
   }
@@ -170,20 +216,6 @@ class _DeviceContactsScreenState extends State<DeviceContactsScreen> {
         title: Text(l.deviceContactsTitle),
         actions: <Widget>[
           IconButton(
-            tooltip: l.deviceContactsRemoveOutOfRange,
-            icon: const Icon(Icons.wrong_location_outlined),
-            onPressed: (mc.isReady && contacts.isNotEmpty)
-                ? () => _removeOutOfRange(mc, l)
-                : null,
-          ),
-          IconButton(
-            tooltip: l.deviceContactsRemoveAll,
-            icon: const Icon(Icons.delete_sweep_outlined),
-            onPressed: (mc.isReady && contacts.isNotEmpty)
-                ? () => _removeAll(mc, contacts.length, l)
-                : null,
-          ),
-          IconButton(
             tooltip: l.deviceContactsRefresh,
             icon: const Icon(Icons.refresh),
             onPressed: mc.isReady
@@ -192,6 +224,38 @@ class _DeviceContactsScreenState extends State<DeviceContactsScreen> {
                     mc.refreshDeviceContacts();
                   }
                 : null,
+          ),
+          PopupMenuButton<String>(
+            enabled: mc.isReady && contacts.isNotEmpty,
+            tooltip: l.deviceContactsScrub,
+            icon: const Icon(Icons.cleaning_services_outlined),
+            onSelected: (String v) {
+              switch (v) {
+                case 'range':
+                  _removeOutOfRange(mc, l);
+                case 'stale':
+                  _removeStale(mc, l);
+                case 'all':
+                  _removeAll(mc, contacts.length, l);
+              }
+            },
+            itemBuilder: (BuildContext _) => <PopupMenuEntry<String>>[
+              PopupMenuItem<String>(
+                  value: 'range',
+                  child: ListTile(
+                      leading: const Icon(Icons.wrong_location_outlined),
+                      title: Text(l.deviceContactsRemoveOutOfRange))),
+              PopupMenuItem<String>(
+                  value: 'stale',
+                  child: ListTile(
+                      leading: const Icon(Icons.history_toggle_off),
+                      title: Text(l.deviceContactsRemoveStale))),
+              PopupMenuItem<String>(
+                  value: 'all',
+                  child: ListTile(
+                      leading: const Icon(Icons.delete_sweep_outlined),
+                      title: Text(l.deviceContactsRemoveAll))),
+            ],
           ),
         ],
       ),

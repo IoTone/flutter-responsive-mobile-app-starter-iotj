@@ -1401,24 +1401,44 @@ class AppLocalizationsJa extends AppLocalizations {
       '連絡先が必要なのはダイレクトメッセージを送るときだけです。チャンネルのメッセージは連絡先がなくても機能し、全員がチャンネルに表示されます。';
 
   @override
+  String get deviceContactsScrub => '連絡先を整理';
+
+  @override
   String get deviceContactsRemoveOutOfRange => '圏外を削除';
 
   @override
   String get deviceContactsOutOfRangeIntro =>
-      '現在地から遠い連絡先を削除します。お気に入りと GPS のない連絡先は保持されます。';
+      '現在地から遠い連絡先、または位置を隠している（GPS なし）連絡先を削除します（圏外として扱います）。お気に入りと既知の連絡先は保持されます。';
 
   @override
   String deviceContactsBeyondKm(int km) {
-    return '$km km 以上';
+    return '$km km 以上（＋位置非公開）';
   }
 
   @override
   String get deviceContactsNeedLocation =>
-      '距離の測定には現在地が必要です。位置（GPS または手動ピン）を設定して再試行してください。';
+      '現在地が未設定のため距離を測定できません。位置非公開の連絡先のみが対象です。GPS または手動ピンで位置を設定すると、遠方の GPS 連絡先も削除できます。';
 
   @override
   String deviceContactsRemoveOutOfRangeDone(int count) {
-    return '遠方の連絡先を $count 件削除しました。';
+    return '圏外の連絡先を $count 件削除しました。';
+  }
+
+  @override
+  String get deviceContactsRemoveStale => '最近未受信を削除';
+
+  @override
+  String get deviceContactsStaleIntro =>
+      'しばらく受信していない連絡先を削除します。お気に入りと既知の連絡先は保持されます。';
+
+  @override
+  String deviceContactsNotHeardDays(int days) {
+    return '$days 日間未受信';
+  }
+
+  @override
+  String deviceContactsRemoveStaleDone(int count) {
+    return '古い連絡先を $count 件削除しました。';
   }
 
   @override

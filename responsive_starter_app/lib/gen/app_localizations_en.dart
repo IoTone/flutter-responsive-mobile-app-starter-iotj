@@ -1465,24 +1465,44 @@ class AppLocalizationsEn extends AppLocalizations {
       'You only need a contact to send a direct message. Channel messages work without contacts — you\'ll still see everyone on channels.';
 
   @override
+  String get deviceContactsScrub => 'Scrub contacts';
+
+  @override
   String get deviceContactsRemoveOutOfRange => 'Remove out of range';
 
   @override
   String get deviceContactsOutOfRangeIntro =>
-      'Remove contacts whose location is far from you. Favourites and contacts without GPS are kept.';
+      'Removes contacts that are far from you — or that hide their location (no GPS), which we treat as out of range. Favourites and known contacts are kept.';
 
   @override
   String deviceContactsBeyondKm(int km) {
-    return 'Beyond $km km';
+    return 'Beyond $km km (+ location-hidden)';
   }
 
   @override
   String get deviceContactsNeedLocation =>
-      'The app needs your location to measure distance. Set your position (GPS or a manual pin) and try again.';
+      'No location set, so distance can\'t be measured — only location-hidden contacts are caught. Set your position (GPS or a manual pin) to also remove far-away GPS contacts.';
 
   @override
   String deviceContactsRemoveOutOfRangeDone(int count) {
-    return 'Removed $count far-away contacts.';
+    return 'Removed $count out-of-range contacts.';
+  }
+
+  @override
+  String get deviceContactsRemoveStale => 'Remove not heard recently';
+
+  @override
+  String get deviceContactsStaleIntro =>
+      'Removes contacts you haven\'t heard from in a while. Favourites and known contacts are kept.';
+
+  @override
+  String deviceContactsNotHeardDays(int days) {
+    return 'Not heard in $days days';
+  }
+
+  @override
+  String deviceContactsRemoveStaleDone(int count) {
+    return 'Removed $count stale contacts.';
   }
 
   @override
