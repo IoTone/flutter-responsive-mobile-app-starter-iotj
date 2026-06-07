@@ -11,6 +11,7 @@ import '../meshcore/ble_connector.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../meshcore/paired_device_history.dart';
+import 'device_contacts_screen.dart';
 
 /// R41 — Device management sheet. Single place to:
 ///   - see what we're currently paired to and the live connection state,
@@ -223,6 +224,30 @@ class _DeviceManagerSheetState extends State<DeviceManagerSheet> {
                   ),
               ],
             ),
+            // Probe + manage the radio's actual contact list (diagnose a
+            // full table / a contact that won't DM).
+            if (mc.isReady)
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading:
+                    Icon(Icons.contacts_outlined, color: cs.onSurfaceVariant),
+                title: Text(l.deviceContactsTitle),
+                subtitle: mc.deviceContactCount == null
+                    ? null
+                    : Text(l.deviceContactsCountOnly(mc.deviceContactCount!),
+                        style: TextStyle(
+                            color: cs.onSurfaceVariant,
+                            fontFamily: 'JetBrains Mono',
+                            fontSize: 11)),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  final NavigatorState nav = Navigator.of(context);
+                  nav.pop();
+                  nav.push(MaterialPageRoute<void>(
+                      builder: (_) => const DeviceContactsScreen()));
+                },
+              ),
             // R41+1 — Recently paired list. Quickest path back to
             // a device the user has used before, without scanning.
             // Hidden when empty (first-run users see only the scan

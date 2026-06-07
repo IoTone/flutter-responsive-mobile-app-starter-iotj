@@ -2510,6 +2510,66 @@ abstract class AppLocalizations {
   /// **'Removed from your radio\'s contacts.'**
   String get nodeDetailRemoveDeviceContactDone;
 
+  /// No description provided for @deviceContactsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Radio contacts'**
+  String get deviceContactsTitle;
+
+  /// No description provided for @deviceContactsRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get deviceContactsRefresh;
+
+  /// No description provided for @deviceContactsSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing contacts from the radio…'**
+  String get deviceContactsSyncing;
+
+  /// No description provided for @deviceContactsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your radio has no contacts.'**
+  String get deviceContactsEmpty;
+
+  /// No description provided for @deviceContactsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {max} contacts on the radio'**
+  String deviceContactsCount(int count, int max);
+
+  /// No description provided for @deviceContactsCountOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} contacts on the radio'**
+  String deviceContactsCountOnly(int count);
+
+  /// No description provided for @deviceContactsFullHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The contact list is full. Adding a new contact (e.g. a re-homed key) fails until you remove some — DMs to a non-contact won\'t route. Delete entries you don\'t need below.'**
+  String get deviceContactsFullHelp;
+
+  /// No description provided for @deviceContactsFlood.
+  ///
+  /// In en, this message translates to:
+  /// **'flood'**
+  String get deviceContactsFlood;
+
+  /// No description provided for @deviceContactsDirect.
+  ///
+  /// In en, this message translates to:
+  /// **'direct'**
+  String get deviceContactsDirect;
+
+  /// No description provided for @deviceContactsHops.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} hops'**
+  String deviceContactsHops(int n);
+
   /// No description provided for @nodeIdentityLinkConfirm.
   ///
   /// In en, this message translates to:

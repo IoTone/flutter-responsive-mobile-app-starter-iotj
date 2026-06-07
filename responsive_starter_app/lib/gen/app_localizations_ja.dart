@@ -1371,6 +1371,43 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodeDetailRemoveDeviceContactDone => '無線機の連絡先から削除しました。';
 
   @override
+  String get deviceContactsTitle => '無線機の連絡先';
+
+  @override
+  String get deviceContactsRefresh => '更新';
+
+  @override
+  String get deviceContactsSyncing => '無線機から連絡先を同期中…';
+
+  @override
+  String get deviceContactsEmpty => '無線機に連絡先がありません。';
+
+  @override
+  String deviceContactsCount(int count, int max) {
+    return '無線機の連絡先 $count / $max 件';
+  }
+
+  @override
+  String deviceContactsCountOnly(int count) {
+    return '無線機の連絡先 $count 件';
+  }
+
+  @override
+  String get deviceContactsFullHelp =>
+      '連絡先がいっぱいです。新しい連絡先（再ホームしたキーなど）を追加できず、連絡先でない相手への DM は届きません。不要な項目を下で削除してください。';
+
+  @override
+  String get deviceContactsFlood => 'フラッド';
+
+  @override
+  String get deviceContactsDirect => '直接';
+
+  @override
+  String deviceContactsHops(int n) {
+    return '$n ホップ';
+  }
+
+  @override
   String nodeIdentityLinkConfirm(String from, String to) {
     return 'お気に入り・タグ・メッセージを「$from」から「$to」へ移動し、古いキーを廃止しますか？';
   }

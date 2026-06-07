@@ -637,6 +637,25 @@
     "placeholders": { "name": { "type": "String" } }
   },
   "nodeDetailRemoveDeviceContactDone": "無線機の連絡先から削除しました。",
+  "deviceContactsTitle": "無線機の連絡先",
+  "deviceContactsRefresh": "更新",
+  "deviceContactsSyncing": "無線機から連絡先を同期中…",
+  "deviceContactsEmpty": "無線機に連絡先がありません。",
+  "deviceContactsCount": "無線機の連絡先 {count} / {max} 件",
+  "@deviceContactsCount": {
+    "placeholders": { "count": { "type": "int" }, "max": { "type": "int" } }
+  },
+  "deviceContactsCountOnly": "無線機の連絡先 {count} 件",
+  "@deviceContactsCountOnly": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "deviceContactsFullHelp": "連絡先がいっぱいです。新しい連絡先（再ホームしたキーなど）を追加できず、連絡先でない相手への DM は届きません。不要な項目を下で削除してください。",
+  "deviceContactsFlood": "フラッド",
+  "deviceContactsDirect": "直接",
+  "deviceContactsHops": "{n} ホップ",
+  "@deviceContactsHops": {
+    "placeholders": { "n": { "type": "int" } }
+  },
   "nodeIdentityLinkConfirm": "お気に入り・タグ・メッセージを「{from}」から「{to}」へ移動し、古いキーを廃止しますか？",
   "@nodeIdentityLinkConfirm": {
     "placeholders": {

@@ -159,6 +159,7 @@ class MeshcoreController extends ChangeNotifier {
       // here. Deduped internally by movement threshold.
       _trackOwnLocationForTrail();
       _ingestKnown(f);
+      _trackContactProbe(f);
       _ingestDm(f);
       _maybeDrain(f);
       _ingestNode(f);
@@ -2939,6 +2940,47 @@ class MeshcoreController extends ChangeNotifier {
   /// Ask the radio for its synced contact list (`CMD_GET_CONTACTS`).
   Future<void> requestContacts() =>
       send(MeshcoreFrameCodec.getContacts());
+
+  // --- Device-contacts probe (diagnostic) ---------------------------
+  // The app's `_contacts` hides keys the user superseded, and the
+  // "contacts" UI surfaces only favourites — so neither reflects what the
+  // radio actually stores. This captures the RAW device contact list so
+  // the user can SEE every entry (and free a full table). Populated by
+  // every CMD_GET_CONTACTS sync.
+
+  final List<Contact> _probedContacts = <Contact>[];
+  bool _probing = false;
+  int? _deviceContactCount;
+
+  /// The radio's reported total contact count (from `CONTACTS_START`).
+  int? get deviceContactCount => _deviceContactCount;
+
+  /// The device's max contact capacity, when known (`DeviceInfo`).
+  int? get maxContacts => _deviceInfo?.maxContacts;
+
+  /// Every contact the radio returned on the last full sync — raw, incl.
+  /// superseded keys the rest of the app hides.
+  List<Contact> get probedContacts => List<Contact>.unmodifiable(_probedContacts);
+
+  /// Trigger a fresh full contact sync (fills [probedContacts] +
+  /// [deviceContactCount]); also refresh device info for [maxContacts].
+  Future<void> refreshDeviceContacts() async {
+    if (!isReady) return;
+    await send(MeshcoreFrameCodec.deviceQuery());
+    await requestContacts();
+  }
+
+  void _trackContactProbe(MeshcoreInbound f) {
+    if (f is ContactsStartFrame) {
+      _deviceContactCount = f.count;
+      _probedContacts.clear();
+      _probing = true;
+    } else if (f is ContactFrame && _probing) {
+      _probedContacts.add(f.contact);
+    } else if (f is EndOfContactsFrame) {
+      _probing = false;
+    }
+  }
 
   // -------------------------------------------------------------------
   // Per-contact telemetry permissions (R54 follow-on). The radio answers

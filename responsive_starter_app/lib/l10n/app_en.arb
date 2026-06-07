@@ -637,6 +637,25 @@
     "placeholders": { "name": { "type": "String" } }
   },
   "nodeDetailRemoveDeviceContactDone": "Removed from your radio's contacts.",
+  "deviceContactsTitle": "Radio contacts",
+  "deviceContactsRefresh": "Refresh",
+  "deviceContactsSyncing": "Syncing contacts from the radio…",
+  "deviceContactsEmpty": "Your radio has no contacts.",
+  "deviceContactsCount": "{count} of {max} contacts on the radio",
+  "@deviceContactsCount": {
+    "placeholders": { "count": { "type": "int" }, "max": { "type": "int" } }
+  },
+  "deviceContactsCountOnly": "{count} contacts on the radio",
+  "@deviceContactsCountOnly": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "deviceContactsFullHelp": "The contact list is full. Adding a new contact (e.g. a re-homed key) fails until you remove some — DMs to a non-contact won't route. Delete entries you don't need below.",
+  "deviceContactsFlood": "flood",
+  "deviceContactsDirect": "direct",
+  "deviceContactsHops": "{n} hops",
+  "@deviceContactsHops": {
+    "placeholders": { "n": { "type": "int" } }
+  },
   "nodeIdentityLinkConfirm": "Move star, tags, and messages from “{from}” to “{to}”, and retire the old key?",
   "@nodeIdentityLinkConfirm": {
     "placeholders": {

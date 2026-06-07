@@ -1435,6 +1435,43 @@ class AppLocalizationsEn extends AppLocalizations {
       'Removed from your radio\'s contacts.';
 
   @override
+  String get deviceContactsTitle => 'Radio contacts';
+
+  @override
+  String get deviceContactsRefresh => 'Refresh';
+
+  @override
+  String get deviceContactsSyncing => 'Syncing contacts from the radio…';
+
+  @override
+  String get deviceContactsEmpty => 'Your radio has no contacts.';
+
+  @override
+  String deviceContactsCount(int count, int max) {
+    return '$count of $max contacts on the radio';
+  }
+
+  @override
+  String deviceContactsCountOnly(int count) {
+    return '$count contacts on the radio';
+  }
+
+  @override
+  String get deviceContactsFullHelp =>
+      'The contact list is full. Adding a new contact (e.g. a re-homed key) fails until you remove some — DMs to a non-contact won\'t route. Delete entries you don\'t need below.';
+
+  @override
+  String get deviceContactsFlood => 'flood';
+
+  @override
+  String get deviceContactsDirect => 'direct';
+
+  @override
+  String deviceContactsHops(int n) {
+    return '$n hops';
+  }
+
+  @override
   String nodeIdentityLinkConfirm(String from, String to) {
     return 'Move star, tags, and messages from “$from” to “$to”, and retire the old key?';
   }
