@@ -127,6 +127,10 @@ class NervDashboard extends StatelessWidget {
                 const SizedBox(height: 4),
                 MmReadout(
                     label: l.dashNervKnown, value: '${m.knownCount}'),
+                if (m.contactsLabel != null) ...<Widget>[
+                  const SizedBox(height: 4),
+                  MmReadout(label: l.dashContacts, value: m.contactsLabel!),
+                ],
                 if (m.batteryLine != null) ...<Widget>[
                   const SizedBox(height: 4),
                   MmReadout(label: l.dashboardBattery, value: m.batteryLine!),

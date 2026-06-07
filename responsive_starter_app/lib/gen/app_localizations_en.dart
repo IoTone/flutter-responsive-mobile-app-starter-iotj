@@ -60,6 +60,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashNervRegion => 'Region';
 
   @override
+  String get dashContacts => 'CONTACTS';
+
+  @override
   String get dashNervMesh => 'Mesh';
 
   @override
@@ -599,10 +602,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nodesEmptyOffline => 'Connect a radio to discover nearby nodes.';
 
   @override
-  String get nodesFavTooltip => 'Favourite as contact';
+  String get nodesFavTooltip => 'Add to favourites';
 
   @override
-  String get nodesUnfavTooltip => 'Unfavourite (remove from contacts)';
+  String get nodesUnfavTooltip => 'Remove from favourites';
 
   @override
   String get gridTitle => 'Hyperlocal grid';
@@ -671,7 +674,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gridLegendFavourite =>
-      'Rapid blink in alt-colour = a favourited contact.';
+      'Rapid blink in alt-colour = a favourited node.';
 
   @override
   String get gridLegendRipple =>
@@ -1538,7 +1541,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nodeDetailFavourite => 'Favourite';
 
   @override
-  String get nodeDetailContact => 'Contact';
+  String get nodeDetailContact => 'Favourited';
 
   @override
   String get nodeDetailShowOnMap => 'Show on geocoded map';
@@ -1581,7 +1584,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nodeDetailKnown => 'KNOWN';
 
   @override
-  String get nodeDetailContactBadge => 'CONTACT';
+  String get nodeDetailContactBadge => 'FAVOURITE';
 
   @override
   String get nodeDetailShortIdKv => 'shortId';

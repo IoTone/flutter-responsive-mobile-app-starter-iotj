@@ -451,6 +451,12 @@ class _RadioStrip extends StatelessWidget {
             child: Text(model.radioLine ?? '—',
                 overflow: TextOverflow.ellipsis, style: mono),
           ),
+          if (model.contactsLabel != null) ...<Widget>[
+            const SizedBox(width: 8),
+            Icon(Icons.contacts_outlined, size: 13, color: skin.color.fgMuted),
+            const SizedBox(width: 2),
+            Text(model.contactsLabel!, style: mono),
+          ],
           if (model.batteryLine != null) ...<Widget>[
             const SizedBox(width: 8),
             Text(model.batteryLine!, style: mono),

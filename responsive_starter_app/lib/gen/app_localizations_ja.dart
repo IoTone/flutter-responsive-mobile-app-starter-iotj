@@ -53,6 +53,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dashNervRegion => '地域';
 
   @override
+  String get dashContacts => '連絡先';
+
+  @override
   String get dashNervMesh => 'メッシュ';
 
   @override
@@ -568,10 +571,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodesEmptyOffline => 'ラジオを接続して周辺ノードを発見してください。';
 
   @override
-  String get nodesFavTooltip => 'コンタクトに登録';
+  String get nodesFavTooltip => 'お気に入りに追加';
 
   @override
-  String get nodesUnfavTooltip => 'コンタクトから削除';
+  String get nodesUnfavTooltip => 'お気に入りから削除';
 
   @override
   String get gridTitle => 'ハイパーローカルグリッド';
@@ -637,7 +640,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridLegendKnown => 'パルス (緩やかに広がる輪) = 既知ノード — 直接やり取り (DM) があったノード。';
 
   @override
-  String get gridLegendFavourite => '別色での速い点滅 = お気に入りのコンタクト。';
+  String get gridLegendFavourite => '別色での速い点滅 = お気に入りのノード。';
 
   @override
   String get gridLegendRipple => '中央からの波紋 = 匿名のチャネルメッセージ (プロトコル上、送信者を特定できません)。';
@@ -1474,7 +1477,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodeDetailFavourite => 'お気に入り';
 
   @override
-  String get nodeDetailContact => 'コンタクト';
+  String get nodeDetailContact => 'お気に入り済み';
 
   @override
   String get nodeDetailShowOnMap => '地図上に表示';
@@ -1516,7 +1519,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodeDetailKnown => '既知';
 
   @override
-  String get nodeDetailContactBadge => 'コンタクト';
+  String get nodeDetailContactBadge => 'お気に入り';
 
   @override
   String get nodeDetailShortIdKv => 'shortId';

@@ -25,6 +25,7 @@ class DashboardModel {
     required this.channelLabel,
     required this.region,
     required this.batteryLine,
+    required this.contactsLabel,
     required this.events,
   });
 
@@ -33,6 +34,12 @@ class DashboardModel {
   final bool busy;
   final int peersInRange;
   final int knownCount;
+
+  /// Radio (MeshCore firmware) contact-list level — `"12/350"` or `"12"`
+  /// when the max is unknown, or null before the first contact sync. This
+  /// is the device's routable contact table (DM routing), distinct from
+  /// app favourites/known.
+  final String? contactsLabel;
 
   /// Device advertised name, or null when SelfInfo isn't in yet.
   final String? nodeName;
@@ -102,6 +109,11 @@ class DashboardModel {
       channelLabel: 'CH${mc.activeChannel}',
       region: rp == null ? l.deviceRegionCustom : localizedPresetLabel(l, rp.id),
       batteryLine: battery,
+      contactsLabel: mc.deviceContactCount == null
+          ? null
+          : (mc.maxContacts == null
+              ? '${mc.deviceContactCount}'
+              : '${mc.deviceContactCount}/${mc.maxContacts}'),
       events: <({String time, String text})>[
         for (final MeshEvent e in mc.recentEvents.take(8))
           (

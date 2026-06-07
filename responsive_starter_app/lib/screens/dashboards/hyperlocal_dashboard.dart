@@ -597,6 +597,8 @@ class _StatusRail extends StatelessWidget {
     final List<({String k, String v})> cells = <({String k, String v})>[
       (k: l.dashHyperPeers, v: '${model.peersInRange}'),
       (k: model.channelLabel, v: '·'),
+      if (model.contactsLabel != null)
+        (k: l.dashContacts, v: model.contactsLabel!),
       if (model.batteryLine != null) (k: 'BATT', v: model.batteryLine!),
       if (bestSnr != null) (k: 'SNR', v: '${bestSnr.toStringAsFixed(0)}dB'),
     ];

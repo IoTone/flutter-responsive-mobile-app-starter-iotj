@@ -158,6 +158,8 @@ class _ReconDashboardState extends State<ReconDashboard>
                     children: <Widget>[
                       _kv('PEERS', '${m.peersInRange}/${m.knownCount}', mono, dim),
                       _kv('CH', m.channelLabel, mono, dim),
+                      if (m.contactsLabel != null)
+                        _kv('CON', m.contactsLabel!, mono, dim),
                       if (m.batteryLine != null)
                         _kv('BATT', m.batteryLine!, mono, dim),
                       _kv('SNR',

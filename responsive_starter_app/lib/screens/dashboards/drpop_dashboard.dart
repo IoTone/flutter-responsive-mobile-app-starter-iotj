@@ -150,7 +150,9 @@ class DrPopDashboard extends StatelessWidget {
             width: double.infinity,
             color: skin.color.surface,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Text('通信 ${m.radioLine ?? '—'}',
+            child: Text(
+                '通信 ${m.radioLine ?? '—'}'
+                '${m.contactsLabel != null ? '  ·  ${l.dashContacts} ${m.contactsLabel}' : ''}',
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     color: skin.color.fg,

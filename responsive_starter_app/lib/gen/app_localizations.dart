@@ -182,6 +182,12 @@ abstract class AppLocalizations {
   /// **'Region'**
   String get dashNervRegion;
 
+  /// No description provided for @dashContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTACTS'**
+  String get dashContacts;
+
   /// No description provided for @dashNervMesh.
   ///
   /// In en, this message translates to:
@@ -1133,13 +1139,13 @@ abstract class AppLocalizations {
   /// No description provided for @nodesFavTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Favourite as contact'**
+  /// **'Add to favourites'**
   String get nodesFavTooltip;
 
   /// No description provided for @nodesUnfavTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Unfavourite (remove from contacts)'**
+  /// **'Remove from favourites'**
   String get nodesUnfavTooltip;
 
   /// No description provided for @gridTitle.
@@ -1265,7 +1271,7 @@ abstract class AppLocalizations {
   /// No description provided for @gridLegendFavourite.
   ///
   /// In en, this message translates to:
-  /// **'Rapid blink in alt-colour = a favourited contact.'**
+  /// **'Rapid blink in alt-colour = a favourited node.'**
   String get gridLegendFavourite;
 
   /// No description provided for @gridLegendRipple.
@@ -2669,7 +2675,7 @@ abstract class AppLocalizations {
   /// No description provided for @nodeDetailContact.
   ///
   /// In en, this message translates to:
-  /// **'Contact'**
+  /// **'Favourited'**
   String get nodeDetailContact;
 
   /// No description provided for @nodeDetailShowOnMap.
@@ -2753,7 +2759,7 @@ abstract class AppLocalizations {
   /// No description provided for @nodeDetailContactBadge.
   ///
   /// In en, this message translates to:
-  /// **'CONTACT'**
+  /// **'FAVOURITE'**
   String get nodeDetailContactBadge;
 
   /// No description provided for @nodeDetailShortIdKv.

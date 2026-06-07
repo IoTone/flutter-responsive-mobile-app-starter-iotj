@@ -69,7 +69,12 @@ class DashboardScreen extends StatelessWidget {
                     height: 1.0,
                     fontWeight: FontWeight.w300)),
         const SizedBox(height: 4),
-        Text(l.dashboardKnownCount(mc.nodes.length),
+        Text(
+            mc.deviceContactCount == null
+                ? l.dashboardKnownCount(mc.nodes.length)
+                : '${l.dashboardKnownCount(mc.nodes.length)}'
+                    '   ·   ${l.dashContacts} ${mc.deviceContactCount}'
+                    '${mc.maxContacts == null ? '' : '/${mc.maxContacts}'}',
             style: TextStyle(color: cs.onSurfaceVariant)),
         const SizedBox(height: 24),
 
