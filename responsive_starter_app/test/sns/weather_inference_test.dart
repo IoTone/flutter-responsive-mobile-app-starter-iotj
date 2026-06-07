@@ -105,4 +105,57 @@ void main() {
       expect(a.tempAvgC, closeTo(30, 0.01));
     });
   });
+
+  group('scanAny (multi-locale)', () {
+    test('merges EN + JA conditions in one message', () {
+      final WxObservation? o = WeatherInferenceEngine.scanAny('雨 and hot');
+      expect(o, isNotNull);
+      expect(o!.conditions,
+          containsAll(<WxCondition>[WxCondition.rain, WxCondition.heat]));
+    });
+    test('null when neither locale matches', () {
+      expect(WeatherInferenceEngine.scanAny('see you at the dock'), isNull);
+    });
+  });
+
+  group('aggregateMicroclimates (P2)', () {
+    final DateTime t0 = DateTime(2026, 6, 7, 12);
+    WxObservation at(double lat, double lon, Set<WxCondition> c,
+            {double? temp, String? name}) =>
+        WxObservation(
+                conditions: c,
+                temperatureC: temp,
+                confidence: 0.8,
+                at: t0)
+            .locatedAt(lat, lon, name);
+
+    test('clusters nearby obs into one place; dominant + temp + count', () {
+      final List<Microclimate> climates = aggregateMicroclimates(
+        <WxObservation>[
+          at(47.60, -122.33, <WxCondition>{WxCondition.rain},
+              temp: 18, name: 'Seattle'),
+          at(47.61, -122.34, <WxCondition>{WxCondition.rain},
+              temp: 20, name: 'Seattle'),
+          at(45.52, -122.67, <WxCondition>{WxCondition.clear},
+              temp: 25, name: 'Portland'),
+        ],
+      );
+      expect(climates.length, 2);
+      final Microclimate seattle =
+          climates.firstWhere((Microclimate m) => m.placeName == 'Seattle');
+      expect(seattle.dominant, WxCondition.rain);
+      expect(seattle.mentions, 2);
+      expect(seattle.tempMinC, closeTo(18, 0.01));
+      expect(seattle.tempMaxC, closeTo(20, 0.01));
+      expect(climates.first.mentions, 2); // strongest first
+    });
+
+    test('unlocated observations are ignored', () {
+      expect(
+          aggregateMicroclimates(<WxObservation>[
+            WeatherInferenceEngine.scan('raining', languageCode: 'en')!,
+          ]),
+          isEmpty);
+    });
+  });
 }

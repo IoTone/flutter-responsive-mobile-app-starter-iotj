@@ -2852,6 +2852,18 @@ abstract class AppLocalizations {
   /// **'MICROCLIMATE'**
   String get wxMicroclimateTitle;
 
+  /// No description provided for @wxMicroclimatesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'MICROCLIMATES (by place)'**
+  String get wxMicroclimatesHeader;
+
+  /// No description provided for @wxMicroclimateNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'nearby'**
+  String get wxMicroclimateNearby;
+
   /// No description provided for @wxAmbientEmpty.
   ///
   /// In en, this message translates to:

@@ -10,7 +10,9 @@ import 'weather_lexicon.dart';
 /// No location yet (P1) — speaker placement + grid bubbles are P2.
 /// Mirrors the place-inference subsystem's shape so the two stay parallel.
 
-/// One weather mention parsed from one message.
+/// One weather mention parsed from one message. P2 adds an optional
+/// location (lat/lon + place label) resolved by the controller from place
+/// inference or the sender's GPS.
 class WxObservation {
   const WxObservation({
     required this.conditions,
@@ -19,6 +21,9 @@ class WxObservation {
     required this.at,
     this.sourceMsgId,
     this.sourceSpan = '',
+    this.lat,
+    this.lon,
+    this.placeName,
   });
 
   final Set<WxCondition> conditions;
@@ -31,6 +36,54 @@ class WxObservation {
   final DateTime at;
   final String? sourceMsgId;
   final String sourceSpan;
+
+  /// Resolved location of the speaker/place, when known (P2).
+  final double? lat;
+  final double? lon;
+  final String? placeName;
+
+  bool get isLocated => lat != null && lon != null;
+
+  /// A copy anchored at a resolved location.
+  WxObservation locatedAt(double lat, double lon, String? name) =>
+      WxObservation(
+        conditions: conditions,
+        temperatureC: temperatureC,
+        confidence: confidence,
+        at: at,
+        sourceMsgId: sourceMsgId,
+        sourceSpan: sourceSpan,
+        lat: lat,
+        lon: lon,
+        placeName: name,
+      );
+}
+
+/// A per-place weather rollup — what P2 renders as a microclimate bubble.
+class Microclimate {
+  const Microclimate({
+    required this.lat,
+    required this.lon,
+    required this.placeName,
+    required this.dominant,
+    required this.tempMinC,
+    required this.tempAvgC,
+    required this.tempMaxC,
+    required this.mentions,
+    required this.lastSeen,
+  });
+
+  final double lat;
+  final double lon;
+  final String? placeName;
+  final WxCondition? dominant;
+  final double? tempMinC;
+  final double? tempAvgC;
+  final double? tempMaxC;
+  final int mentions;
+  final DateTime lastSeen;
+
+  bool get hasTemp => tempAvgC != null;
 }
 
 /// A channel-wide rollup over a time window — what P1 renders as the
@@ -135,6 +188,26 @@ class WeatherInferenceEngine {
   // boundary patterns rather than recompiling them per message.
   static final Map<String, RegExp> _reCache = <String, RegExp>{};
 
+  /// Scan against ALL supported locales (EN + JA) and merge — channels
+  /// can be mixed-language, and the controller has no BuildContext locale.
+  static WxObservation? scanAny(String text,
+      {DateTime? at, String? sourceMsgId}) {
+    final WxObservation? en =
+        scan(text, languageCode: 'en', at: at, sourceMsgId: sourceMsgId);
+    final WxObservation? ja =
+        scan(text, languageCode: 'ja', at: at, sourceMsgId: sourceMsgId);
+    if (en == null) return ja;
+    if (ja == null) return en;
+    return WxObservation(
+      conditions: <WxCondition>{...en.conditions, ...ja.conditions},
+      temperatureC: en.temperatureC ?? ja.temperatureC,
+      confidence: en.confidence > ja.confidence ? en.confidence : ja.confidence,
+      at: en.at,
+      sourceMsgId: en.sourceMsgId,
+      sourceSpan: en.sourceSpan,
+    );
+  }
+
   /// Index of [term] in [lower] using word boundaries for non-JA (so
   /// "sun" doesn't fire on "sunday"); plain substring for JA. -1 = none.
   static int _firstMatch(String lower, String term, String lang) {
@@ -204,4 +277,78 @@ AmbientWx? aggregateAmbient(Iterable<WxObservation> observations) {
     mentions: obs.length,
     lastSeen: lastSeen,
   );
+}
+
+/// Group **located** observations into per-place microclimates (P2).
+/// Clusters by a ~5.5 km grid cell (0.05°); each cell yields the dominant
+/// condition, temp range, count, centroid, and most-common place label.
+/// Strongest (most-mentioned) first.
+List<Microclimate> aggregateMicroclimates(Iterable<WxObservation> located,
+    {int minMentions = 1}) {
+  final Map<String, List<WxObservation>> cells =
+      <String, List<WxObservation>>{};
+  for (final WxObservation o in located) {
+    if (!o.isLocated) continue;
+    final String key =
+        '${(o.lat! / 0.05).round()}:${(o.lon! / 0.05).round()}';
+    (cells[key] ??= <WxObservation>[]).add(o);
+  }
+
+  final List<Microclimate> out = <Microclimate>[];
+  for (final List<WxObservation> group in cells.values) {
+    if (group.length < minMentions) continue;
+    final Map<WxCondition, int> tally = <WxCondition, int>{};
+    final Map<String, int> names = <String, int>{};
+    final List<double> temps = <double>[];
+    double sumLat = 0, sumLon = 0;
+    DateTime lastSeen = group.first.at;
+    for (final WxObservation o in group) {
+      for (final WxCondition c in o.conditions) {
+        tally[c] = (tally[c] ?? 0) + 1;
+      }
+      if (o.temperatureC != null) temps.add(o.temperatureC!);
+      if (o.placeName != null && o.placeName!.isNotEmpty) {
+        names[o.placeName!] = (names[o.placeName!] ?? 0) + 1;
+      }
+      sumLat += o.lat!;
+      sumLon += o.lon!;
+      if (o.at.isAfter(lastSeen)) lastSeen = o.at;
+    }
+    WxCondition? dominant;
+    int best = 0;
+    for (final MapEntry<WxCondition, int> e in tally.entries) {
+      if (e.value > best) {
+        best = e.value;
+        dominant = e.key;
+      }
+    }
+    String? label;
+    int bestName = 0;
+    for (final MapEntry<String, int> e in names.entries) {
+      if (e.value > bestName) {
+        bestName = e.value;
+        label = e.key;
+      }
+    }
+    double? minC, avgC, maxC;
+    if (temps.isNotEmpty) {
+      minC = temps.reduce((double a, double b) => a < b ? a : b);
+      maxC = temps.reduce((double a, double b) => a > b ? a : b);
+      avgC = temps.reduce((double a, double b) => a + b) / temps.length;
+    }
+    out.add(Microclimate(
+      lat: sumLat / group.length,
+      lon: sumLon / group.length,
+      placeName: label,
+      dominant: dominant,
+      tempMinC: minC,
+      tempAvgC: avgC,
+      tempMaxC: maxC,
+      mentions: group.length,
+      lastSeen: lastSeen,
+    ));
+  }
+  out.sort((Microclimate a, Microclimate b) =>
+      b.mentions.compareTo(a.mentions));
+  return out;
 }

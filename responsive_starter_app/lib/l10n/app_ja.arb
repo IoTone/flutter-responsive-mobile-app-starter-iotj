@@ -727,6 +727,8 @@
   "weatherSelf": "このデバイス",
   "weatherMeasuredHeader": "実測（センサー）",
   "wxMicroclimateTitle": "微気候",
+  "wxMicroclimatesHeader": "微気候（場所別）",
+  "wxMicroclimateNearby": "近く",
   "wxAmbientEmpty": "このチャンネルにはまだ天気の話題がありません。",
   "wxMentions": "{count} 件の言及 · 直近 {hours} 時間",
   "@wxMentions": {

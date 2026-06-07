@@ -36,6 +36,7 @@ import '../perms/location_service.dart';
 import '../sns/city_gazetteer.dart';
 import '../sns/inferred_place_store.dart';
 import '../sns/place_inference.dart';
+import '../sns/weather_inference.dart';
 import '../util/geo.dart' as geo;
 
 /// App-facing facade over [MeshcoreConnection], exposed via Provider.
@@ -166,6 +167,7 @@ class MeshcoreController extends ChangeNotifier {
       _ingestChat(f);
       _trackMessageHeat(f);
       _trackPlaceInference(f);
+      _trackWeather(f);
       _trackDelivery(f);
       _logEvent(f);
       notifyListeners();
@@ -1832,6 +1834,64 @@ class MeshcoreController extends ChangeNotifier {
       _inferredStore.add(p, now: now);
     }
     // The dispatch loop calls notifyListeners() after all trackers.
+  }
+
+  // --- Microclimate / wx (P2): located weather observations -----------
+  // Per-channel store of weather mined from channel chat AND anchored to a
+  // place. Mirrors place inference (live messages only). The ambient strip
+  // (P1) is computed separately by the view over message history; this is
+  // the *located* subset that becomes per-place bubbles.
+  static const Duration _wxWindow = Duration(hours: 2);
+  final Map<int, List<WxObservation>> _wxLocated =
+      <int, List<WxObservation>>{};
+
+  void _trackWeather(MeshcoreInbound f) {
+    if (f is! ChannelMessageFrame) return;
+    final ChannelMessage cm = f.message;
+    final WxObservation? obs = WeatherInferenceEngine.scanAny(cm.text,
+        at: DateTime.now());
+    if (obs == null || obs.confidence < 0.5) return;
+
+    // Resolve where the speaker is: (1) an explicit place in the message
+    // (reuse place inference), else (2) the sender's node GPS.
+    double? lat, lon;
+    String? name;
+    final OwnLocation? own = ownLocation;
+    if (own != null) {
+      final List<InferredPlace> hits = _placeEngine.infer(cm.text,
+          originLat: own.latitude, originLon: own.longitude);
+      if (hits.isNotEmpty) {
+        lat = hits.first.latitude;
+        lon = hits.first.longitude;
+        name = hits.first.displayName;
+      }
+    }
+    if (lat == null) {
+      final DiscoveredNode? sender = _resolveChannelSender(cm.text);
+      if (sender != null && sender.hasLocation) {
+        lat = sender.latitude;
+        lon = sender.longitude;
+        name = sender.name;
+      }
+    }
+    if (lat == null || lon == null) return; // unlocated → ambient-only
+
+    final List<WxObservation> list =
+        _wxLocated[cm.channelIdx] ??= <WxObservation>[];
+    list.add(obs.locatedAt(lat, lon, name));
+    final DateTime cutoff = DateTime.now().subtract(_wxWindow);
+    list.removeWhere((WxObservation o) => o.at.isBefore(cutoff));
+    if (list.length > 300) list.removeRange(0, list.length - 300);
+  }
+
+  /// Per-place microclimates mined from [channelIdx]'s recent located
+  /// weather chatter (P2). Empty until located weather is seen this session.
+  List<Microclimate> microclimatesFor(int channelIdx) {
+    final List<WxObservation>? list = _wxLocated[channelIdx];
+    if (list == null || list.isEmpty) return const <Microclimate>[];
+    final DateTime cutoff = DateTime.now().subtract(_wxWindow);
+    return aggregateMicroclimates(
+        list.where((WxObservation o) => o.at.isAfter(cutoff)));
   }
 
   void _trackMessageHeat(MeshcoreInbound f) {

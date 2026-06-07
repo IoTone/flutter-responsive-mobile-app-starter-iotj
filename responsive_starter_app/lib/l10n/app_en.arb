@@ -727,6 +727,8 @@
   "weatherSelf": "This device",
   "weatherMeasuredHeader": "MEASURED (sensors)",
   "wxMicroclimateTitle": "MICROCLIMATE",
+  "wxMicroclimatesHeader": "MICROCLIMATES (by place)",
+  "wxMicroclimateNearby": "nearby",
   "wxAmbientEmpty": "No weather chatter on this channel yet.",
   "wxMentions": "{count} mentions · last {hours}h",
   "@wxMentions": {

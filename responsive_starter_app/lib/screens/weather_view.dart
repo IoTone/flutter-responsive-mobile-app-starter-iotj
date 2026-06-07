@@ -10,6 +10,7 @@ import '../meshcore/meshcore_controller.dart';
 import '../meshcore/node_telemetry.dart';
 import '../sns/weather_inference.dart';
 import '../sns/weather_lexicon.dart';
+import '../util/geo.dart' as geo;
 import 'node_detail_sheet.dart';
 
 /// Mesh weather — a glanceable view of the environment telemetry
@@ -147,10 +148,28 @@ class _WeatherViewState extends State<WeatherView> {
       }
     }
 
+    // P2 — per-place microclimate bubbles (located weather chatter).
+    final List<Microclimate> climates = mc.microclimatesFor(mc.activeChannel);
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: <Widget>[
         micro,
+        if (climates.isNotEmpty) ...<Widget>[
+          const SizedBox(height: 12),
+          Text(l.wxMicroclimatesHeader,
+              style: TextStyle(
+                  color: cs.onSurfaceVariant, fontSize: 11, letterSpacing: 2)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: <Widget>[
+              for (final Microclimate m in climates)
+                _MicroclimateBubble(climate: m, mc: mc, cs: cs, l: l),
+            ],
+          ),
+        ],
         const SizedBox(height: 14),
         Text(l.weatherMeasuredHeader,
             style: TextStyle(
@@ -490,5 +509,77 @@ class _MicroclimateStrip extends StatelessWidget {
         .where((WxCondition c) => c != a.dominant)
         .toList(growable: false);
     return cs.length <= 3 ? cs : cs.sublist(0, 3);
+  }
+}
+
+/// A per-place microclimate bubble (P2): condition glyph + place label
+/// (or a distance/bearing when un-named) + temp + mention count.
+class _MicroclimateBubble extends StatelessWidget {
+  const _MicroclimateBubble({
+    required this.climate,
+    required this.mc,
+    required this.cs,
+    required this.l,
+  });
+
+  final Microclimate climate;
+  final MeshcoreController mc;
+  final ColorScheme cs;
+  final AppLocalizations l;
+
+  String _label() {
+    if (climate.placeName != null && climate.placeName!.isNotEmpty) {
+      return climate.placeName!;
+    }
+    final double? d = mc.distanceMetersTo(climate.lat, climate.lon);
+    final String? fd = d == null ? null : geo.formatDistance(d);
+    return fd ?? l.wxMicroclimateNearby;
+  }
+
+  String? _temp() {
+    if (!climate.hasTemp) return null;
+    final int lo = climate.tempMinC!.round();
+    final int hi = climate.tempMaxC!.round();
+    return lo == hi ? '$lo°C' : '$lo–$hi°C';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final String? t = _temp();
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 7, 12, 7),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest.withValues(alpha: .4),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cs.outline.withValues(alpha: .35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(climate.dominant != null ? wxGlyph(climate.dominant!) : '🌡',
+              style: const TextStyle(fontSize: 20)),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(_label(),
+                  style: TextStyle(
+                      color: cs.onSurface,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600)),
+              Text(
+                  <String>[
+                    if (climate.dominant != null)
+                      wxConditionLabel(climate.dominant!, l),
+                    if (t != null) t,
+                    '×${climate.mentions}',
+                  ].join(' · '),
+                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 11)),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
