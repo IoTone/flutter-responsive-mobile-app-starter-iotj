@@ -126,6 +126,14 @@ abstract final class MeshcoreFrameCodec {
         .build();
   }
 
+  /// `CMD_REMOVE_CONTACT` (0x0F): remove a contact by 32-byte public key.
+  static Uint8List removeContact(Uint8List publicKey) {
+    return (FrameBuilder()
+          ..u8(MeshcoreCommand.removeContact.code)
+          ..fixed(publicKey, kPubKeySize))
+        .build();
+  }
+
   /// `CMD_ADD_UPDATE_CONTACT` (0x09): the 148-byte contact body
   /// (same layout as `RESP_CODE_CONTACT`).
   static Uint8List addUpdateContact(Contact c) {

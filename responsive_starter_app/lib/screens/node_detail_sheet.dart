@@ -159,6 +159,37 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
     );
   }
 
+  /// Remove this node from the radio's contact table (frees a slot).
+  Future<void> _removeDeviceContact(
+      MeshcoreController mc, DiscoveredNode n, AppLocalizations l) async {
+    final bool ok = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext ctx) => AlertDialog(
+            title: Text(l.nodeDetailRemoveDeviceContact),
+            content: Text(l.nodeDetailRemoveDeviceContactConfirm(
+                n.name.isEmpty ? n.shortId : n.name)),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l.actionCancel)),
+              FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l.nodeDetailRemoveDeviceContact)),
+            ],
+          ),
+        ) ??
+        false;
+    if (!ok || !mounted) return;
+    await mc.removeDeviceContact(n.pubKeyHex);
+    if (!mounted) return;
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(
+        content: Text(l.nodeDetailRemoveDeviceContactDone),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   /// Manual key-change linking — the reliable path when auto-detect can't
   /// (e.g. the saved contact name differs from the new advert's name).
   /// Pick the node that is the same contact under a new key; data moves
@@ -586,6 +617,18 @@ class _NodeDetailSheetState extends State<NodeDetailSheet> {
                 icon: const Icon(Icons.link, size: 16),
                 label: Text(l.nodeIdentityLinkAction),
                 onPressed: () => _promptLinkKey(mc, n, l),
+              ),
+            // Remove from the radio's contact table — frees a slot (the
+            // table is finite; a full one blocks adding a re-homed key).
+            if (!widget.isSelf &&
+                n.pubKeyHex.length == 64 &&
+                mc.isSyncedContact(n.pubKeyHex))
+              TextButton.icon(
+                icon: Icon(Icons.person_remove_alt_1,
+                    size: 16, color: cs.error),
+                label: Text(l.nodeDetailRemoveDeviceContact,
+                    style: TextStyle(color: cs.error)),
+                onPressed: () => _removeDeviceContact(mc, n, l),
               ),
           ],
         ),

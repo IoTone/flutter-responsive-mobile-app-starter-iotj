@@ -40,6 +40,20 @@ import '../util/geo.dart' as geo;
 
 /// App-facing facade over [MeshcoreConnection], exposed via Provider.
 ///
+/// Human-readable reason for a `RESP_CODE_ERR` code (protocol spec
+/// `err_code`), so a silent failure like a full contact table surfaces as
+/// text instead of an opaque "0103".
+String deviceErrorReason(int? code) => switch (code) {
+      1 => 'unsupported command',
+      2 => 'not found',
+      3 => 'contact list full',
+      4 => 'bad state',
+      5 => 'storage I/O error',
+      6 => 'illegal argument',
+      null => 'unknown',
+      _ => 'code $code',
+    };
+
 /// The transport is obtained through [transportFactory]; the default
 /// scans/connects over BLE, but tests inject a fake transport so the
 /// whole controller path is `flutter test`-covered without hardware.
@@ -929,7 +943,14 @@ class MeshcoreController extends ChangeNotifier {
       }
       ev = MeshEvent(
           kind: MeshEventKind.deviceError,
-          args: <String, String>{'code': '${f.code ?? '?'}'});
+          args: <String, String>{
+            'code': '${f.code ?? '?'}',
+            'reason': deviceErrorReason(f.code),
+          });
+      // Surface notable errors to the UI (not just the activity feed) so
+      // the user understands a silent failure — most importantly a full
+      // contact table, which blocks adding a re-homed key.
+      if (f.code == 3) _emitTaskError('contactsFull');
     } else if (f is CurrentTimeFrame) {
       final int skew = _deviceClockOffsetSec.abs();
       ev = skew > 5
@@ -1563,14 +1584,19 @@ class MeshcoreController extends ChangeNotifier {
     }
 
     // The stale identity is dead — drop it so it stops cluttering the
-    // fabric and can't be messaged again. Remember it as superseded: the
-    // protocol has no delete-contact, so the radio will keep re-syncing
-    // the old contact; we prune it on every ingest from here on.
+    // fabric and can't be messaged again. Remember it as superseded so the
+    // re-synced old contact is pruned on every ingest from here on...
     _nodes.remove(fromPubKeyHex);
     _contacts.remove(fromPubKeyHex);
     _superseded.add(fromPubKeyHex);
     unawaited(SupersededStore.save(_superseded));
     notifyListeners();
+    // ...and actively REMOVE it from the radio's contact table, freeing the
+    // slot the dead key held (the table is finite — a full table is what
+    // makes adding the new key fail with ERR_CODE_TABLE_FULL).
+    if (isReady && fromPubKeyHex.length == kPubKeySize * 2) {
+      unawaited(removeDeviceContact(fromPubKeyHex));
+    }
   }
 
   /// Count of **inbound** DMs from this peer that arrived after the
@@ -2980,6 +3006,28 @@ class MeshcoreController extends ChangeNotifier {
     } catch (_) {
       _emitTaskError('addContact');
       return false;
+    }
+  }
+
+  /// Remove a contact from the **radio's** contact table
+  /// (`CMD_REMOVE_CONTACT`), freeing a slot. Used to retire a dead key
+  /// when re-homing a contact (the table is finite — `ERR_CODE_TABLE_FULL`
+  /// is what blocks adding the new key otherwise). Needs the full key.
+  Future<void> removeDeviceContact(String pubKeyHex) async {
+    if (!isReady) return;
+    final String hex = pubKeyHex.toLowerCase();
+    if (hex.length != kPubKeySize * 2) return;
+    if (!RegExp(r'^[0-9a-f]+$').hasMatch(hex)) return;
+    final Uint8List pub = Uint8List.fromList(<int>[
+      for (int i = 0; i < hex.length; i += 2)
+        int.parse(hex.substring(i, i + 2), radix: 16),
+    ]);
+    try {
+      await send(MeshcoreFrameCodec.removeContact(pub));
+      _contacts.remove(hex);
+      notifyListeners();
+    } catch (_) {
+      _emitTaskError('removeContact');
     }
   }
 

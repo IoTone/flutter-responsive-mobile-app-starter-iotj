@@ -2483,7 +2483,7 @@ abstract class AppLocalizations {
   /// No description provided for @nodeDetailAddDeviceContactDone.
   ///
   /// In en, this message translates to:
-  /// **'Added to your radio\'s contacts — DMs will route now.'**
+  /// **'Added to your radio\'s contacts — DMs will route now. If they still don\'t, your contact list may be full; remove an old contact and try again.'**
   String get nodeDetailAddDeviceContactDone;
 
   /// No description provided for @nodeDetailAddDeviceContactFailed.
@@ -2491,6 +2491,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t add the contact — check the link and try again.'**
   String get nodeDetailAddDeviceContactFailed;
+
+  /// No description provided for @nodeDetailRemoveDeviceContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from device contacts'**
+  String get nodeDetailRemoveDeviceContact;
+
+  /// No description provided for @nodeDetailRemoveDeviceContactConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove “{name}” from your radio\'s contact list? This frees a slot (the list is finite). You can re-add it later.'**
+  String nodeDetailRemoveDeviceContactConfirm(String name);
+
+  /// No description provided for @nodeDetailRemoveDeviceContactDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from your radio\'s contacts.'**
+  String get nodeDetailRemoveDeviceContactDone;
 
   /// No description provided for @nodeIdentityLinkConfirm.
   ///

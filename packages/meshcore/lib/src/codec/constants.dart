@@ -186,6 +186,10 @@ extension type const MeshcoreCommand(int code) {
   /// `CMD_ADD_UPDATE_CONTACT` — add/replace a contact (148-byte body).
   static const MeshcoreCommand addUpdateContact = MeshcoreCommand(0x09);
 
+  /// `CMD_REMOVE_CONTACT` — remove a contact by public key (frees a slot
+  /// in the radio's contact table).
+  static const MeshcoreCommand removeContact = MeshcoreCommand(0x0F);
+
   /// `CMD_GET_DEVICE_TIME` — source-only.
   static const MeshcoreCommand getDeviceTime = MeshcoreCommand(0x05);
 

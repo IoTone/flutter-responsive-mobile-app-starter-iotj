@@ -344,7 +344,8 @@ String _eventLine(AppLocalizations l, MeshEvent e) {
     MeshEventKind.dm => l.eventDm(a['text'] ?? ''),
     MeshEventKind.contact => l.eventContact(a['name'] ?? '?'),
     MeshEventKind.battery => l.eventBattery(a['volts'] ?? '?'),
-    MeshEventKind.deviceError => l.eventDeviceError(a['code'] ?? '?'),
+    MeshEventKind.deviceError =>
+      l.eventDeviceError(a['reason'] ?? a['code'] ?? '?'),
     MeshEventKind.deviceClockSynced => l.eventDeviceClockSynced,
     MeshEventKind.deviceClockSkew =>
       l.eventDeviceClockSkew(a['seconds'] ?? '?'),

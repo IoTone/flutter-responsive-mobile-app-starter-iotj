@@ -208,6 +208,23 @@ void main() {
     expect(mc.isSyncedContact(pk), isTrue);
   });
 
+  test('removeDeviceContact frees the slot (no longer a synced contact)',
+      () async {
+    final FakeMeshcoreTransport fake =
+        FakeMeshcoreTransport(connected: true);
+    final MeshcoreController mc = await ready(fake);
+    fake.emit(advertFrame(name: 'Hawkins', firstPubByte: 0xAA));
+    await Future<void>.delayed(Duration.zero);
+    final String pk = mc.nodes
+        .firstWhere((DiscoveredNode n) => n.pubKeyHex.startsWith('aa'))
+        .pubKeyHex;
+    await mc.addNodeAsDeviceContact(pk);
+    expect(mc.isSyncedContact(pk), isTrue);
+    await mc.removeDeviceContact(pk);
+    expect(mc.isSyncedContact(pk), isFalse);
+    mc.dispose();
+  });
+
   test('addNodeAsDeviceContact rejects a bare prefix (needs full key)',
       () async {
     final FakeMeshcoreTransport fake =

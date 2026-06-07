@@ -1416,11 +1416,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nodeDetailAddDeviceContactDone =>
-      'Added to your radio\'s contacts — DMs will route now.';
+      'Added to your radio\'s contacts — DMs will route now. If they still don\'t, your contact list may be full; remove an old contact and try again.';
 
   @override
   String get nodeDetailAddDeviceContactFailed =>
       'Couldn\'t add the contact — check the link and try again.';
+
+  @override
+  String get nodeDetailRemoveDeviceContact => 'Remove from device contacts';
+
+  @override
+  String nodeDetailRemoveDeviceContactConfirm(String name) {
+    return 'Remove “$name” from your radio\'s contact list? This frees a slot (the list is finite). You can re-add it later.';
+  }
+
+  @override
+  String get nodeDetailRemoveDeviceContactDone =>
+      'Removed from your radio\'s contacts.';
 
   @override
   String nodeIdentityLinkConfirm(String from, String to) {

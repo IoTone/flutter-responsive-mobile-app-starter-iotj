@@ -1353,11 +1353,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get nodeDetailAddDeviceContactDone =>
-      '無線機の連絡先に追加しました — DM が届くようになります。';
+      '無線機の連絡先に追加しました — DM が届くようになります。届かない場合は連絡先がいっぱいの可能性があります。古い連絡先を削除して再試行してください。';
 
   @override
   String get nodeDetailAddDeviceContactFailed =>
       '連絡先を追加できませんでした — リンクを確認して再試行してください。';
+
+  @override
+  String get nodeDetailRemoveDeviceContact => 'デバイスの連絡先から削除';
+
+  @override
+  String nodeDetailRemoveDeviceContactConfirm(String name) {
+    return '「$name」を無線機の連絡先から削除しますか？スロットが空きます（連絡先数には上限があります）。後で再追加できます。';
+  }
+
+  @override
+  String get nodeDetailRemoveDeviceContactDone => '無線機の連絡先から削除しました。';
 
   @override
   String nodeIdentityLinkConfirm(String from, String to) {
