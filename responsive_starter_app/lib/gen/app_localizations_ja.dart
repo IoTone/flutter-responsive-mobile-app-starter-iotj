@@ -1397,6 +1397,23 @@ class AppLocalizationsJa extends AppLocalizations {
       '連絡先がいっぱいです。新しい連絡先（再ホームしたキーなど）を追加できず、連絡先でない相手への DM は届きません。不要な項目を下で削除してください。';
 
   @override
+  String get deviceContactsChannelsNote =>
+      '連絡先が必要なのはダイレクトメッセージを送るときだけです。チャンネルのメッセージは連絡先がなくても機能し、全員がチャンネルに表示されます。';
+
+  @override
+  String get deviceContactsRemoveAll => 'すべて削除';
+
+  @override
+  String deviceContactsRemoveAllConfirm(int count) {
+    return '無線機の連絡先 $count 件をすべて削除しますか？チャンネルには連絡先は不要で、DM のときだけ必要です。後でメッセージしたい相手を再追加できます。';
+  }
+
+  @override
+  String deviceContactsRemoveAllDone(int count) {
+    return '無線機の連絡先を $count 件削除しました。';
+  }
+
+  @override
   String get deviceContactsFlood => 'フラッド';
 
   @override

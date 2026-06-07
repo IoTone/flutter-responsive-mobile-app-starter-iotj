@@ -2552,6 +2552,30 @@ abstract class AppLocalizations {
   /// **'The contact list is full. Adding a new contact (e.g. a re-homed key) fails until you remove some — DMs to a non-contact won\'t route. Delete entries you don\'t need below.'**
   String get deviceContactsFullHelp;
 
+  /// No description provided for @deviceContactsChannelsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'You only need a contact to send a direct message. Channel messages work without contacts — you\'ll still see everyone on channels.'**
+  String get deviceContactsChannelsNote;
+
+  /// No description provided for @deviceContactsRemoveAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all'**
+  String get deviceContactsRemoveAll;
+
+  /// No description provided for @deviceContactsRemoveAllConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all {count} contacts from the radio? You don\'t need contacts for channels — only to DM someone. Re-add anyone you want to message later.'**
+  String deviceContactsRemoveAllConfirm(int count);
+
+  /// No description provided for @deviceContactsRemoveAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed {count} contacts from the radio.'**
+  String deviceContactsRemoveAllDone(int count);
+
   /// No description provided for @deviceContactsFlood.
   ///
   /// In en, this message translates to:

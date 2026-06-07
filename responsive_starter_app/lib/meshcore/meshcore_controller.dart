@@ -3073,6 +3073,29 @@ class MeshcoreController extends ChangeNotifier {
     }
   }
 
+  /// Wipe the radio's ENTIRE contact table (one `CMD_REMOVE_CONTACT` per
+  /// entry). Channels don't need contacts, so this only affects DMs — the
+  /// user re-adds just the people they actually want to direct-message.
+  /// Returns the number removed. Re-probe afterwards to confirm.
+  Future<int> removeAllDeviceContacts() async {
+    if (!isReady) return 0;
+    final List<Contact> all = List<Contact>.of(_probedContacts);
+    int n = 0;
+    for (final Contact c in all) {
+      try {
+        await send(MeshcoreFrameCodec.removeContact(c.publicKey));
+        n++;
+      } catch (_) {
+        _emitTaskError('removeContact');
+      }
+    }
+    _contacts.clear();
+    _probedContacts.clear();
+    _deviceContactCount = 0;
+    notifyListeners();
+    return n;
+  }
+
   /// Grant/revoke this contact's permission to request each telemetry
   /// class from us (used by the "Contacts" telemetry mode). Preserves
   /// the favourite bit and any bits we don't manage. No-op if the node

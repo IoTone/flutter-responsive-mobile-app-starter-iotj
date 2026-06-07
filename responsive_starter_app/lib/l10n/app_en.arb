@@ -650,6 +650,16 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "deviceContactsFullHelp": "The contact list is full. Adding a new contact (e.g. a re-homed key) fails until you remove some — DMs to a non-contact won't route. Delete entries you don't need below.",
+  "deviceContactsChannelsNote": "You only need a contact to send a direct message. Channel messages work without contacts — you'll still see everyone on channels.",
+  "deviceContactsRemoveAll": "Remove all",
+  "deviceContactsRemoveAllConfirm": "Remove all {count} contacts from the radio? You don't need contacts for channels — only to DM someone. Re-add anyone you want to message later.",
+  "@deviceContactsRemoveAllConfirm": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "deviceContactsRemoveAllDone": "Removed {count} contacts from the radio.",
+  "@deviceContactsRemoveAllDone": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "deviceContactsFlood": "flood",
   "deviceContactsDirect": "direct",
   "deviceContactsHops": "{n} hops",

@@ -39,6 +39,35 @@ class _DeviceContactsScreenState extends State<DeviceContactsScreen> {
     return l.deviceContactsHops(c.outPathLen);
   }
 
+  Future<void> _removeAll(
+      MeshcoreController mc, int count, AppLocalizations l) async {
+    final bool ok = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext ctx) => AlertDialog(
+            title: Text(l.deviceContactsRemoveAll),
+            content: Text(l.deviceContactsRemoveAllConfirm(count)),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l.actionCancel)),
+              FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l.deviceContactsRemoveAll)),
+            ],
+          ),
+        ) ??
+        false;
+    if (!ok) return;
+    final int n = await mc.removeAllDeviceContacts();
+    if (!mounted) return;
+    setState(_removed.clear);
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(
+          content: Text(l.deviceContactsRemoveAllDone(n)),
+          duration: const Duration(seconds: 3)),
+    );
+  }
+
   Future<void> _remove(MeshcoreController mc, Contact c, String key,
       AppLocalizations l) async {
     final bool ok = await showDialog<bool>(
@@ -81,6 +110,13 @@ class _DeviceContactsScreenState extends State<DeviceContactsScreen> {
         title: Text(l.deviceContactsTitle),
         actions: <Widget>[
           IconButton(
+            tooltip: l.deviceContactsRemoveAll,
+            icon: const Icon(Icons.delete_sweep_outlined),
+            onPressed: (mc.isReady && contacts.isNotEmpty)
+                ? () => _removeAll(mc, contacts.length, l)
+                : null,
+          ),
+          IconButton(
             tooltip: l.deviceContactsRefresh,
             icon: const Icon(Icons.refresh),
             onPressed: mc.isReady
@@ -119,9 +155,15 @@ class _DeviceContactsScreenState extends State<DeviceContactsScreen> {
               ],
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: Text(l.deviceContactsChannelsNote,
+                style: TextStyle(
+                    color: cs.onSurfaceVariant, fontSize: 12, height: 1.35)),
+          ),
           if (full)
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
               child: Text(l.deviceContactsFullHelp,
                   style: TextStyle(color: cs.error, fontSize: 13, height: 1.4)),
             ),

@@ -1461,6 +1461,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'The contact list is full. Adding a new contact (e.g. a re-homed key) fails until you remove some — DMs to a non-contact won\'t route. Delete entries you don\'t need below.';
 
   @override
+  String get deviceContactsChannelsNote =>
+      'You only need a contact to send a direct message. Channel messages work without contacts — you\'ll still see everyone on channels.';
+
+  @override
+  String get deviceContactsRemoveAll => 'Remove all';
+
+  @override
+  String deviceContactsRemoveAllConfirm(int count) {
+    return 'Remove all $count contacts from the radio? You don\'t need contacts for channels — only to DM someone. Re-add anyone you want to message later.';
+  }
+
+  @override
+  String deviceContactsRemoveAllDone(int count) {
+    return 'Removed $count contacts from the radio.';
+  }
+
+  @override
   String get deviceContactsFlood => 'flood';
 
   @override
