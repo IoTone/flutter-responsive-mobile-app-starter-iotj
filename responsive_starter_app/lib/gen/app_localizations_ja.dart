@@ -509,6 +509,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nodesFilterClear => 'クリア';
 
   @override
+  String get nodesTagFilter => 'タグ';
+
+  @override
+  String nodesTagFilterN(int count) {
+    return 'タグ ($count)';
+  }
+
+  @override
   String nodesFilterLastSeen(String label) {
     return '最終受信 · $label';
   }

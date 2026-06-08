@@ -202,6 +202,11 @@
   "nodesFilterStarred": "お気に入り",
   "nodesFilterInRange": "範囲内",
   "nodesFilterClear": "クリア",
+  "nodesTagFilter": "タグ",
+  "nodesTagFilterN": "タグ ({count})",
+  "@nodesTagFilterN": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "nodesFilterLastSeen": "最終受信 · {label}",
   "@nodesFilterLastSeen": {
     "placeholders": {"label": {"type": "String"}}

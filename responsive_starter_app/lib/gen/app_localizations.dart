@@ -1028,6 +1028,18 @@ abstract class AppLocalizations {
   /// **'Clear'**
   String get nodesFilterClear;
 
+  /// No description provided for @nodesTagFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get nodesTagFilter;
+
+  /// No description provided for @nodesTagFilterN.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags ({count})'**
+  String nodesTagFilterN(int count);
+
   /// No description provided for @nodesFilterLastSeen.
   ///
   /// In en, this message translates to:

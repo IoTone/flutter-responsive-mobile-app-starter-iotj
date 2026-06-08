@@ -532,6 +532,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nodesFilterClear => 'Clear';
 
   @override
+  String get nodesTagFilter => 'Tags';
+
+  @override
+  String nodesTagFilterN(int count) {
+    return 'Tags ($count)';
+  }
+
+  @override
   String nodesFilterLastSeen(String label) {
     return 'Last seen · $label';
   }

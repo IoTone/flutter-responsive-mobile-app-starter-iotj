@@ -202,6 +202,11 @@
   "nodesFilterStarred": "Starred",
   "nodesFilterInRange": "In range",
   "nodesFilterClear": "Clear",
+  "nodesTagFilter": "Tags",
+  "nodesTagFilterN": "Tags ({count})",
+  "@nodesTagFilterN": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "nodesFilterLastSeen": "Last seen · {label}",
   "@nodesFilterLastSeen": {
     "placeholders": {"label": {"type": "String"}}

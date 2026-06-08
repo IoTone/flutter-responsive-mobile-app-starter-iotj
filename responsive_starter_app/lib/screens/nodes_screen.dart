@@ -36,6 +36,8 @@ class _NodesScreenState extends State<NodesScreen> {
   String _query = '';
   bool _starredOnly = false;
   bool _inRangeOnly = false;
+  // Tags the node must ALL carry to pass (AND). Empty = no tag filter.
+  final Set<String> _selectedTags = <String>{};
   // null = any; otherwise hide nodes whose lastHeard is older than this.
   Duration? _maxAge;
   // null = any; otherwise hide GPS-positioned nodes farther than this
@@ -60,12 +62,22 @@ class _NodesScreenState extends State<NodesScreen> {
 
   bool _passesFilters(
       DiscoveredNode n, MeshcoreController mc, Set<String> favs) {
+    final List<String> tags = mc.tagsFor(n.pubKeyHex);
     if (_query.isNotEmpty) {
       final String q = _query.toLowerCase();
       final bool nameHit = n.name.toLowerCase().contains(q);
       final bool idHit = n.shortId.toLowerCase().contains(q);
       final bool pkHit = n.pubKeyHex.toLowerCase().contains(q);
-      if (!nameHit && !idHit && !pkHit) return false;
+      final bool tagHit =
+          tags.any((String t) => t.toLowerCase().contains(q));
+      if (!nameHit && !idHit && !pkHit && !tagHit) return false;
+    }
+    if (_selectedTags.isNotEmpty) {
+      final Set<String> lower =
+          tags.map((String t) => t.toLowerCase()).toSet();
+      for (final String want in _selectedTags) {
+        if (!lower.contains(want.toLowerCase())) return false;
+      }
     }
     if (_starredOnly && !favs.contains(n.pubKeyHex)) return false;
     if (_inRangeOnly) {
@@ -107,8 +119,59 @@ class _NodesScreenState extends State<NodesScreen> {
       _query.isNotEmpty ||
       _starredOnly ||
       _inRangeOnly ||
+      _selectedTags.isNotEmpty ||
       _maxAge != null ||
       _maxDistanceMeters != null;
+
+  /// A bottom sheet of every tag in use; tap to toggle it in the filter.
+  Future<void> _pickTags(MeshcoreController mc, AppLocalizations l) async {
+    final List<String> all = mc.allTags;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (BuildContext _) => StatefulBuilder(
+        builder: (BuildContext _, void Function(void Function()) setSheet) {
+          return SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(l.nodesTagFilter,
+                      style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: <Widget>[
+                      for (final String t in all)
+                        FilterChip(
+                          avatar: const Icon(Icons.label_outline, size: 16),
+                          label: Text(t),
+                          selected: _selectedTags.contains(t),
+                          onSelected: (bool sel) {
+                            setSheet(() {});
+                            setState(() {
+                              if (sel) {
+                                _selectedTags.add(t);
+                              } else {
+                                _selectedTags.remove(t);
+                              }
+                            });
+                          },
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   Future<void> _showDetail(MeshcoreController mc, DiscoveredNode n) async {
     await showModalBottomSheet<void>(
@@ -139,6 +202,7 @@ class _NodesScreenState extends State<NodesScreen> {
       _query = '';
       _starredOnly = false;
       _inRangeOnly = false;
+      _selectedTags.clear();
       _maxAge = null;
       _maxDistanceMeters = null;
     });
@@ -373,6 +437,30 @@ class _NodesScreenState extends State<NodesScreen> {
                   },
                 ),
               ),
+              // Tag filter — pick from the tags in use; a node must carry
+              // every selected tag (AND).
+              if (mc.allTags.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: ActionChip(
+                    avatar: Icon(Icons.label_outline,
+                        size: 16,
+                        color: _selectedTags.isNotEmpty ? cs.primary : null),
+                    label: Text(_selectedTags.isEmpty
+                        ? l.nodesTagFilter
+                        : l.nodesTagFilterN(_selectedTags.length)),
+                    onPressed: () => _pickTags(mc, l),
+                  ),
+                ),
+              for (final String t in _selectedTags)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: InputChip(
+                    avatar: const Icon(Icons.label, size: 16),
+                    label: Text(t),
+                    onDeleted: () => setState(() => _selectedTags.remove(t)),
+                  ),
+                ),
               if (_anyFilterActive)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
