@@ -1885,13 +1885,44 @@ class MeshcoreController extends ChangeNotifier {
   }
 
   /// Per-place microclimates mined from [channelIdx]'s recent located
-  /// weather chatter (P2). Empty until located weather is seen this session.
+  /// weather chatter (P2). Empty until located weather is seen this
+  /// session. P3 — each place is cross-referenced against real sensor
+  /// telemetry: when a node *at* that place reports an environment temp,
+  /// it's preferred and the bubble is flagged `measured`.
   List<Microclimate> microclimatesFor(int channelIdx) {
     final List<WxObservation>? list = _wxLocated[channelIdx];
     if (list == null || list.isEmpty) return const <Microclimate>[];
     final DateTime cutoff = DateTime.now().subtract(_wxWindow);
-    return aggregateMicroclimates(
+    final List<Microclimate> base = aggregateMicroclimates(
         list.where((WxObservation o) => o.at.isAfter(cutoff)));
+    return <Microclimate>[
+      for (final Microclimate m in base)
+        () {
+          final double? t = _measuredTempNear(m.lat, m.lon);
+          return t == null ? m : m.withMeasured(t);
+        }()
+    ];
+  }
+
+  /// Nearest sensor-reported temperature (°C) to ([lat],[lon]) within
+  /// ~5 km, or null. Bridges to the (otherwise shelved) environment
+  /// telemetry path without depending on it.
+  double? _measuredTempNear(double lat, double lon) {
+    const double maxMeters = 5000;
+    double? best;
+    double bestDist = maxMeters;
+    for (final DiscoveredNode n in _nodes.values) {
+      if (!n.hasLocation) continue;
+      final NodeTelemetry? t = telemetryFor(n.pubKeyHex);
+      if (t == null || !t.hasEnvironment || t.temperatureC == null) continue;
+      final double d =
+          geo.haversineMeters(lat, lon, n.latitude!, n.longitude!);
+      if (d < bestDist) {
+        bestDist = d;
+        best = t.temperatureC;
+      }
+    }
+    return best;
   }
 
   void _trackMessageHeat(MeshcoreInbound f) {

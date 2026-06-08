@@ -1573,6 +1573,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get wxMicroclimateNearby => '近く';
 
   @override
+  String get wxMeasured => '実測';
+
+  @override
   String get wxAmbientEmpty => 'このチャンネルにはまだ天気の話題がありません。';
 
   @override

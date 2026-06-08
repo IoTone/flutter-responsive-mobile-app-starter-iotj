@@ -729,6 +729,7 @@
   "wxMicroclimateTitle": "MICROCLIMATE",
   "wxMicroclimatesHeader": "MICROCLIMATES (by place)",
   "wxMicroclimateNearby": "nearby",
+  "wxMeasured": "measured",
   "wxAmbientEmpty": "No weather chatter on this channel yet.",
   "wxMentions": "{count} mentions · last {hours}h",
   "@wxMentions": {

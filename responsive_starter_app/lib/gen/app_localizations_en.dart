@@ -1638,6 +1638,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wxMicroclimateNearby => 'nearby';
 
   @override
+  String get wxMeasured => 'measured';
+
+  @override
   String get wxAmbientEmpty => 'No weather chatter on this channel yet.';
 
   @override

@@ -157,5 +157,36 @@ void main() {
           ]),
           isEmpty);
     });
+
+    test('withMeasured flags + prefers the sensor reading (P3)', () {
+      final Microclimate m = Microclimate(
+        lat: 1,
+        lon: 2,
+        placeName: 'X',
+        dominant: WxCondition.rain,
+        tempMinC: 18,
+        tempAvgC: 19,
+        tempMaxC: 20,
+        mentions: 3,
+        lastSeen: t0,
+      );
+      expect(m.measured, isFalse);
+      final Microclimate mm = m.withMeasured(21.4);
+      expect(mm.measured, isTrue);
+      expect(mm.measuredTempC, closeTo(21.4, 0.01));
+      expect(mm.hasTemp, isTrue);
+      // a place with only a measured temp (no text temp) still reads.
+      final Microclimate noText = Microclimate(
+          lat: 1,
+          lon: 2,
+          placeName: 'Y',
+          dominant: WxCondition.clear,
+          tempMinC: null,
+          tempAvgC: null,
+          tempMaxC: null,
+          mentions: 1,
+          lastSeen: t0);
+      expect(noText.withMeasured(30).hasTemp, isTrue);
+    });
   });
 }

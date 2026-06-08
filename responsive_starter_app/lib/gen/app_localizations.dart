@@ -2864,6 +2864,12 @@ abstract class AppLocalizations {
   /// **'nearby'**
   String get wxMicroclimateNearby;
 
+  /// No description provided for @wxMeasured.
+  ///
+  /// In en, this message translates to:
+  /// **'measured'**
+  String get wxMeasured;
+
   /// No description provided for @wxAmbientEmpty.
   ///
   /// In en, this message translates to:

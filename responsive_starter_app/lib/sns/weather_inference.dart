@@ -71,6 +71,7 @@ class Microclimate {
     required this.tempMaxC,
     required this.mentions,
     required this.lastSeen,
+    this.measuredTempC,
   });
 
   final double lat;
@@ -83,7 +84,27 @@ class Microclimate {
   final int mentions;
   final DateTime lastSeen;
 
-  bool get hasTemp => tempAvgC != null;
+  /// P3 — a real sensor reading from a node *at* this place, when one
+  /// reports environment telemetry. Preferred over the text-mined temp.
+  final double? measuredTempC;
+
+  bool get hasTemp => tempAvgC != null || measuredTempC != null;
+
+  /// True when a node here actually measured the temperature (vs text).
+  bool get measured => measuredTempC != null;
+
+  Microclimate withMeasured(double tempC) => Microclimate(
+        lat: lat,
+        lon: lon,
+        placeName: placeName,
+        dominant: dominant,
+        tempMinC: tempMinC,
+        tempAvgC: tempAvgC,
+        tempMaxC: tempMaxC,
+        mentions: mentions,
+        lastSeen: lastSeen,
+        measuredTempC: tempC,
+      );
 }
 
 /// A channel-wide rollup over a time window — what P1 renders as the

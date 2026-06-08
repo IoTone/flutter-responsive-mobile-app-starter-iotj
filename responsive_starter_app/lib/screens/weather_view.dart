@@ -537,7 +537,10 @@ class _MicroclimateBubble extends StatelessWidget {
   }
 
   String? _temp() {
-    if (!climate.hasTemp) return null;
+    if (climate.measuredTempC != null) {
+      return '${climate.measuredTempC!.round()}°C';
+    }
+    if (climate.tempAvgC == null) return null;
     final int lo = climate.tempMinC!.round();
     final int hi = climate.tempMaxC!.round();
     return lo == hi ? '$lo°C' : '$lo–$hi°C';
@@ -572,10 +575,12 @@ class _MicroclimateBubble extends StatelessWidget {
                   <String>[
                     if (climate.dominant != null)
                       wxConditionLabel(climate.dominant!, l),
-                    if (t != null) t,
+                    if (t != null) climate.measured ? '$t ✓${l.wxMeasured}' : t,
                     '×${climate.mentions}',
                   ].join(' · '),
-                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 11)),
+                  style: TextStyle(
+                      color: climate.measured ? cs.tertiary : cs.onSurfaceVariant,
+                      fontSize: 11)),
             ],
           ),
         ],
