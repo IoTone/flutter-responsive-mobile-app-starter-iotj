@@ -2876,6 +2876,12 @@ abstract class AppLocalizations {
   /// **'TOP VOICES'**
   String get meshbookTopVoices;
 
+  /// No description provided for @meshbookTopics.
+  ///
+  /// In en, this message translates to:
+  /// **'TOPICS'**
+  String get meshbookTopics;
+
   /// No description provided for @meshbookStats.
   ///
   /// In en, this message translates to:

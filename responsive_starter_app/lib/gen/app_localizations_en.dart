@@ -1644,6 +1644,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get meshbookTopVoices => 'TOP VOICES';
 
   @override
+  String get meshbookTopics => 'TOPICS';
+
+  @override
   String meshbookStats(int total, int replies, int pct, int voices) {
     return '$total msgs · $replies replies ($pct%) · $voices voices';
   }

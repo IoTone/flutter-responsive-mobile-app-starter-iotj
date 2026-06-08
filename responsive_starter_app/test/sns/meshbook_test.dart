@@ -69,6 +69,31 @@ void main() {
     expect(d.voices, 0);
   });
 
+  test('topics: recurring terms, minus stopwords / names / hapax', () {
+    final List<ChatMessage> msgs = <ChatMessage>[
+      cm('Kanako.1: ferry to bainbridge is delayed', 9),
+      cm('Davi1: ferry running late again', 9),
+      cm('Kanako.1: > ferry late\n\nthe ferry terminal is packed', 10),
+      cm('Davi1: anyone at the meetup tonight', 11),
+      cm('Kanako.1: heading to the meetup now', 11),
+    ];
+    final MbkDay d =
+        MbkEngine.analyse(msgs, channelIdx: 0, dayStart: day, now: end);
+    final Map<String, int> topics = <String, int>{
+      for (final MbkTopic t in d.topics) t.term: t.count,
+    };
+    // "ferry" appears in 3 messages (quote line excluded) → top topic.
+    expect(topics['ferry'], 3);
+    expect(topics['meetup'], 2);
+    // stopwords + sender-name tokens are excluded.
+    expect(topics.containsKey('the'), isFalse);
+    expect(topics.containsKey('kanako'), isFalse);
+    // hapax (mentioned once) excluded.
+    expect(topics.containsKey('bainbridge'), isFalse);
+    // strongest first
+    expect(d.topics.first.term, 'ferry');
+  });
+
   test('topN caps the leaderboard', () {
     final List<ChatMessage> msgs = <ChatMessage>[
       for (int i = 0; i < 15; i++) cm('user$i: hi', 12),

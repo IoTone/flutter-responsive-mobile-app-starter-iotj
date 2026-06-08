@@ -78,6 +78,33 @@ class MeshbookView extends StatelessWidget {
                 maxCount: day.top.first.count,
                 cs: cs,
                 l: l),
+          if (day.topics.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 18),
+            Text(l.meshbookTopics,
+                style: TextStyle(
+                    color: cs.onSurfaceVariant,
+                    fontSize: 11,
+                    letterSpacing: 2)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                for (final MbkTopic t in day.topics)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainerHighest.withValues(alpha: .5),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text('${t.term} ·${t.count}',
+                        style: TextStyle(
+                            color: cs.onSurface, fontSize: 13)),
+                  ),
+              ],
+            ),
+          ],
         ],
       ],
     );

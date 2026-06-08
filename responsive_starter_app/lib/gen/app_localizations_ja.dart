@@ -1579,6 +1579,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get meshbookTopVoices => 'トップ発言者';
 
   @override
+  String get meshbookTopics => 'トピック';
+
+  @override
   String meshbookStats(int total, int replies, int pct, int voices) {
     return '$total 件 · 返信 $replies 件（$pct%）· $voices 人';
   }

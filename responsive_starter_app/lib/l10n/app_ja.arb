@@ -731,6 +731,7 @@
   "meshbookEmpty": "このチャンネルには今日のメッセージがありません。",
   "meshbookByHour": "時間帯別",
   "meshbookTopVoices": "トップ発言者",
+  "meshbookTopics": "トピック",
   "meshbookStats": "{total} 件 · 返信 {replies} 件（{pct}%）· {voices} 人",
   "@meshbookStats": {
     "placeholders": {

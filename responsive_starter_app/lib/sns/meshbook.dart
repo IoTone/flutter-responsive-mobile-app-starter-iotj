@@ -23,6 +23,13 @@ class MbkSender {
   final List<int> perHour;
 }
 
+/// A recurring term and how many of the day's messages used it (P2).
+class MbkTopic {
+  const MbkTopic(this.term, this.count);
+  final String term;
+  final int count;
+}
+
 class MbkDay {
   MbkDay({
     required this.channelIdx,
@@ -32,6 +39,7 @@ class MbkDay {
     required this.total,
     required this.replies,
     required this.voices,
+    required this.topics,
     required this.computedAt,
   });
 
@@ -51,6 +59,9 @@ class MbkDay {
 
   /// Distinct named senders seen today.
   final int voices;
+
+  /// Recurring terms in the day's messages, strongest first (P2).
+  final List<MbkTopic> topics;
   final DateTime computedAt;
 
   double get replyFraction => total == 0 ? 0 : replies / total;
@@ -79,6 +90,7 @@ abstract final class MbkEngine {
     final DateTime end = now ?? DateTime.now();
     final List<int> hourly = List<int>.filled(24, 0);
     final Map<String, MbkSender> byName = <String, MbkSender>{};
+    final Map<String, int> terms = <String, int>{};
     int total = 0;
     int replies = 0;
 
@@ -94,6 +106,13 @@ abstract final class MbkEngine {
       final String body = _bodyOf(m.text);
       final bool isReply = body.trimLeft().startsWith('>');
       if (isReply) replies++;
+
+      // Topic terms — once per message (a word repeated in one message
+      // counts once, so "topics" reflect how many *people/messages*
+      // mentioned it, not raw word counts).
+      for (final String t in _topicTokens(body)) {
+        terms[t] = (terms[t] ?? 0) + 1;
+      }
 
       if (name != null) {
         final MbkSender s =
@@ -111,6 +130,23 @@ abstract final class MbkEngine {
         return c != 0 ? c : a.name.compareTo(b.name);
       });
 
+    // Topics: recurring terms, minus the day's voice handles (people
+    // aren't topics) and anything mentioned only once.
+    final Set<String> nameTokens = <String>{};
+    for (final String n in byName.keys) {
+      for (final String t in _tokenize(n)) {
+        nameTokens.add(t);
+      }
+    }
+    final List<MbkTopic> topics = <MbkTopic>[
+      for (final MapEntry<String, int> e in terms.entries)
+        if (e.value >= 2 && !nameTokens.contains(e.key))
+          MbkTopic(e.key, e.value),
+    ]..sort((MbkTopic a, MbkTopic b) {
+        final int c = b.count.compareTo(a.count);
+        return c != 0 ? c : a.term.compareTo(b.term);
+      });
+
     return MbkDay(
       channelIdx: channelIdx,
       dayStart: dayStart,
@@ -119,9 +155,54 @@ abstract final class MbkEngine {
       total: total,
       replies: replies,
       voices: byName.length,
+      topics: topics.take(8).toList(growable: false),
       computedAt: end,
     );
   }
+
+  /// Tokens from a message body for topic counting: strips reply-quote
+  /// lines (`> …`), lowercases, splits on non-letters/digits, drops
+  /// stopwords / short tokens / pure numbers. De-duped per message.
+  static Set<String> _topicTokens(String body) {
+    final StringBuffer kept = StringBuffer();
+    for (final String line in body.split('\n')) {
+      if (line.trimLeft().startsWith('>')) continue; // quoted text
+      kept
+        ..write(line)
+        ..write(' ');
+    }
+    return <String>{
+      for (final String t in _tokenize(kept.toString()))
+        if (t.length >= 3 &&
+            !_stopwords.contains(t) &&
+            !RegExp(r'^\d+$').hasMatch(t))
+          t
+    };
+  }
+
+  static List<String> _tokenize(String s) => s
+      .toLowerCase()
+      .split(RegExp(r"[^a-z0-9À-ɏ぀-ヿ一-鿿]+"))
+      .where((String t) => t.isNotEmpty)
+      .toList(growable: false);
+
+  static const Set<String> _stopwords = <String>{
+    'the', 'and', 'for', 'are', 'was', 'were', 'been', 'being', 'this',
+    'that', 'these', 'those', 'with', 'from', 'have', 'has', 'had', 'not',
+    'you', 'your', 'youre', 'yours', 'they', 'them', 'their', 'theyre',
+    'she', 'him', 'her', 'his', 'hers', 'our', 'ours', 'its', 'who', 'whom',
+    'what', 'when', 'where', 'which', 'how', 'why', 'all', 'any', 'some',
+    'can', 'cant', 'cannot', 'will', 'wont', 'would', 'could', 'should',
+    'shouldnt', 'does', 'doesnt', 'did', 'didnt', 'dont', 'get', 'got',
+    'getting', 'going', 'gonna', 'wanna', 'like', 'just', 'now', 'here',
+    'there', 'then', 'than', 'too', 'very', 'about', 'out', 'over', 'into',
+    'onto', 'off', 'down', 'back', 'still', 'also', 'much', 'many', 'more',
+    'most', 'lot', 'lots', 'yeah', 'yep', 'nope', 'okay', 'lol', 'haha',
+    'hey', 'hello', 'thanks', 'thx', 'please', 'pls', 'http', 'https',
+    'www', 'com', 'one', 'two', 'see', 'good', 'well', 'sure',
+    'know', 'think', 'need', 'want', 'make', 'made', 'time', 'today',
+    'tonight', 'morning', 'afternoon', 'evening', 'guys', 'everyone',
+  };
 
   /// The message body with the `name: ` prefix stripped (so reply
   /// detection isn't fooled by the sender's name).

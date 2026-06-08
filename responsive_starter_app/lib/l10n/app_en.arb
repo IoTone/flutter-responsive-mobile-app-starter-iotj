@@ -731,6 +731,7 @@
   "meshbookEmpty": "No messages on this channel today.",
   "meshbookByHour": "BY HOUR",
   "meshbookTopVoices": "TOP VOICES",
+  "meshbookTopics": "TOPICS",
   "meshbookStats": "{total} msgs · {replies} replies ({pct}%) · {voices} voices",
   "@meshbookStats": {
     "placeholders": {
