@@ -9,6 +9,7 @@ import '../l10n/locale_controller.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../perms/first_run_controller.dart';
 import '../perms/permissions_service.dart';
+import '../ui/mm_scaffold.dart';
 import '../tts/tts_controller.dart';
 
 /// General app settings (R3/R4/R5/R21). Connection, language, TTS,
@@ -125,7 +126,8 @@ class AppSettingsScreen extends StatelessWidget {
     final AppLocalizations l = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(l.settingsHeading)),
-      body: ListView(
+      body: MmScaffold(
+        child: ListView(
         children: <Widget>[
           ListTile(
             title: Text(l.settingsConnection),
@@ -259,6 +261,7 @@ class AppSettingsScreen extends StatelessWidget {
             onTap: () {},
           ),
         ],
+      ),
       ),
     );
   }

@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import '../gen/app_localizations.dart';
 import '../theme/mm_tokens.dart';
 import '../theme/theme_controller.dart';
+import '../ui/mm_components.dart';
+import '../ui/mm_scaffold.dart';
 
 /// Profile & personalization (R14): live preset / font / accessibility
 /// picker. The chosen design concept is the default theme; all six
@@ -19,7 +21,8 @@ class PersonalizationScreen extends StatelessWidget {
     final AppLocalizations l = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(l.personalizationHeading)),
-      body: ListView(
+      body: MmScaffold(
+        child: ListView(
           children: <Widget>[
             _Section(l.personalizationThemePreset),
             // When High contrast is ON, the rendered theme is forced
@@ -129,6 +132,7 @@ class PersonalizationScreen extends StatelessWidget {
           ),
           ],
         ),
+      ),
     );
   }
 }
@@ -138,15 +142,10 @@ class _Section extends StatelessWidget {
   final String text;
   @override
   Widget build(BuildContext context) => Padding(
+        // Skin-driven section header — tracked caps, and hazard stripes /
+        // chamfer brackets on the loud themes (NERV), calm on SEELE.
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: 11,
-            letterSpacing: 2,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
+        child: MmSectionHeader(text),
       );
 }
 
