@@ -35,6 +35,8 @@ import 'reconnect_policy.dart';
 import '../perms/location_service.dart';
 import '../sns/city_gazetteer.dart';
 import '../sns/inferred_place_store.dart';
+import '../sns/meshbook.dart';
+import '../sns/meshbook_store.dart';
 import '../sns/place_inference.dart';
 import '../sns/weather_inference.dart';
 import '../util/geo.dart' as geo;
@@ -180,6 +182,7 @@ class MeshcoreController extends ChangeNotifier {
       if (_capture.length > _captureCap) _capture.removeAt(0);
     });
     _loadChatHistory();
+    unawaited(_meshbook.load().then((_) => notifyListeners()));
     _loadBackgroundPref();
     _loadDefaultChannel();
     _loadFavorites();
@@ -1204,6 +1207,8 @@ class MeshcoreController extends ChangeNotifier {
       _invalidateMessagesCache(m.channelIdx);
     }
     _persistChat();
+    // Feed the Meshbook accumulator (channel messages only; idempotent).
+    if (m.channelIdx >= 0 && _meshbook.ingest(m)) _saveMeshbookSoon();
   }
 
   // --- Outgoing delivery tracking (QoL: per-message status glyph) ---
@@ -1902,6 +1907,39 @@ class MeshcoreController extends ChangeNotifier {
           return t == null ? m : m.withMeasured(t);
         }()
     ];
+  }
+
+  // --- Meshbook (MBk P3): persisted per-channel daily analysis --------
+  final MeshbookStore _meshbook = MeshbookStore();
+  Timer? _meshbookSaveTimer;
+
+  void _saveMeshbookSoon() {
+    _meshbookSaveTimer?.cancel();
+    _meshbookSaveTimer =
+        Timer(const Duration(seconds: 3), () => unawaited(_meshbook.save()));
+  }
+
+  /// Today's channel-activity analysis for [channelIdx] — top voices,
+  /// hourly volume, reply rate, topics. Backed by [MeshbookStore] (per
+  /// channel, persisted, daily-reset); seeds once from history then
+  /// accumulates live.
+  MbkDay meshbookFor(int channelIdx) {
+    _meshbook.seed(channelIdx, messagesFor(channelIdx));
+    return _meshbook.build(channelIdx);
+  }
+
+  bool meshbookHasData(int channelIdx) =>
+      _meshbook.channelHasData(channelIdx);
+
+  /// Clear stored Meshbook data — one channel, or all when null.
+  Future<void> clearMeshbook({int? channelIdx}) async {
+    if (channelIdx == null) {
+      _meshbook.clearAll();
+    } else {
+      _meshbook.clearChannel(channelIdx);
+    }
+    await _meshbook.save();
+    notifyListeners();
   }
 
   /// Nearest sensor-reported temperature (°C) to ([lat],[lon]) within
@@ -3494,6 +3532,7 @@ class MeshcoreController extends ChangeNotifier {
     _selfInfoTimer?.cancel();
     _battHistorySaveTimer?.cancel();
     _telemPollTimer?.cancel();
+    _meshbookSaveTimer?.cancel();
     for (final Timer t in _deliveryTimers.values) {
       t.cancel();
     }

@@ -732,6 +732,11 @@
   "meshbookByHour": "BY HOUR",
   "meshbookTopVoices": "TOP VOICES",
   "meshbookTopics": "TOPICS",
+  "meshbookClear": "Clear",
+  "meshbookClearConfirm": "Clear today's Meshbook data for CH{channel}? It rebuilds as new channel messages arrive. (Each channel is stored separately.)",
+  "@meshbookClearConfirm": {
+    "placeholders": { "channel": { "type": "String" } }
+  },
   "meshbookStats": "{total} msgs · {replies} replies ({pct}%) · {voices} voices",
   "@meshbookStats": {
     "placeholders": {

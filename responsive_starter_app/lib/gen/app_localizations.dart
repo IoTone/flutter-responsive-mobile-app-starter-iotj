@@ -2882,6 +2882,18 @@ abstract class AppLocalizations {
   /// **'TOPICS'**
   String get meshbookTopics;
 
+  /// No description provided for @meshbookClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get meshbookClear;
+
+  /// No description provided for @meshbookClearConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear today\'s Meshbook data for CH{channel}? It rebuilds as new channel messages arrive. (Each channel is stored separately.)'**
+  String meshbookClearConfirm(String channel);
+
   /// No description provided for @meshbookStats.
   ///
   /// In en, this message translates to:

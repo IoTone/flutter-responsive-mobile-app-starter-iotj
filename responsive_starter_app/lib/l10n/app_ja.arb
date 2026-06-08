@@ -732,6 +732,11 @@
   "meshbookByHour": "時間帯別",
   "meshbookTopVoices": "トップ発言者",
   "meshbookTopics": "トピック",
+  "meshbookClear": "クリア",
+  "meshbookClearConfirm": "CH{channel} の今日のメッシュブックデータをクリアしますか？新しいチャンネルメッセージが届くと再構築されます。（チャンネルごとに別々に保存されます。）",
+  "@meshbookClearConfirm": {
+    "placeholders": { "channel": { "type": "String" } }
+  },
   "meshbookStats": "{total} 件 · 返信 {replies} 件（{pct}%）· {voices} 人",
   "@meshbookStats": {
     "placeholders": {

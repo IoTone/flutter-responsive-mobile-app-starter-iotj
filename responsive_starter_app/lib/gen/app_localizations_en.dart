@@ -1647,6 +1647,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get meshbookTopics => 'TOPICS';
 
   @override
+  String get meshbookClear => 'Clear';
+
+  @override
+  String meshbookClearConfirm(String channel) {
+    return 'Clear today\'s Meshbook data for CH$channel? It rebuilds as new channel messages arrive. (Each channel is stored separately.)';
+  }
+
+  @override
   String meshbookStats(int total, int replies, int pct, int voices) {
     return '$total msgs · $replies replies ($pct%) · $voices voices';
   }

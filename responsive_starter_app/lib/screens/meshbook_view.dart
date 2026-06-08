@@ -14,6 +14,28 @@ import '../sns/meshbook.dart';
 class MeshbookView extends StatelessWidget {
   const MeshbookView({super.key});
 
+  Future<void> _confirmClear(
+      BuildContext context, MeshcoreController mc, int ch,
+      AppLocalizations l) async {
+    final bool ok = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext ctx) => AlertDialog(
+            title: Text(l.meshbookClear),
+            content: Text(l.meshbookClearConfirm('$ch')),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l.actionCancel)),
+              FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l.meshbookClear)),
+            ],
+          ),
+        ) ??
+        false;
+    if (ok) await mc.clearMeshbook(channelIdx: ch);
+  }
+
   @override
   Widget build(BuildContext context) {
     final MeshcoreController mc = context.watch<MeshcoreController>();
@@ -22,13 +44,9 @@ class MeshbookView extends StatelessWidget {
 
     final int ch = mc.activeChannel;
     final DateTime now = DateTime.now();
-    final DateTime dayStart = DateTime(now.year, now.month, now.day);
-    final MbkDay day = MbkEngine.analyse(
-      mc.messagesFor(ch),
-      channelIdx: ch,
-      dayStart: dayStart,
-      now: now,
-    );
+    // Persisted, per-channel, daily store (P3) — seeds from history once,
+    // then accumulates live and survives restarts.
+    final MbkDay day = mc.meshbookFor(ch);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 24),
@@ -37,12 +55,22 @@ class MeshbookView extends StatelessWidget {
           children: <Widget>[
             Icon(Icons.menu_book_outlined, size: 16, color: cs.primary),
             const SizedBox(width: 6),
-            Text('${l.meshbookTitle} · CH$ch · ${l.meshbookToday}',
-                style: TextStyle(
-                    color: cs.primary,
-                    fontSize: 12,
-                    letterSpacing: 2,
-                    fontWeight: FontWeight.w600)),
+            Expanded(
+              child: Text('${l.meshbookTitle} · CH$ch · ${l.meshbookToday}',
+                  style: TextStyle(
+                      color: cs.primary,
+                      fontSize: 12,
+                      letterSpacing: 2,
+                      fontWeight: FontWeight.w600)),
+            ),
+            if (!day.isEmpty)
+              IconButton(
+                tooltip: l.meshbookClear,
+                visualDensity: VisualDensity.compact,
+                icon: Icon(Icons.delete_outline,
+                    size: 18, color: cs.onSurfaceVariant),
+                onPressed: () => _confirmClear(context, mc, ch, l),
+              ),
           ],
         ),
         const SizedBox(height: 10),
