@@ -127,6 +127,70 @@ class _AgHudDashboardState extends State<AgHudDashboard>
           ),
           const SizedBox(height: 12),
           _RadioStrip(model: m, skin: skin),
+          const SizedBox(height: 12),
+          _FeedPanel(model: m, skin: skin, l: l),
+        ],
+      ),
+    );
+  }
+}
+
+/// Recent-activity feed — fills the cockpit's lower deck with the mesh
+/// event ticker (links, messages, discoveries) in the livery style.
+class _FeedPanel extends StatelessWidget {
+  const _FeedPanel(
+      {required this.model, required this.skin, required this.l});
+  final DashboardModel model;
+  final MmSkin skin;
+  final AppLocalizations l;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextStyle mono = TextStyle(
+        fontFamily: skin.type.monoFamily, color: skin.color.fg, fontSize: 12);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      decoration: BoxDecoration(
+        color: skin.color.surface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(l.dashNervEvents.toUpperCase(),
+              style: TextStyle(
+                  color: skin.color.accent,
+                  fontSize: 11,
+                  letterSpacing: 2.5,
+                  fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          if (model.events.isEmpty)
+            Text(l.dashboardNoActivity,
+                style: mono.copyWith(color: skin.color.fgMuted))
+          else
+            for (final ({String time, String text}) e
+                in model.events.take(8))
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Container(
+                      margin: const EdgeInsets.only(top: 5, right: 8),
+                      width: 5,
+                      height: 5,
+                      decoration: BoxDecoration(
+                          color: skin.color.accent, shape: BoxShape.circle),
+                    ),
+                    Text(e.time,
+                        style: mono.copyWith(
+                            color: skin.color.fgMuted, fontSize: 11)),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(e.text, style: mono)),
+                  ],
+                ),
+              ),
         ],
       ),
     );

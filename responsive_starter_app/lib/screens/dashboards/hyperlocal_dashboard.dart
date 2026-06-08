@@ -157,6 +157,8 @@ class _HyperlocalDashboardState extends State<HyperlocalDashboard>
               ),
             ),
           ),
+          if (m.events.isNotEmpty)
+            _ActivityTicker(model: m, skin: skin),
           _StatusRail(model: m, mc: mc, skin: skin, l: l),
         ],
       ),
@@ -569,6 +571,42 @@ class _TopBar extends StatelessWidget {
                 size: 20,
                 color: model.alert ? skin.color.alert : skin.color.accent),
             onPressed: () => DeviceManagerSheet.show(context),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A one-line "most recent activity" ticker above the status rail — fills
+/// the quiet-field space below the radar with the latest mesh event.
+class _ActivityTicker extends StatelessWidget {
+  const _ActivityTicker({required this.model, required this.skin});
+  final DashboardModel model;
+  final MmSkin skin;
+
+  @override
+  Widget build(BuildContext context) {
+    final ({String time, String text}) e = model.events.first;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+      child: Row(
+        children: <Widget>[
+          Icon(Icons.bolt, size: 13, color: skin.color.accent),
+          const SizedBox(width: 6),
+          Text(e.time,
+              style: TextStyle(
+                  color: skin.color.fgMuted,
+                  fontFamily: skin.type.monoFamily,
+                  fontSize: 11)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(e.text,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: skin.color.fg,
+                    fontFamily: skin.type.monoFamily,
+                    fontSize: 11)),
           ),
         ],
       ),
