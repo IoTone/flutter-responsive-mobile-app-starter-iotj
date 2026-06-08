@@ -123,8 +123,8 @@ void main() {
     await tc.setPreset(MmThemePreset.drPop);
     await t.pumpAndSettle();
 
-    // DR Pop signature: trademark brand bar + a PHASE code.
-    expect(find.text('MESHMORE™'), findsOneWidget);
+    // DR Pop signature: the MESHMORE brand bar + a PHASE code.
+    expect(find.text('MESHMORE'), findsOneWidget);
     expect(find.textContaining('PHASE_'), findsOneWidget);
     expect(find.text('MESHMORE // AG'), findsNothing);
   });

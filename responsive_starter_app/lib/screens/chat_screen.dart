@@ -312,10 +312,17 @@ class _ChatScreenState extends State<ChatScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
                         itemCount: msgs.length,
-                        itemBuilder: (BuildContext _, int i) =>
+                        itemBuilder: (BuildContext ctx, int i) =>
                             _MessageRow(
                           msgs[i],
                           onAction: () => _onAction(mc, msgs[i]),
+                          // The DR Pop name tag shows the cadence since this
+                          // identity last spoke; only that mode reads it, so
+                          // only compute it there.
+                          sinceLast:
+                              _chatModeFor(ctx.skin.preset) == _ChatMode.block
+                                  ? _sinceLastFromSame(msgs, i)
+                                  : null,
                         ),
                       ),
               ),
@@ -387,9 +394,13 @@ _ChatMode _chatModeFor(MmThemePreset p) => switch (p) {
     };
 
 class _MessageRow extends StatelessWidget {
-  const _MessageRow(this.m, {required this.onAction});
+  const _MessageRow(this.m, {required this.onAction, this.sinceLast});
   final ChatMessage m;
   final VoidCallback onAction;
+
+  /// Time since the same identity last spoke on this channel (DR Pop name
+  /// tag). Null = first message from them this session, or not block mode.
+  final Duration? sinceLast;
 
   String get _time =>
       '${m.at.hour.toString().padLeft(2, '0')}:${m.at.minute.toString().padLeft(2, '0')}';
@@ -491,23 +502,101 @@ class _MessageRow extends StatelessWidget {
     );
   }
 
-  // --- flat saturated colour blocks (DR Pop) -------------------------
+  // --- saturated colour fields + name tags (DR Pop, Mondrian) --------
+  // Each message is a flat colour field bordered like a Mondrian panel.
+  // Incoming fields take the *name's* stable neon colour; in the free
+  // space beside the field sits a name tag — a Space-Invader sprite
+  // (unique per name, stable for the session) plus the cadence since that
+  // name last spoke.
   Widget _block(BuildContext context, MmSkin skin) {
     final ({String? sender, String body}) s = _split();
-    final Color fill = m.outgoing ? skin.color.accent : skin.color.surfaceAlt;
-    final Color ink =
-        fill.computeLuminance() > 0.45 ? const Color(0xFF101014) : skin.color.fg;
-    return _aligned(
-      context: context,
-      skin: skin,
-      decoration: BoxDecoration(color: fill), // sharp, no radius
-      sender: s.sender,
-      senderColor: ink.withValues(alpha: 0.8),
-      body: s.body,
-      bodyColor: ink,
-      bodyFamily: skin.type.bodyFamily,
-      bodyWeight: FontWeight.w600,
-      metaColor: ink.withValues(alpha: 0.65),
+    final Color base = skin.color.base;
+    final String idKey = _identityKey(m);
+    // A name is always the same colour for the life of the session
+    // (deterministic from the handle); our own messages stay accent.
+    final Color fill = m.outgoing
+        ? skin.color.accent
+        : _mondrianColorFor(idKey.isEmpty ? s.body : idKey);
+    final Color ink = fill.computeLuminance() > 0.45 ? base : skin.color.fg;
+    final List<String> meta = _meta;
+
+    final Widget field = Container(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      // Mondrian black rule around every colour field.
+      decoration: BoxDecoration(
+          color: fill, border: Border.all(color: base, width: 3)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          if (s.sender != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(s.sender!.toUpperCase(),
+                  style: TextStyle(
+                      color: ink.withValues(alpha: 0.85),
+                      fontSize: 11,
+                      letterSpacing: 1,
+                      fontWeight: FontWeight.w800)),
+            ),
+          Text(s.body,
+              style: TextStyle(
+                  color: ink,
+                  fontFamily: skin.type.bodyFamily,
+                  fontWeight: FontWeight.w600,
+                  height: 1.3)),
+          const SizedBox(height: 2),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              if (m.outgoing && m.delivery != null) ...<Widget>[
+                DeliveryStatusIcon(m.delivery!),
+                const SizedBox(width: 5),
+              ],
+              Text(<String>[_time, ...meta].join(' · '),
+                  style: TextStyle(
+                      color: ink.withValues(alpha: 0.65), fontSize: 10)),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    final Widget? tag = idKey.isEmpty
+        ? null
+        : _NameTag(
+            seedKey: idKey,
+            color: fill,
+            base: base,
+            mono: skin.type.monoFamily,
+            since: sinceLast == null
+                ? null
+                : _compactSince(AppLocalizations.of(context), sinceLast!),
+          );
+
+    final List<Widget> cells = <Widget>[
+      Flexible(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.6),
+          child: field,
+        ),
+      ),
+      if (tag != null) ...<Widget>[const SizedBox(width: 6), tag],
+    ];
+
+    return InkWell(
+      onLongPress: onAction,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          // Incoming hugs the left (tag in the right free space); our own
+          // messages hug the right (tag in the left free space).
+          mainAxisAlignment:
+              m.outgoing ? MainAxisAlignment.end : MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: m.outgoing ? cells.reversed.toList() : cells,
+        ),
+      ),
     );
   }
 
@@ -592,6 +681,161 @@ class _MessageRow extends StatelessWidget {
       ],
     );
   }
+}
+
+// ---- DR Pop name tags (Mondrian block mode) -------------------------------
+
+/// The identity a message is attributed to for the session: an incoming
+/// channel sender's handle, or a sentinel for our own outgoing messages.
+/// Empty = anonymous (no parseable `name:` prefix) → no tag.
+String _identityKey(ChatMessage m) =>
+    m.outgoing ? ' self' : (parseChannelSenderName(m.text) ?? '');
+
+/// Time since the same identity last spoke before message [i] in [msgs]
+/// (chronological). Null = first time we've heard this identity in-buffer.
+Duration? _sinceLastFromSame(List<ChatMessage> msgs, int i) {
+  final String key = _identityKey(msgs[i]);
+  if (key.isEmpty) return null;
+  for (int j = i - 1; j >= 0; j--) {
+    if (_identityKey(msgs[j]) == key) {
+      return msgs[i].at.difference(msgs[j].at);
+    }
+  }
+  return null;
+}
+
+/// Stable 32-bit FNV-1a hash — gives each handle a deterministic colour +
+/// sprite that's identical for the life of the session (and beyond), with
+/// no per-session registry to maintain.
+int _fnv1a(String s) {
+  int h = 0x811c9dc5;
+  for (final int u in s.codeUnits) {
+    h = (h ^ u) & 0xffffffff;
+    h = (h * 0x01000193) & 0xffffffff;
+  }
+  return h;
+}
+
+/// Mondrian-ish bold neon fields for DR Pop, picked deterministically per
+/// identity so a name keeps its colour all session.
+const List<Color> _mondrianPalette = <Color>[
+  Color(0xFFFF2E88), // magenta
+  Color(0xFF00C2FF), // cyan
+  Color(0xFFD7FF00), // acid
+  Color(0xFFFF6B2E), // orange
+  Color(0xFF9B4DFF), // violet
+  Color(0xFF2E7DEF), // blue
+  Color(0xFFFFC400), // yellow
+];
+
+Color _mondrianColorFor(String key) =>
+    _mondrianPalette[_fnv1a(key) % _mondrianPalette.length];
+
+/// Compact "since they last spoke" — `now` / `5m` / `2h` / `3d`.
+String _compactSince(AppLocalizations l, Duration d) {
+  if (d.inSeconds < 60) return l.chatSinceNow;
+  if (d.inMinutes < 60) return l.chatSinceMinutes(d.inMinutes);
+  if (d.inHours < 24) return l.chatSinceHours(d.inHours);
+  return l.chatSinceDays(d.inDays);
+}
+
+/// The free-space tag beside a DR Pop message: a Space-Invader sprite that's
+/// unique to the identity, plus the cadence since they last spoke.
+class _NameTag extends StatelessWidget {
+  const _NameTag({
+    required this.seedKey,
+    required this.color,
+    required this.base,
+    required this.mono,
+    this.since,
+  });
+
+  final String seedKey;
+  final Color color;
+  final Color base;
+  final String mono;
+  final String? since;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 58,
+      padding: const EdgeInsets.all(5),
+      decoration:
+          BoxDecoration(color: base, border: Border.all(color: color, width: 3)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          SizedBox(
+            width: 36,
+            height: 36,
+            child: CustomPaint(
+              painter:
+                  _InvaderPainter(seed: _fnv1a(seedKey), color: color, bg: base),
+            ),
+          ),
+          if (since != null) ...<Widget>[
+            const SizedBox(height: 3),
+            Text(since!,
+                maxLines: 1,
+                style: TextStyle(
+                    color: color,
+                    fontFamily: mono,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// A horizontally-symmetric "Space Invaders" sprite on a 5×5 grid, lit from
+/// a deterministic bit stream so each seed yields a distinct little
+/// creature. Mirror across the centre column gives the arcade look.
+class _InvaderPainter extends CustomPainter {
+  const _InvaderPainter({
+    required this.seed,
+    required this.color,
+    required this.bg,
+  });
+
+  final int seed;
+  final Color color;
+  final Color bg;
+
+  static const int _cols = 5;
+  static const int _rows = 5;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double cw = size.width / _cols;
+    final double ch = size.height / _rows;
+    final Paint on = Paint()..color = color;
+    final int half = (_cols + 1) ~/ 2; // 3: cols 0,1 + centre col 2
+    int st = seed == 0 ? 0x9e3779b9 : seed;
+    int bit() {
+      st = (st * 1103515245 + 12345) & 0x7fffffff; // LCG
+      return (st >> 16) & 1;
+    }
+
+    for (int y = 0; y < _rows; y++) {
+      for (int x = 0; x < half; x++) {
+        if (bit() == 0) continue;
+        canvas.drawRect(
+            Rect.fromLTWH(x * cw, y * ch, cw, ch).deflate(0.6), on);
+        final int mx = _cols - 1 - x; // mirror
+        if (mx != x) {
+          canvas.drawRect(
+              Rect.fromLTWH(mx * cw, y * ch, cw, ch).deflate(0.6), on);
+        }
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_InvaderPainter old) =>
+      old.seed != seed || old.color != color || old.bg != bg;
 }
 
 /// R29 — overlay pill nudging the user back to the newest message.

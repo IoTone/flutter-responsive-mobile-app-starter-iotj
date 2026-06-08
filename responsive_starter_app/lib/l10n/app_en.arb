@@ -574,6 +574,19 @@
   "chatComposerOffline": "Connect a radio to send",
   "chatSend": "Send",
   "chatMessageActions": "Message actions",
+  "chatSinceNow": "now",
+  "chatSinceMinutes": "{m}m",
+  "@chatSinceMinutes": {
+    "placeholders": { "m": { "type": "int" } }
+  },
+  "chatSinceHours": "{h}h",
+  "@chatSinceHours": {
+    "placeholders": { "h": { "type": "int" } }
+  },
+  "chatSinceDays": "{d}d",
+  "@chatSinceDays": {
+    "placeholders": { "d": { "type": "int" } }
+  },
 
   "dmTitle": "DM · {peer}",
   "@dmTitle": {

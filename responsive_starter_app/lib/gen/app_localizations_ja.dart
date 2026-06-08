@@ -1234,6 +1234,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatMessageActions => 'メッセージ操作';
 
   @override
+  String get chatSinceNow => '今';
+
+  @override
+  String chatSinceMinutes(int m) {
+    return '$m分';
+  }
+
+  @override
+  String chatSinceHours(int h) {
+    return '$h時間';
+  }
+
+  @override
+  String chatSinceDays(int d) {
+    return '$d日';
+  }
+
+  @override
   String dmTitle(String peer) {
     return 'DM · $peer';
   }

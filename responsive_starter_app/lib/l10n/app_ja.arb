@@ -574,6 +574,19 @@
   "chatComposerOffline": "送信するにはラジオに接続",
   "chatSend": "送信",
   "chatMessageActions": "メッセージ操作",
+  "chatSinceNow": "今",
+  "chatSinceMinutes": "{m}分",
+  "@chatSinceMinutes": {
+    "placeholders": { "m": { "type": "int" } }
+  },
+  "chatSinceHours": "{h}時間",
+  "@chatSinceHours": {
+    "placeholders": { "h": { "type": "int" } }
+  },
+  "chatSinceDays": "{d}日",
+  "@chatSinceDays": {
+    "placeholders": { "d": { "type": "int" } }
+  },
 
   "dmTitle": "DM · {peer}",
   "@dmTitle": {

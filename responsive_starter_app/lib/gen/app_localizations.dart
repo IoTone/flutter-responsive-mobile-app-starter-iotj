@@ -2276,6 +2276,30 @@ abstract class AppLocalizations {
   /// **'Message actions'**
   String get chatMessageActions;
 
+  /// No description provided for @chatSinceNow.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get chatSinceNow;
+
+  /// No description provided for @chatSinceMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{m}m'**
+  String chatSinceMinutes(int m);
+
+  /// No description provided for @chatSinceHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{h}h'**
+  String chatSinceHours(int h);
+
+  /// No description provided for @chatSinceDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{d}d'**
+  String chatSinceDays(int d);
+
   /// No description provided for @dmTitle.
   ///
   /// In en, this message translates to:

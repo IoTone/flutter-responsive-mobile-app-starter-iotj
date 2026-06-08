@@ -1292,6 +1292,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMessageActions => 'Message actions';
 
   @override
+  String get chatSinceNow => 'now';
+
+  @override
+  String chatSinceMinutes(int m) {
+    return '${m}m';
+  }
+
+  @override
+  String chatSinceHours(int h) {
+    return '${h}h';
+  }
+
+  @override
+  String chatSinceDays(int d) {
+    return '${d}d';
+  }
+
+  @override
   String dmTitle(String peer) {
     return 'DM · $peer';
   }
