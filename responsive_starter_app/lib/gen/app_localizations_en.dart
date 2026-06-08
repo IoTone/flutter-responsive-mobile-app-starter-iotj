@@ -1643,7 +1643,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get meshbookToday => 'today';
 
   @override
-  String get meshbookEmpty => 'No messages on this channel today.';
+  String get meshbookLast24h => 'last 24h';
+
+  @override
+  String get meshbookEmpty => 'No messages on this channel in the last 24h.';
 
   @override
   String get meshbookByHour => 'BY HOUR';
@@ -1659,7 +1662,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String meshbookClearConfirm(String channel) {
-    return 'Clear today\'s Meshbook data for CH$channel? It rebuilds as new channel messages arrive. (Each channel is stored separately.)';
+    return 'Clear the last 24h of Meshbook data for CH$channel? It rebuilds as new channel messages arrive. (Each channel is stored separately.)';
   }
 
   @override
@@ -1692,6 +1695,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String wxMentions(int count, int hours) {
     return '$count mentions · last ${hours}h';
   }
+
+  @override
+  String wxMentionsShort(int count) {
+    return '$count mentions';
+  }
+
+  @override
+  String get wxLastHour => '1H';
+
+  @override
+  String get wxLast24h => '24H';
 
   @override
   String get wxCondClear => 'Clear';

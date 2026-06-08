@@ -73,14 +73,19 @@ class _WeatherViewState extends State<WeatherView> {
           name: l.weatherSelf, isSelf: true, pubKeyHex: ownHex, t: self));
     }
 
-    // --- Microclimate: weather mined from chat on the selected channel
-    // (P1, no placement yet). This is the *only* weather signal when the
-    // firmware reports no environment telemetry, so it always shows.
-    final AmbientWx? ambient = _scanAmbient(mc, context);
+    // --- Microclimate: weather mined from chat on the selected channel,
+    // split into a last-hour and a rolling last-24h rollup. This is the
+    // *only* weather signal when the firmware reports no environment
+    // telemetry, so it always shows.
+    final List<WxObservation> scanned = _scanObservations(mc, context);
+    final DateTime now = DateTime.now();
+    final AmbientWx? lastHour = aggregateAmbient(scanned.where(
+        (WxObservation o) => now.difference(o.at) <= const Duration(hours: 1)));
+    final AmbientWx? last24h = aggregateAmbient(scanned);
     final Widget micro = _MicroclimateStrip(
-      ambient: ambient,
+      lastHour: lastHour,
+      last24h: last24h,
       channelLabel: 'CH${mc.activeChannel}',
-      windowHours: _wxWindow.inHours,
       l: l,
       cs: cs,
     );
@@ -182,11 +187,13 @@ class _WeatherViewState extends State<WeatherView> {
     );
   }
 
-  static const Duration _wxWindow = Duration(hours: 2);
+  static const Duration _wxWindow = Duration(hours: 24);
 
-  /// Scan the selected channel's recent chat for weather mentions and
-  /// roll them up. Pure logic lives in `weather_inference.dart`.
-  AmbientWx? _scanAmbient(MeshcoreController mc, BuildContext context) {
+  /// Scan the selected channel's chat within the rolling 24h window for
+  /// weather mentions. The caller buckets these into last-hour / last-24h
+  /// rollups. Pure logic lives in `weather_inference.dart`.
+  List<WxObservation> _scanObservations(
+      MeshcoreController mc, BuildContext context) {
     final String lang = Localizations.localeOf(context).languageCode;
     final DateTime now = DateTime.now();
     final List<WxObservation> obs = <WxObservation>[];
@@ -200,7 +207,7 @@ class _WeatherViewState extends State<WeatherView> {
       );
       if (o != null && o.confidence >= 0.5) obs.add(o);
     }
-    return aggregateAmbient(obs);
+    return obs;
   }
 }
 
@@ -399,35 +406,27 @@ String wxConditionLabel(WxCondition c, AppLocalizations l) => switch (c) {
       WxCondition.cold => l.wxCondCold,
     };
 
-/// The chat-derived microclimate summary for the selected channel (P1):
-/// dominant condition glyph + label, temperature range, mention count.
-/// Renders a quiet "no chatter yet" hint when there's nothing.
+/// The chat-derived microclimate summary for the selected channel, broken
+/// into two windows: the **last hour** and the rolling **last 24h**. Each
+/// row shows the dominant condition glyph + label, temperature range and
+/// mention count. Renders a quiet "no chatter yet" hint when 24h is empty.
 class _MicroclimateStrip extends StatelessWidget {
   const _MicroclimateStrip({
-    required this.ambient,
+    required this.lastHour,
+    required this.last24h,
     required this.channelLabel,
-    required this.windowHours,
     required this.l,
     required this.cs,
   });
 
-  final AmbientWx? ambient;
+  final AmbientWx? lastHour;
+  final AmbientWx? last24h;
   final String channelLabel;
-  final int windowHours;
   final AppLocalizations l;
   final ColorScheme cs;
 
-  String _tempLabel() {
-    final AmbientWx a = ambient!;
-    if (!a.hasTemp) return '';
-    final int lo = a.tempMinC!.round();
-    final int hi = a.tempMaxC!.round();
-    return lo == hi ? '$lo°C' : '$lo–$hi°C';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final AmbientWx? a = ambient;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -452,63 +451,125 @@ class _MicroclimateStrip extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          if (a == null)
+          if (last24h == null)
             Text(l.wxAmbientEmpty,
                 style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13))
-          else
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Text(a.dominant != null ? wxGlyph(a.dominant!) : '🌡',
-                    style: const TextStyle(fontSize: 30)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          if (a.dominant != null)
-                            Text(wxConditionLabel(a.dominant!, l),
-                                style: TextStyle(
-                                    color: cs.onSurface,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600)),
-                          if (a.hasTemp) ...<Widget>[
-                            if (a.dominant != null) const SizedBox(width: 8),
-                            Text(_tempLabel(),
-                                style: TextStyle(
-                                    color: cs.onSurface,
-                                    fontFamily: 'JetBrains Mono',
-                                    fontSize: 16)),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(l.wxMentions(a.mentions, windowHours),
-                          style: TextStyle(
-                              color: cs.onSurfaceVariant, fontSize: 12)),
-                    ],
-                  ),
-                ),
-                // Secondary conditions as small glyph chips.
-                ..._others(a).map((WxCondition c) => Padding(
-                      padding: const EdgeInsets.only(left: 4),
-                      child: Text(wxGlyph(c),
-                          style: const TextStyle(fontSize: 16)),
-                    )),
-              ],
-            ),
+          else ...<Widget>[
+            _WindowRow(label: l.wxLastHour, ambient: lastHour, l: l, cs: cs),
+            Divider(height: 18, color: cs.outline.withValues(alpha: .25)),
+            _WindowRow(label: l.wxLast24h, ambient: last24h, l: l, cs: cs),
+          ],
         ],
       ),
     );
   }
+}
+
+/// One window's ambient rollup (e.g. "1H" or "24H"): a window pill, the
+/// dominant glyph + condition + temp, and a mention count — or a muted "—"
+/// when that window saw no chatter.
+class _WindowRow extends StatelessWidget {
+  const _WindowRow({
+    required this.label,
+    required this.ambient,
+    required this.l,
+    required this.cs,
+  });
+
+  final String label;
+  final AmbientWx? ambient;
+  final AppLocalizations l;
+  final ColorScheme cs;
+
+  String _tempLabel(AmbientWx a) {
+    if (!a.hasTemp) return '';
+    final int lo = a.tempMinC!.round();
+    final int hi = a.tempMaxC!.round();
+    return lo == hi ? '$lo°C' : '$lo–$hi°C';
+  }
 
   List<WxCondition> _others(AmbientWx a) {
-    final List<WxCondition> cs = a.tally.keys
+    final List<WxCondition> rest = a.tally.keys
         .where((WxCondition c) => c != a.dominant)
         .toList(growable: false);
-    return cs.length <= 3 ? cs : cs.sublist(0, 3);
+    return rest.length <= 3 ? rest : rest.sublist(0, 3);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AmbientWx? a = ambient;
+    final Widget pill = Container(
+      width: 40,
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: cs.primary.withValues(alpha: a == null ? .08 : .16),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(label,
+          style: TextStyle(
+              color: a == null ? cs.onSurfaceVariant : cs.primary,
+              fontSize: 10,
+              letterSpacing: 1,
+              fontWeight: FontWeight.w700,
+              fontFamily: 'JetBrains Mono')),
+    );
+
+    if (a == null) {
+      return Row(
+        children: <Widget>[
+          pill,
+          const SizedBox(width: 12),
+          Text('—',
+              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 16)),
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        pill,
+        const SizedBox(width: 10),
+        Text(a.dominant != null ? wxGlyph(a.dominant!) : '🌡',
+            style: const TextStyle(fontSize: 26)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  if (a.dominant != null)
+                    Text(wxConditionLabel(a.dominant!, l),
+                        style: TextStyle(
+                            color: cs.onSurface,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600)),
+                  if (a.hasTemp) ...<Widget>[
+                    if (a.dominant != null) const SizedBox(width: 8),
+                    Text(_tempLabel(a),
+                        style: TextStyle(
+                            color: cs.onSurface,
+                            fontFamily: 'JetBrains Mono',
+                            fontSize: 15)),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(l.wxMentionsShort(a.mentions),
+                  style:
+                      TextStyle(color: cs.onSurfaceVariant, fontSize: 12)),
+            ],
+          ),
+        ),
+        ..._others(a).map((WxCondition c) => Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child:
+                  Text(wxGlyph(c), style: const TextStyle(fontSize: 15)),
+            )),
+      ],
+    );
   }
 }
 

@@ -1578,7 +1578,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get meshbookToday => '今日';
 
   @override
-  String get meshbookEmpty => 'このチャンネルには今日のメッセージがありません。';
+  String get meshbookLast24h => '直近24時間';
+
+  @override
+  String get meshbookEmpty => 'このチャンネルには直近24時間のメッセージがありません。';
 
   @override
   String get meshbookByHour => '時間帯別';
@@ -1594,7 +1597,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String meshbookClearConfirm(String channel) {
-    return 'CH$channel の今日のメッシュブックデータをクリアしますか？新しいチャンネルメッセージが届くと再構築されます。（チャンネルごとに別々に保存されます。）';
+    return 'CH$channel の直近24時間のメッシュブックデータをクリアしますか？新しいチャンネルメッセージが届くと再構築されます。（チャンネルごとに別々に保存されます。）';
   }
 
   @override
@@ -1627,6 +1630,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String wxMentions(int count, int hours) {
     return '$count 件の言及 · 直近 $hours 時間';
   }
+
+  @override
+  String wxMentionsShort(int count) {
+    return '$count 件の言及';
+  }
+
+  @override
+  String get wxLastHour => '1時間';
+
+  @override
+  String get wxLast24h => '24時間';
 
   @override
   String get wxCondClear => '晴れ';

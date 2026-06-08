@@ -7,10 +7,11 @@ import '../gen/app_localizations.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../sns/meshbook.dart';
 
-/// Meshbook (MBk) — a daily readout of the current channel's social shape
-/// (P1): how many messages, the reply rate, the top voices, and an hourly
-/// volume histogram. Scoped to *today* (local midnight → now), recomputed
-/// on build. Topics + daily-reset persistence + a refresh setting are P2/P3.
+/// Meshbook (MBk) — a rolling last-24h readout of the current channel's
+/// social shape: how many messages, the reply rate, the top voices, topics,
+/// and an hourly (by local hour-of-day) volume histogram. The window is the
+/// last 24h (not calendar-day) so a morning reopen still shows last night's
+/// activity; the store seeds from history on launch then accumulates live.
 class MeshbookView extends StatelessWidget {
   const MeshbookView({super.key});
 
@@ -56,7 +57,7 @@ class MeshbookView extends StatelessWidget {
             Icon(Icons.menu_book_outlined, size: 16, color: cs.primary),
             const SizedBox(width: 6),
             Expanded(
-              child: Text('${l.meshbookTitle} · CH$ch · ${l.meshbookToday}',
+              child: Text('${l.meshbookTitle} · CH$ch · ${l.meshbookLast24h}',
                   style: TextStyle(
                       color: cs.primary,
                       fontSize: 12,

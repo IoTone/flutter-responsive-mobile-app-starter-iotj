@@ -733,12 +733,13 @@
   "gridViewMeshbookShort": "MBk",
   "meshbookTitle": "メッシュブック",
   "meshbookToday": "今日",
-  "meshbookEmpty": "このチャンネルには今日のメッセージがありません。",
+  "meshbookLast24h": "直近24時間",
+  "meshbookEmpty": "このチャンネルには直近24時間のメッセージがありません。",
   "meshbookByHour": "時間帯別",
   "meshbookTopVoices": "トップ発言者",
   "meshbookTopics": "トピック",
   "meshbookClear": "クリア",
-  "meshbookClearConfirm": "CH{channel} の今日のメッシュブックデータをクリアしますか？新しいチャンネルメッセージが届くと再構築されます。（チャンネルごとに別々に保存されます。）",
+  "meshbookClearConfirm": "CH{channel} の直近24時間のメッシュブックデータをクリアしますか？新しいチャンネルメッセージが届くと再構築されます。（チャンネルごとに別々に保存されます。）",
   "@meshbookClearConfirm": {
     "placeholders": { "channel": { "type": "String" } }
   },
@@ -765,6 +766,14 @@
       "hours": { "type": "int" }
     }
   },
+  "wxMentionsShort": "{count} 件の言及",
+  "@wxMentionsShort": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "wxLastHour": "1時間",
+  "wxLast24h": "24時間",
   "wxCondClear": "晴れ",
   "wxCondClouds": "曇り",
   "wxCondFog": "霧",

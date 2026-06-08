@@ -733,12 +733,13 @@
   "gridViewMeshbookShort": "MBk",
   "meshbookTitle": "MESHBOOK",
   "meshbookToday": "today",
-  "meshbookEmpty": "No messages on this channel today.",
+  "meshbookLast24h": "last 24h",
+  "meshbookEmpty": "No messages on this channel in the last 24h.",
   "meshbookByHour": "BY HOUR",
   "meshbookTopVoices": "TOP VOICES",
   "meshbookTopics": "TOPICS",
   "meshbookClear": "Clear",
-  "meshbookClearConfirm": "Clear today's Meshbook data for CH{channel}? It rebuilds as new channel messages arrive. (Each channel is stored separately.)",
+  "meshbookClearConfirm": "Clear the last 24h of Meshbook data for CH{channel}? It rebuilds as new channel messages arrive. (Each channel is stored separately.)",
   "@meshbookClearConfirm": {
     "placeholders": { "channel": { "type": "String" } }
   },
@@ -765,6 +766,14 @@
       "hours": { "type": "int" }
     }
   },
+  "wxMentionsShort": "{count} mentions",
+  "@wxMentionsShort": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "wxLastHour": "1H",
+  "wxLast24h": "24H",
   "wxCondClear": "Clear",
   "wxCondClouds": "Cloudy",
   "wxCondFog": "Fog",

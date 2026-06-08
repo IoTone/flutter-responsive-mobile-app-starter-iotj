@@ -20,7 +20,7 @@ void main() {
         at: at,
       );
 
-  test('ingest: dedups by id, channel-only, today-only; per-channel build',
+  test('ingest: dedups by id, channel-only, last-24h; per-channel build',
       () {
     final MeshbookStore s = MeshbookStore();
     expect(s.ingest(cm('1', 'A: hi', 0, DateTime(2026, 6, 7, 9)), now: t),
@@ -30,7 +30,7 @@ void main() {
     expect(s.ingest(cm('2', 'B: dm', -1, DateTime(2026, 6, 7, 9)), now: t),
         isFalse); // a DM
     expect(s.ingest(cm('3', 'C: old', 0, DateTime(2026, 6, 6, 9)), now: t),
-        isFalse); // yesterday
+        isFalse); // >24h ago (27h before t)
     expect(s.ingest(cm('4', 'X: hey', 1, DateTime(2026, 6, 7, 10)), now: t),
         isTrue); // channel 1
 
@@ -41,11 +41,14 @@ void main() {
     expect(s.channelHasData(2), isFalse);
   });
 
-  test('day rollover drops the prior day', () {
+  test('messages roll out of the 24h window (not at calendar midnight)', () {
     final MeshbookStore s = MeshbookStore();
     s.ingest(cm('1', 'A: hi', 0, DateTime(2026, 6, 7, 9)), now: t);
     expect(s.build(0, now: t).total, 1);
-    expect(s.build(0, now: DateTime(2026, 6, 8, 1)).total, 0); // next day
+    // Past local midnight but still inside 24h — survives (the morning case).
+    expect(s.build(0, now: DateTime(2026, 6, 8, 8)).total, 1); // 23h later
+    // Older than 24h — dropped.
+    expect(s.build(0, now: DateTime(2026, 6, 8, 10)).total, 0); // 25h later
   });
 
   test('clearChannel empties it (and re-ingest works)', () {
@@ -69,6 +72,21 @@ void main() {
     s.seed(0, history, now: t); // no double count
     expect(s.build(0, now: t).total, 2);
     expect(s.build(1, now: t).total, 0); // seeding ch0 didn't pull ch1
+  });
+
+  test('morning reopen: last evening (across midnight) still seeds in', () {
+    // Evening chatter the night before, then the app is reopened at 07:00.
+    final List<ChatMessage> history = <ChatMessage>[
+      cm('1', 'A: hi', 0, DateTime(2026, 6, 7, 21)), // 21:00 last night
+      cm('2', 'B: yo', 0, DateTime(2026, 6, 7, 22)), // 22:00 last night
+    ];
+    final DateTime morning = DateTime(2026, 6, 8, 7); // 07:00, ~9-10h later
+    final MeshbookStore s = MeshbookStore();
+    s.seed(0, history, now: morning);
+    final day = s.build(0, now: morning);
+    expect(day.total, 2); // survived past local midnight (rolling 24h)
+    expect(day.hourly[21], 1); // hour-of-day buckets populate
+    expect(day.hourly[22], 1);
   });
 
   test('save/load round-trips the day', () async {

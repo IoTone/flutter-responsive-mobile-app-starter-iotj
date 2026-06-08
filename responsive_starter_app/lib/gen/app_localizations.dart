@@ -2870,10 +2870,16 @@ abstract class AppLocalizations {
   /// **'today'**
   String get meshbookToday;
 
+  /// No description provided for @meshbookLast24h.
+  ///
+  /// In en, this message translates to:
+  /// **'last 24h'**
+  String get meshbookLast24h;
+
   /// No description provided for @meshbookEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No messages on this channel today.'**
+  /// **'No messages on this channel in the last 24h.'**
   String get meshbookEmpty;
 
   /// No description provided for @meshbookByHour.
@@ -2903,7 +2909,7 @@ abstract class AppLocalizations {
   /// No description provided for @meshbookClearConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Clear today\'s Meshbook data for CH{channel}? It rebuilds as new channel messages arrive. (Each channel is stored separately.)'**
+  /// **'Clear the last 24h of Meshbook data for CH{channel}? It rebuilds as new channel messages arrive. (Each channel is stored separately.)'**
   String meshbookClearConfirm(String channel);
 
   /// No description provided for @meshbookStats.
@@ -2959,6 +2965,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} mentions · last {hours}h'**
   String wxMentions(int count, int hours);
+
+  /// No description provided for @wxMentionsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} mentions'**
+  String wxMentionsShort(int count);
+
+  /// No description provided for @wxLastHour.
+  ///
+  /// In en, this message translates to:
+  /// **'1H'**
+  String get wxLastHour;
+
+  /// No description provided for @wxLast24h.
+  ///
+  /// In en, this message translates to:
+  /// **'24H'**
+  String get wxLast24h;
 
   /// No description provided for @wxCondClear.
   ///

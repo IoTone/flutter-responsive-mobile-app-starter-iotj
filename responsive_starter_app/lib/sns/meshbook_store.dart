@@ -7,45 +7,60 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../meshcore/chat_message.dart';
 import 'meshbook.dart';
 
-/// Persistence for Meshbook (MBk) P3. Holds, **per channel**, the day's
-/// contributing channel messages (id/time/text only) and runs the pure
-/// [MbkEngine] over them on demand. This is its own copy — independent of
-/// the volatile chat buffer — so it survives restarts and a trimmed
-/// history, resets at local midnight, and can be cleared per channel.
+/// Persistence for Meshbook (MBk) P3. Holds, **per channel**, a rolling
+/// **last-24-hours** window of contributing channel messages (id/time/text
+/// only) and runs the pure [MbkEngine] over them on demand. This is its own
+/// copy — independent of the volatile chat buffer — so it survives restarts
+/// and a trimmed history.
+///
+/// The window is rolling (not calendar-day): on every ingest/build/seed we
+/// prune anything older than 24h. That's deliberate — collection doesn't run
+/// in the background, so a calendar-day reset at local midnight would wipe
+/// the evening's activity and leave nothing to show when the app is reopened
+/// in the morning. A rolling 24h keeps last night visible. The hourly
+/// histogram still buckets by local hour-of-day (00..23), so it reads as a
+/// 24-hour clock.
 ///
 /// Ingestion is **idempotent by message id**, so seeding from history and
 /// live ingestion can both run without double counting.
 class MeshbookStore {
   static const String _kKey = 'mm.meshbook.v1';
 
-  /// Cap per channel/day so a very busy channel can't bloat storage.
+  /// Rolling retention window.
+  static const int _windowMs = 24 * 60 * 60 * 1000;
+
+  /// Cap per channel so a very busy channel can't bloat storage.
   static const int _perChannelCap = 800;
 
   final Map<int, List<_Msg>> _ch = <int, List<_Msg>>{};
   final Set<String> _ids = <String>{}; // global id dedup
   final Set<int> _seeded = <int>{};
-  int _dayMs = 0;
 
-  int _midnightMs(DateTime now) =>
-      DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
-
-  /// Drop everything from a prior day when the local date changes.
-  void _rollover(DateTime now) {
-    final int day = _midnightMs(now);
-    if (_dayMs == day) return;
-    _dayMs = day;
-    _ch.clear();
-    _ids.clear();
-    _seeded.clear();
+  /// Drop everything older than the rolling 24h window.
+  void _prune(DateTime now) {
+    final int lo = now.millisecondsSinceEpoch - _windowMs;
+    final List<int> emptied = <int>[];
+    _ch.forEach((int ch, List<_Msg> list) {
+      list.removeWhere((_Msg m) {
+        final bool stale = m.atMs < lo;
+        if (stale) _ids.remove(m.id);
+        return stale;
+      });
+      if (list.isEmpty) emptied.add(ch);
+    });
+    for (final int ch in emptied) {
+      _ch.remove(ch);
+    }
   }
 
   /// Add one channel message. Returns true if it was newly counted.
   bool ingest(ChatMessage m, {DateTime? now}) {
     if (m.channelIdx < 0) return false; // channel only — never DMs
     final DateTime n = now ?? DateTime.now();
-    _rollover(n);
+    _prune(n);
     final int atMs = m.at.millisecondsSinceEpoch;
-    if (atMs < _dayMs || m.at.isAfter(n)) return false; // not today
+    final int lo = n.millisecondsSinceEpoch - _windowMs;
+    if (atMs < lo || m.at.isAfter(n)) return false; // outside the 24h window
     if (!_ids.add(m.id)) return false; // already counted
     final List<_Msg> list = _ch.putIfAbsent(m.channelIdx, () => <_Msg>[]);
     list.add(_Msg(m.id, atMs, m.text));
@@ -55,10 +70,12 @@ class MeshbookStore {
     return true;
   }
 
-  /// One-time per-day seed from message history (idempotent via id dedup).
+  /// One-time per-session seed from message history (idempotent via id
+  /// dedup). `_seeded` is in-memory, so this re-runs on each app launch —
+  /// which is what backfills the last 24h when the app is reopened.
   void seed(int channelIdx, Iterable<ChatMessage> history, {DateTime? now}) {
     final DateTime n = now ?? DateTime.now();
-    _rollover(n);
+    _prune(n);
     if (_seeded.contains(channelIdx)) return;
     for (final ChatMessage m in history) {
       if (m.channelIdx == channelIdx) ingest(m, now: n);
@@ -66,10 +83,10 @@ class MeshbookStore {
     _seeded.add(channelIdx);
   }
 
-  /// Analyse the stored day for [channelIdx].
+  /// Analyse the rolling 24h window for [channelIdx].
   MbkDay build(int channelIdx, {DateTime? now, int topN = 10}) {
     final DateTime n = now ?? DateTime.now();
-    _rollover(n);
+    _prune(n);
     final List<_Msg> list = _ch[channelIdx] ?? const <_Msg>[];
     return MbkEngine.analyse(
       list.map((_Msg x) => ChatMessage(
@@ -80,7 +97,7 @@ class MeshbookStore {
             at: DateTime.fromMillisecondsSinceEpoch(x.atMs),
           )),
       channelIdx: channelIdx,
-      dayStart: DateTime.fromMillisecondsSinceEpoch(_dayMs),
+      dayStart: n.subtract(const Duration(milliseconds: _windowMs)),
       now: n,
       topN: topN,
     );
@@ -89,7 +106,7 @@ class MeshbookStore {
   bool channelHasData(int channelIdx) =>
       _ch[channelIdx]?.isNotEmpty ?? false;
 
-  /// Forget a channel's day (the user clearing it). Re-seeds next build.
+  /// Forget a channel's window (the user clearing it). Re-seeds next build.
   void clearChannel(int channelIdx) {
     final List<_Msg>? list = _ch.remove(channelIdx);
     if (list != null) {
@@ -111,7 +128,6 @@ class MeshbookStore {
   Future<void> save() async {
     final SharedPreferences p = await SharedPreferences.getInstance();
     final Map<String, Object?> j = <String, Object?>{
-      'day': _dayMs,
       'ch': <String, Object?>{
         for (final MapEntry<int, List<_Msg>> e in _ch.entries)
           '${e.key}': <List<Object>>[
@@ -128,9 +144,7 @@ class MeshbookStore {
     if (raw == null) return;
     try {
       final Map<String, dynamic> j = jsonDecode(raw) as Map<String, dynamic>;
-      _dayMs = (j['day'] as num?)?.toInt() ?? 0;
-      // If the persisted day isn't today, the first build/ingest rolls it
-      // over and drops it. Load it as-is for now.
+      // The first build/ingest prunes anything now outside the 24h window.
       final Map<String, dynamic>? ch = j['ch'] as Map<String, dynamic>?;
       if (ch != null) {
         ch.forEach((String k, dynamic v) {

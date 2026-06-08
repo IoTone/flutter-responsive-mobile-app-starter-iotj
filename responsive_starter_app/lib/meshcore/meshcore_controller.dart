@@ -169,7 +169,6 @@ class MeshcoreController extends ChangeNotifier {
       _ingestChat(f);
       _trackMessageHeat(f);
       _trackPlaceInference(f);
-      _trackWeather(f);
       _trackDelivery(f);
       _logEvent(f);
       notifyListeners();
@@ -1842,64 +1841,64 @@ class MeshcoreController extends ChangeNotifier {
   }
 
   // --- Microclimate / wx (P2): located weather observations -----------
-  // Per-channel store of weather mined from channel chat AND anchored to a
-  // place. Mirrors place inference (live messages only). The ambient strip
-  // (P1) is computed separately by the view over message history; this is
-  // the *located* subset that becomes per-place bubbles.
-  static const Duration _wxWindow = Duration(hours: 2);
-  final Map<int, List<WxObservation>> _wxLocated =
-      <int, List<WxObservation>>{};
+  // Microclimates are *reprocessed from persisted chat history* (a rolling
+  // 24h window) rather than only tracked live, so a summary is available the
+  // moment the grid is reopened — including last night's chatter — without
+  // background collection. Per-message location resolution is memoised by
+  // message id so re-scanning each notify stays cheap.
+  static const Duration _wxWindow = Duration(hours: 24);
+  final Map<String, WxObservation?> _wxLocateMemo = <String, WxObservation?>{};
 
-  void _trackWeather(MeshcoreInbound f) {
-    if (f is! ChannelMessageFrame) return;
-    final ChannelMessage cm = f.message;
-    final WxObservation? obs = WeatherInferenceEngine.scanAny(cm.text,
-        at: DateTime.now());
-    if (obs == null || obs.confidence < 0.5) return;
+  /// Resolve one chat message to a *located* weather observation, or null
+  /// when it carries no (confident) weather or can't be placed. Memoised by
+  /// message id. Placement: (1) an explicit place in the text (reuse place
+  /// inference against our origin), else (2) the sender's node GPS.
+  WxObservation? _locatedObsFor(ChatMessage m) {
+    return _wxLocateMemo.putIfAbsent(m.id, () {
+      final WxObservation? obs = WeatherInferenceEngine.scanAny(m.text,
+          at: m.at, sourceMsgId: m.id);
+      if (obs == null || obs.confidence < 0.5) return null;
 
-    // Resolve where the speaker is: (1) an explicit place in the message
-    // (reuse place inference), else (2) the sender's node GPS.
-    double? lat, lon;
-    String? name;
-    final OwnLocation? own = ownLocation;
-    if (own != null) {
-      final List<InferredPlace> hits = _placeEngine.infer(cm.text,
-          originLat: own.latitude, originLon: own.longitude);
-      if (hits.isNotEmpty) {
-        lat = hits.first.latitude;
-        lon = hits.first.longitude;
-        name = hits.first.displayName;
+      double? lat, lon;
+      String? name;
+      final OwnLocation? own = ownLocation;
+      if (own != null) {
+        final List<InferredPlace> hits = _placeEngine.infer(m.text,
+            originLat: own.latitude, originLon: own.longitude);
+        if (hits.isNotEmpty) {
+          lat = hits.first.latitude;
+          lon = hits.first.longitude;
+          name = hits.first.displayName;
+        }
       }
-    }
-    if (lat == null) {
-      final DiscoveredNode? sender = _resolveChannelSender(cm.text);
-      if (sender != null && sender.hasLocation) {
-        lat = sender.latitude;
-        lon = sender.longitude;
-        name = sender.name;
+      if (lat == null) {
+        final DiscoveredNode? sender = _resolveChannelSender(m.text);
+        if (sender != null && sender.hasLocation) {
+          lat = sender.latitude;
+          lon = sender.longitude;
+          name = sender.name;
+        }
       }
-    }
-    if (lat == null || lon == null) return; // unlocated → ambient-only
-
-    final List<WxObservation> list =
-        _wxLocated[cm.channelIdx] ??= <WxObservation>[];
-    list.add(obs.locatedAt(lat, lon, name));
-    final DateTime cutoff = DateTime.now().subtract(_wxWindow);
-    list.removeWhere((WxObservation o) => o.at.isBefore(cutoff));
-    if (list.length > 300) list.removeRange(0, list.length - 300);
+      if (lat == null || lon == null) return null; // unlocated → ambient-only
+      return obs.locatedAt(lat, lon, name);
+    });
   }
 
-  /// Per-place microclimates mined from [channelIdx]'s recent located
-  /// weather chatter (P2). Empty until located weather is seen this
-  /// session. P3 — each place is cross-referenced against real sensor
-  /// telemetry: when a node *at* that place reports an environment temp,
-  /// it's preferred and the bubble is flagged `measured`.
+  /// Per-place microclimates mined from [channelIdx]'s located weather
+  /// chatter over the rolling 24h window (P2), rebuilt from chat history so
+  /// it survives a reopen. P3 — each place is cross-referenced against real
+  /// sensor telemetry: when a node *at* that place reports an environment
+  /// temp, it's preferred and the bubble is flagged `measured`.
   List<Microclimate> microclimatesFor(int channelIdx) {
-    final List<WxObservation>? list = _wxLocated[channelIdx];
-    if (list == null || list.isEmpty) return const <Microclimate>[];
     final DateTime cutoff = DateTime.now().subtract(_wxWindow);
-    final List<Microclimate> base = aggregateMicroclimates(
-        list.where((WxObservation o) => o.at.isAfter(cutoff)));
+    final List<WxObservation> located = <WxObservation>[];
+    for (final ChatMessage m in messagesFor(channelIdx)) {
+      if (m.at.isBefore(cutoff)) continue;
+      final WxObservation? o = _locatedObsFor(m);
+      if (o != null) located.add(o);
+    }
+    if (located.isEmpty) return const <Microclimate>[];
+    final List<Microclimate> base = aggregateMicroclimates(located);
     return <Microclimate>[
       for (final Microclimate m in base)
         () {
@@ -1919,10 +1918,11 @@ class MeshcoreController extends ChangeNotifier {
         Timer(const Duration(seconds: 3), () => unawaited(_meshbook.save()));
   }
 
-  /// Today's channel-activity analysis for [channelIdx] — top voices,
-  /// hourly volume, reply rate, topics. Backed by [MeshbookStore] (per
-  /// channel, persisted, daily-reset); seeds once from history then
-  /// accumulates live.
+  /// Rolling last-24h channel-activity analysis for [channelIdx] — top
+  /// voices, hourly volume, reply rate, topics. Backed by [MeshbookStore]
+  /// (per channel, persisted, rolling 24h window); seeds from history on
+  /// each launch then accumulates live, so a morning reopen still shows last
+  /// night's activity even though collection doesn't run in the background.
   MbkDay meshbookFor(int channelIdx) {
     _meshbook.seed(channelIdx, messagesFor(channelIdx));
     return _meshbook.build(channelIdx);
