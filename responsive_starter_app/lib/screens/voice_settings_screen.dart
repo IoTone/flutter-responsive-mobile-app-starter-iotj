@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../gen/app_localizations.dart';
+import '../ui/mm_scaffold.dart';
 import '../tts/tts_controller.dart';
 
 /// R5 / U5 — TTS **quality** picker. Sits below the global SPEECH
@@ -144,7 +145,8 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l.voiceSettingsTitle)),
-      body: ListView(
+      body: MmScaffold(
+        child: ListView(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -324,6 +326,7 @@ class _VoiceSettingsScreenState extends State<VoiceSettingsScreen> {
               ),
             ),
         ],
+      ),
       ),
     );
   }

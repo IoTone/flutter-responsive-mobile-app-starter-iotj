@@ -7,6 +7,7 @@ import 'package:meshcore/meshcore.dart';
 import 'package:provider/provider.dart';
 
 import '../gen/app_localizations.dart';
+import '../ui/mm_scaffold.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 import '../meshcore/own_location.dart';
@@ -351,7 +352,8 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l.deviceConfigTitle)),
-      body: ListView(
+      body: MmScaffold(
+        child: ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
           Text(l.deviceRegionBand,
@@ -675,6 +677,7 @@ class _DeviceConfigScreenState extends State<DeviceConfigScreen> {
             onTap: () => context.push('/settings/battery'),
           ),
         ],
+      ),
       ),
     );
   }

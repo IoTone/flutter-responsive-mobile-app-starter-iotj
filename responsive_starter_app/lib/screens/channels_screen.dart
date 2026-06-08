@@ -12,6 +12,7 @@ import '../cryptokit/dice_roll_entropy.dart';
 import '../gen/app_localizations.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
+import '../ui/mm_scaffold.dart';
 import '../theme/theme_controller.dart';
 
 /// Channel management (R6): list the device's channel slots, set the
@@ -97,7 +98,8 @@ class ChannelsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l.channelsTitle)),
-      body: ListView(
+      body: MmScaffold(
+        child: ListView(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
@@ -231,6 +233,7 @@ class ChannelsScreen extends StatelessWidget {
               ),
             ),
         ],
+      ),
       ),
     );
   }

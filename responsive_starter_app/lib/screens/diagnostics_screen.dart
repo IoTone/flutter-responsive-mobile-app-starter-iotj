@@ -8,6 +8,7 @@ import 'package:meshcore/meshcore.dart';
 import 'package:provider/provider.dart';
 
 import '../gen/app_localizations.dart';
+import '../ui/mm_scaffold.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
 
@@ -127,7 +128,8 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(AppLocalizations.of(context).diagnosticsTitle)),
-      body: ListView(
+      body: MmScaffold(
+        child: ListView(
         children: <Widget>[
           section('CONNECTION'),
           ListTile(
@@ -351,6 +353,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                   ),
           ),
         ],
+      ),
       ),
     );
   }

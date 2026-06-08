@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../gen/app_localizations.dart';
+import '../ui/mm_scaffold.dart';
 import '../meshcore/battery_model.dart';
 import '../meshcore/device_power_specs.dart';
 import '../meshcore/meshcore_controller.dart';
@@ -42,7 +43,8 @@ class BatteryScreen extends StatelessWidget {
             ),
         ],
       ),
-      body: !est.hasData
+      body: MmScaffold(
+        child: !est.hasData
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
@@ -72,6 +74,7 @@ class BatteryScreen extends StatelessWidget {
                 _SpecCard(spec: spec, l: l, cs: cs),
               ],
             ),
+      ),
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../gen/app_localizations.dart';
+import '../ui/mm_scaffold.dart';
 import '../meshcore/auto_publish_controller.dart';
 import '../meshcore/meshcore_controller.dart';
 
@@ -37,7 +38,8 @@ class LocationSettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l.locTitle)),
-      body: ListView(
+      body: MmScaffold(
+        child: ListView(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
@@ -137,6 +139,7 @@ class LocationSettingsScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

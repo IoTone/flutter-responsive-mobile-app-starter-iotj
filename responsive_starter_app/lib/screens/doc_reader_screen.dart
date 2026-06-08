@@ -7,6 +7,7 @@ import '../docs/doc_section.dart';
 import '../docs/docs_repository.dart';
 import '../docs/markdown_view.dart';
 import '../gen/app_localizations.dart';
+import '../ui/mm_scaffold.dart';
 import '../meshcore/meshcore_controller.dart';
 
 /// R53 — reads one [DocSection]. Shows the cached-or-bundled copy
@@ -87,7 +88,8 @@ class _DocReaderScreenState extends State<DocReaderScreen> {
             ),
         ],
       ),
-      body: c == null
+      body: MmScaffold(
+        child: c == null
           ? const Center(child: CircularProgressIndicator())
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -101,6 +103,7 @@ class _DocReaderScreenState extends State<DocReaderScreen> {
                 ),
               ],
             ),
+      ),
     );
   }
 

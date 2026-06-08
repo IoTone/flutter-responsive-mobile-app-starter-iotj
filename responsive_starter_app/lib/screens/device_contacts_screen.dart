@@ -5,6 +5,7 @@ import 'package:meshcore/meshcore.dart';
 import 'package:provider/provider.dart';
 
 import '../gen/app_localizations.dart';
+import '../ui/mm_scaffold.dart';
 import '../meshcore/meshcore_controller.dart';
 
 /// Diagnostic: the RAW contact list stored on the radio (not the app's
@@ -259,7 +260,8 @@ class _DeviceContactsScreenState extends State<DeviceContactsScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: MmScaffold(
+        child: Column(
         children: <Widget>[
           Container(
             width: double.infinity,
@@ -328,6 +330,7 @@ class _DeviceContactsScreenState extends State<DeviceContactsScreen> {
                   ),
           ),
         ],
+      ),
       ),
     );
   }
