@@ -12,9 +12,12 @@ import '../meshcore/chat_message.dart';
 import 'delivery_status_icon.dart';
 import '../meshcore/meshcore_connection.dart';
 import '../meshcore/meshcore_controller.dart';
+import '../meshcore/message_heat.dart' show parseChannelSenderName;
 import '../theme/mm_skin.dart';
+import '../theme/mm_tokens.dart';
 import '../tts/tts_controller.dart';
 import '../ui/mm_scaffold.dart';
+import '../ui/mm_shape.dart';
 
 /// R6 — the channel chat. A channel-selector chip strip on top
 /// (collapsible to reclaim vertical space), a scrollable message list
@@ -372,23 +375,54 @@ class _ChatScreenState extends State<ChatScreen>
   }
 }
 
+/// How a theme renders chat: a terminal **log** (SEELE / NERV / Recon
+/// codec), chat **bubbles** (Hyperlocal / AG-HUD), or flat saturated
+/// **blocks** (DR Pop). Per the UX brief's per-concept chat treatment.
+enum _ChatMode { log, bubble, block }
+
+_ChatMode _chatModeFor(MmThemePreset p) => switch (p) {
+      MmThemePreset.hyperlocal || MmThemePreset.agHud => _ChatMode.bubble,
+      MmThemePreset.drPop => _ChatMode.block,
+      _ => _ChatMode.log, // seele, nerv, recon — terminal log
+    };
+
 class _MessageRow extends StatelessWidget {
   const _MessageRow(this.m, {required this.onAction});
   final ChatMessage m;
   final VoidCallback onAction;
 
+  String get _time =>
+      '${m.at.hour.toString().padLeft(2, '0')}:${m.at.minute.toString().padLeft(2, '0')}';
+
+  List<String> get _meta => <String>[
+        if (m.isFlood) 'flood',
+        if (m.snrDb != null) 'SNR ${m.snrDb!.toStringAsFixed(1)}',
+      ];
+
+  /// Sender handle + body for incoming channel messages (`name: text`);
+  /// our own outgoing messages carry no prefix.
+  ({String? sender, String body}) _split() {
+    if (m.outgoing) return (sender: null, body: m.text);
+    final String? s = parseChannelSenderName(m.text);
+    if (s == null) return (sender: null, body: m.text);
+    final int i = m.text.indexOf(': ');
+    return (sender: s, body: i >= 0 ? m.text.substring(i + 2) : m.text);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ColorScheme cs = Theme.of(context).colorScheme;
     final MmSkin skin = context.skin;
+    return switch (_chatModeFor(skin.preset)) {
+      _ChatMode.log => _log(context, skin),
+      _ChatMode.bubble => _bubble(context, skin),
+      _ChatMode.block => _block(context, skin),
+    };
+  }
+
+  // --- terminal log (SEELE / NERV / Recon) ---------------------------
+  Widget _log(BuildContext context, MmSkin skin) {
     final String mono = skin.type.monoFamily;
-    final String time = '${m.at.hour.toString().padLeft(2, '0')}:'
-        '${m.at.minute.toString().padLeft(2, '0')}';
-    final String tag = m.outgoing ? '»' : '«';
-    final List<String> meta = <String>[
-      if (m.isFlood) 'flood',
-      if (m.snrDb != null) 'SNR ${m.snrDb!.toStringAsFixed(1)}',
-    ];
+    final List<String> meta = _meta;
     return InkWell(
       onLongPress: onAction,
       child: Padding(
@@ -398,10 +432,11 @@ class _MessageRow extends StatelessWidget {
           children: <Widget>[
             SizedBox(
               width: 56,
-              child: Text('$time $tag',
+              child: Text('$_time ${m.outgoing ? '»' : '«'}',
                   style: TextStyle(
-                      color:
-                          m.outgoing ? skin.color.accent : skin.color.fgMuted,
+                      color: m.outgoing
+                          ? skin.color.accent
+                          : skin.color.fgMuted,
                       fontFamily: mono,
                       fontSize: 12)),
             ),
@@ -410,21 +445,9 @@ class _MessageRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(m.text,
-                      style: TextStyle(
-                          color: skin.color.fg, fontFamily: mono)),
-                  if (meta.isNotEmpty || m.outgoing && m.delivery != null)
-                    Row(
-                      children: <Widget>[
-                        if (m.outgoing && m.delivery != null) ...<Widget>[
-                          DeliveryStatusIcon(m.delivery!),
-                          const SizedBox(width: 5),
-                        ],
-                        if (meta.isNotEmpty)
-                          Text(meta.join(' · '),
-                              style: TextStyle(
-                                  color: cs.onSurfaceVariant, fontSize: 11)),
-                      ],
-                    ),
+                      style:
+                          TextStyle(color: skin.color.fg, fontFamily: mono)),
+                  _metaRow(skin, meta, mono),
                 ],
               ),
             ),
@@ -432,16 +455,141 @@ class _MessageRow extends StatelessWidget {
               tooltip: AppLocalizations.of(context).chatMessageActions,
               iconSize: 18,
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(
-                  minWidth: 32, minHeight: 32),
+              constraints:
+                  const BoxConstraints(minWidth: 32, minHeight: 32),
               visualDensity: VisualDensity.compact,
               onPressed: onAction,
-              icon: Icon(Icons.more_vert,
-                  color: cs.onSurfaceVariant),
+              icon: Icon(Icons.more_vert, color: skin.color.fgMuted),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  // --- chat bubbles (Hyperlocal / AG-HUD) ----------------------------
+  Widget _bubble(BuildContext context, MmSkin skin) {
+    final ({String? sender, String body}) s = _split();
+    final Color fill = m.outgoing
+        ? skin.color.accent.withValues(alpha: 0.16)
+        : skin.color.surface;
+    return _aligned(
+      context: context,
+      skin: skin,
+      decoration: ShapeDecoration(
+        color: fill,
+        shape: mmShapeBorder(skin.shape,
+            side: BorderSide(
+                color: skin.color.line, width: skin.shape.borderWidth)),
+      ),
+      sender: s.sender,
+      senderColor: skin.color.accent,
+      body: s.body,
+      bodyColor: skin.color.fg,
+      bodyFamily: skin.type.bodyFamily,
+      metaColor: skin.color.fgMuted,
+    );
+  }
+
+  // --- flat saturated colour blocks (DR Pop) -------------------------
+  Widget _block(BuildContext context, MmSkin skin) {
+    final ({String? sender, String body}) s = _split();
+    final Color fill = m.outgoing ? skin.color.accent : skin.color.surfaceAlt;
+    final Color ink =
+        fill.computeLuminance() > 0.45 ? const Color(0xFF101014) : skin.color.fg;
+    return _aligned(
+      context: context,
+      skin: skin,
+      decoration: BoxDecoration(color: fill), // sharp, no radius
+      sender: s.sender,
+      senderColor: ink.withValues(alpha: 0.8),
+      body: s.body,
+      bodyColor: ink,
+      bodyFamily: skin.type.bodyFamily,
+      bodyWeight: FontWeight.w600,
+      metaColor: ink.withValues(alpha: 0.65),
+    );
+  }
+
+  /// Shared bubble/block scaffold: left/right aligned, optional sender
+  /// header, body, and the meta/delivery footer.
+  Widget _aligned({
+    required BuildContext context,
+    required MmSkin skin,
+    required Decoration decoration,
+    required String? sender,
+    required Color senderColor,
+    required String body,
+    required Color bodyColor,
+    String? bodyFamily,
+    FontWeight? bodyWeight,
+    required Color metaColor,
+  }) {
+    final List<String> meta = _meta;
+    return Align(
+      alignment: m.outgoing ? Alignment.centerRight : Alignment.centerLeft,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.78),
+        child: InkWell(
+          onLongPress: onAction,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            decoration: decoration,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                if (sender != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 2),
+                    child: Text(sender,
+                        style: TextStyle(
+                            color: senderColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700)),
+                  ),
+                Text(body,
+                    style: TextStyle(
+                        color: bodyColor,
+                        fontFamily: bodyFamily,
+                        fontWeight: bodyWeight,
+                        height: 1.3)),
+                const SizedBox(height: 2),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    if (m.outgoing && m.delivery != null) ...<Widget>[
+                      DeliveryStatusIcon(m.delivery!),
+                      const SizedBox(width: 5),
+                    ],
+                    Text(
+                        <String>[_time, ...meta].join(' · '),
+                        style: TextStyle(color: metaColor, fontSize: 10)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _metaRow(MmSkin skin, List<String> meta, String mono) {
+    if (meta.isEmpty && !(m.outgoing && m.delivery != null)) {
+      return const SizedBox.shrink();
+    }
+    return Row(
+      children: <Widget>[
+        if (m.outgoing && m.delivery != null) ...<Widget>[
+          DeliveryStatusIcon(m.delivery!),
+          const SizedBox(width: 5),
+        ],
+        if (meta.isNotEmpty)
+          Text(meta.join(' · '),
+              style: TextStyle(color: skin.color.fgMuted, fontSize: 11)),
+      ],
     );
   }
 }
