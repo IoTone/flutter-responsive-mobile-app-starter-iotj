@@ -724,6 +724,22 @@
   "gridViewSnsCellsShort": "SNS",
   "gridViewWeather": "気象（環境）",
   "gridViewWeatherShort": "WX",
+  "gridViewMeshbook": "メッシュブック（チャンネル活動）",
+  "gridViewMeshbookShort": "MBk",
+  "meshbookTitle": "メッシュブック",
+  "meshbookToday": "今日",
+  "meshbookEmpty": "このチャンネルには今日のメッセージがありません。",
+  "meshbookByHour": "時間帯別",
+  "meshbookTopVoices": "トップ発言者",
+  "meshbookStats": "{total} 件 · 返信 {replies} 件（{pct}%）· {voices} 人",
+  "@meshbookStats": {
+    "placeholders": {
+      "total": { "type": "int" },
+      "replies": { "type": "int" },
+      "pct": { "type": "int" },
+      "voices": { "type": "int" }
+    }
+  },
   "weatherSelf": "このデバイス",
   "weatherMeasuredHeader": "実測（センサー）",
   "wxMicroclimateTitle": "微気候",

@@ -724,6 +724,22 @@
   "gridViewSnsCellsShort": "SNS",
   "gridViewWeather": "Weather (environment)",
   "gridViewWeatherShort": "WX",
+  "gridViewMeshbook": "Meshbook (channel activity)",
+  "gridViewMeshbookShort": "MBk",
+  "meshbookTitle": "MESHBOOK",
+  "meshbookToday": "today",
+  "meshbookEmpty": "No messages on this channel today.",
+  "meshbookByHour": "BY HOUR",
+  "meshbookTopVoices": "TOP VOICES",
+  "meshbookStats": "{total} msgs · {replies} replies ({pct}%) · {voices} voices",
+  "@meshbookStats": {
+    "placeholders": {
+      "total": { "type": "int" },
+      "replies": { "type": "int" },
+      "pct": { "type": "int" },
+      "voices": { "type": "int" }
+    }
+  },
   "weatherSelf": "This device",
   "weatherMeasuredHeader": "MEASURED (sensors)",
   "wxMicroclimateTitle": "MICROCLIMATE",

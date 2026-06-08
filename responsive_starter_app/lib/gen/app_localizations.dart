@@ -2834,6 +2834,54 @@ abstract class AppLocalizations {
   /// **'WX'**
   String get gridViewWeatherShort;
 
+  /// No description provided for @gridViewMeshbook.
+  ///
+  /// In en, this message translates to:
+  /// **'Meshbook (channel activity)'**
+  String get gridViewMeshbook;
+
+  /// No description provided for @gridViewMeshbookShort.
+  ///
+  /// In en, this message translates to:
+  /// **'MBk'**
+  String get gridViewMeshbookShort;
+
+  /// No description provided for @meshbookTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MESHBOOK'**
+  String get meshbookTitle;
+
+  /// No description provided for @meshbookToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get meshbookToday;
+
+  /// No description provided for @meshbookEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages on this channel today.'**
+  String get meshbookEmpty;
+
+  /// No description provided for @meshbookByHour.
+  ///
+  /// In en, this message translates to:
+  /// **'BY HOUR'**
+  String get meshbookByHour;
+
+  /// No description provided for @meshbookTopVoices.
+  ///
+  /// In en, this message translates to:
+  /// **'TOP VOICES'**
+  String get meshbookTopVoices;
+
+  /// No description provided for @meshbookStats.
+  ///
+  /// In en, this message translates to:
+  /// **'{total} msgs · {replies} replies ({pct}%) · {voices} voices'**
+  String meshbookStats(int total, int replies, int pct, int voices);
+
   /// No description provided for @weatherSelf.
   ///
   /// In en, this message translates to:

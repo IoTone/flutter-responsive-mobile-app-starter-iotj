@@ -1558,6 +1558,32 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gridViewWeatherShort => 'WX';
 
   @override
+  String get gridViewMeshbook => 'メッシュブック（チャンネル活動）';
+
+  @override
+  String get gridViewMeshbookShort => 'MBk';
+
+  @override
+  String get meshbookTitle => 'メッシュブック';
+
+  @override
+  String get meshbookToday => '今日';
+
+  @override
+  String get meshbookEmpty => 'このチャンネルには今日のメッセージがありません。';
+
+  @override
+  String get meshbookByHour => '時間帯別';
+
+  @override
+  String get meshbookTopVoices => 'トップ発言者';
+
+  @override
+  String meshbookStats(int total, int replies, int pct, int voices) {
+    return '$total 件 · 返信 $replies 件（$pct%）· $voices 人';
+  }
+
+  @override
   String get weatherSelf => 'このデバイス';
 
   @override
