@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meshmore_sns_app/cue/cue_service.dart';
+import 'package:meshmore_sns_app/theme/mm_tokens.dart';
 import 'package:meshmore_sns_app/theme/theme_controller.dart';
 
 class _FakeAudio implements AudioPack {
@@ -95,5 +96,42 @@ void main() {
     expect(a.loops, isEmpty);
     expect(h.calls, <CueKind>[CueKind.scanStart]); // haptic always
     expect(a.stopLoopCalls, 1); // idempotent stop
+  });
+
+  group('hapticPatternFor (per-theme feel)', () {
+    test('every preset × cue resolves to a non-empty pattern', () {
+      for (final MmThemePreset p in MmThemePreset.values) {
+        for (final CueKind k in CueKind.values) {
+          expect(hapticPatternFor(p, k), isNotEmpty, reason: '$p/$k');
+        }
+      }
+    });
+
+    test('null preset falls back to the neutral default', () {
+      expect(hapticPatternFor(null, CueKind.alert),
+          <HapticHit>[HapticHit.heavy]);
+    });
+
+    test('themes feel different for the same cue (alert)', () {
+      // NERV klaxons (triple), Recon is a single firm hit.
+      expect(hapticPatternFor(MmThemePreset.nerv, CueKind.alert).length, 3);
+      expect(hapticPatternFor(MmThemePreset.recon, CueKind.alert).length, 1);
+      // Hyperlocal stays calm — never a heavy pulse, even on critical.
+      expect(hapticPatternFor(MmThemePreset.hyperlocal, CueKind.alert),
+          everyElement(isNot(HapticHit.heavy)));
+      // At least 3 distinct alert patterns across the 6 themes.
+      final Set<String> variants = <String>{
+        for (final MmThemePreset p in MmThemePreset.values)
+          hapticPatternFor(p, CueKind.alert)
+              .map((HapticHit h) => h.name)
+              .join(','),
+      };
+      expect(variants.length, greaterThanOrEqualTo(3));
+    });
+
+    test('discovery (arrival) is distinct from a DM in NERV', () {
+      expect(hapticPatternFor(MmThemePreset.nerv, CueKind.discovery),
+          isNot(hapticPatternFor(MmThemePreset.nerv, CueKind.dmIn)));
+    });
   });
 }

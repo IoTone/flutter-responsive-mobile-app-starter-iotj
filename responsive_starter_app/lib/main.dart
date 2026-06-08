@@ -64,6 +64,9 @@ void main() {
                 // R12 per-theme audio: pull WAV cues from
                 // assets/audio/<themeKey>/<cue>.wav at play time.
                 audio: AssetAudioPack(theme: tc),
+                // R12 per-theme haptics: the 'feel' follows the skin too —
+                // pattern resolved off the active preset at play time.
+                haptic: SystemHapticBackend(theme: tc),
               );
             },
           ),
