@@ -23,6 +23,7 @@ import 'mesh_tree_view.dart';
 import 'node_detail_sheet.dart';
 import 'sns_cells_view.dart';
 import 'street_map_view.dart';
+import 'grid_prefs_store.dart';
 import 'meshbook_view.dart';
 import 'weather_view.dart';
 
@@ -190,6 +191,35 @@ class _GridScreenState extends State<GridScreen>
         });
       }, onError: (_) {});
     }
+    // Restore last-used grid preferences (view / scale / orientation /
+    // refresh) so they don't reset when re-opening the grid.
+    GridPrefsStore.load().then((GridPrefs? p) {
+      if (p == null || !mounted) return;
+      setState(() {
+        if (p.modeIndex >= 0 && p.modeIndex < _GridViewMode.values.length) {
+          _viewMode = _GridViewMode.values[p.modeIndex];
+        }
+        if (p.scaleIndex >= 0 &&
+            p.scaleIndex < GridScreen.rangeStops.length) {
+          _scaleIndex = p.scaleIndex;
+        }
+        _northUp = p.northUp;
+        _interval = Duration(seconds: p.intervalSec.clamp(1, 600));
+        // Don't auto-restore `live` — the screen intentionally opens paused
+        // (a fresh snapshot), and live restore is handled by the existing
+        // follow-mc-until-interacted behaviour.
+      });
+    });
+  }
+
+  void _savePrefs() {
+    GridPrefsStore.save(GridPrefs(
+      modeIndex: _viewMode.index,
+      scaleIndex: _scaleIndex,
+      northUp: _northUp,
+      live: _live,
+      intervalSec: _interval.inSeconds,
+    ));
   }
 
   @override
@@ -277,6 +307,7 @@ class _GridScreenState extends State<GridScreen>
       _userInteracted = true;
       _interval = d;
     });
+    _savePrefs();
     if (_live) {
       _refreshTimer?.cancel();
       _refreshTimer = Timer.periodic(d, (_) => _refreshSnapshot());
@@ -462,8 +493,10 @@ class _GridScreenState extends State<GridScreen>
           PopupMenuButton<_GridViewMode>(
             tooltip: l.gridViewPicker,
             initialValue: _viewMode,
-            onSelected: (_GridViewMode m) =>
-                setState(() => _viewMode = m),
+            onSelected: (_GridViewMode m) {
+              setState(() => _viewMode = m);
+              _savePrefs();
+            },
             // Icon + dropdown arrow only — the inline 5-char label
             // was pushing the AppBar title ("Hyperlocal grid") into
             // ellipsis. Long label still shows on each row inside
@@ -670,6 +703,7 @@ class _GridScreenState extends State<GridScreen>
                       _userInteracted = true;
                       _scaleIndex = v.round();
                     }),
+                    onChangeEnd: (_) => _savePrefs(),
                   ),
                 ),
                 SizedBox(
@@ -890,7 +924,10 @@ class _GridScreenState extends State<GridScreen>
               _northUp ? Icons.explore_outlined : Icons.navigation,
               color: cs.primary,
             ),
-            onPressed: () => setState(() => _northUp = !_northUp),
+            onPressed: () {
+              setState(() => _northUp = !_northUp);
+              _savePrefs();
+            },
           ),
         ],
       ),
