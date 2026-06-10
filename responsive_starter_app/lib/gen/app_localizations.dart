@@ -3584,6 +3584,12 @@ abstract class AppLocalizations {
   /// **'{hpa} hPa'**
   String nodeDetailPressureValue(String hpa);
 
+  /// No description provided for @nodeDetailLuminosityKv.
+  ///
+  /// In en, this message translates to:
+  /// **'luminosity'**
+  String get nodeDetailLuminosityKv;
+
   /// No description provided for @nodeDetailQueryTelemetry.
   ///
   /// In en, this message translates to:

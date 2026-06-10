@@ -116,5 +116,47 @@ void main() {
       expect(raw.first, 0x06);
       expect(raw.last, 0xE8);
     });
+
+    test(
+        'T1000-E self-telemetry wire order: voltage → GPS → luminosity → '
+        'temperature (regression: voltage 0x74 used to stall the decoder '
+        'at entry #1, dropping ALL env telemetry behind it)', () {
+      // Mirrors companion_radio MyMesh.cpp: addVoltage(ch1, battV) first,
+      // then T1000SensorManager::querySensors → addGPS, addLuminosity,
+      // addTemperature — all on TELEM_CHANNEL_SELF (1).
+      //   voltage 4.12 V        → 01 74 01 9C   (412 / 100)
+      //   gps 10.0000,-20.0000,-50.00 → 01 88 01 86 A0 FC F2 C0 FF EC 78
+      //   luminosity 62         → 01 65 00 3E   (T1000 reports 0-100 scale)
+      //   temperature 27.9 °C   → 01 67 01 17   (279 / 10)
+      final Uint8List bytes = _hex(
+          '01 74 01 9C  01 88 01 86 A0 FC F2 C0 FF EC 78  '
+          '01 65 00 3E  01 67 01 17');
+      final List<LppEntry> entries = decodeCayenneLpp(bytes);
+      expect(entries, hasLength(4),
+          reason: 'all four entries must decode — nothing dropped');
+      expect(entries[0].type, LppType.voltage);
+      expect(entries[0].values.single, closeTo(4.12, 1e-9));
+      expect(entries[1].type, LppType.gpsLocation);
+      expect(entries[1].gps!.lat, closeTo(10.0, 1e-4));
+      expect(entries[2].type, LppType.illuminance);
+      expect(entries[2].values.single, 62.0);
+      expect(entries[3].type, LppType.temperature);
+      expect(entries[3].values.single, closeTo(27.9, 1e-9));
+      expect(entries.every((LppEntry e) => e.channel == 1), isTrue,
+          reason: 'TELEM_CHANNEL_SELF = 1 throughout');
+    });
+
+    test('extended types decode with the ElectronicCats divisors', () {
+      // current 0.250 A → 01 75 00 FA; altitude -120 m → 01 79 FF 88;
+      // percentage 87 → 01 78 57; distance 3.5 m → 01 82 00 00 0D AC.
+      final Uint8List bytes =
+          _hex('01 75 00 FA  01 79 FF 88  01 78 57  01 82 00 00 0D AC');
+      final List<LppEntry> entries = decodeCayenneLpp(bytes);
+      expect(entries, hasLength(4));
+      expect(entries[0].values.single, closeTo(0.250, 1e-9)); // current
+      expect(entries[1].values.single, -120.0); // altitude (s16)
+      expect(entries[2].values.single, 87.0); // percentage
+      expect(entries[3].values.single, closeTo(3.5, 1e-9)); // distance
+    });
   });
 }

@@ -917,6 +917,7 @@
   "@nodeDetailPressureValue": {
     "placeholders": {"hpa": {"type": "String"}}
   },
+  "nodeDetailLuminosityKv": "照度",
   "nodeDetailQueryTelemetry": "テレメトリを取得",
   "nodeDetailRefreshTelemetry": "テレメトリを更新",
   "nodeDetailTelemetryQuerying": "電波経由でピアに問い合わせ中…",

@@ -309,6 +309,9 @@ class _ReadingTile extends StatelessWidget {
       if (r.t.humidityPct != null) '${r.t.humidityPct!.toStringAsFixed(0)}%',
       if (r.t.pressureHpa != null)
         '${r.t.pressureHpa!.toStringAsFixed(0)} hPa',
+      // Luminosity — unit varies by device (lux vs the T1000-E's 0-100
+      // scale), so show the bare reading behind a sun glyph.
+      if (r.t.luminosity != null) '☀ ${r.t.luminosity!.toStringAsFixed(0)}',
     ];
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 8),

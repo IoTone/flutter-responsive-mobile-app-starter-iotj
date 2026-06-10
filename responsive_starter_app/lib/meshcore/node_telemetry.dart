@@ -20,6 +20,8 @@ class NodeTelemetry {
     this.temperatureC,
     this.humidityPct,
     this.pressureHpa,
+    this.luminosity,
+    this.batteryVoltageV,
   });
 
   /// 12-char lower-case hex of the 6-byte pubkey prefix that the
@@ -53,12 +55,26 @@ class NodeTelemetry {
   final double? humidityPct;
   final double? pressureHpa;
 
+  /// Light reading, from the CayenneLPP luminosity entry (0x65). Unit
+  /// caveat: I2C light sensors report lux, but the T1000-E firmware maps
+  /// its photocell to a **0–100 scale** and ships it through the same
+  /// type — so treat this as "brightness", not calibrated lux.
+  final double? luminosity;
+
+  /// Battery voltage (V), from the LPP voltage entry (0x74) the
+  /// companion firmware leads every telemetry response with.
+  final double? batteryVoltageV;
+
   /// True iff the device reported a non-zero GPS fix.
   bool get hasGpsFix => latitude != null && longitude != null;
 
-  /// True iff any environment sensor value was reported.
+  /// True iff any environment sensor value was reported. (Battery
+  /// voltage is power, not environment — it doesn't count.)
   bool get hasEnvironment =>
-      temperatureC != null || humidityPct != null || pressureHpa != null;
+      temperatureC != null ||
+      humidityPct != null ||
+      pressureHpa != null ||
+      luminosity != null;
 
   /// Build a [NodeTelemetry] from a freshly-arrived telemetry frame.
   /// Pulls the first GPS entry it finds (any channel) and treats
@@ -74,6 +90,8 @@ class NodeTelemetry {
     double? temp;
     double? humidity;
     double? pressure;
+    double? lum;
+    double? volts;
     for (final LppEntry e in entries) {
       // GPS — first non-(0,0,0) triplet wins.
       final ({double lat, double lon, double altMeters})? gps = e.gps;
@@ -95,6 +113,10 @@ class NodeTelemetry {
           humidity ??= e.values[0];
         } else if (e.type == LppType.barometer) {
           pressure ??= e.values[0];
+        } else if (e.type == LppType.illuminance) {
+          lum ??= e.values[0];
+        } else if (e.type == LppType.voltage) {
+          volts ??= e.values[0];
         }
       }
     }
@@ -108,6 +130,8 @@ class NodeTelemetry {
       temperatureC: temp,
       humidityPct: humidity,
       pressureHpa: pressure,
+      luminosity: lum,
+      batteryVoltageV: volts,
     );
   }
 }

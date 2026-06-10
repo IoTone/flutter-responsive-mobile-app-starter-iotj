@@ -2000,6 +2000,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get nodeDetailLuminosityKv => '照度';
+
+  @override
   String get nodeDetailQueryTelemetry => 'テレメトリを取得';
 
   @override

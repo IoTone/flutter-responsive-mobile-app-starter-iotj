@@ -917,6 +917,7 @@
   "@nodeDetailPressureValue": {
     "placeholders": {"hpa": {"type": "String"}}
   },
+  "nodeDetailLuminosityKv": "luminosity",
   "nodeDetailQueryTelemetry": "Query telemetry",
   "nodeDetailRefreshTelemetry": "Refresh telemetry",
   "nodeDetailTelemetryQuerying": "querying peer over the air…",

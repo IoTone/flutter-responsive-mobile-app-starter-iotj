@@ -2079,6 +2079,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get nodeDetailLuminosityKv => 'luminosity';
+
+  @override
   String get nodeDetailQueryTelemetry => 'Query telemetry';
 
   @override

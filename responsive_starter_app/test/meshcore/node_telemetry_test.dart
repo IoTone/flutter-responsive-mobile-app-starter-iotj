@@ -61,4 +61,34 @@ void main() {
     ]);
     expect(t.temperatureC, 20.0);
   });
+
+  test(
+      'T1000-E shape: voltage + GPS + luminosity + temperature all surface '
+      '(regression — voltage used to stall the LPP decode upstream)', () {
+    final NodeTelemetry t = _from(<LppEntry>[
+      _entry(LppType.voltage, <double>[4.12]),
+      _entry(LppType.gpsLocation, <double>[35.66, 139.73, 40.0]),
+      _entry(LppType.illuminance, <double>[62.0]),
+      _entry(LppType.temperature, <double>[27.9]),
+    ]);
+    expect(t.batteryVoltageV, 4.12);
+    expect(t.luminosity, 62.0);
+    expect(t.temperatureC, 27.9);
+    expect(t.hasEnvironment, isTrue);
+    expect(t.hasGpsFix, isTrue);
+  });
+
+  test('luminosity alone counts as environment', () {
+    final NodeTelemetry t =
+        _from(<LppEntry>[_entry(LppType.illuminance, <double>[40.0])]);
+    expect(t.hasEnvironment, isTrue);
+    expect(t.temperatureC, isNull);
+  });
+
+  test('battery voltage alone is NOT environment', () {
+    final NodeTelemetry t =
+        _from(<LppEntry>[_entry(LppType.voltage, <double>[3.9])]);
+    expect(t.batteryVoltageV, 3.9);
+    expect(t.hasEnvironment, isFalse);
+  });
 }

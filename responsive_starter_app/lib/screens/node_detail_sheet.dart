@@ -785,6 +785,10 @@ class _TelemetrySection extends StatelessWidget {
       children.add(kv(l.nodeDetailPressureKv,
           l.nodeDetailPressureValue(t!.pressureHpa!.toStringAsFixed(0))));
     }
+    if (t?.luminosity != null) {
+      children.add(
+          kv(l.nodeDetailLuminosityKv, t!.luminosity!.toStringAsFixed(0)));
+    }
 
     if (t != null) {
       children.add(Padding(
