@@ -40,5 +40,19 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      # permission_handler_apple compiles each permission strategy behind
+      # a PERMISSION_* macro. Undefined => the strategy becomes an
+      # UnknownPermissionStrategy stub that returns permanentlyDenied
+      # WITHOUT ever prompting (e.g. Bluetooth never shows the iOS
+      # dialog). Enable only the permissions this app actually uses.
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        'PERMISSION_BLUETOOTH=1',
+        'PERMISSION_LOCATION=1',
+        'PERMISSION_LOCATION_WHENINUSE=1',
+        'PERMISSION_NOTIFICATIONS=1',
+      ]
+    end
   end
 end

@@ -1,5 +1,8 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:permission_handler/permission_handler.dart' as ph;
 
 /// R21 / U12 — small interface in front of `permission_handler` so:
@@ -73,19 +76,29 @@ class NoopPermissionsService implements PermissionsService {
 class PlatformPermissionsService implements PermissionsService {
   const PlatformPermissionsService();
 
-  /// On Android 12+ (API 31+) the granular `BLUETOOTH_SCAN` /
-  /// `BLUETOOTH_CONNECT` runtime permissions are what we actually
-  /// need. The legacy `Permission.bluetooth` maps to the pre-31
-  /// install-time `android.permission.BLUETOOTH` — which our
-  /// manifest declares with `maxSdkVersion="30"`, so on modern
-  /// Android requesting it makes `permission_handler` log
-  /// "Bluetooth permission missing in manifest" and surface a UI
-  /// error. We omit it; pre-31 devices are still covered by the
-  /// manifest's install-time `BLUETOOTH` / `BLUETOOTH_ADMIN`.
-  static const List<ph.Permission> _bleSet = <ph.Permission>[
-    ph.Permission.bluetoothScan,
-    ph.Permission.bluetoothConnect,
-  ];
+  /// The BLE permission set is platform-specific:
+  ///
+  /// - **Android 12+ (API 31+):** the granular `BLUETOOTH_SCAN` /
+  ///   `BLUETOOTH_CONNECT` runtime permissions are what we actually
+  ///   need. The legacy `Permission.bluetooth` maps to the pre-31
+  ///   install-time `android.permission.BLUETOOTH` — which our
+  ///   manifest declares with `maxSdkVersion="30"`, so on modern
+  ///   Android requesting it makes `permission_handler` log
+  ///   "Bluetooth permission missing in manifest" and surface a UI
+  ///   error. We omit it; pre-31 devices are still covered by the
+  ///   manifest's install-time `BLUETOOTH` / `BLUETOOTH_ADMIN`.
+  /// - **iOS:** there is a single Core Bluetooth permission,
+  ///   `Permission.bluetooth`. The granular scan/connect entries are
+  ///   Android-only; on iOS `permission_handler` routes them to its
+  ///   `UnknownPermissionStrategy`, which returns `permanentlyDenied`
+  ///   without ever prompting — so asking for them makes BLE look
+  ///   permanently denied even on a fresh install.
+  static List<ph.Permission> get _bleSet => (!kIsWeb && Platform.isIOS)
+      ? const <ph.Permission>[ph.Permission.bluetooth]
+      : const <ph.Permission>[
+          ph.Permission.bluetoothScan,
+          ph.Permission.bluetoothConnect,
+        ];
 
   @override
   Future<bool> bleGranted() async {

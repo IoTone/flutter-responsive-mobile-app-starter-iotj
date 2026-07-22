@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.186+2
+version: 1.0.189+5
 
 environment:
   sdk: ^3.5.0
@@ -367,20 +367,28 @@ flutter_native_splash:
   #  - 'ios/Runner/Info-Release.plist'
 
 flutter_launcher_icons:
-  android: "launcher_icon"
+  # Branded "drpop" concept master (1024, rendered from
+  # brand/drpop/icon.svg). Previously this pointed at the
+  # flutter_launcher_icons sample (a winged hamster), which shipped as
+  # the iOS icon. NOTE: Android launcher icons are maintained by
+  # brand/apply.sh (adaptive-icon safe-zone treatment), so `android`
+  # is intentionally left off here — don't re-add it and regenerate
+  # Android from this config without re-checking the adaptive layout.
   ios: true
-  image_path: "assets/images/ios/AppIcon@3x.png"
+  remove_alpha_ios: true # App Store rejects alpha in the marketing icon
+  background_color_ios: "#101014"
+  image_path: "assets/images/ios/AppIcon-1024-branded.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
   web:
     generate: true
-    image_path: "assets/images/ios/AppIcon~ios-marketing.png"
-    background_color: "#hexcode"
-    theme_color: "#hexcode"
+    image_path: "assets/images/ios/AppIcon-1024-branded.png"
+    background_color: "#101014"
+    theme_color: "#101014"
   windows:
     generate: true
-    image_path: "assets/images/ios/AppIcon-40@2x.png"
+    image_path: "assets/images/ios/AppIcon-1024-branded.png"
     icon_size: 48 # min:48, max:256, default: 48
   macos:
     generate: true
-    image_path: "assets/images/ios/AppIcon-40@2x.png"
+    image_path: "assets/images/ios/AppIcon-1024-branded.png"
 

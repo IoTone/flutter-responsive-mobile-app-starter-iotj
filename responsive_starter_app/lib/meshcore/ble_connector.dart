@@ -30,16 +30,30 @@ abstract final class BleConnector {
   static final Guid _rxUuid = Guid(MeshcoreBle.rxCharacteristicUuid);
   static final Guid _txUuid = Guid(MeshcoreBle.txCharacteristicUuid);
 
-  /// Request the runtime BLE permissions (Android 12+: scan/connect;
-  /// older Android: fine location). iOS is governed by Info.plist.
+  /// Request the runtime BLE permissions. The permission model is
+  /// platform-specific:
+  ///
+  /// - **iOS:** a single Core Bluetooth permission
+  ///   (`Permission.bluetooth`). The Android-only scan/connect
+  ///   permissions route to permission_handler's
+  ///   `UnknownPermissionStrategy` on iOS and always report
+  ///   `permanentlyDenied` without prompting, so requesting them
+  ///   makes BLE look denied on a fresh install.
+  /// - **Android 12+:** granular scan + connect gate BLE; location is
+  ///   only needed pre-Android-12.
   static Future<bool> ensurePermissions() async {
+    if (!kIsWeb && Platform.isIOS) {
+      final PermissionStatus bt = await Permission.bluetooth.request();
+      // Location is optional on iOS — only used for the GPS one-shot
+      // fallback — so it doesn't gate the BLE link.
+      await Permission.locationWhenInUse.request();
+      return bt.isGranted;
+    }
     final Map<Permission, PermissionStatus> r = await <Permission>[
       Permission.bluetoothScan,
       Permission.bluetoothConnect,
       Permission.locationWhenInUse,
     ].request();
-    // scan + connect are the ones that actually gate BLE on modern
-    // Android; location is only needed pre-Android-12.
     final bool scan = r[Permission.bluetoothScan]?.isGranted ?? false;
     final bool conn = r[Permission.bluetoothConnect]?.isGranted ?? false;
     return scan && conn;
