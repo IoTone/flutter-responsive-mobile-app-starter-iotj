@@ -4091,7 +4091,7 @@ abstract class AppLocalizations {
   /// No description provided for @deviceRegionDisclaimer.
   ///
   /// In en, this message translates to:
-  /// **'Operating points are community-curated, not regulatory guarantees. Pick the preset legal where you are and use the SAME tuple on every node. The Japan (ARIB STD-T108) preset is a community proposal that hasn\'t been broadly field-validated — please confirm it is legal and works on your hardware before relying on it.'**
+  /// **'Operating points are community-curated, not regulatory guarantees. Pick the preset legal where you are and use the SAME tuple on every node. In Japan, legal parameters are not enough — the radio hardware itself must carry 技適 (giteki) certification; most grey-import LoRa boards do not, and operating one is an offence under the Radio Act regardless of settings. The Japan (ARIB STD-T108) preset is a community proposal that hasn\'t been broadly field-validated — please confirm it is legal and works on your hardware before relying on it.'**
   String get deviceRegionDisclaimer;
 
   /// No description provided for @presetUsCanada.
@@ -4111,6 +4111,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Japan (ARIB STD-T108)'**
   String get presetJpAribT108;
+
+  /// No description provided for @presetJpMeshcore.
+  ///
+  /// In en, this message translates to:
+  /// **'Japan (MeshCore-JP)'**
+  String get presetJpMeshcore;
 
   /// No description provided for @presetEuUkLong.
   ///

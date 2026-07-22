@@ -80,7 +80,10 @@ class MeshcoreController extends ChangeNotifier {
         _keepalive =
             backgroundKeepalive ?? const NoopBackgroundKeepalive(),
         _connection = connection ?? MeshcoreConnection(),
-        _reconnect = reconnectPolicy ?? ReconnectPolicy(),
+        // 6s floor keeps retry scans inside Android 17's silent BLE
+        // scan throttle (5 start/stop cycles per 30s).
+        _reconnect = reconnectPolicy ??
+            ReconnectPolicy(floor: const Duration(seconds: 6)),
         _delay = reconnectDelay ?? Future<void>.delayed,
         _location = locationService ?? NoopLocationService() {
     _statesSub = _connection.states.listen((MeshcoreConnectionState s) {

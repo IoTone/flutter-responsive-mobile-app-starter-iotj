@@ -28,6 +28,25 @@ void main() {
               'requirement so users do not assume the app enforces it');
     });
 
+    test('Japan (MeshCore-JP) is 920.8 MHz / 125 kHz / SF12 / CR4-8 / '
+        '13 dBm', () {
+      final RegionPreset p = presetById('jp_meshcore')!;
+      expect(p.frequencyMhz, 920.8);
+      expect(p.bandwidthKhz, 125);
+      expect(p.spreadingFactor, 12);
+      expect(p.codingRate, 8);
+      expect(p.txPowerDbm, 13);
+      expect(p.note, contains('LBT'),
+          reason: 'JP note must call out the listen-before-talk '
+              'requirement so users do not assume the app enforces it');
+    });
+
+    test('Tokyo still geofences to the ARIB-T108 default, not '
+        'MeshCore-JP', () {
+      expect(suggestPresetForLatLon(35.681, 139.767)?.id,
+          'jp_arib_t108');
+    });
+
     test('every preset has a unique id', () {
       final Set<String> ids = <String>{};
       for (final RegionPreset p in kRegionPresets) {

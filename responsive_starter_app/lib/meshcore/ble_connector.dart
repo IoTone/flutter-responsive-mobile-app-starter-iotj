@@ -1,7 +1,9 @@
 // Copyright (c) 2026 IoTone, Inc.
 // SPDX-License-Identifier: MIT
 import 'dart:async';
+import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:meshcore/meshcore.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -157,11 +159,37 @@ abstract final class BleConnector {
     return scanAndConnect(writeWithoutResponse: writeWithoutResponse);
   }
 
+  /// Android requires an encrypted (bonded) link before the MeshCore
+  /// RX/TX characteristics can be used. Bond explicitly so the OS
+  /// passkey dialog appears — and is waited on — before the handshake
+  /// clock ever starts, instead of being triggered implicitly by
+  /// [BluetoothCharacteristic.setNotifyValue] and racing the 8s
+  /// handshake timeout. Screen radios (e.g. Wio Tracker L1 Pro) show
+  /// a random PIN on their display; screenless ones (e.g. T1000-E)
+  /// use 123456. Returns whether a bond already existed beforehand.
+  static Future<bool> _ensureBonded(BluetoothDevice device) async {
+    if (kIsWeb || !Platform.isAndroid) return false; // iOS: OS-managed.
+    final BluetoothBondState state = await device.bondState.first;
+    if (state == BluetoothBondState.bonded) return true;
+    try {
+      // 60s: enough time to read the PIN off the radio screen and
+      // type it into the system dialog.
+      await device.createBond(timeout: 60);
+    } catch (_) {
+      throw BleConnectException(
+          'Pairing failed — enter the PIN shown on the radio screen '
+          '(screenless radios use 123456), then retry');
+    }
+    return false;
+  }
+
   /// Discover services/characteristics, enable notifications, persist
   /// the device as paired, and wrap it as a transport.
   static Future<BleMeshcoreTransport> _finish(
       BluetoothDevice device, bool writeWithoutResponse) async {
+    bool hadBond = false;
     try {
+      hadBond = await _ensureBonded(device);
       final List<BluetoothService> services = await device.discoverServices();
       final BluetoothService svc = services.firstWhere(
         (BluetoothService s) => _sameUuid(s.uuid, _service),
@@ -195,8 +223,17 @@ abstract final class BleConnector {
         tx: tx,
         writeWithoutResponse: writeWithoutResponse,
       );
-    } catch (_) {
+    } catch (e) {
       await device.disconnect();
+      // A pre-existing bond whose keys the peripheral no longer holds
+      // (e.g. after a firmware re-flash) fails here with a GATT /
+      // encryption error, not a pairing dialog — Android 17 may also
+      // be mid autonomous re-pair. Tell the user the actual remedy.
+      if (hadBond && e is! BleConnectException) {
+        throw BleConnectException(
+            'Stale pairing — forget the radio in Android Bluetooth '
+            'settings, power-cycle it, then pair again');
+      }
       rethrow;
     }
   }

@@ -79,12 +79,26 @@ const List<RegionPreset> kRegionPresets = <RegionPreset>[
     note: 'AZ regional variant',
   ),
   // --- Japan ---
-  // ARIB STD-T108 ch.32 (923.2 MHz centre), 125 kHz, SF10. Source:
-  // MeshCore community proposal (issue #460, @jirogit); the issue
-  // was later closed for inactivity, so the canonical preset table
-  // doesn't ship a JP entry. We carry it here so JP users have a
-  // legal starting point. LBT (listen-before-talk) is mandated and
-  // is enforced by the device firmware — NOT by this app.
+  // ARIB STD-T108 CH37 (923.2 MHz centre) — a valid 200 kHz unit
+  // channel; our 125 kHz signal fits inside it. This is also the
+  // LoRaWAN AS923-JP / Meshtastic-JP default region, so it aligns
+  // with those ecosystems (NOT with the nascent MeshCore-JP
+  // community proposal, which is 920.8 MHz / SF12 / CR 4/8 — see
+  // MeshCore issues #2079 JP_STRICT and #2218 ARIB-LBT, both still
+  // open mid-2026; the earlier #460 was parked without shipping a
+  // preset, so MeshCore ships no canonical JP entry).
+  //
+  // Regulatory basis (license-free 特定小電力, verified 2026-07):
+  //  - Power: ≤13 dBm (20 mW) conducted, referenced to a ≤3 dBi
+  //    antenna (≈16 dBm EIRP ceiling). Higher gain → cut conducted.
+  //  - LBT: carrier sense at −80 dBm; minimum sense 128 µs (the
+  //    "5 ms" figure is the long-burst class boundary, not the
+  //    floor). Mandated + enforced by the device FIRMWARE, not us.
+  //  - Duty: CH33–38 (incl. CH37) cap TX at ≤360 s per rolling
+  //    hour (~10%). A chatty mesh must respect this.
+  //  - 技適: legal params do NOT make operation legal — the radio
+  //    HARDWARE must be 技適-certified. Most grey-import LoRa boards
+  //    are not. Surfaced in deviceRegionDisclaimer.
   RegionPreset(
     id: 'jp_arib_t108',
     label: 'Japan (ARIB STD-T108)',
@@ -93,7 +107,25 @@ const List<RegionPreset> kRegionPresets = <RegionPreset>[
     spreadingFactor: 10,
     codingRate: 5,
     txPowerDbm: 13,
-    note: '920 MHz · LBT ≥5 ms · ≤13 dBm',
+    note: '920 MHz CH37 · LBT required · ≤10%/h duty · ≤13 dBm',
+  ),
+  // MeshCore-JP community convention (proposal-stage, small user
+  // base): 920.8 MHz = ARIB CH25, in the CH24–32 group which — in
+  // long-sense LBT mode — carries no explicit hourly duty cap (unlike
+  // CH33–38). SF12 / CR 4/8 is their deliberate max-range choice. This
+  // is the tuple to pick to interoperate with other MeshCore-JP nodes;
+  // it will NOT reach the ARIB-T108 default preset above. Same legal
+  // basis (≤13 dBm conducted, mandatory firmware LBT, 技適 hardware).
+  // Source: MeshCore issues #2079 / #2218 (@jirogit), open mid-2026.
+  RegionPreset(
+    id: 'jp_meshcore',
+    label: 'Japan (MeshCore-JP)',
+    frequencyMhz: 920.8,
+    bandwidthKhz: 125,
+    spreadingFactor: 12,
+    codingRate: 8,
+    txPowerDbm: 13,
+    note: '920.8 MHz CH25 · LBT required · ≤13 dBm · MeshCore-JP',
   ),
   // --- EU / UK ---
   RegionPreset(
@@ -234,6 +266,8 @@ String localizedPresetLabel(AppLocalizations l, String presetId) {
       return l.presetUsArizona;
     case 'jp_arib_t108':
       return l.presetJpAribT108;
+    case 'jp_meshcore':
+      return l.presetJpMeshcore;
     case 'eu_uk_long':
       return l.presetEuUkLong;
     case 'eu_uk_medium':

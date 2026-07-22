@@ -34,6 +34,21 @@ void main() {
       expect(p.delayForAttempt(5), Duration.zero);
     });
 
+    test('floor clamps jittered delays (Android 17 scan throttle)', () {
+      final ReconnectPolicy p = ReconnectPolicy(
+        floor: const Duration(seconds: 6),
+        random: () => 0.0, // would otherwise be zero
+      );
+      expect(p.delayForAttempt(1), const Duration(seconds: 6));
+      expect(p.delayForAttempt(8), const Duration(seconds: 6));
+      // Delays above the floor are untouched.
+      final ReconnectPolicy hi = ReconnectPolicy(
+        floor: const Duration(seconds: 6),
+        random: () => 1.0,
+      );
+      expect(hi.delayForAttempt(4), const Duration(seconds: 8));
+    });
+
     test('shouldRetry respects maxAttempts; 0 = forever', () {
       final ReconnectPolicy p = ReconnectPolicy(maxAttempts: 3);
       expect(p.shouldRetry(3), isTrue);

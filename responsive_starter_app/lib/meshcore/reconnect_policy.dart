@@ -8,18 +8,24 @@ import 'dart:math';
 ///
 /// Attempt is 1-based. The un-jittered ceiling for attempt _n_ is
 /// `min(base · 2^(n-1), max)`; the actual delay is uniformly random in
-/// `[0, ceiling]` (AWS "full jitter"). [maxAttempts] of 0 means
-/// "retry forever".
+/// `[0, ceiling]` (AWS "full jitter"), then clamped to at least
+/// [floor]. [maxAttempts] of 0 means "retry forever".
+///
+/// [floor] exists for Android 17's BLE scan throttle (max 5 scan
+/// start/stop cycles per 30s, failing silently beyond that): a floor
+/// of 6s+ keeps a scanning retry loop inside the budget.
 class ReconnectPolicy {
   ReconnectPolicy({
     this.base = const Duration(seconds: 1),
     this.max = const Duration(seconds: 30),
+    this.floor = Duration.zero,
     this.maxAttempts = 8,
     double Function()? random,
   }) : _rand = random ?? Random().nextDouble;
 
   final Duration base;
   final Duration max;
+  final Duration floor;
   final int maxAttempts;
   final double Function() _rand;
 
@@ -33,6 +39,8 @@ class ReconnectPolicy {
     final int ceilMs =
         min(base.inMilliseconds * (1 << shift), max.inMilliseconds);
     final double r = _rand().clamp(0.0, 1.0);
-    return Duration(milliseconds: (ceilMs * r).round());
+    int ms = (ceilMs * r).round();
+    if (ms < floor.inMilliseconds) ms = floor.inMilliseconds;
+    return Duration(milliseconds: ms);
   }
 }

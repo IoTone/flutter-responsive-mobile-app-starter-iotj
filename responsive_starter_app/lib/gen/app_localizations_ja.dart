@@ -2295,7 +2295,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get deviceRegionDisclaimer =>
-      'プリセット値はコミュニティで合意された運用例であり、法令適合を保証するものではありません。利用地で合法なプリセットを選び、メッシュ内の全ノードで同じ値を使用してください。日本（ARIB STD-T108）のプリセットはコミュニティ提案で、広範な実機検証は完了していません。実運用前に、法令適合性と動作をご自身のハードウェアで必ず確認してください。';
+      'プリセット値はコミュニティで合意された運用例であり、法令適合を保証するものではありません。利用地で合法なプリセットを選び、メッシュ内の全ノードで同じ値を使用してください。日本では設定値が合法でも不十分です。無線機本体が技適（技術基準適合証明）を取得している必要があり、海外から個人輸入したLoRaボードの多くは未取得です。未取得機の運用は設定内容にかかわらず電波法違反となります。日本（ARIB STD-T108）のプリセットはコミュニティ提案で、広範な実機検証は完了していません。実運用前に、法令適合性と動作をご自身のハードウェアで必ず確認してください。';
 
   @override
   String get presetUsCanada => '米国 / カナダ';
@@ -2305,6 +2305,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get presetJpAribT108 => '日本（ARIB STD-T108）';
+
+  @override
+  String get presetJpMeshcore => '日本（MeshCore-JP）';
 
   @override
   String get presetEuUkLong => 'EU / UK（長距離）';
